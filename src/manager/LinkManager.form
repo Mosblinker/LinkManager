@@ -2347,12 +2347,12 @@
                 </MenuItem>
                 <MenuItem class="javax.swing.JPopupMenu$Separator" name="jSeparator3">
                 </MenuItem>
-                <MenuItem class="javax.swing.JMenuItem" name="dropboxPKCELoginTestButton">
+                <MenuItem class="javax.swing.JMenuItem" name="dropboxLoginTestButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Login to Dropbox"/>
                   </Properties>
                   <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dropboxPKCELoginTestButtonActionPerformed"/>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dropboxLoginTestButtonActionPerformed"/>
                   </Events>
                 </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="dropboxClearLoginTestButton">

@@ -1697,7 +1697,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
         jSeparator3 = new javax.swing.JPopupMenu.Separator();
-        dropboxPKCELoginTestButton = new javax.swing.JMenuItem();
+        dropboxLoginTestButton = new javax.swing.JMenuItem();
         dropboxClearLoginTestButton = new javax.swing.JMenuItem();
         jSeparator2 = new javax.swing.JPopupMenu.Separator();
         uploadDBItem = new javax.swing.JMenuItem();
@@ -3274,13 +3274,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         jMenu2.add(dropboxRefreshTestButton);
         jMenu2.add(jSeparator3);
 
-        dropboxPKCELoginTestButton.setText("Login to Dropbox");
-        dropboxPKCELoginTestButton.addActionListener(new java.awt.event.ActionListener() {
+        dropboxLoginTestButton.setText("Login to Dropbox");
+        dropboxLoginTestButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dropboxPKCELoginTestButtonActionPerformed(evt);
+                dropboxLoginTestButtonActionPerformed(evt);
             }
         });
-        jMenu2.add(dropboxPKCELoginTestButton);
+        jMenu2.add(dropboxLoginTestButton);
 
         dropboxClearLoginTestButton.setText("Clear Dropbox Login");
         dropboxClearLoginTestButton.addActionListener(new java.awt.event.ActionListener() {
@@ -4602,6 +4602,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 //        System.out.println("Dropbox API App Key: " + getDropboxAPIAppKey());
 //        System.out.println("Dropbox API Secret Key: " + getDropboxAPISecretKey());
         if (loadDbxUtils() == null)
+    private void dropboxLoginTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxLoginTestButtonActionPerformed
             return;
         try{    // Run through the Dropbox API application process
             DbxRequestConfig requestConfig = dbxUtils.createRequest();
@@ -4669,9 +4670,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private void dropboxPKCELoginTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxPKCELoginTestButtonActionPerformed
         dropboxLoginTest(1);
-    }//GEN-LAST:event_dropboxPKCELoginTestButtonActionPerformed
+    }//GEN-LAST:event_dropboxLoginTestButtonActionPerformed
 
     private void dropboxRefreshTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxRefreshTestButtonActionPerformed
         System.out.println("Dropbox Access Token: " + dbxUtils.getAccessToken());
@@ -5513,7 +5513,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JCheckBoxMenuItem doubleNewLinesToggle;
     private javax.swing.JMenuItem downloadDBItem;
     private javax.swing.JMenuItem dropboxClearLoginTestButton;
-    private javax.swing.JMenuItem dropboxPKCELoginTestButton;
+    private javax.swing.JMenuItem dropboxLoginTestButton;
     private javax.swing.JMenuItem dropboxRefreshTestButton;
     private manager.dropbox.DropboxSetupPanel dropboxSetupPanel;
     private javax.swing.JMenuItem dropboxTestButton;
