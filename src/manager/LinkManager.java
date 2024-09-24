@@ -32,8 +32,6 @@ import java.beans.PropertyChangeEvent;
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -371,29 +369,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String DROPBOX_TOKEN_EXPIRATION_KEY = 
             "DropboxTokenExpiresAt";
-//    /**
-//     * This is the configuration key that indicates the version of the 
-//     * encryption algorithm used to encrypt the Dropbox tokens. This is used to 
-//     * detect whether the program should use an older decryption algorithm (or 
-//     * most likely to request re-authorization).
-//     */
-//    private static final String DROPBOX_ENCRYPTION_ALGORITHM_VERSION_KEY = 
-//            "DropboxEncryptionAlgorithm";
-//    private static final String DROPBOX
-    
-    
-    
-    /**
-     * This is the obfuscated key used by the program to encrypt and decrypt the 
-     * Dropbox account tokens. This key is obfuscated for security reasons to 
-     * ensure that, even if a malicious actor were to somehow gain access to 
-     * this value, they would not be able to decrypt the Dropbox account tokens 
-     * without first de-obfuscating this key. This key is de-obfuscated by the 
-     * program when necessary. This key is encoded in base 64 and is stored in 
-     * hexadecimal.
-     */
-    private static final String DROPBOX_TOKEN_ENCRYPTION_KEY = 
-            "HpYcut9hanDIUW1bOVdF+YljwJEJ5tGKh7Apdew/rAYXoIYmpk0F6bhyZyPJTUXxnwj9ZKNM4kU11JCsRGMZuNX5aSs=";
     /**
      * This is a collection storing the required Dropbox scope for the program. 
      * If this is null, then the program does not specify the scope it requires. 
@@ -725,50 +700,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
-     * @param obfuscatedKey
-     * @return 
-     */
-    private long getDropboxTokenEncryptionKey(String obfuscatedKey){
-            // The obfuscated obfuscation key
-        long seed = 0x86908CCB3E7DFE6EL;
-            // Deobfuscate the obfuscation key
-        seed = Long.reverseBytes(seed);
-        seed = Long.rotateRight(seed, 9);
-        seed = Long.reverse(seed);
-        seed = Long.rotateLeft(seed, 3);
-        seed = Long.reverse(seed);
-        seed = Long.rotateLeft(seed, 6);
-        seed = Long.reverseBytes(seed);
-            // Deobfuscate the value
-        String value = obfuscator.applyCiphers(obfuscatedKey, true, seed);
-            // Parse the value to get the encryption seed
-        return Long.parseUnsignedLong(value, 16);
-    }
-    /**
-     * 
-     * @return 
-     */
-    private long getDropboxTokenEncryptionKey(){
-        return getDropboxTokenEncryptionKey(DROPBOX_TOKEN_ENCRYPTION_KEY);
-    }
-    /**
-     * 
-     * @param token
-     * @param decrypt
-     * @return 
-     */
-    private String encryptDropboxToken(String token, boolean decrypt){
-        if (token == null)
-            return null;
-        try {
-            return obfuscator.encryptText(token, decrypt, getDropboxTokenEncryptionKey());
-        } catch (NoSuchAlgorithmException | SignatureException ex) {
-            // Do Something
-            return null;
-        }
-    }
-    /**
-     * 
      * @param key
      * @return 
      */
@@ -776,9 +707,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (privateConfig == null)
             return null;
         String token = privateConfig.getProperty(key);
-        if (token != null){
-            token = encryptDropboxToken(token,true);
-        }
         return token;
     }
     /**
@@ -787,9 +715,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param token 
      */
     private void setDropboxToken(String key, String token){
-        if (token != null){
-            token = encryptDropboxToken(token,false);
-        }
         setPrivateProperty(key, token);
     }
     /**
@@ -4549,11 +4474,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }//GEN-LAST:event_dbSearchButtonActionPerformed
     
-    
-    
     private void dropboxTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxTestButtonActionPerformed
-        System.out.println("Dropbox Token Encryption Key: " + 
-                getDropboxTokenEncryptionKey());
+//        System.out.println("Dropbox Token Encryption Key: " + 
+//                getDropboxTokenEncryptionKey());
         System.out.println("Dropbox API App Secret Key: " + dbxUtils.getSecretKey());
         System.out.println("Dropbox Access Token: " + dbxUtils.getAccessToken());
         System.out.println("Dropbox Refresh Token: " + dbxUtils.getRefreshToken());
@@ -4874,8 +4797,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_setLocationDialogComponentResized
 
     private void dbxPrintButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxPrintButtonActionPerformed
-        System.out.println("Dropbox Token Encryption Key: " + 
-                getDropboxTokenEncryptionKey());
         System.out.println("Dropbox API App Key: " + dbxUtils.getAppKey());
         System.out.println("Dropbox API Secret Key: " + dbxUtils.getSecretKey());
         System.out.println("Dropbox Access Token: " + dbxUtils.getAccessToken());
@@ -5516,10 +5437,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      */
     private DropboxLinkUtils dbxUtils = null;
-    /**
-     * 
-     */
-    private Obfuscator obfuscator;
+//    /**
+//     * 
+//     */
+//    private Obfuscator obfuscator;
     /**
      * This is used to format file sizes when displaying the size of a file.
      */
