@@ -565,43 +565,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             TextComponentCommands editCommands){
         addToPopupMenu(menu,undoCommands,editCommands,null);
     }
-//    /**
-//     * This gets the program file.
-//     * @return The program file.
-//     */
-//    private File getProgramFile(){
-//        try {    // Gets the URL of the program
-//            return new File(LinkManager.class.getProtectionDomain().
-//                    getCodeSource().getLocation().toURI());
-//        } catch (URISyntaxException ex) {
-//            java.util.logging.Logger.getLogger(LinkManager.class.getName())
-//                    .log(java.util.logging.Level.SEVERE, null, ex);
-//            if (isInDebug())      // If in debug mode
-//                System.out.println("getProgramFile Error: " + ex);
-//        }
-//        catch (SecurityException | NullPointerException e){ }
-//        return null;
-//    }
-//    /**
-//     * This returns the parent file for the program file.
-//     * @return The parent file for the program file.
-//     */
-//    private File getProgramParentFile(){
-//            // Get the absolute path for this program's file
-//        File parent = getProgramFile();
-//        if (parent != null)     // If the program's file was found
-//            parent = parent.getParentFile();
-//        return parent;
-//    }
     /**
-     * 
-     * @return 
+     * This returns the working directory for this program.
+     * @return The working directory for the program.
      */
     private String getWorkingDirectory(){
         return System.getProperty("user.dir");
     }
     /**
-     * 
+     * This returns the file located in the working directory
      * @param fileName
      * @return 
      */
@@ -1017,20 +989,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (tempID instanceof Integer)
                     // Use it as the listID
                 listID = (Integer) tempID;
-//            System.out.println(listID);
                 // If there is a listID selected
             if (listID != null)
                 dbListIDCombo.setSelectedItem(listID);
-//            if (listID == null){
-//                dbListIDCombo.setEnabled(false);
-//                updateListEditButtons();
-//                return;
-//            }
-//            try(LinkDatabaseConnection conn = connect()){
-//                setListEditSettings(conn,listID);
-//            }catch (SQLException | IllegalArgumentException ex) {
-//                System.out.println("Error: "+ex);
-//            }
         });
         dbCreatePrefixTree.setCellRenderer(new DefaultTreeCellRenderer(){
             @Override
@@ -3691,27 +3652,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void printDBButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_printDBButtonActionPerformed
         System.out.println("Database File Name: " + getDatabaseFileName());
         System.out.println("Database File: " + getDatabaseFile());
-        
-//        {
-//        ArrayList<String> temp = new ArrayList<>();
-//        temp.add("1.1.0");
-//        temp.add("1.3.0");
-//        temp.add("1.0.0");
-//        temp.add("0.0.0");
-//        temp.add("0.5.0");
-//        temp.add("1.4.1");
-//        temp.add("1.4.0");
-//        temp.add("1.4.10");
-//        temp.add("1.40.1");
-////        temp.add("1.4a.1");
-////        temp.add("1.4f.1");
-////        temp.add("1a.4.1");
-//        temp.add("10.4.1");
-//        temp.add("1.4.2");
-//        System.out.println(temp);
-//        temp.sort(null);
-//        System.out.println(temp);
-//        }
             // Try to connect to the database and create an SQL statement for it
         try(LinkDatabaseConnection conn = connect(getDatabaseFile());
             Statement stmt = conn.createStatement()){
@@ -3809,11 +3749,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbCreateTablesButtonActionPerformed
 
     private void foreignKeysToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_foreignKeysToggleActionPerformed
-//        try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
-//            conn.setForeignKeysEnabled(foreignKeysToggle.isSelected());
-//        } catch (SQLException | UncheckedSQLException ex) {
-//            System.out.println("Error: "+ex);
-//        }
         sqlConfig.enforceForeignKeys(foreignKeysToggle.isSelected());
     }//GEN-LAST:event_foreignKeysToggleActionPerformed
 
@@ -4995,7 +4930,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void searchListContents(LinkDatabaseConnection conn, String text, 
             Integer prefixID)throws SQLException{
         TreeMap<Integer, String> listNames = new TreeMap<>(conn.getListNameMap());
-//        System.out.println(text + " " + prefixID);
         try(PreparedStatement pstmt = conn.prepareStatement(
                 LinkDatabaseConnection.getListContentsSearchQuery(
                         text != null && !text.isEmpty(), prefixID != null))){
@@ -5051,7 +4985,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         showSchemaToggle.setEnabled(enabled);
         dbResetIDsButton.setEnabled(enabled);
         backupDBButton.setEnabled(enabled);
-//        moveDBButton.setEnabled(enabled);
         dbDropboxToggleButton.setEnabled(enabled);
         dbCreateTablesButton.setEnabled(enabled);
         updateDBFileButton.setEnabled(enabled);
@@ -6214,10 +6147,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config.remove(DATABASE_FILE_KEY);
             // Remove the old folder key
         config.remove(DATABASE_FOLDER_KEY);
-//        config.remove(CURRENT_TAB_LIST_ID_KEY);
-//        config.remove(CURRENT_TAB_INDEX_KEY);
-//        config.remove(SHOWN_CURRENT_TAB_LIST_ID_KEY);
-//        config.remove(SHOWN_CURRENT_TAB_INDEX_KEY);
     }
     /**
      * 
