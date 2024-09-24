@@ -163,13 +163,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             "DatabaseFileChangeOperation";
     /**
      * This is the configuration key for how the database file is being stored 
-     * by the program.
+     * externally (such as in the cloud) in addition to storing it locally by 
+     * the program.
      */
-    private static final String DATABASE_FILE_SOURCE_KEY = "DatabaseFileSource";
-    
-    private static final int DATABASE_FILE_SOURCE_LOCAL = 0;
-    
-    private static final int DATABASE_FILE_SOURCE_DROPBOX = 1;
+    private static final String EXTERNAL_DATABASE_FILE_SOURCE_KEY = 
+            "ExternalDatabaseFileSource";
+    /**
+     * This indicates that the database file is not being stored externally, 
+     * only locally.
+     */
+    private static final int EXTERNAL_DATABASE_FILE_SOURCE_NONE = 0;
+    /**
+     * This indicates that the database file is being stored in Dropbox as well 
+     * as locally.
+     */
+    private static final int EXTERNAL_DATABASE_FILE_SOURCE_DROPBOX = 1;
     /**
      * This is the configuration key for the autosave frequency setting.
      */
@@ -771,13 +779,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private int getDatabaseFileSourceMode(){
-        String value = config.getProperty(DATABASE_FILE_SOURCE_KEY);
+        String value = config.getProperty(EXTERNAL_DATABASE_FILE_SOURCE_KEY);
         if (value == null)
-            return DATABASE_FILE_SOURCE_LOCAL;
+            return EXTERNAL_DATABASE_FILE_SOURCE_NONE;
         try{
             return Integer.parseInt(value);
         } catch (NumberFormatException ex){
-            return DATABASE_FILE_SOURCE_LOCAL;
+            return EXTERNAL_DATABASE_FILE_SOURCE_NONE;
         }
     }
     /**
@@ -785,7 +793,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return Whether the program uses Dropbox to store the database file.
      */
     private boolean useDropboxForDatabaseFile(){
-        return getDatabaseFileSourceMode() == DATABASE_FILE_SOURCE_DROPBOX;
+        return getDatabaseFileSourceMode() == EXTERNAL_DATABASE_FILE_SOURCE_DROPBOX;
     }
     /**
      * 
@@ -1158,8 +1166,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         defaultConfig.setProperty(LINK_MANAGER_Y_KEY, Integer.toString(0));
 //        defaultConfig.setProperty(LINK_MANAGER_WINDOW_STATE_KEY, 
 //                Integer.toString(JFrame.NORMAL));
-        defaultConfig.setProperty(DATABASE_FILE_SOURCE_KEY, 
-                Integer.toString(DATABASE_FILE_SOURCE_LOCAL));
+        defaultConfig.setProperty(EXTERNAL_DATABASE_FILE_SOURCE_KEY, 
+                Integer.toString(EXTERNAL_DATABASE_FILE_SOURCE_NONE));
         defaultConfig.setProperty(DATABASE_FILE_CHANGE_OPERATION_KEY, 
                 Integer.toString(dbFileChangeCombo.getSelectedIndex()));
         
@@ -4634,7 +4642,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (dbDropboxToggleButton.isSelected()){
             
         } else {
-            setConfigProperty(DATABASE_FILE_SOURCE_KEY,DATABASE_FILE_SOURCE_LOCAL);
+            setConfigProperty(EXTERNAL_DATABASE_FILE_SOURCE_KEY,EXTERNAL_DATABASE_FILE_SOURCE_NONE);
             dbxUtils.clearCredentials();
         }
     }//GEN-LAST:event_dbDropboxToggleButtonActionPerformed
