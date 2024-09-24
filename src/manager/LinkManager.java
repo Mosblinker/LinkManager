@@ -99,6 +99,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String PRIVATE_CONFIG_FILE = "LinkManagerPrivate.cfg";
     /**
+     * This is the name of the file used to store the dropbox API keys.
+     */
+    public static final String DROPBOX_API_KEY_FILE = "dropbox_key.json";
+    /**
      * This is the header flag for the general settings in the configuration 
      * file.
      */
