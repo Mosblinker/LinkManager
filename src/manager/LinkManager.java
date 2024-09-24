@@ -4609,6 +4609,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             
             String authorizeURL = webAuth.authorize(webAuthRequest);
             
+            try {
+                openLink(authorizeURL);
+            } catch (URISyntaxException | IOException ex) {}
+            
             if (dropboxSetupPanel.showDialog(this, authorizeURL) != 
                     DropboxSetupPanel.ACCEPT_OPTION){
                 return;
