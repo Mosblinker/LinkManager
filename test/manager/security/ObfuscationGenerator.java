@@ -5,6 +5,7 @@
 package manager.security;
 
 import java.util.*;
+import selection.choice.YesOrNo;
 
 /**
  *
@@ -264,146 +265,11 @@ public class ObfuscationGenerator {
         
         return text;
     }
-    
-    private static final String[] OBFUSCATED_VALUES = {
-        "Hello World",                          // Test Value
-        "1xfofp9co7fpdcr",                      // Secret key
-        "7eL#dcm7I+4233*Sf2_W31$1##48*92m"      // Token Encrypt key?
-    };
-
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Random rand = new Random();
-        Obfuscator obfuscator = Obfuscator.getInstance();
         
-        long encryptKey = rand.nextLong();
-        System.out.println("Encryption key: " + encryptKey);
-        String encryptText = Long.toHexString(encryptKey).toUpperCase();
-        System.out.println("Encryption key: 0x" + encryptText);
-        
-        System.out.println();
-        ArrayList<String> plainText = new ArrayList<>(Arrays.asList(OBFUSCATED_VALUES));
-        plainText.add(encryptText);
-        
-        ArrayList<ObfuscateSeed> obfuscators = new ArrayList<>();
-        for (String text : plainText) {
-            obfuscators.add(new ObfuscateSeed(rand,text));
-        }
-        
-        System.out.println();
-        long obfuscateSeed = rand.nextLong();
-        System.out.println("Obfuscation Seed: " + obfuscateSeed);
-        ArrayList<Integer> seedOperations = new ArrayList<>();
-        ArrayList<Integer> seedDistance = new ArrayList<>();
-        generateSeedObfuscations(seedOperations,seedDistance,rand);
-        long obf = getObfuscatedSeed(obfuscateSeed,seedOperations,seedDistance);
-        System.out.println("Obfuscated Obfuscation Seed: " + obf);
-        long time = System.currentTimeMillis();
-        long deobf = getDeobfuscatedSeed(obf,seedOperations,seedDistance);
-        time = System.currentTimeMillis() - time;
-        System.out.println("Deobfuscated Obfuscation Seed: " + deobf);
-        System.out.println("Time to deobfuscate: " + time);
-        
-        System.out.println();
-        System.out.println("    // The obfuscated Obfuscation Key");
-        System.out.println("long seed = " + obf+";");
-        System.out.println("    // Deobfuscate the Obfuscation Key");
-        printDeobfuscateSeedCode("seed",seedOperations,seedDistance);
-        System.out.println("    // A random number generator to use to deobfuscate the value");
-        System.out.println("Random rand = new Random(seed);");
-        
-//        System.out.println();
-//        for (Obfuscator obfuscator : obfuscators){
-//            System.out.println();
-//            obfuscator.printSeedDeobfuscationCode();
-//        }
-        
-        System.out.println();
-        for (int i = 0; i < plainText.size(); i++){
-            String text = plainText.get(i);
-            long seed = obfuscators.get(i).seed;
-            System.out.printf("Plain Text: %s (Seed: 0x%016X)%n",text,seed);
-            Random r = new Random(seed);
-            Random tempRand = new Random(seed);
-            
-            tempRand.setSeed(seed);
-            String cipherText = CipherMap.streamCipher(text,tempRand);
-            tempRand.setSeed(seed);
-            String decipherText = CipherMap.streamCipher(cipherText,tempRand);
-            printCipherTestResults("Stream",text,cipherText,decipherText);
-            
-            tempRand.setSeed(seed);
-            cipherText = caesarCipher(text,false,tempRand);
-            tempRand.setSeed(seed);
-            decipherText = caesarCipher(cipherText,true,tempRand);
-            printCipherTestResults("Caeser",text,cipherText,decipherText);
-            
-            cipherText = CipherMap.ATBASH_CIPHER.applyCipher(text);
-            decipherText = CipherMap.ATBASH_CIPHER.getDecipherMap().applyCipher(cipherText);
-            printCipherTestResults("Atbash",text,cipherText,decipherText);
-            
-            cipherText = Obfuscator.reverseString(text);
-            decipherText = Obfuscator.reverseString(cipherText);
-            printCipherTestResults("Reverse",text,cipherText,decipherText);
-            
-            tempRand.setSeed(seed);
-            cipherText = encryptDecrypt(text,false,tempRand);
-            tempRand.setSeed(seed);
-            decipherText = encryptDecrypt(cipherText,true,tempRand);
-            printCipherTestResults("Encrypt/Decrypt",text,cipherText,decipherText);
-            
-            cipherText = Obfuscator.encodeBase64(text);
-            decipherText = Obfuscator.decodeBase64(cipherText);
-            printCipherTestResults("Base 64",text,cipherText,decipherText);
-            
-//            for (char c : text.toCharArray()){
-//                System.out.printf("%04X",(int)c);
-//            }
-//            System.out.println();
-//            byte[] dec = CipherCrypt.BASE_64_DECODER.decode(cipherText);
-//            for (byte b : dec){
-//                System.out.printf("%02X",b);
-//            }
-//            System.out.println();
-            
-            int n = r.nextInt(5)+2;
-            cipherText = CipherMap.railFenceCipher(text,false,n);
-            decipherText = CipherMap.railFenceCipher(cipherText,true,n);
-            printCipherTestResults("Rail Fence (n="+n+")",text,cipherText,decipherText);
-            
-            n = r.nextInt(5)+2;
-            cipherText = CipherMap.scytaleCipher(text,false,n);
-            decipherText = CipherMap.scytaleCipher(cipherText,true,n);
-            printCipherTestResults("Scytale (n="+n+")",text,cipherText,decipherText);
-            
-            n = r.nextInt(5)+3;
-            tempRand.setSeed(seed);
-            cipherText = CipherMap.columnarCipher(text,false,n,tempRand);
-            tempRand.setSeed(seed);
-            decipherText = CipherMap.columnarCipher(cipherText,true,n,tempRand);
-            printCipherTestResults("Columnar (n="+n+")",text,cipherText,decipherText);
-            
-            tempRand.setSeed(seed);
-            cipherText = obfuscator.insertRandomData(text, false, tempRand);
-            tempRand.setSeed(seed);
-            decipherText = obfuscator.insertRandomData(cipherText, true, tempRand);
-            printCipherTestResults("Random Data",text,cipherText,decipherText);
-            
-            try{
-                cipherText = obfuscator.encryptText(text, false, seed);
-                decipherText = obfuscator.encryptText(cipherText, true, seed);
-                printCipherTestResults("Obfuscator.encryptText",text,cipherText,decipherText);
-            } catch(Exception ex){
-                System.out.println("Obfuscator.encryptText Cipher: Error - " + ex);
-            }
-            
-            
-            System.out.println();
-        }
-        
-        System.out.println();
         CipherMap m1 = new CipherMap.InvertCharacterCipherMap();
 //        System.out.println(m1);
         CipherMap m2 = m1.getDecipherMap();
@@ -446,27 +312,160 @@ public class ObfuscationGenerator {
 //        }
         
         System.out.println();
-        for (ObfuscateSeed o : obfuscators){
-            System.out.printf("%s Obfuscator (0x%016X)%n",o.plainText,o.seed);
-            o.printSeedDeobfuscationCode();
-            System.out.println();
-        }
         
-        for (int a = 12; a <= obfuscator.getMaximumCipherAction(); a++){
-            System.out.println();
-            System.out.println("Actions: "+a);
-            for (int i = 0; i < plainText.size(); i++){
-                encryptValuesTest(i,plainText.get(i),obfuscators.get(i).seed,a,obfuscator);
-            }
-        }
+        Random rand = new Random();
+        Obfuscator obfuscator = Obfuscator.getInstance();
+        
+        long encryptKey = rand.nextLong();
+        System.out.println("Encryption key: " + encryptKey);
+        String encryptText = Long.toHexString(encryptKey).toUpperCase();
+        System.out.println("Encryption key: 0x" + encryptText);
         
         System.out.println();
-        for (int i = 0; i < plainText.size(); i++){
-            String text = plainText.get(i);
-            long seed = obfuscators.get(i).seed;
+        long obfuscateSeed = rand.nextLong();
+        System.out.println("Obfuscation Seed: " + obfuscateSeed);
+        ArrayList<Integer> seedOperations = new ArrayList<>();
+        ArrayList<Integer> seedDistance = new ArrayList<>();
+        generateSeedObfuscations(seedOperations,seedDistance,rand);
+        long obf = getObfuscatedSeed(obfuscateSeed,seedOperations,seedDistance);
+        System.out.println("Obfuscated Obfuscation Seed: " + obf);
+        long time = System.currentTimeMillis();
+        long deobf = getDeobfuscatedSeed(obf,seedOperations,seedDistance);
+        time = System.currentTimeMillis() - time;
+        System.out.println("Deobfuscated Obfuscation Seed: " + deobf);
+        System.out.println("Time to deobfuscate: " + time);
+        
+        System.out.println();
+        
+        System.out.println("    // The obfuscated Obfuscation Key");
+        System.out.println("long seed = " + obf+";");
+        System.out.println("    // Deobfuscate the Obfuscation Key");
+        printDeobfuscateSeedCode("seed",seedOperations,seedDistance);
+        System.out.println("    // A random number generator to use to deobfuscate the value");
+        System.out.println("Random rand = new Random(seed);");
+        
+        System.out.println();
+        
+        Scanner input = new Scanner(System.in);
+        
+        YesOrNo again = new YesOrNo();
+        
+        boolean doTests = again.askQuestion(input, "Would you like to run encrypt tests?");
+        
+        do{
+            System.out.println();
+            
+            System.out.print("Enter a value to obscure: ");
+            String text = "";
+            while (text.isBlank())
+                text = input.nextLine();
+            ObfuscateSeed o = new ObfuscateSeed(rand,text);
+            long seed = o.seed;
+            
+            System.out.println();
+            
+            if (doTests){
+                testEncryption(text,seed,obfuscator);
+                System.out.println();
+            }
+            
+            System.out.printf("%s Obfuscator (0x%016X)%n",text,seed);
+            o.printSeedDeobfuscationCode();
+            System.out.println();
+            
+            for (int a = 12; a <= obfuscator.getMaximumCipherAction(); a++){
+                System.out.print("Actions: ");
+                encryptValuesTest(a,text,seed,a,obfuscator);
+            }
+            
+            System.out.println();
+            
+            System.out.print("Final: ");
             String cipherText = obfuscator.applyCiphers(text,false,seed);
             String decipherText = obfuscator.applyCiphers(cipherText,true,seed);
-            printEncryptTest(i,text,cipherText,decipherText);
+            printEncryptTest(obfuscator.getMaximumCipherAction(),text,cipherText,decipherText);
+            
+            System.out.println();
+        }
+        while(again.askQuestion(input, "Obscure another value?"));
+        
+        input.close();
+    }
+    
+    private static void testEncryption(String text, long seed, Obfuscator obfuscator){
+        System.out.printf("Plain Text: %s (Seed: 0x%016X)%n",text,seed);
+        Random r = new Random(seed);
+        Random tempRand = new Random(seed);
+
+        tempRand.setSeed(seed);
+        String cipherText = CipherMap.streamCipher(text,tempRand);
+        tempRand.setSeed(seed);
+        String decipherText = CipherMap.streamCipher(cipherText,tempRand);
+        printCipherTestResults("Stream",text,cipherText,decipherText);
+
+        tempRand.setSeed(seed);
+        cipherText = caesarCipher(text,false,tempRand);
+        tempRand.setSeed(seed);
+        decipherText = caesarCipher(cipherText,true,tempRand);
+        printCipherTestResults("Caeser",text,cipherText,decipherText);
+
+        cipherText = CipherMap.ATBASH_CIPHER.applyCipher(text);
+        decipherText = CipherMap.ATBASH_CIPHER.getDecipherMap().applyCipher(cipherText);
+        printCipherTestResults("Atbash",text,cipherText,decipherText);
+
+        cipherText = Obfuscator.reverseString(text);
+        decipherText = Obfuscator.reverseString(cipherText);
+        printCipherTestResults("Reverse",text,cipherText,decipherText);
+
+        tempRand.setSeed(seed);
+        cipherText = encryptDecrypt(text,false,tempRand);
+        tempRand.setSeed(seed);
+        decipherText = encryptDecrypt(cipherText,true,tempRand);
+        printCipherTestResults("Encrypt/Decrypt",text,cipherText,decipherText);
+
+        cipherText = Obfuscator.encodeBase64(text);
+        decipherText = Obfuscator.decodeBase64(cipherText);
+        printCipherTestResults("Base 64",text,cipherText,decipherText);
+
+//            for (char c : text.toCharArray()){
+//                System.out.printf("%04X",(int)c);
+//            }
+//            System.out.println();
+//            byte[] dec = CipherCrypt.BASE_64_DECODER.decode(cipherText);
+//            for (byte b : dec){
+//                System.out.printf("%02X",b);
+//            }
+//            System.out.println();
+
+        int n = r.nextInt(5)+2;
+        cipherText = CipherMap.railFenceCipher(text,false,n);
+        decipherText = CipherMap.railFenceCipher(cipherText,true,n);
+        printCipherTestResults("Rail Fence (n="+n+")",text,cipherText,decipherText);
+
+        n = r.nextInt(5)+2;
+        cipherText = CipherMap.scytaleCipher(text,false,n);
+        decipherText = CipherMap.scytaleCipher(cipherText,true,n);
+        printCipherTestResults("Scytale (n="+n+")",text,cipherText,decipherText);
+
+        n = r.nextInt(5)+3;
+        tempRand.setSeed(seed);
+        cipherText = CipherMap.columnarCipher(text,false,n,tempRand);
+        tempRand.setSeed(seed);
+        decipherText = CipherMap.columnarCipher(cipherText,true,n,tempRand);
+        printCipherTestResults("Columnar (n="+n+")",text,cipherText,decipherText);
+
+        tempRand.setSeed(seed);
+        cipherText = obfuscator.insertRandomData(text, false, tempRand);
+        tempRand.setSeed(seed);
+        decipherText = obfuscator.insertRandomData(cipherText, true, tempRand);
+        printCipherTestResults("Random Data",text,cipherText,decipherText);
+
+        try{
+            cipherText = obfuscator.encryptText(text, false, seed);
+            decipherText = obfuscator.encryptText(cipherText, true, seed);
+            printCipherTestResults("Obfuscator.encryptText",text,cipherText,decipherText);
+        } catch(Exception ex){
+            System.out.println("Obfuscator.encryptText Cipher: Error - " + ex);
         }
     }
     
