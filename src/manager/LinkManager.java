@@ -266,7 +266,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String CURRENT_TAB_INDEX_KEY_PREFIX = 
             "CurrentTabIndexForType";
-    
     /**
      * This is the prefix for the configuration key for the currently selected 
      * link in a list with a listID. The list's listID is appended to the end of 
@@ -1185,6 +1184,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config = new Properties(defaultConfig);
         sqlConfig = new SQLiteConfig();
         sqlConfig.enforceForeignKeys(foreignKeysToggle.isSelected());
+        privateConfig = new Properties();
         
         listContentsObserver = (Integer index, Integer size) -> {
                 // If the size is null (indicates whether this is to toggle 
@@ -1206,6 +1206,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // TODO: Error message window
             }
         }
+        loadPrivateConfig(privateConfig);
         System.gc();        // Run the garbage collector
         configureProgram();
         if (ENABLE_INITIAL_LOAD_AND_SAVE){
@@ -1430,6 +1431,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private Object setConfigProperty(String key, Object value){
         return setConfigProperty(key,value,config);
+    }
+    /**
+     * 
+     * @param key
+     * @param value
+     * @return 
+     */
+    private Object setPrivateProperty(String key, Object value){
+        return setConfigProperty(key,value,privateConfig);
     }
     /**
      * 
@@ -6087,18 +6097,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This attempts to save the given properties map to the given file.
      * @param file The file to write to.
      * @param config The properties map to save.
+     * @param header The header for the properties.
      * @return If the file was successfully written.
      */
-    private boolean saveConfiguration(File file, Properties config){
+    private boolean saveConfiguration(File file, Properties config, String header){
             // Try to create a PrintWriter to write to the file
         try (PrintWriter writer = new PrintWriter(file)) {
             setIndeterminate(true);
                 // Store the configuration
-            config.store(writer, GENERAL_CONFIG_FLAG);
+            config.store(writer, header);
         } catch (IOException ex) {
             return false;
         }
         return true;
+    }
+    /**
+     * 
+     * @param file
+     * @param config
+     * @throws IOException 
+     */
+    private void loadProperties(File file, Properties config) throws IOException{
+            // Try to create a FileReader to read from the file
+        try(FileReader reader = new FileReader(file)){
+            config.clear();
+            config.load(reader);
+        }
     }
     /**
      * This attempts to read the contents of the given file and store it in the 
@@ -6109,11 +6133,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @throws IOException If an error occurs while reading the file.
      */
     private void loadConfiguration(File file, Properties config) throws IOException{
-            // Try to create a FileReader to read from the file
-        try(FileReader reader = new FileReader(file)){
-            config.clear();
-            config.load(reader);
-        }
+        loadProperties(file,config);
+        
             // TODO: These configuration keys are deprecated and are here for 
             // legacy reasons
         
@@ -6167,6 +6188,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return false;
         try {
             loadConfiguration(file, config);
+            return true;
+        } catch (IOException ex) {
+            return false;
+        }
+    }
+    /**
+     * 
+     * @param config
+     * @return 
+     */
+    private boolean loadPrivateConfig(Properties config){
+        File file = getPrivateConfigFile();
+        if (!file.exists())
+            return false;
+        try {
+            loadProperties(file,config);
             return true;
         } catch (IOException ex) {
             return false;
@@ -7776,8 +7813,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             Set<String> sqlPropNames = new TreeSet<>(sqlProp.stringPropertyNames());
                 // Add all the default SQLite configuration property names too
             sqlPropNames.addAll(defSQLProp.stringPropertyNames());
+                // Get the property names for this program's private settings
+            Set<String> privatePropNames = new TreeSet<>(privateConfig.stringPropertyNames());
             clearProgressValue();
-            setProgressMaximum(propNames.size()+sqlPropNames.size());
+            setProgressMaximum(propNames.size()+sqlPropNames.size()+privatePropNames.size());
             setIndeterminate(false);
                 // Go through the program's property names
             for (String property : propNames){
@@ -7787,6 +7826,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         config.getProperty(property),
                         config.containsKey(property),
                         defaultConfig.getProperty(property)
+                );
+                incrementProgressValue();
+            }
+                // Go through the program's private property names
+            for (String property : privatePropNames){
+                addConfigRow(
+                        "Private Properties",
+                        property,
+                        privateConfig.getProperty(property),
+                        privateConfig.containsKey(property),
+                        null
                 );
                 incrementProgressValue();
             }
@@ -8652,15 +8702,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             showHiddenListsToggle.setEnabled(false);
             setIndeterminate(true);
             Properties saveConfig = createSaveConfig(config);
-            if (exitAfterSaving && autoHideMenu.getDurationIndex() != 0)
-                    // Make sure hidden lists are hidden
-                setConfigProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,false,saveConfig);
-            if (!exitAfterSaving && !file.equals(getConfigFile())){
-                saveConfig.remove(DROPBOX_ACCESS_TOKEN_KEY);
-                saveConfig.remove(DROPBOX_REFRESH_TOKEN_KEY);
-                saveConfig.remove(DROPBOX_TOKEN_EXPIRATION_KEY);
+            if (exitAfterSaving){
+                if (autoHideMenu.getDurationIndex() != 0)
+                        // Make sure hidden lists are hidden
+                    setConfigProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,false,saveConfig);
+                if (!saveConfiguration(getPrivateConfigFile(),privateConfig, PRIVATE_CONFIG_FLAG))
+                    return false;
             }
-            return saveConfiguration(file,saveConfig);
+            return saveConfiguration(file,saveConfig, GENERAL_CONFIG_FLAG);
         }
         @Override
         public String getProgressString(){
