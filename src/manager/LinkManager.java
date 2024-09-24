@@ -4931,6 +4931,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 "Don't forget to disconnect this "
                 + "app from your Dropbox account.","Dropbox Log out",
                 JOptionPane.INFORMATION_MESSAGE);
+        updateExternalDBButtons();
     }//GEN-LAST:event_dbxLogOutButtonActionPerformed
 
     private void dbxLogInButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogInButtonActionPerformed
@@ -4997,6 +4998,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     "Dropbox Error Occurred", JOptionPane.ERROR_MESSAGE);
         }
         loadExternalAccountData();
+        updateExternalDBButtons();
     }//GEN-LAST:event_dbxLogInButtonActionPerformed
 
     private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
@@ -5203,6 +5205,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         listSetOpItem.setEnabled(enabled);
         updateListOperationButtons();
+    }
+    
+    private void updateExternalDBButtons(){
+        uploadDBItem.setEnabled(active && isLoggedInToDropbox());
+        downloadDBItem.setEnabled(uploadDBItem.isEnabled());
     }
     
     private void updateDBLocationEnabled(){
