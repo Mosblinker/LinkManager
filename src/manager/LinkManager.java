@@ -9031,6 +9031,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             return false;
         }
+        @Override
+        protected void done(){
+            super.done();
+            // Optionally load the database
+        }
     }
     /**
      * 
@@ -9177,6 +9182,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 ioEx = ex;
             }
             return false;
+        }
+        @Override
+        protected void done(){
+                // If we are exiting the program after saving the database
+            if (exitAfterSaving){   
+                saver = new ConfigSaver(true);
+                saver.execute();
+            }
+            else{
+                super.done();
+            }
         }
     }
     private abstract class LinksListWorker<E> extends LinkManagerWorker<E>{
