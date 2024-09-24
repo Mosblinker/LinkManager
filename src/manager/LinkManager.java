@@ -4803,13 +4803,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void dbxLogOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogOutButtonActionPerformed
         dbxUtils.clearCredentials();
-        savePrivateConfig();
-        setIndeterminate(false);
-        loadExternalAccountData();
-        JOptionPane.showMessageDialog(setLocationDialog, 
-                "Don't forget to disconnect this "
-                + "app from your Dropbox account.","Dropbox Log out",
-                JOptionPane.INFORMATION_MESSAGE);
+        saver = new PrivateConfigSaver(){
+            @Override
+            protected void done(){
+                super.done();
+                JOptionPane.showMessageDialog(setLocationDialog, 
+                        "Don't forget to disconnect this "
+                        + "app from your Dropbox account.","Dropbox Log out",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+        };
+        saver.execute();
     }//GEN-LAST:event_dbxLogOutButtonActionPerformed
 
     private void dbxLogInButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogInButtonActionPerformed
@@ -4858,15 +4862,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     JOptionPane.showMessageDialog(setLocationDialog,message,
                             "Missing Permissions",JOptionPane.ERROR_MESSAGE);
                     dbxUtils.clearCredentials();
-                    savePrivateConfig();
-                    setIndeterminate(false);
-                    loadExternalAccountData();
+                    saver = new PrivateConfigSaver();
+                    saver.execute();
                     return;
                 }
             }
             dbxUtils.setCredentials(authFinish);
-            savePrivateConfig();
-            setIndeterminate(false);
+            saver = new PrivateConfigSaver();
+            saver.execute();
         } catch (DbxException ex){
             if (isInDebug())
                 System.out.println("Error: " + ex);
@@ -4876,7 +4879,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             JOptionPane.showMessageDialog(setLocationDialog, message, 
                     "Dropbox Error Occurred", JOptionPane.ERROR_MESSAGE);
         }
-        loadExternalAccountData();
     }//GEN-LAST:event_dbxLogInButtonActionPerformed
 
     private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
@@ -8811,13 +8813,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             showHiddenListsToggle.setEnabled(false);
             setIndeterminate(true);
             Properties saveConfig = createSaveConfig(config);
-            if (exitAfterSaving){
-                if (autoHideMenu.getDurationIndex() != 0)
-                        // Make sure hidden lists are hidden
-                    setConfigProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,false,saveConfig);
-                if (!savePrivateConfig())
-                    return false;
-            }
+            if (exitAfterSaving && autoHideMenu.getDurationIndex() != 0)
+                    // Make sure hidden lists are hidden
+                setConfigProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,false,saveConfig);
             return saveConfiguration(file,saveConfig, GENERAL_CONFIG_FLAG);
         }
         @Override
@@ -8826,8 +8824,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
-            super.done();
-            showHiddenListsToggle.setEnabled(true);
+            if (exitAfterSaving){
+                saver = new PrivateConfigSaver(true);
+                saver.execute();
+            } else {
+                super.done();
+                showHiddenListsToggle.setEnabled(true);
+            }
         }
     }
     
@@ -9192,6 +9195,43 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
     }
+    /**
+     * 
+     */
+    private class PrivateConfigSaver extends FileSaver{
+        /**
+         * 
+         * @param exit 
+         */
+        public PrivateConfigSaver(boolean exit) {
+            super(getPrivateConfigFile(), exit);
+        }
+        /**
+         * 
+         */
+        public PrivateConfigSaver() {
+            super(getPrivateConfigFile());
+        }
+        @Override
+        public String getProgressString(){
+            return "Saving Configuration";
+        }
+        @Override
+        protected void showSuccessPrompt(File file){ }
+        @Override
+        protected boolean saveFile(File file) {
+            return savePrivateConfig();
+        }
+        @Override
+        protected void done(){
+            super.done();
+            loadExternalAccountData();
+        }
+    }
+    /**
+     * 
+     * @param <E> 
+     */
     private abstract class LinksListWorker<E> extends LinkManagerWorker<E>{
         
         protected LinksListPanel panel;
