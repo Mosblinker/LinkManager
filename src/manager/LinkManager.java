@@ -4622,6 +4622,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 //        System.out.println("Dropbox Token Encryption Key: " + getDropboxTokenEncryptionKey());
 //        System.out.println("Dropbox API App Key: " + getDropboxAPIAppKey());
 //        System.out.println("Dropbox API Secret Key: " + getDropboxAPISecretKey());
+        if (loadDbxUtils() == null)
+            return;
         try{    // Run through the Dropbox API application process
             DbxRequestConfig requestConfig = dbxUtils.createRequest();
             DbxAppInfo appInfo = dbxUtils.getAppInfo(mode != 1);
@@ -5426,7 +5428,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private DropboxLinkUtils dbxUtils;
+    private DropboxLinkUtils dbxUtils = null;
     /**
      * 
      */
