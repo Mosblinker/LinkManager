@@ -1536,7 +1536,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxLogInButton = new javax.swing.JButton();
         setDropboxCard = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        dbxDbFileField = new javax.swing.JTextField();
         dbxDataPanel = new javax.swing.JPanel();
         dbxPfpLabel = new components.JThumbnailLabel();
         dbxAccountLabel = new javax.swing.JLabel();
@@ -1910,7 +1910,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, setDropboxCardLayout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 395, Short.MAX_VALUE)))
+                        .addComponent(dbxDbFileField, javax.swing.GroupLayout.DEFAULT_SIZE, 395, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         setDropboxCardLayout.setVerticalGroup(
@@ -1921,7 +1921,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(dbxDbFileField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(50, Short.MAX_VALUE))
         );
 
@@ -4676,6 +4676,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (setLocationDialog.isLocationByPlatform())
             setLocationDialog.setLocationRelativeTo(this);
         setDatabaseFileLocationFields(getDatabaseFileName());
+        setExternalDatabaseFileLocationFields(getExternalDatabaseFileName());
         loadExternalAccountData();
         updateDBLocationEnabled();
         setLocationDialog.setVisible(true);
@@ -5606,6 +5607,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private manager.database.DatabaseTableViewer dbViewer;
     private javax.swing.JLabel dbxAccountLabel;
     private javax.swing.JPanel dbxDataPanel;
+    private javax.swing.JTextField dbxDbFileField;
     private javax.swing.JButton dbxLogInButton;
     private javax.swing.JButton dbxLogOutButton;
     private components.JThumbnailLabel dbxPfpLabel;
@@ -5638,7 +5640,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JPopupMenu.Separator jSeparator4;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JLabel linkCountLabel;
     private javax.swing.JOptionPane linkEditPane;
     private javax.swing.JCheckBoxMenuItem linkOperationToggle;
