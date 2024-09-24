@@ -1554,7 +1554,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbFileNameField = new javax.swing.JTextField();
         setDBFileNameButton = new javax.swing.JButton();
         resetDBFilePathButton = new javax.swing.JButton();
-        moveDBButton = new javax.swing.JButton();
         dbCreateTablesButton = new javax.swing.JButton();
         foreignKeysToggle = new javax.swing.JCheckBox();
         updateDBFileCombo = new javax.swing.JComboBox<>();
@@ -1572,10 +1571,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         shownTotalSizeLabel = new javax.swing.JLabel();
         javax.swing.JLabel allTotalSizeTextLabel = new javax.swing.JLabel();
         allTotalSizeLabel = new javax.swing.JLabel();
-        dbDropboxToggleButton = new javax.swing.JToggleButton();
-        jLabel1 = new javax.swing.JLabel();
-        dbDbxAccountNameLabel = new javax.swing.JLabel();
-        dbDbxSetAccountButton = new javax.swing.JButton();
         dbResetIDsButton = new javax.swing.JButton();
         javax.swing.JLabel dbUUIDTextLabel = new javax.swing.JLabel();
         dbUUIDLabel = new javax.swing.JLabel();
@@ -2051,14 +2046,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
 
-        moveDBButton.setText("Move Database");
-        moveDBButton.setEnabled(false);
-        moveDBButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                moveDBButtonActionPerformed(evt);
-            }
-        });
-
         dbCreateTablesButton.setText("Create Tables");
         dbCreateTablesButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -2130,24 +2117,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         allTotalSizeLabel.setText("0");
 
-        dbDropboxToggleButton.setText("Use Dropbox");
-        dbDropboxToggleButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dbDropboxToggleButtonActionPerformed(evt);
-            }
-        });
-
-        jLabel1.setText("Dropbox Account:");
-
-        dbDbxAccountNameLabel.setText("N/A");
-
-        dbDbxSetAccountButton.setText("Set Account");
-        dbDbxSetAccountButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dbDbxSetAccountButtonActionPerformed(evt);
-            }
-        });
-
         dbResetIDsButton.setText("Reset IDs");
         dbResetIDsButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -2171,40 +2140,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         .addComponent(updateDBFileCombo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(updateDBFileButton))
-                    .addGroup(dbFilePanelLayout.createSequentialGroup()
-                        .addComponent(dbDropboxToggleButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbDbxAccountNameLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbDbxSetAccountButton))
-                    .addGroup(dbFilePanelLayout.createSequentialGroup()
-                        .addComponent(resetDBFilePathButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(moveDBButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbCreateTablesButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbUpdateUsedPrefixesButton))
-                    .addGroup(dbFilePanelLayout.createSequentialGroup()
-                        .addComponent(dbVersionTextLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbVersionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 438, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, dbFilePanelLayout.createSequentialGroup()
                         .addComponent(dbFileNameLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(dbFileNameField)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(setDBFileNameButton, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(dbFilePanelLayout.createSequentialGroup()
-                        .addComponent(foreignKeysToggle)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(dbRemoveUnusedDataButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbRemoveDuplDataButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbResetIDsButton))
                     .addGroup(dbFilePanelLayout.createSequentialGroup()
                         .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(shownTotalSizeTextLabel)
@@ -2218,7 +2159,28 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                             .addComponent(linkCountLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(allTotalSizeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(shownTotalSizeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(dbUUIDLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(dbUUIDLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(dbFilePanelLayout.createSequentialGroup()
+                        .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(dbFilePanelLayout.createSequentialGroup()
+                                .addComponent(resetDBFilePathButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(dbCreateTablesButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(dbUpdateUsedPrefixesButton))
+                            .addGroup(dbFilePanelLayout.createSequentialGroup()
+                                .addComponent(dbVersionTextLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(dbVersionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 438, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(dbFilePanelLayout.createSequentialGroup()
+                                .addComponent(foreignKeysToggle)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(dbRemoveUnusedDataButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(dbRemoveDuplDataButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(dbResetIDsButton)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         dbFilePanelLayout.setVerticalGroup(
@@ -2231,14 +2193,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     .addComponent(setDBFileNameButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(dbDropboxToggleButton)
-                    .addComponent(jLabel1)
-                    .addComponent(dbDbxAccountNameLabel)
-                    .addComponent(dbDbxSetAccountButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(resetDBFilePathButton)
-                    .addComponent(moveDBButton)
                     .addComponent(dbCreateTablesButton)
                     .addComponent(dbUpdateUsedPrefixesButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -2275,7 +2230,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(allTotalSizeTextLabel)
                     .addComponent(allTotalSizeLabel))
-                .addContainerGap(218, Short.MAX_VALUE))
+                .addContainerGap(250, Short.MAX_VALUE))
         );
 
         dbTabbedPane.addTab("Database File", dbFilePanel);
@@ -3789,10 +3744,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }//GEN-LAST:event_printDBButtonActionPerformed
 
-    private void moveDBButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_moveDBButtonActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_moveDBButtonActionPerformed
-
     private void dbCreateTablesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbCreateTablesButtonActionPerformed
         try(LinkDatabaseConnection conn = connect(getDatabaseFile());
             Statement stmt = conn.createStatement()){
@@ -4686,19 +4637,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }//GEN-LAST:event_dropboxRefreshTestButtonActionPerformed
 
-    private void dbDropboxToggleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbDropboxToggleButtonActionPerformed
-        if (dbDropboxToggleButton.isSelected()){
-            
-        } else {
-            setConfigProperty(EXTERNAL_DATABASE_FILE_SOURCE_KEY,EXTERNAL_DATABASE_FILE_SOURCE_NONE);
-            dbxUtils.clearCredentials();
-        }
-    }//GEN-LAST:event_dbDropboxToggleButtonActionPerformed
-
-    private void dbDbxSetAccountButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbDbxSetAccountButtonActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_dbDbxSetAccountButtonActionPerformed
-
     private void setDBLocationItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBLocationItemActionPerformed
             // This will be true if the database location dialog has not been opened before
         if (setLocationDialog.isLocationByPlatform())
@@ -5041,7 +4979,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         showSchemaToggle.setEnabled(enabled);
         dbResetIDsButton.setEnabled(enabled);
         backupDBButton.setEnabled(enabled);
-        dbDropboxToggleButton.setEnabled(enabled);
         dbCreateTablesButton.setEnabled(enabled);
         updateDBFileButton.setEnabled(enabled);
         updateDBFileCombo.setEnabled(updateDBFileButton.isEnabled());
@@ -5451,9 +5388,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JScrollPane dbCreatePrefixScrollPane;
     private javax.swing.JTree dbCreatePrefixTree;
     private javax.swing.JButton dbCreateTablesButton;
-    private javax.swing.JLabel dbDbxAccountNameLabel;
-    private javax.swing.JButton dbDbxSetAccountButton;
-    private javax.swing.JToggleButton dbDropboxToggleButton;
     private javax.swing.JButton dbFileBrowseButton;
     private javax.swing.JComboBox<String> dbFileChangeCombo;
     private javax.swing.JTextField dbFileField;
@@ -5529,7 +5463,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JCheckBoxMenuItem hiddenLinkOperationToggle;
     private javax.swing.JMenuItem hideAllListsItem;
     private javax.swing.JMenu hideListsMenu;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JScrollPane jScrollPane2;
@@ -5561,7 +5494,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton manageLinksButton;
     private javax.swing.JMenuItem manageListsItem;
     private javax.swing.JMenuBar menuBar;
-    private javax.swing.JButton moveDBButton;
     private javax.swing.JButton newLinkButton;
     private javax.swing.JFileChooser openFC;
     private javax.swing.JButton openLinkButton;
@@ -7577,10 +7509,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private DefaultMutableTreeNode createPrefixTestNode = null;
         /**
-         * 
-         */
-        private String dropboxAcc = null;
-        /**
          * This constructs a LoadDatabaseViewer.
          * @param showFileNotFound Whether a file not found error should result 
          * in a popup being shown to the user.
@@ -7943,10 +7871,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         byteFormatter.format(dbFileSize), dbFileSize));
             if (dbUUID == null)
                 dbUUIDLabel.setText("N/A");
-            else{
+            else
                 dbUUIDLabel.setText(dbUUID.toString());
-                System.out.println(dbUUIDLabel.getText().length());
-            }
             dbVersionLabel.setText(Objects.toString(dbVersion,"N/A"));
             if (prefixThreshold != null)
                 prefixThresholdSpinner.setValue(prefixThreshold);
