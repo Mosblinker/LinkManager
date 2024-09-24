@@ -689,6 +689,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
+     * @return 
+     */
+    private String getExternalDatabaseFileName(){
+        return getDatabaseFileProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, 
+                defaultPrivateConfig.getProperty(EXTERNAL_DATABASE_FILE_PATH_KEY), 
+                privateConfig);
+    }
+    /**
+     * 
      * @param fileName The file name for the database file
      * @return 
      */
@@ -1216,7 +1225,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         defaultPrivateConfig = new Properties();
         defaultPrivateConfig.setProperty(EXTERNAL_DATABASE_FILE_SOURCE_KEY, 
                 Integer.toString(EXTERNAL_DATABASE_FILE_SOURCE_NONE));
-        
+        defaultPrivateConfig.setProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, 
+                LINK_DATABASE_FILE.toLowerCase());
         privateConfig = new Properties(defaultPrivateConfig);
         
         sqlConfig = new SQLiteConfig();
