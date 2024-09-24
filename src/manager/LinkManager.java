@@ -4698,6 +4698,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         databaseFC.setCurrentDirectory(file);
     }
     
+    private void setExternalDatabaseFileLocationFields(String fileName){
+        dbxDbFileField.setText(fileName);
+    }
+    
     private void setDBCancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBCancelButtonActionPerformed
         setLocationDialog.setVisible(false);
     }//GEN-LAST:event_setDBCancelButtonActionPerformed
@@ -4712,6 +4716,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     "Invalid Database File", JOptionPane.WARNING_MESSAGE);
             return;
         }
+        
+        String extFileName = dbxDbFileField.getText();
+        System.out.println(extFileName);
         
         File file = new File(fileName.trim());
         fileName = file.toString();
@@ -4831,6 +4838,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void setDBResetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBResetButtonActionPerformed
         setDatabaseFileLocationFields(defaultConfig.getProperty(DATABASE_FILE_PATH_KEY));
+        setExternalDatabaseFileLocationFields(defaultPrivateConfig.getProperty(EXTERNAL_DATABASE_FILE_PATH_KEY));
     }//GEN-LAST:event_setDBResetButtonActionPerformed
     
     private void dbFileBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileBrowseButtonActionPerformed
@@ -5207,6 +5215,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         dbxLogInButton.setEnabled(setDBLocationItem.isEnabled() && dbxUtils != null);
         dbxLogOutButton.setEnabled(setDBLocationItem.isEnabled());
+        dbxDbFileField.setEditable(dbFileField.isEditable());
         
         updateDBLocationButtons();
     }
