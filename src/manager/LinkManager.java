@@ -183,12 +183,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final int EXTERNAL_DATABASE_FILE_SOURCE_DROPBOX = 1;
     /**
-     * This is the configuration key for the database file path from an external 
-     * source such as Dropbox.
-     */
-    private static final String EXTERNAL_DATABASE_FILE_PATH_KEY = 
-            "ExternalDatabaseFilePath";
-    /**
      * This is the configuration key for the autosave frequency setting.
      */
     private static final String AUTOSAVE_FREQUENCY_KEY = 
@@ -692,8 +686,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private String getExternalDatabaseFileName(){
-        return getDatabaseFileProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, 
-                defaultPrivateConfig.getProperty(EXTERNAL_DATABASE_FILE_PATH_KEY), 
+        return getDatabaseFileProperty(DATABASE_FILE_PATH_KEY, 
+                defaultPrivateConfig.getProperty(DATABASE_FILE_PATH_KEY), 
                 privateConfig);
     }
     /**
@@ -1223,9 +1217,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config = new Properties(defaultConfig);
         
         defaultPrivateConfig = new Properties();
-        defaultPrivateConfig.setProperty(EXTERNAL_DATABASE_FILE_SOURCE_KEY, 
-                Integer.toString(EXTERNAL_DATABASE_FILE_SOURCE_NONE));
-        defaultPrivateConfig.setProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, 
+        defaultPrivateConfig.setProperty(DATABASE_FILE_PATH_KEY, 
                 LINK_DATABASE_FILE);
         privateConfig = new Properties(defaultPrivateConfig);
         
@@ -4838,7 +4830,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void setDBResetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBResetButtonActionPerformed
         setDatabaseFileLocationFields(defaultConfig.getProperty(DATABASE_FILE_PATH_KEY));
-        setExternalDatabaseFileLocationFields(defaultPrivateConfig.getProperty(EXTERNAL_DATABASE_FILE_PATH_KEY));
+        setExternalDatabaseFileLocationFields(defaultPrivateConfig.getProperty(DATABASE_FILE_PATH_KEY));
     }//GEN-LAST:event_setDBResetButtonActionPerformed
     
     private void dbFileBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileBrowseButtonActionPerformed
