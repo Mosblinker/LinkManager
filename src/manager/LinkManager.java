@@ -8844,6 +8844,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private IOException ioEx = null;
         /**
+         * Whether this should load all the lists. If this is null, then the 
+         * database will not be loaded after this.
+         */
+        private Boolean loadAll = null;
+        /**
          * 
          * @param dbxPath
          * @param file
@@ -8861,6 +8866,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         public DbxDownloader(String dbxPath, File file){
             this(dbxPath,file,true);
+        }
+        
+        public Boolean getLoadsAll(){
+            return loadAll;
+        }
+        
+        public void setLoadsAll(Boolean loadAll){
+            this.loadAll = loadAll;
+        }
+        
+        public boolean willLoadDatabase(){
+            return loadAll != null;
+        }
+        
+        @Override
+        protected void showSuccessPrompt(File file){
+            if (!willLoadDatabase())
+                showSuccessPrompt(file);
         }
         @Override
         public String getProgressString(){
@@ -8947,7 +8970,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             super.done();
-            // Optionally load the database
+            if (willLoadDatabase()){
+                loader = new DatabaseLoader(loadAll);
+                loader.execute();
+            }
         }
     }
     /**
