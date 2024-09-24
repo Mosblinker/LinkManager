@@ -6893,8 +6893,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // If this should show file not found prompts
                 if (showFileNotFound){
                     JOptionPane.showMessageDialog(LinkManager.this, 
-                            getFileNotFoundMessage(), 
-                            "ERROR - File Failed To Load", 
+                            getFileNotFoundMessage(), getFailureTitle(), 
                             JOptionPane.ERROR_MESSAGE);
                 }
                 return false;
@@ -6902,10 +6901,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             else{   // Ask the user if they would like to try loading the file
                 return JOptionPane.showConfirmDialog(LinkManager.this, // again
                         getFailureMessage()+"\nWould you like to try again?",
-                        "ERROR - File Failed To Load",
-                        JOptionPane.YES_NO_OPTION,
+                        getFailureTitle(),JOptionPane.YES_NO_OPTION,
                         JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
             }
+        }
+        /**
+         * This returns the title for the dialog to display if the file fails to 
+         * be saved.
+         * @return The title for the dialog to display if the file fails to
+         * save.
+         */
+        protected String getFailureTitle(){
+            return "ERROR - File Failed To Load";
         }
         /**
          * This returns the message to display if the file fails to load.
@@ -9018,7 +9025,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return "Moving File";
         }
     }
-    
     /**
      * 
      */
