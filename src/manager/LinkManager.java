@@ -859,21 +859,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private static File createTempFile() throws IOException{
         return File.createTempFile("LinkManager", null);
     }
-    /**
-     * This constructs a new LinkManager with the given value determining if it 
-     * is in debug mode.
-     * @param debugMode Whether the program is in debug mode.
-     */
-    public LinkManager(boolean debugMode) {
-        this.debugMode = debugMode;
-        super.setIconImage(new ImageIcon(this.getClass().getResource(ICON_FILE))
-                .getImage());
-        editCommands = new HashMap<>();
-        undoCommands = new HashMap<>();
-        textPopupMenus = new HashMap<>();
-        
-        obfuscator = Obfuscator.getInstance();
-        
+    
+    private DropboxLinkUtils loadDbxUtils(){
+        if (dbxUtils != null)
+            return dbxUtils;
         dbxUtils = new DropboxLinkUtils(){
             @Override
             public String getAppKey() {
@@ -929,6 +918,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 setConfigProperty(DROPBOX_TOKEN_EXPIRATION_KEY,time);
             }
         };
+        return dbxUtils;
+    }
+    /**
+     * This constructs a new LinkManager with the given value determining if it 
+     * is in debug mode.
+     * @param debugMode Whether the program is in debug mode.
+     */
+    public LinkManager(boolean debugMode) {
+        this.debugMode = debugMode;
+        super.setIconImage(new ImageIcon(this.getClass().getResource(ICON_FILE))
+                .getImage());
+        editCommands = new HashMap<>();
+        undoCommands = new HashMap<>();
+        textPopupMenus = new HashMap<>();
+        
+        obfuscator = Obfuscator.getInstance();
+        
+        loadDbxUtils();
         
         initComponents();
         
