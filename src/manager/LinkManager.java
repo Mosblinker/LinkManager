@@ -721,6 +721,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return Whether the program is logged in to Dropbox.
      */
     private boolean isLoggedInToDropbox(){
+            // TODO: Deal with invalid access tokens
         return loadDbxUtils() != null && dbxUtils.getAccessToken() != null;
     }
     /**
@@ -4812,7 +4813,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 "Don't forget to disconnect this "
                 + "app from your Dropbox account.","Dropbox Log out",
                 JOptionPane.INFORMATION_MESSAGE);
-        updateExternalDBButtons();
     }//GEN-LAST:event_dbxLogOutButtonActionPerformed
 
     private void dbxLogInButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogInButtonActionPerformed
@@ -4830,6 +4830,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             
             String authorizeURL = webAuth.authorize(webAuthRequest);
             
+                // Try to open the authorization web page in the user's browser
             try {
                 openLink(authorizeURL);
             } catch (URISyntaxException | IOException ex) {}
@@ -4879,7 +4880,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     "Dropbox Error Occurred", JOptionPane.ERROR_MESSAGE);
         }
         loadExternalAccountData();
-        updateExternalDBButtons();
     }//GEN-LAST:event_dbxLogInButtonActionPerformed
 
     private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
@@ -5026,6 +5026,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
         setCard(setLocationPanel,setExternalCard);
+        updateExternalDBButtons();
     }
     /**
      * @param args the command line arguments
