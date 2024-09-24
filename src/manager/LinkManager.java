@@ -6089,6 +6089,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
+     * @return 
+     */
+    private boolean savePrivateConfig(){
+        File file = getPrivateConfigFile();
+        if (!file.exists() && privateConfig.isEmpty())
+            return true;
+        return saveConfiguration(file,privateConfig, PRIVATE_CONFIG_FLAG);
+    }
+    /**
+     * 
      * @param file
      * @param config
      * @throws IOException 
@@ -8678,7 +8688,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (autoHideMenu.getDurationIndex() != 0)
                         // Make sure hidden lists are hidden
                     setConfigProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,false,saveConfig);
-                if (!saveConfiguration(getPrivateConfigFile(),privateConfig, PRIVATE_CONFIG_FLAG))
+                if (!savePrivateConfig())
                     return false;
             }
             return saveConfiguration(file,saveConfig, GENERAL_CONFIG_FLAG);
