@@ -4594,29 +4594,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxUtils.setAccessToken(token);
     }//GEN-LAST:event_setDropboxTestButtonActionPerformed
     
-    private void dropboxLoginTest(int mode){
-        // 0 - Short lived token
-        // 1 - PKCE
-        // 2 - Scope
-//        System.out.println("Dropbox Token Encryption Key: " + getDropboxTokenEncryptionKey());
-//        System.out.println("Dropbox API App Key: " + getDropboxAPIAppKey());
-//        System.out.println("Dropbox API Secret Key: " + getDropboxAPISecretKey());
-        if (loadDbxUtils() == null)
     private void dropboxLoginTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxLoginTestButtonActionPerformed
+        if (loadDbxUtils() == null){
+            JOptionPane.showMessageDialog(this,
+                    "Dropbox API data failed to load.", 
+                    "Dropbox API Failure", JOptionPane.ERROR_MESSAGE);
             return;
+        }
         try{    // Run through the Dropbox API application process
             DbxRequestConfig requestConfig = dbxUtils.createRequest();
-            DbxAppInfo appInfo = dbxUtils.getAppInfo(mode != 1);
+            DbxAppInfo appInfo = dbxUtils.getAppInfo();
             DbxWebAuthWrapper webAuth = new DbxWebAuthWrapper(requestConfig,appInfo);
-            DbxWebAuth.Request webAuthRequest = dbxUtils.createWebAuthRequest((mode==2)?
-                    Collections.singletonList("account_info.read") : null);
+            DbxWebAuth.Request webAuthRequest = dbxUtils.createWebAuthRequest();
             
             String authorizeURL = webAuth.authorize(webAuthRequest);
-            
-            System.out.println("1. Go to " + authorizeURL);
-            System.out.println("2. Click \"Allow\" (you might have to log in first).");
-            System.out.println("3. Copy the authorization code.");
-            System.out.println("4. Enter the authorization code into the popup.");
             
             if (dropboxSetupPanel.showDialog(this, authorizeURL) != 
                     DropboxSetupPanel.ACCEPT_OPTION){
@@ -4630,11 +4621,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             
             DbxAuthFinish authFinish = webAuth.finishFromCode(code);
             
-            if (mode == 2){
-                if (!authFinish.getScope().contains("account_info.read")){
-                    System.out.println("Your app does not have the appropriate scope(s).");
-                    dbxUtils.clearCredentials();
-                    return;
+            if (dbxUtils.getPermissionScope() != null && 
+                    !dbxUtils.getPermissionScope().isEmpty()){
+                for (String permission : dbxUtils.getPermissionScope()){
+                    if (!authFinish.getScope().contains(permission)){
+                        System.out.println("Your app does not have the appropriate scope(s).");
+                        dbxUtils.clearCredentials();
+                        return;
+                    }
                 }
                 System.out.println("Successfully requested scope "+authFinish.getScope());
             }
@@ -4650,27 +4644,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             
             dbxUtils.setCredentials(authFinish);
             System.out.println("Saved to configuration.");
-            
-//            // Save auth information the new DbxCredential instance. It also contains app_key and
-//            // app_secret which is required to do refresh call.
-//            DbxCredential credential = new DbxCredential(authFinish.getAccessToken(), authFinish
-//                .getExpiresAt(), authFinish.getRefreshToken(), appInfo.getKey(), appInfo.getSecret());
-////            File output = new File(argAuthFileOutput);
-//            try {
-//                DbxCredential.Writer.writeToStream(credential, System.out, true);
-////                DbxCredential.Writer.writeToFile(credential, output);
-////                System.out.println("Saved authorization information to \"" + output.getCanonicalPath() + "\".");
-//            } catch (IOException ex) {
-//                System.err.println("Error saving to <auth-file-out>: " + ex.getMessage());
-//                System.err.println("Dumping to stderr instead:");
-////                DbxCredential.Writer.writeToStream(credential, System.err);
-//            }
         } catch (DbxException ex){
             System.out.println("Error: " + ex);
         }
-    }
-    
-        dropboxLoginTest(1);
     }//GEN-LAST:event_dropboxLoginTestButtonActionPerformed
 
     private void dropboxRefreshTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxRefreshTestButtonActionPerformed
