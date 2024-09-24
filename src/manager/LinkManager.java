@@ -4902,11 +4902,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         savePrivateConfig();
         setIndeterminate(false);
         loadExternalAccountData();
+        JOptionPane.showMessageDialog(setLocationDialog, 
+                "Don't forget to disconnect this "
+                + "app from your Dropbox account.","Dropbox Log out",
+                JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_dbxLogOutButtonActionPerformed
 
     private void dbxLogInButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogInButtonActionPerformed
         if (loadDbxUtils() == null){
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(setLocationDialog,
                     "Dropbox API data failed to load.", 
                     "Dropbox API Failure", JOptionPane.ERROR_MESSAGE);
             return;
@@ -4923,7 +4927,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 openLink(authorizeURL);
             } catch (URISyntaxException | IOException ex) {}
             
-            if (dropboxSetupPanel.showDialog(this, authorizeURL) != 
+            if (dropboxSetupPanel.showDialog(setLocationDialog, authorizeURL) != 
                     DropboxSetupPanel.ACCEPT_OPTION){
                 return;
             }
@@ -4946,8 +4950,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     for (String temp : missing){
                         message += "\n\t"+missing;
                     }
-                    JOptionPane.showMessageDialog(this,message,"Missing Permissions",
-                            JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(setLocationDialog,message,
+                            "Missing Permissions",JOptionPane.ERROR_MESSAGE);
                     dbxUtils.clearCredentials();
                     savePrivateConfig();
                     setIndeterminate(false);
@@ -4959,7 +4963,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             savePrivateConfig();
             setIndeterminate(false);
         } catch (DbxException ex){
-            System.out.println("Error: " + ex);
+            if (isInDebug())
+                System.out.println("Error: " + ex);
+            String message = "An error occurred while setting up Dropbox.";
+            if (showDBErrorDetailsToggle.isSelected())
+                message += "\nError: " + ex;
+            JOptionPane.showMessageDialog(setLocationDialog, message, 
+                    "Dropbox Error Occurred", JOptionPane.ERROR_MESSAGE);
         }
         loadExternalAccountData();
     }//GEN-LAST:event_dbxLogInButtonActionPerformed
