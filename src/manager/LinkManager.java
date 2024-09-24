@@ -4979,52 +4979,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private void loadExternalAccountData(){
         if (isLoggedInToDropbox()){
-            try{
-                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
-                DbxCredential cred = dbxUtils.getCredentials();
-                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
-                refreshDbxCredentials(cred,client);
-                setIndeterminate(false);
-                FullAccount account = client.users().getCurrentAccount();
-                dbxAccountLabel.setText(account.getName().getDisplayName());
-                String pfpUrl = account.getProfilePhotoUrl();
-                Icon pfpIcon = null;
-                if (pfpUrl != null){
-                    try{
-                        pfpIcon = new ImageIcon(new URL(pfpUrl), 
-                                dbxAccountLabel.getText()+"'s Profile Picture");
-                    } catch (MalformedURLException ex){ }
-                }
-                if (pfpIcon == null){
-                    pfpIcon = new DefaultPfpIcon(new Color(account.getAccountId().hashCode()));
-                }
-                dbxPfpLabel.setIcon(pfpIcon);
-                SpaceUsage spaceUsage = client.users().getSpaceUsage();
-                SpaceAllocation spaceAllocation = spaceUsage.getAllocation();
-                long used = spaceUsage.getUsed();
-                long allocated;
-                if (spaceAllocation.isTeam())
-                    allocated = spaceAllocation.getTeamValue().getAllocated();
-                else
-                    allocated = spaceAllocation.getIndividualValue().getAllocated();
-                long free = allocated - used;
-                dbxSpaceUsedLabel.setText(byteFormatter.format(used) + " ("+used+" Bytes)");
-                dbxSpaceFreeLabel.setText(byteFormatter.format(free) + " ("+free+" Bytes)");
-                setCard(setLocationPanel,setDropboxCard);
-                return;
-            } catch (DbxException ex){
-                if (isInDebug())
-                    System.out.println("Error: " + ex);
-                String message = "An error occurred loading the information for"
-                        + " your Dropbox account.";
-                if (showDBErrorDetailsToggle.isSelected())
-                    message += "\nError: " + ex;
-                JOptionPane.showMessageDialog(setLocationDialog, message, 
-                        "Dropbox Error Occurred", JOptionPane.ERROR_MESSAGE);
-            }
+            dbxLoader = new DbxAccountLoader();
+            dbxLoader.execute();
         }
-        setCard(setLocationPanel,setExternalCard);
-        updateExternalDBButtons();
+        else {
+            setCard(setLocationPanel,setExternalCard);
+            updateExternalDBButtons();
+        }
     }
     /**
      * @param args the command line arguments
@@ -5372,6 +5333,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is used to perform changes to a LinksListPanel in the background.
      */
     private LinksListWorker linksWorker = null;
+    /**
+     * This is used to load the account details for the user's Dropbox account.
+     */
+    private DbxAccountLoader dbxLoader = null;
     /**
      * This is a BiConsumer used to observe the loading and saving of lists.
      */
@@ -9193,6 +9158,166 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             else{
                 super.done();
             }
+        }
+    }
+    /**
+     * 
+     */
+    private class DbxAccountLoader extends LinkManagerWorker<Void>{
+        /**
+         * This gets any Dropbox exceptions that get thrown while loading the 
+         * Dropbox account.
+         */
+        private DbxException dbxEx = null;
+        /**
+         * Whether this successfully loaded the account information.
+         */
+        private boolean success = false;
+        /**
+         * Whether the account is a valid Dropbox account.
+         */
+        private boolean validAccount = true;
+        /**
+         * The Dropbox account's user name.
+         */
+        private String accountName = null;
+        /**
+         * The Dropbox account's profile picture.
+         */
+        private Icon pfpIcon = null;
+        /**
+         * The amount of space that the user has used in their Dropbox account.
+         */
+        private long used = 0;
+        /**
+         * The amount of space allocated to the user's Dropbox account.
+         */
+        private long allocated = 0;
+        @Override
+        public String getProgressString() {
+            return "Loading Dropbox Account";
+        }
+        /**
+         * This is used to display a failure prompt to the user when the dropbox 
+         * account fails to load. If the failure prompt is a retry prompt, then 
+         * this method should return whether to try load the account again. 
+         * Otherwise, this method should return {@code false}.
+         * @return {@code true} if this should attempt to load the account 
+         * again, {@code false} otherwise.
+         */
+        protected boolean showFailurePrompt(){
+            if (!validAccount){
+                JOptionPane.showMessageDialog(setLocationDialog, 
+                        "Dropbox failed to load due to the account being invalid.",
+                        "ERROR - Dropbox Account Load Failed",
+                        JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+                // The message to return
+            String msg = "An error occurred loading the information for your "
+                    + "Dropbox account.";
+                // If the program is either in debug mode or if details are to 
+                // be shown
+            if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
+                if (dbxEx != null)
+                    msg += "\nError: " + dbxEx;
+            }
+               // Ask the user if they would like to try loading the account
+            return JOptionPane.showConfirmDialog(LinkManager.this, // again
+                    msg+"\nWould you like to try again?",
+                    "ERROR - Dropbox Account Load Failed",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
+        }
+        /**
+         * 
+         * @throws DbxException 
+         * @return 
+         */
+        protected boolean loadDropboxAccount(){
+                // Reset the exceptions
+            dbxEx = null;
+            try{    // Create the Dropbox client
+                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
+                    // Get the Dropbox credentials
+                DbxCredential cred = dbxUtils.getCredentials();
+                    // Get a client to communicate with Dropbox
+                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
+                    // Refresh the Dropbox credentials if necessary
+                refreshDbxCredentials(cred,client);
+                    // Get the request for the user
+                DbxUserUsersRequests users = client.users();
+                    // Get the account details for the user
+                FullAccount account = users.getCurrentAccount();
+                    // Get the user's account name
+                accountName = account.getName().getDisplayName();
+                    // Get the URL for the user's profile picture
+                String pfpUrl = account.getProfilePhotoUrl();
+                    // If the user has a profile picture set.
+                if (pfpUrl != null){
+                    try{    // Load the profile picture
+                        pfpIcon = new ImageIcon(new URL(pfpUrl), 
+                                accountName+"'s Profile Picture");
+                    } catch (MalformedURLException ex){ }
+                }   // If the user did not have a profile picture set or the 
+                    // profile picture failed to load
+                if (pfpIcon == null || (((ImageIcon)pfpIcon).getImageLoadStatus() 
+                        & (java.awt.MediaTracker.ABORTED | java.awt.MediaTracker.ERRORED)) != 0)
+                        // Set the profile picture to a default profile picture 
+                        // with a background color dependent on the hash code of 
+                        // their unique user ID.
+                    pfpIcon = new DefaultPfpIcon(new Color(account.getAccountId().hashCode()));
+                    // Get the space usage for the user
+                SpaceUsage spaceUsage = users.getSpaceUsage();
+                    // Get the allocation of the space for the user
+                SpaceAllocation spaceAllocation = spaceUsage.getAllocation();
+                    // Get the amount of space used by the user
+                used = spaceUsage.getUsed();
+                    // If the user's account is part of a team
+                if (spaceAllocation.isTeam())
+                        // Get the amount of space allocated to the team
+                    allocated = spaceAllocation.getTeamValue().getAllocated();
+                else    // Get the amount of space allocated to the user alone
+                    allocated = spaceAllocation.getIndividualValue().getAllocated();
+                return true;
+            } catch (InvalidAccessTokenException ex){
+                validAccount = false;
+            } catch(DbxException ex){
+                dbxEx = ex;
+            }
+            return false;
+        }
+        @Override
+        protected Void backgroundAction() throws Exception {
+                // Whether the user wants this to try loading the account again 
+            boolean retry = false;  // if unsuccessful
+            do{
+                success = loadDropboxAccount();    // Try to load the account
+                if (!success)    // If the acount failed to load
+                        // Show the failure prompt and get if the user wants to 
+                    retry = showFailurePrompt();    // try again
+            }   // While the account failed to load and the user wants to try 
+            while(!success && retry);   // again
+            return null;
+        }
+        @Override
+        protected void done(){
+            if (success){
+                dbxAccountLabel.setText(accountName);
+                dbxPfpLabel.setIcon(pfpIcon);
+                dbxSpaceUsedLabel.setText(byteFormatter.format(used) + " ("+used+" Bytes)");
+                    // Get the space the user has free
+                long free = allocated - used;
+                dbxSpaceFreeLabel.setText(byteFormatter.format(free) + " ("+free+" Bytes)");
+                setCard(setLocationPanel,setDropboxCard);
+            } else if (!validAccount){
+                dbxUtils.clearCredentials();
+                saver = new PrivateConfigSaver();
+                saver.execute();
+            } else {
+                setCard(setLocationPanel,setExternalCard);
+            }
+            super.done();
         }
     }
     /**
