@@ -7111,12 +7111,30 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return saveFile(file);
         }
         /**
+         * This returns the title for the dialog to display if the file is 
+         * successfully saved.
+         * @return The title for the dialog to display if the file is 
+         * successfully saved.
+         */
+        protected String getSuccessTitle(){
+            return "File Saved Successfully";
+        }
+        /**
          * This returns the message to display if the file is successfully 
          * saved.
          * @return The message to display if the file is successfully saved.
          */
         protected String getSuccessMessage(){
             return "The file was successfully saved.";
+        }
+        /**
+         * This returns the title for the dialog to display if the file fails to 
+         * be saved.
+         * @return The title for the dialog to display if the file fails to
+         * save.
+         */
+        protected String getFailureTitle(){
+            return "ERROR - File Failed To Save";
         }
         /**
          * This returns the message to display if the file fails to be saved.
@@ -7139,7 +7157,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // If the program is not to exit after saving the file
             if (!exitAfterSaving)   
                 JOptionPane.showMessageDialog(LinkManager.this, 
-                        getSuccessMessage(), "File Saved Successfully", 
+                        getSuccessMessage(), getSuccessTitle(), 
                         JOptionPane.INFORMATION_MESSAGE);
         }
         /**
@@ -7154,7 +7172,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // try and save the file again and get their input. 
             int option = JOptionPane.showConfirmDialog(LinkManager.this, 
                     getFailureMessage()+"\nWould you like to try again?",
-                    "ERROR - File Failed To Save",
+                    getFailureTitle(),
                         // If the program is to exit after saving the file, show 
                         // a third "cancel" option to allow the user to cancel 
                         // exiting the program
