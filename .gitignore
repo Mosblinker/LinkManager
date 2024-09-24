@@ -37,3 +37,6 @@ replay_pid*
 
 # Ignore windows shortcut files
 *.lnk
+
+/build/*
+/dist/*
