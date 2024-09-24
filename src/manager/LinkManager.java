@@ -1200,11 +1200,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         Integer.toString(dim.height));
             }
         }
-        
         config = new Properties(defaultConfig);
+        
+        defaultPrivateConfig = new Properties();
+        
+        privateConfig = new Properties(defaultPrivateConfig);
+        
         sqlConfig = new SQLiteConfig();
         sqlConfig.enforceForeignKeys(foreignKeysToggle.isSelected());
-        privateConfig = new Properties();
         
         listContentsObserver = (Integer index, Integer size) -> {
                 // If the size is null (indicates whether this is to toggle 
@@ -1427,9 +1430,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param key
      * @param value
      * @param config
+     * @param defaultConfig 
      * @return 
      */
-    private Object setConfigProperty(String key, Object value, Properties config){
+    private Object setConfigProperty(String key, Object value,Properties config,
+            Properties defaultConfig){
         if (config != null){
             if (value == null)
                 return config.remove(key);
@@ -1450,7 +1455,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return
      */
     private Object setConfigProperty(String key, Object value){
-        return setConfigProperty(key,value,config);
+        return setConfigProperty(key,value,config,defaultConfig);
     }
     /**
      * 
@@ -1459,7 +1464,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private Object setPrivateProperty(String key, Object value){
-        return setConfigProperty(key,value,privateConfig);
+        return setConfigProperty(key,value,privateConfig,defaultPrivateConfig);
     }
     /**
      * 
@@ -5356,6 +5361,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private Properties defaultConfig = null;
     /**
+     * This is a properties map that stores the default configuration for 
+     * private configuration for this program, and which serves as the default 
+     * properties map for {@code privateConfig}.
+     */
+    private Properties defaultPrivateConfig = null;
+    /**
      * This is a properties map that stores the private configuration data for 
      * this program. This is used to store things like passwords and such.
      */
@@ -7835,6 +7846,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             sqlPropNames.addAll(defSQLProp.stringPropertyNames());
                 // Get the property names for this program's private settings
             Set<String> privatePropNames = new TreeSet<>(privateConfig.stringPropertyNames());
+                // Add all the default private property names too
+            privatePropNames.addAll(defaultPrivateConfig.stringPropertyNames());
             clearProgressValue();
             setProgressMaximum(propNames.size()+sqlPropNames.size()+privatePropNames.size());
             setIndeterminate(false);
@@ -7856,7 +7869,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         property,
                         privateConfig.getProperty(property),
                         privateConfig.containsKey(property),
-                        null
+                        defaultPrivateConfig.getProperty(property)
                 );
                 incrementProgressValue();
             }
