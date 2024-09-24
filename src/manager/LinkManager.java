@@ -774,9 +774,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private String getDropboxToken(String key){
-        if (config == null)
+        if (privateConfig == null)
             return null;
-        String token = config.getProperty(key);
+        String token = privateConfig.getProperty(key);
         if (token != null){
             token = encryptDropboxToken(token,true);
         }
@@ -791,7 +791,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (token != null){
             token = encryptDropboxToken(token,false);
         }
-        setConfigProperty(key, token);
+        setPrivateProperty(key, token);
     }
     /**
      * 
@@ -868,9 +868,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
                 @Override
                 public Long getTokenExpiresAt() {
-                    if (config == null)
+                    if (privateConfig == null)
                         return null;
-                    String value = config.getProperty(DROPBOX_TOKEN_EXPIRATION_KEY);
+                    String value = privateConfig.getProperty(DROPBOX_TOKEN_EXPIRATION_KEY);
                     if (value == null)
                         return null;
                     try{
@@ -881,7 +881,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
                 @Override
                 public void setTokenExpiresAt(Long time) {
-                    setConfigProperty(DROPBOX_TOKEN_EXPIRATION_KEY,time);
+                    setPrivateProperty(DROPBOX_TOKEN_EXPIRATION_KEY,time);
                 }
                 @Override
                 public DbxAppInfo getAppInfo(){
