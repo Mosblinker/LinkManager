@@ -40,3 +40,6 @@ replay_pid*
 
 /build/*
 /dist/*
+
+# Ignore the dropbox credentials file
+dropbox_key.json
