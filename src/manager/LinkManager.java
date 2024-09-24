@@ -21,6 +21,7 @@ import files.FilesExtended;
 import static files.FilesExtended.generateExtensionFilter;
 import files.extensions.ConfigExtensions;
 import static files.extensions.TextDocumentExtensions.TEXT_FILTER;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Desktop;
@@ -75,10 +76,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is the path of the icon that this program displays.
      */
     public static final String ICON_FILE = "/images/Link Manager Icon.png";
-    /**
-     * This is the path of the icon displayed when there is no profile picture.
-     */
-    public static final String DEFAULT_PFP_FILE = "/images/Default PFP.png";
     /**
      * This is a list containing the default names for the lists of links. <p>
      * 0: Links
@@ -4989,7 +4986,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 FullAccount account = client.users().getCurrentAccount();
                 dbxAccountLabel.setText(account.getName().getDisplayName());
                 String pfpUrl = account.getProfilePhotoUrl();
-                ImageIcon pfpIcon = null;
+                Icon pfpIcon = null;
                 if (pfpUrl != null){
                     try{
                         pfpIcon = new ImageIcon(new URL(pfpUrl), 
@@ -4997,8 +4994,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     } catch (MalformedURLException ex){ }
                 }
                 if (pfpIcon == null){
-                    pfpIcon = new ImageIcon(this.getClass()
-                            .getResource(DEFAULT_PFP_FILE));
+                    pfpIcon = new DefaultPfpIcon(new Color(account.getAccountId().hashCode()));
                 }
                 dbxPfpLabel.setIcon(pfpIcon);
                 SpaceUsage spaceUsage = client.users().getSpaceUsage();
