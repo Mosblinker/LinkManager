@@ -398,28 +398,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private static final String DROPBOX_TOKEN_ENCRYPTION_KEY = 
             "HpYcut9hanDIUW1bOVdF+YljwJEJ5tGKh7Apdew/rAYXoIYmpk0F6bhyZyPJTUXxnwj9ZKNM4kU11JCsRGMZuNX5aSs=";
     /**
-     * This is the Dropbox API app key for this program. This key is not 
-     * obfuscated.
-     */
-    private static final String DROPBOX_API_APP_KEY = "01kb0kqgeanbgig";
-    /**
-     * This is the obfuscated Dropbox API app secret key for this program. This 
-     * key is obfuscated for security reasons to ensure that, even if a 
-     * malicious actor were to somehow gain access to this value, they would not 
-     * be able to claim that their application is this application without first 
-     * de-obfuscating this key. This key is de-obfuscated by the program when 
-     * necessary. This key is encoded in base 64.
-     */
-    private static final String DROPBOX_API_SECRET_KEY = 
-            "nxYT8pEpIjmfzNT3HRVOzVObOzWKv6iuXeehDjTHNmT1sQitRmNvGY1P97O9tlib7u"
-            + "ZixJJt52DzqXpo867Q03Qz5NoSgthISOUrgnp9Sv3/aLeNEo0m2xkKckTOYID+"
-            + "q5YhFRJlac9wkh5yHlcggV7adbevh4GvOGpGbyGPfImHnw==";
-    /**
-     * This stores whether this program uses PKCE for authorization. PKCE flow 
-     * doesn't require app secret keys when getting authorization.
-     */
-    private static final boolean DROPBOX_USES_PKCE = true;
-    /**
      * This is a collection storing the required Dropbox scope for the program. 
      * If this is null, then the program does not specify the scope it requires. 
      * If not, then this set should be immutable.
@@ -771,25 +749,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private long getDropboxTokenEncryptionKey(){
         return getDropboxTokenEncryptionKey(DROPBOX_TOKEN_ENCRYPTION_KEY);
-    }
-    /**
-     * 
-     * @return 
-     */
-    private String getDropboxAPISecretKey(){
-            // The obfuscated obfuscation key
-        long seed = 0x69CD1AAAE714517AL;
-            // Deobfuscate the obfuscation key
-        seed = Long.reverseBytes(seed);
-        seed = Long.rotateRight(seed, 3);
-        seed = Long.reverseBytes(seed);
-        seed = Long.rotateLeft(seed, 5);
-        seed = Long.reverseBytes(seed);
-        seed = Long.rotateRight(seed, 4);
-        seed = Long.reverse(seed);
-        seed = Long.reverseBytes(seed);
-            // Deobfuscate the value
-        return obfuscator.applyCiphers(DROPBOX_API_SECRET_KEY, true, seed);
     }
     /**
      * 
