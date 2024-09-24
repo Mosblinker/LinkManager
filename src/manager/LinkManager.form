@@ -2337,51 +2337,30 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="setDropboxTestButtonActionPerformed"/>
                   </Events>
                 </MenuItem>
-                <Menu class="javax.swing.JMenu" name="jMenu1">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="Dropbox Login Tests"/>
-                  </Properties>
-                  <SubComponents>
-                    <MenuItem class="javax.swing.JMenuItem" name="dropboxShortLoginTestButton">
-                      <Properties>
-                        <Property name="text" type="java.lang.String" value="Login with a Short Lived Token"/>
-                      </Properties>
-                      <Events>
-                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dropboxShortLoginTestButtonActionPerformed"/>
-                      </Events>
-                    </MenuItem>
-                    <MenuItem class="javax.swing.JMenuItem" name="dropboxPKCELoginTestButton">
-                      <Properties>
-                        <Property name="text" type="java.lang.String" value="Login using PKCE"/>
-                      </Properties>
-                      <Events>
-                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dropboxPKCELoginTestButtonActionPerformed"/>
-                      </Events>
-                    </MenuItem>
-                    <MenuItem class="javax.swing.JMenuItem" name="dropboxScopeLoginTestButton">
-                      <Properties>
-                        <Property name="text" type="java.lang.String" value="Login using Scoped Authorization"/>
-                      </Properties>
-                      <Events>
-                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dropboxScopeLoginTestButtonActionPerformed"/>
-                      </Events>
-                    </MenuItem>
-                    <MenuItem class="javax.swing.JMenuItem" name="dropboxClearLoginTestButton">
-                      <Properties>
-                        <Property name="text" type="java.lang.String" value="Clear Login"/>
-                      </Properties>
-                      <Events>
-                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dropboxClearLoginTestButtonActionPerformed"/>
-                      </Events>
-                    </MenuItem>
-                  </SubComponents>
-                </Menu>
                 <MenuItem class="javax.swing.JMenuItem" name="dropboxRefreshTestButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Refresh Dropbox Token"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dropboxRefreshTestButtonActionPerformed"/>
+                  </Events>
+                </MenuItem>
+                <MenuItem class="javax.swing.JPopupMenu$Separator" name="jSeparator3">
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="dropboxPKCELoginTestButton">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Login to Dropbox"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dropboxPKCELoginTestButtonActionPerformed"/>
+                  </Events>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="dropboxClearLoginTestButton">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Clear Dropbox Login"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dropboxClearLoginTestButtonActionPerformed"/>
                   </Events>
                 </MenuItem>
                 <MenuItem class="javax.swing.JPopupMenu$Separator" name="jSeparator2">

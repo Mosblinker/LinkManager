@@ -1695,12 +1695,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxPrintButton = new javax.swing.JMenuItem();
         dropboxTestButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
-        jMenu1 = new javax.swing.JMenu();
-        dropboxShortLoginTestButton = new javax.swing.JMenuItem();
-        dropboxPKCELoginTestButton = new javax.swing.JMenuItem();
-        dropboxScopeLoginTestButton = new javax.swing.JMenuItem();
-        dropboxClearLoginTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
+        jSeparator3 = new javax.swing.JPopupMenu.Separator();
+        dropboxPKCELoginTestButton = new javax.swing.JMenuItem();
+        dropboxClearLoginTestButton = new javax.swing.JMenuItem();
         jSeparator2 = new javax.swing.JPopupMenu.Separator();
         uploadDBItem = new javax.swing.JMenuItem();
         downloadDBItem = new javax.swing.JMenuItem();
@@ -3267,42 +3265,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         });
         jMenu2.add(setDropboxTestButton);
 
-        jMenu1.setText("Dropbox Login Tests");
-
-        dropboxShortLoginTestButton.setText("Login with a Short Lived Token");
-        dropboxShortLoginTestButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dropboxShortLoginTestButtonActionPerformed(evt);
-            }
-        });
-        jMenu1.add(dropboxShortLoginTestButton);
-
-        dropboxPKCELoginTestButton.setText("Login using PKCE");
-        dropboxPKCELoginTestButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dropboxPKCELoginTestButtonActionPerformed(evt);
-            }
-        });
-        jMenu1.add(dropboxPKCELoginTestButton);
-
-        dropboxScopeLoginTestButton.setText("Login using Scoped Authorization");
-        dropboxScopeLoginTestButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dropboxScopeLoginTestButtonActionPerformed(evt);
-            }
-        });
-        jMenu1.add(dropboxScopeLoginTestButton);
-
-        dropboxClearLoginTestButton.setText("Clear Login");
-        dropboxClearLoginTestButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dropboxClearLoginTestButtonActionPerformed(evt);
-            }
-        });
-        jMenu1.add(dropboxClearLoginTestButton);
-
-        jMenu2.add(jMenu1);
-
         dropboxRefreshTestButton.setText("Refresh Dropbox Token");
         dropboxRefreshTestButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -3310,6 +3272,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         jMenu2.add(dropboxRefreshTestButton);
+        jMenu2.add(jSeparator3);
+
+        dropboxPKCELoginTestButton.setText("Login to Dropbox");
+        dropboxPKCELoginTestButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dropboxPKCELoginTestButtonActionPerformed(evt);
+            }
+        });
+        jMenu2.add(dropboxPKCELoginTestButton);
+
+        dropboxClearLoginTestButton.setText("Clear Dropbox Login");
+        dropboxClearLoginTestButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dropboxClearLoginTestButtonActionPerformed(evt);
+            }
+        });
+        jMenu2.add(dropboxClearLoginTestButton);
         jMenu2.add(jSeparator2);
 
         uploadDBItem.setText("Upload Database");
@@ -4690,14 +4669,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private void dropboxScopeLoginTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxScopeLoginTestButtonActionPerformed
-        dropboxLoginTest(2);
-    }//GEN-LAST:event_dropboxScopeLoginTestButtonActionPerformed
-
-    private void dropboxShortLoginTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxShortLoginTestButtonActionPerformed
-        dropboxLoginTest(0);
-    }//GEN-LAST:event_dropboxShortLoginTestButtonActionPerformed
-
     private void dropboxPKCELoginTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxPKCELoginTestButtonActionPerformed
         dropboxLoginTest(1);
     }//GEN-LAST:event_dropboxPKCELoginTestButtonActionPerformed
@@ -5544,9 +5515,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem dropboxClearLoginTestButton;
     private javax.swing.JMenuItem dropboxPKCELoginTestButton;
     private javax.swing.JMenuItem dropboxRefreshTestButton;
-    private javax.swing.JMenuItem dropboxScopeLoginTestButton;
     private manager.dropbox.DropboxSetupPanel dropboxSetupPanel;
-    private javax.swing.JMenuItem dropboxShortLoginTestButton;
     private javax.swing.JMenuItem dropboxTestButton;
     private javax.swing.JButton editLinkButton;
     private javax.swing.JPopupMenu editPopupMenu;
@@ -5561,11 +5530,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenu hideListsMenu;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
+    private javax.swing.JPopupMenu.Separator jSeparator3;
     private javax.swing.JPopupMenu.Separator jSeparator4;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JLabel linkCountLabel;
