@@ -1511,6 +1511,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        java.awt.GridBagConstraints gridBagConstraints;
 
         openFC = new javax.swing.JFileChooser();
         saveFC = new javax.swing.JFileChooser();
@@ -1525,10 +1526,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbFilePopupMenu = new javax.swing.JPopupMenu();
         setLocationDialog = new javax.swing.JDialog(this);
         setLocationPanel = new javax.swing.JPanel();
-        setLocalFileCard = new javax.swing.JPanel();
+        setExternalCard = new javax.swing.JPanel();
+        dbxLogInButton = new javax.swing.JButton();
         setDropboxCard = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jTextField1 = new javax.swing.JTextField();
+        dbxDataPanel = new javax.swing.JPanel();
+        dbxPfpLabel = new components.JThumbnailLabel();
+        dbxAccountLabel = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        dbxSpaceUsedLabel = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        dbxSpaceFreeLabel = new javax.swing.JLabel();
+        dbxLogOutButton = new javax.swing.JButton();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
@@ -1779,47 +1790,129 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         setLocationPanel.setLayout(new java.awt.CardLayout());
 
-        setLocalFileCard.setName("setLocalFile"); // NOI18N
+        setExternalCard.setBorder(javax.swing.BorderFactory.createTitledBorder("Set Up External File"));
+        setExternalCard.setName("logInCard"); // NOI18N
 
-        javax.swing.GroupLayout setLocalFileCardLayout = new javax.swing.GroupLayout(setLocalFileCard);
-        setLocalFileCard.setLayout(setLocalFileCardLayout);
-        setLocalFileCardLayout.setHorizontalGroup(
-            setLocalFileCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 456, Short.MAX_VALUE)
+        dbxLogInButton.setText("Set Up Dropbox");
+
+        javax.swing.GroupLayout setExternalCardLayout = new javax.swing.GroupLayout(setExternalCard);
+        setExternalCard.setLayout(setExternalCardLayout);
+        setExternalCardLayout.setHorizontalGroup(
+            setExternalCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(setExternalCardLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(dbxLogInButton)
+                .addContainerGap(316, Short.MAX_VALUE))
         );
-        setLocalFileCardLayout.setVerticalGroup(
-            setLocalFileCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 192, Short.MAX_VALUE)
+        setExternalCardLayout.setVerticalGroup(
+            setExternalCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(setExternalCardLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(dbxLogInButton)
+                .addContainerGap(160, Short.MAX_VALUE))
         );
 
-        setLocationPanel.add(setLocalFileCard, "card2");
+        setLocationPanel.add(setExternalCard, "logInCard");
 
         setDropboxCard.setBorder(javax.swing.BorderFactory.createTitledBorder("Dropbox"));
         setDropboxCard.setName("setDropbox"); // NOI18N
 
         jLabel2.setText("File:");
 
+        dbxDataPanel.setLayout(new java.awt.GridBagLayout());
+
+        dbxPfpLabel.setImageScaleMode(components.JThumbnailLabel.ALWAYS_SCALE_MAINTAIN_ASPECT_RATIO);
+        dbxPfpLabel.setThumbnailBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 5;
+        gridBagConstraints.ipadx = 100;
+        gridBagConstraints.ipady = 100;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 12);
+        dbxDataPanel.add(dbxPfpLabel, gridBagConstraints);
+
+        dbxAccountLabel.setFont(dbxAccountLabel.getFont().deriveFont(dbxAccountLabel.getFont().getStyle() | java.awt.Font.BOLD));
+        dbxAccountLabel.setText("N/A");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
+        dbxDataPanel.add(dbxAccountLabel, gridBagConstraints);
+
+        jLabel1.setText("Space Used:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 12);
+        dbxDataPanel.add(jLabel1, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 0.9;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
+        dbxDataPanel.add(dbxSpaceUsedLabel, gridBagConstraints);
+
+        jLabel5.setText("Space Free:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 12);
+        dbxDataPanel.add(jLabel5, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        dbxDataPanel.add(dbxSpaceFreeLabel, gridBagConstraints);
+
+        dbxLogOutButton.setText("Log Out");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        dbxDataPanel.add(dbxLogOutButton, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        gridBagConstraints.weightx = 0.75;
+        dbxDataPanel.add(filler1, gridBagConstraints);
+
         javax.swing.GroupLayout setDropboxCardLayout = new javax.swing.GroupLayout(setDropboxCard);
         setDropboxCard.setLayout(setDropboxCardLayout);
         setDropboxCardLayout.setHorizontalGroup(
             setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(setDropboxCardLayout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, setDropboxCardLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
+                .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(dbxDataPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, setDropboxCardLayout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 395, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         setDropboxCardLayout.setVerticalGroup(
             setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(setDropboxCardLayout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, setDropboxCardLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(dbxDataPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 146, Short.MAX_VALUE))
+                .addContainerGap(50, Short.MAX_VALUE))
         );
 
-        setLocationPanel.add(setDropboxCard, "card3");
+        setLocationPanel.add(setDropboxCard, "setDropbox");
 
         dbFileChangeLabel.setLabelFor(dbFileChangeCombo);
         dbFileChangeLabel.setText("File Operation:");
@@ -1893,7 +1986,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         .addComponent(dbFileChangeCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(locationControlPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(setLocationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(setLocationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 457, Short.MAX_VALUE)
                     .addGroup(setLocationDialogLayout.createSequentialGroup()
                         .addComponent(dbFileLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -5447,7 +5540,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JLabel dbVersionLabel;
     private javax.swing.JMenuItem dbViewItem;
     private manager.database.DatabaseTableViewer dbViewer;
+    private javax.swing.JLabel dbxAccountLabel;
+    private javax.swing.JPanel dbxDataPanel;
+    private javax.swing.JButton dbxLogInButton;
+    private javax.swing.JButton dbxLogOutButton;
+    private components.JThumbnailLabel dbxPfpLabel;
     private javax.swing.JMenuItem dbxPrintButton;
+    private javax.swing.JLabel dbxSpaceFreeLabel;
+    private javax.swing.JLabel dbxSpaceUsedLabel;
     private javax.swing.JMenu debugMenu;
     private javax.swing.JCheckBoxMenuItem doubleNewLinesToggle;
     private javax.swing.JMenuItem downloadDBItem;
@@ -5463,11 +5563,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JFileChooser exportFC;
     private javax.swing.JMenuItem exportListsItem;
     private javax.swing.JMenu fileMenu;
+    private javax.swing.Box.Filler filler1;
     private javax.swing.JCheckBox foreignKeysToggle;
     private javax.swing.JCheckBoxMenuItem hiddenLinkOperationToggle;
     private javax.swing.JMenuItem hideAllListsItem;
     private javax.swing.JMenu hideListsMenu;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JPopupMenu.Separator jSeparator1;
@@ -5534,7 +5637,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton setDBResetButton;
     private javax.swing.JPanel setDropboxCard;
     private javax.swing.JMenuItem setDropboxTestButton;
-    private javax.swing.JPanel setLocalFileCard;
+    private javax.swing.JPanel setExternalCard;
     private javax.swing.JDialog setLocationDialog;
     private javax.swing.JPanel setLocationPanel;
     private javax.swing.JMenuItem showAllListsItem;
