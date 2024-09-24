@@ -43,7 +43,9 @@ public abstract class DropboxLinkUtils {
      * 
      * @return 
      */
-    public abstract boolean usesPKCE();
+    public boolean usesPKCE(){
+        return !hasSecretKey();
+    }
     /**
      * 
      * @return 
