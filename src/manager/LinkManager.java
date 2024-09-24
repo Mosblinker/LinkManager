@@ -9,8 +9,7 @@ import com.dropbox.core.json.JsonReader;
 import com.dropbox.core.oauth.*;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
-import com.dropbox.core.v2.users.FullAccount;
-import com.dropbox.core.v2.users.SpaceUsage;
+import com.dropbox.core.v2.users.*;
 import components.*;
 import components.debug.DebugCapable;
 import components.disable.DisableGUIInput;
@@ -4576,10 +4575,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             time = System.currentTimeMillis() - time;
             System.out.println("PFP Loaded Time: " + time);
             time = System.currentTimeMillis();
-            SpaceUsage spaceUsed = client.users().getSpaceUsage();
-            System.out.println("Space Usage: " + spaceUsed);
-            System.out.println("Space Used: " + spaceUsed.getUsed() + " Bytes");
+            SpaceUsage spaceUsage = client.users().getSpaceUsage();
+            System.out.println("Space Usage: " + spaceUsage);
+            long used = spaceUsage.getUsed();
+            SpaceAllocation spaceAllocation = spaceUsage.getAllocation();
+            long allocated;
+            if (spaceAllocation.isTeam())
+                allocated = spaceAllocation.getTeamValue().getAllocated();
+            else
+                allocated = spaceAllocation.getIndividualValue().getAllocated();
             time = System.currentTimeMillis() - time;
+            System.out.println("Space Used: " + byteFormatter.format(used));
+            System.out.println("Space Free: " + byteFormatter.format(allocated - used));
+            System.out.println("Total Space: " + byteFormatter.format(allocated));
             System.out.println("Space Used Loaded Time: " + time);
             time = System.currentTimeMillis();
             // Get files and folder metadata from Dropbox root directory
