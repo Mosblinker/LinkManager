@@ -9055,6 +9055,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public DbxUploader(String dbxPath, File file){
             this(dbxPath,file,false);
         }
+        @Override
+        public String getProgressString(){
+            return "Uploading File";
+        }
         /**
          * This sets whether the program will exit after this finishes saving 
          * the file.
