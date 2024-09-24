@@ -5081,6 +5081,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             } catch (DbxException ex){
                 if (isInDebug())
                     System.out.println("Error: " + ex);
+                String message = "An error occurred loading the information for"
+                        + " your Dropbox account.";
+                if (showDBErrorDetailsToggle.isSelected())
+                    message += "\nError: " + ex;
+                JOptionPane.showMessageDialog(setLocationDialog, message, 
+                        "Dropbox Error Occurred", JOptionPane.ERROR_MESSAGE);
             }
         }
         setCard(setLocationPanel,setExternalCard);
