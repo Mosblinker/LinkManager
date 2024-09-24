@@ -9144,18 +9144,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (dbxFileExists(dbxPath,dbxFiles))
                         // Delete the file so that it can be replaced
                     dbxFiles.deleteV2(dbxPath);
-                
-                    // Set the progress bar to no longer be indeterminate
+                    // Set the progress to be zero
+                setProgressValue(0);
+                    // Get the value needed to divide the file length to get it 
+                    // back into the range of integers
+                int divider = 1;
+                    // While the divided file length is larger than the integer 
+                    // maximum
+                while (Math.ceil(file.length() / ((double)divider)) > Integer.MAX_VALUE)
+                    divider++;
+                    // Create a copy of divisor to get around it needing to 
+                    // be effectively final
+                double div = divider;
+                    // Set the progress maximum to the file length divided by 
+                    // the divisor
+                setProgressMaximum((int)Math.ceil(file.length() / div));
+                    // Set the progress bar to not be indeterminate
                 setIndeterminate(false);
-                
-                    // Create the parent folders?
-                
                     // Create an input stream to load the file 
-                    // Upload the database file to Dropbox
                 try (InputStream in = new BufferedInputStream(new FileInputStream(file))){
-                        // Use ProgressListener?
                         // Upload the file to Dropbox
-                    dbxFiles.uploadBuilder(dbxPath).uploadAndFinish(in);
+                    dbxFiles.uploadBuilder(dbxPath).uploadAndFinish(in, (long bytesWritten) -> {
+                            // Update the progress with the amount of bytes 
+                            // written
+                        setProgressValue((int)Math.ceil(bytesWritten / div));
+                    });
                 }
                 return true;
             } catch(DbxException ex){
