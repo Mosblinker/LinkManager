@@ -1769,7 +1769,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         databaseFC.setFileSelectionMode(javax.swing.JFileChooser.FILES_AND_DIRECTORIES);
 
         setLocationDialog.setTitle("Set Database Location");
-        setLocationDialog.setMinimumSize(new java.awt.Dimension(480, 320));
+        setLocationDialog.setMinimumSize(new java.awt.Dimension(480, 360));
         setLocationDialog.setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         setLocationDialog.addComponentListener(new java.awt.event.ComponentAdapter() {
             public void componentResized(java.awt.event.ComponentEvent evt) {
