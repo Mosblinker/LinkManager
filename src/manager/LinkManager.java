@@ -156,6 +156,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String DATABASE_FILE_PATH_KEY = "DatabaseFilePath";
     /**
+     * This is the configuration key for how to handle changing where the 
+     * database file is located.
+     */
+    private static final String DATABASE_FILE_CHANGE_OPERATION_KEY = 
+            "DatabaseFileChangeOperation";
+    /**
      * This is the configuration key for how the database file is being stored 
      * by the program.
      */
@@ -164,9 +170,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private static final int DATABASE_FILE_SOURCE_LOCAL = 0;
     
     private static final int DATABASE_FILE_SOURCE_DROPBOX = 1;
-    
-    private static final String DATABASE_FILE_CHANGE_OPERATION_KEY = 
-            "DatabaseFileChangeOperation";
     /**
      * This is the configuration key for the autosave frequency setting.
      */
