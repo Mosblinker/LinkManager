@@ -10,6 +10,7 @@ import com.dropbox.core.oauth.*;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import com.dropbox.core.v2.users.FullAccount;
+import com.dropbox.core.v2.users.SpaceUsage;
 import components.*;
 import components.debug.DebugCapable;
 import components.disable.DisableGUIInput;
@@ -4566,6 +4567,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             System.out.println("Account: " + account.getName().getDisplayName());
             time = System.currentTimeMillis() - time;
             System.out.println("Account Loaded Time: " + time);
+            time = System.currentTimeMillis();
+            String pfpUrl = account.getProfilePhotoUrl();
+            ImageIcon pfpIcon = null;
+            if (pfpUrl != null)
+                pfpIcon = new ImageIcon(pfpUrl);
+            System.out.println("PFP: " + pfpUrl + " (Icon: " + pfpIcon+")");
+            time = System.currentTimeMillis() - time;
+            System.out.println("PFP Loaded Time: " + time);
+            time = System.currentTimeMillis();
+            SpaceUsage spaceUsed = client.users().getSpaceUsage();
+            System.out.println("Space Usage: " + spaceUsed);
+            System.out.println("Space Used: " + spaceUsed.getUsed() + " Bytes");
+            time = System.currentTimeMillis() - time;
+            System.out.println("Space Used Loaded Time: " + time);
             time = System.currentTimeMillis();
             // Get files and folder metadata from Dropbox root directory
             ListFolderResult result = client.files().listFolder("");
