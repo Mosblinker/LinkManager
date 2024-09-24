@@ -5002,11 +5002,64 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbxLogInButtonActionPerformed
 
     private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
-        // TODO add your handling code here:
+        if (isLoggedInToDropbox()){
+            try{
+                    // Create the Dropbox client
+                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
+                DbxCredential cred = dbxUtils.getCredentials();
+                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
+                if (cred.aboutToExpire()){
+                    dbxUtils.refreshCredentials(client.refreshAccessToken());
+                    savePrivateConfig();
+                    setIndeterminate(false);
+                }
+                
+                // Upload the database file to Dropbox
+                try (InputStream in = new BufferedInputStream(new FileInputStream(getDatabaseFile()))){
+                    // Create the parent folders?
+                    // Use ProgressListener?
+                    FileMetadata metadata = client.files().uploadBuilder("/"+getExternalDatabaseFileName()).uploadAndFinish(in);
+                    System.out.println(metadata);
+                }
+            } catch(DbxException | IOException ex){
+                System.out.println("Error: " + ex);
+            }
+        }
     }//GEN-LAST:event_uploadDBItemActionPerformed
 
     private void downloadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadDBItemActionPerformed
-        // TODO add your handling code here:
+        if (isLoggedInToDropbox()){
+            try{
+                    // Create the Dropbox client
+                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
+                DbxCredential cred = dbxUtils.getCredentials();
+                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
+                if (cred.aboutToExpire()){
+                    dbxUtils.refreshCredentials(client.refreshAccessToken());
+                    savePrivateConfig();
+                    setIndeterminate(false);
+                }
+                
+                String fileName = "/"+getExternalDatabaseFileName();
+                
+                    // Check if the file exists
+                client.files().getMetadataBuilder(fileName).start();
+                
+                try (OutputStream out = new BufferedOutputStream(new FileOutputStream(getDatabaseFile()))){
+                    FileMetadata metadata = client.files().
+                            downloadBuilder(fileName).download(out);
+                    System.out.println(metadata);
+                }
+            } catch (GetMetadataErrorException ex){
+                if (ex.errorValue.isPath() && ex.errorValue.getPathValue().isNotFound()) {
+                    System.out.println("File not found");
+                } else {
+                    System.out.println("Error: " + ex);
+                }
+            } catch(DbxException | IOException ex){
+                System.out.println("Error: " + ex);
+            }
+        }
     }//GEN-LAST:event_downloadDBItemActionPerformed
     
     private CustomTableModel getListSearchTableModel(){
@@ -5178,6 +5231,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         updateExecuteQueryEnabled();
         updatePrefixButtons();
         updateListEditButtons();
+        updateExternalDBButtons();
         
         setDBLocationItem.setEnabled(enabled);
         updateDBLocationEnabled();
