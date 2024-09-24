@@ -619,11 +619,34 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return System.getProperty("user.dir");
     }
     /**
+     * 
+     * @param fileName
+     * @return 
+     */
+    private File getRelativeFile(String fileName){
+        return new File(getWorkingDirectory(),fileName);
+    }
+    /**
      * This returns the file used to store the configuration of the program.
      * @return The configuration file.
      */
     private File getConfigFile(){
-        return new File(getWorkingDirectory(),CONFIG_FILE);
+        return getRelativeFile(CONFIG_FILE);
+    }
+    /**
+     * This returns the file used to store the private configuration of the 
+     * program.
+     * @return The configuration file storing private settings.
+     */
+    private File getPrivateConfigFile(){
+        return getRelativeFile(PRIVATE_CONFIG_FILE);
+    }
+    /**
+     * This returns the file containing the Dropbox API keys for this program.
+     * @return The dropbox API key file.
+     */
+    private File getDropboxAPIFile(){
+        return getRelativeFile(DROPBOX_API_KEY_FILE);
     }
     /**
      * This returns a property to use to get the database file. This is 
@@ -682,7 +705,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         File file = new File(fileName);
             // If the database file is relative
         if (!file.isAbsolute()){
-            return new File(getWorkingDirectory(),fileName);
+            return getRelativeFile(fileName);
         }
         return file;
     }
@@ -5361,6 +5384,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * config}.
      */
     private Properties defaultConfig = null;
+    /**
+     * This is a properties map that stores the private configuration data for 
+     * this program. This is used to store things like passwords and such.
+     */
+    private Properties privateConfig = null;
     /**
      * 
      */
