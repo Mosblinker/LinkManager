@@ -166,23 +166,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private static final String DATABASE_FILE_CHANGE_OPERATION_KEY = 
             "DatabaseFileChangeOperation";
     /**
-     * This is the configuration key for how the database file is being stored 
-     * externally (such as in the cloud) in addition to storing it locally by 
-     * the program.
-     */
-    private static final String EXTERNAL_DATABASE_FILE_SOURCE_KEY = 
-            "ExternalDatabaseFileSource";
-    /**
-     * This indicates that the database file is not being stored externally, 
-     * only locally.
-     */
-    private static final int EXTERNAL_DATABASE_FILE_SOURCE_NONE = 0;
-    /**
-     * This indicates that the database file is being stored in Dropbox as well 
-     * as locally.
-     */
-    private static final int EXTERNAL_DATABASE_FILE_SOURCE_DROPBOX = 1;
-    /**
      * This is the configuration key for the autosave frequency setting.
      */
     private static final String AUTOSAVE_FREQUENCY_KEY = 
@@ -808,20 +791,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             token = encryptDropboxToken(token,false);
         }
         setPrivateProperty(key, token);
-    }
-    /**
-     * 
-     * @return 
-     */
-    private int getDatabaseFileSourceMode(){
-        String value = config.getProperty(EXTERNAL_DATABASE_FILE_SOURCE_KEY);
-        if (value == null)
-            return EXTERNAL_DATABASE_FILE_SOURCE_NONE;
-        try{
-            return Integer.parseInt(value);
-        } catch (NumberFormatException ex){
-            return EXTERNAL_DATABASE_FILE_SOURCE_NONE;
-        }
     }
     /**
      * This returns whether the program is logged in to Dropbox.
