@@ -1502,17 +1502,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setLocationDialog = new javax.swing.JDialog(this);
         setLocationPanel = new javax.swing.JPanel();
         setLocalFileCard = new javax.swing.JPanel();
-        javax.swing.JLabel dbFileLabel = new javax.swing.JLabel();
-        dbFileField = new javax.swing.JTextField();
-        dbFileBrowseButton = new javax.swing.JButton();
-        dbFileRelativeButton = new javax.swing.JButton();
         setDropboxCard = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        jTextField1 = new javax.swing.JTextField();
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
         setDBResetButton = new javax.swing.JButton();
         setDBAcceptButton = new javax.swing.JButton();
         setDBCancelButton = new javax.swing.JButton();
+        javax.swing.JLabel dbFileLabel = new javax.swing.JLabel();
+        dbFileField = new javax.swing.JTextField();
+        dbFileBrowseButton = new javax.swing.JButton();
+        dbFileRelativeButton = new javax.swing.JButton();
         databaseDialog = new javax.swing.JDialog(this);
         dbTabbedPane = new javax.swing.JTabbedPane();
         dbViewer = new manager.database.DatabaseTableViewer();
@@ -1699,6 +1701,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dropboxScopeLoginTestButton = new javax.swing.JMenuItem();
         dropboxClearLoginTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
+        jSeparator2 = new javax.swing.JPopupMenu.Separator();
+        uploadDBItem = new javax.swing.JMenuItem();
+        downloadDBItem = new javax.swing.JMenuItem();
 
         openFC.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1759,65 +1764,42 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         setLocalFileCard.setName("setLocalFile"); // NOI18N
 
-        dbFileLabel.setLabelFor(dbFileField);
-        dbFileLabel.setText("File:");
-
-        dbFileField.setComponentPopupMenu(dbFilePopupMenu);
-
-        dbFileBrowseButton.setText("Browse");
-        dbFileBrowseButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dbFileBrowseButtonActionPerformed(evt);
-            }
-        });
-
-        dbFileRelativeButton.setText("Make Relative To Program");
-        dbFileRelativeButton.setToolTipText("This makes the database file's path to be relative to this program's location.");
-        dbFileRelativeButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dbFileRelativeButtonActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout setLocalFileCardLayout = new javax.swing.GroupLayout(setLocalFileCard);
         setLocalFileCard.setLayout(setLocalFileCardLayout);
         setLocalFileCardLayout.setHorizontalGroup(
             setLocalFileCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(setLocalFileCardLayout.createSequentialGroup()
-                .addComponent(dbFileLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(dbFileField)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(dbFileBrowseButton))
-            .addGroup(setLocalFileCardLayout.createSequentialGroup()
-                .addComponent(dbFileRelativeButton)
-                .addGap(0, 285, Short.MAX_VALUE))
+            .addGap(0, 456, Short.MAX_VALUE)
         );
         setLocalFileCardLayout.setVerticalGroup(
             setLocalFileCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(setLocalFileCardLayout.createSequentialGroup()
-                .addGroup(setLocalFileCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(dbFileLabel)
-                    .addComponent(dbFileField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(dbFileBrowseButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(dbFileRelativeButton)
-                .addContainerGap(199, Short.MAX_VALUE))
+            .addGap(0, 192, Short.MAX_VALUE)
         );
 
         setLocationPanel.add(setLocalFileCard, "card2");
 
+        setDropboxCard.setBorder(javax.swing.BorderFactory.createTitledBorder("Dropbox"));
         setDropboxCard.setName("setDropbox"); // NOI18N
+
+        jLabel2.setText("File:");
 
         javax.swing.GroupLayout setDropboxCardLayout = new javax.swing.GroupLayout(setDropboxCard);
         setDropboxCard.setLayout(setDropboxCardLayout);
         setDropboxCardLayout.setHorizontalGroup(
             setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 456, Short.MAX_VALUE)
+            .addGroup(setDropboxCardLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
+                .addContainerGap())
         );
         setDropboxCardLayout.setVerticalGroup(
             setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 256, Short.MAX_VALUE)
+            .addGroup(setDropboxCardLayout.createSequentialGroup()
+                .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 146, Short.MAX_VALUE))
         );
 
         setLocationPanel.add(setDropboxCard, "card3");
@@ -1861,6 +1843,26 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         });
         locationControlPanel.add(setDBCancelButton);
 
+        dbFileLabel.setLabelFor(dbFileField);
+        dbFileLabel.setText("File:");
+
+        dbFileField.setComponentPopupMenu(dbFilePopupMenu);
+
+        dbFileBrowseButton.setText("Browse");
+        dbFileBrowseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbFileBrowseButtonActionPerformed(evt);
+            }
+        });
+
+        dbFileRelativeButton.setText("Make Relative To Program");
+        dbFileRelativeButton.setToolTipText("This makes the database file's path to be relative to this program's location.");
+        dbFileRelativeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbFileRelativeButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout setLocationDialogLayout = new javax.swing.GroupLayout(setLocationDialog.getContentPane());
         setLocationDialog.getContentPane().setLayout(setLocationDialogLayout);
         setLocationDialogLayout.setHorizontalGroup(
@@ -1874,13 +1876,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         .addComponent(dbFileChangeCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(locationControlPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(setLocationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(setLocationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(setLocationDialogLayout.createSequentialGroup()
+                        .addComponent(dbFileLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(dbFileField)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(dbFileBrowseButton))
+                    .addGroup(setLocationDialogLayout.createSequentialGroup()
+                        .addComponent(dbFileRelativeButton)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         setLocationDialogLayout.setVerticalGroup(
             setLocationDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(setLocationDialogLayout.createSequentialGroup()
                 .addContainerGap()
+                .addGroup(setLocationDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(dbFileLabel)
+                    .addComponent(dbFileField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(dbFileBrowseButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(dbFileRelativeButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(setLocationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(setLocationDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3292,6 +3310,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         jMenu2.add(dropboxRefreshTestButton);
+        jMenu2.add(jSeparator2);
+
+        uploadDBItem.setText("Upload Database");
+        uploadDBItem.setEnabled(false);
+        uploadDBItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                uploadDBItemActionPerformed(evt);
+            }
+        });
+        jMenu2.add(uploadDBItem);
+
+        downloadDBItem.setText("Download Database");
+        downloadDBItem.setEnabled(false);
+        downloadDBItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                downloadDBItemActionPerformed(evt);
+            }
+        });
+        jMenu2.add(downloadDBItem);
 
         debugMenu.add(jMenu2);
 
@@ -4926,6 +4963,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void dropboxClearLoginTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxClearLoginTestButtonActionPerformed
         dbxUtils.clearCredentials();
     }//GEN-LAST:event_dropboxClearLoginTestButtonActionPerformed
+
+    private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_uploadDBItemActionPerformed
+
+    private void downloadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadDBItemActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_downloadDBItemActionPerformed
     
     private CustomTableModel getListSearchTableModel(){
         CustomTableModel model = new CustomTableModel("ListID", "List Name", 
@@ -5493,6 +5538,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem dbxPrintButton;
     private javax.swing.JMenu debugMenu;
     private javax.swing.JCheckBoxMenuItem doubleNewLinesToggle;
+    private javax.swing.JMenuItem downloadDBItem;
     private javax.swing.JMenuItem dropboxClearLoginTestButton;
     private javax.swing.JMenuItem dropboxPKCELoginTestButton;
     private javax.swing.JMenuItem dropboxRefreshTestButton;
@@ -5512,11 +5558,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem hideAllListsItem;
     private javax.swing.JMenu hideListsMenu;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JPopupMenu.Separator jSeparator1;
+    private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JPopupMenu.Separator jSeparator4;
+    private javax.swing.JTextField jTextField1;
     private javax.swing.JLabel linkCountLabel;
     private javax.swing.JOptionPane linkEditPane;
     private javax.swing.JCheckBoxMenuItem linkOperationToggle;
@@ -5593,6 +5642,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JComboBox<String> updateDBFileCombo;
     private javax.swing.JMenuItem updateDatabaseItem;
     private javax.swing.JMenuItem updateListsItem;
+    private javax.swing.JMenuItem uploadDBItem;
     // End of variables declaration//GEN-END:variables
     /**
      * 
