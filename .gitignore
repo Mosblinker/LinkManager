@@ -22,3 +22,15 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Ignore the Development stuff folder
+/DevStuff/*
+
+# Ignore program config files
+/*.cfg
+
+# Ignore the generated files by the program
+/LinkManager*.db
+
+# The private config file for the project
+/nbproject/private/*
