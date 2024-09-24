@@ -1726,9 +1726,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dropboxTestButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
-        jSeparator3 = new javax.swing.JPopupMenu.Separator();
-        dropboxLoginTestButton = new javax.swing.JMenuItem();
-        dropboxClearLoginTestButton = new javax.swing.JMenuItem();
         jSeparator2 = new javax.swing.JPopupMenu.Separator();
         uploadDBItem = new javax.swing.JMenuItem();
         downloadDBItem = new javax.swing.JMenuItem();
@@ -1996,7 +1993,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         .addComponent(dbFileChangeCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(locationControlPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(setLocationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 457, Short.MAX_VALUE)
+                    .addComponent(setLocationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(setLocationDialogLayout.createSequentialGroup()
                         .addComponent(dbFileLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -3354,23 +3351,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         jMenu2.add(dropboxRefreshTestButton);
-        jMenu2.add(jSeparator3);
-
-        dropboxLoginTestButton.setText("Login to Dropbox");
-        dropboxLoginTestButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dropboxLoginTestButtonActionPerformed(evt);
-            }
-        });
-        jMenu2.add(dropboxLoginTestButton);
-
-        dropboxClearLoginTestButton.setText("Clear Dropbox Login");
-        dropboxClearLoginTestButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dropboxClearLoginTestButtonActionPerformed(evt);
-            }
-        });
-        jMenu2.add(dropboxClearLoginTestButton);
         jMenu2.add(jSeparator2);
 
         uploadDBItem.setText("Upload Database");
@@ -4669,66 +4649,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxUtils.setAccessToken(token);
     }//GEN-LAST:event_setDropboxTestButtonActionPerformed
     
-    private void dropboxLoginTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxLoginTestButtonActionPerformed
-        if (loadDbxUtils() == null){
-            JOptionPane.showMessageDialog(this,
-                    "Dropbox API data failed to load.", 
-                    "Dropbox API Failure", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        try{    // Run through the Dropbox API application process
-            DbxRequestConfig requestConfig = dbxUtils.createRequest();
-            DbxAppInfo appInfo = dbxUtils.getAppInfo();
-            DbxWebAuthWrapper webAuth = new DbxWebAuthWrapper(requestConfig,appInfo);
-            DbxWebAuth.Request webAuthRequest = dbxUtils.createWebAuthRequest();
-            
-            String authorizeURL = webAuth.authorize(webAuthRequest);
-            
-            try {
-                openLink(authorizeURL);
-            } catch (URISyntaxException | IOException ex) {}
-            
-            if (dropboxSetupPanel.showDialog(this, authorizeURL) != 
-                    DropboxSetupPanel.ACCEPT_OPTION){
-                return;
-            }
-            String code = dropboxSetupPanel.getAuthorizationCode();
-            
-            if (code == null || code.isBlank()){
-                return;
-            }
-            
-            DbxAuthFinish authFinish = webAuth.finishFromCode(code);
-            
-            if (dbxUtils.getPermissionScope() != null && 
-                    !dbxUtils.getPermissionScope().isEmpty()){
-                for (String permission : dbxUtils.getPermissionScope()){
-                    if (!authFinish.getScope().contains(permission)){
-                        System.out.println("Your app does not have the appropriate scope(s).");
-                        dbxUtils.clearCredentials();
-                        return;
-                    }
-                }
-                System.out.println("Successfully requested scope "+authFinish.getScope());
-            }
-            
-            System.out.println();
-            System.out.println("Authorization complete.");
-            System.out.println("- User ID: " + authFinish.getUserId());
-            System.out.println("- Account ID: " + authFinish.getAccountId());
-            System.out.println("- Access Token: " + authFinish.getAccessToken());
-            System.out.println("- Expires At: " + authFinish.getExpiresAt());
-            System.out.println("- Refresh Token: " + authFinish.getRefreshToken());
-            System.out.println("- Scope: " + authFinish.getScope());
-            
-            dbxUtils.setCredentials(authFinish);
-            System.out.println("Saved to configuration.");
-        } catch (DbxException ex){
-            System.out.println("Error: " + ex);
-        }
-        loadExternalAccountData();
-    }//GEN-LAST:event_dropboxLoginTestButtonActionPerformed
-
     private void dropboxRefreshTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxRefreshTestButtonActionPerformed
         System.out.println("Dropbox Access Token: " + dbxUtils.getAccessToken());
         System.out.println("Dropbox Refresh Token: " + dbxUtils.getRefreshToken());
@@ -4976,11 +4896,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.out.println("Dropbox Refresh Token: " + dbxUtils.getRefreshToken());
         System.out.println("Dropbox Expires At: " + dbxUtils.getTokenExpiresAtDate());
     }//GEN-LAST:event_dbxPrintButtonActionPerformed
-
-    private void dropboxClearLoginTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxClearLoginTestButtonActionPerformed
-        dbxUtils.clearCredentials();
-        loadExternalAccountData();
-    }//GEN-LAST:event_dropboxClearLoginTestButtonActionPerformed
 
     private void dbxLogOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogOutButtonActionPerformed
         dbxUtils.clearCredentials();
@@ -5678,8 +5593,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenu debugMenu;
     private javax.swing.JCheckBoxMenuItem doubleNewLinesToggle;
     private javax.swing.JMenuItem downloadDBItem;
-    private javax.swing.JMenuItem dropboxClearLoginTestButton;
-    private javax.swing.JMenuItem dropboxLoginTestButton;
     private javax.swing.JMenuItem dropboxRefreshTestButton;
     private manager.dropbox.DropboxSetupPanel dropboxSetupPanel;
     private javax.swing.JMenuItem dropboxTestButton;
@@ -5702,7 +5615,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
-    private javax.swing.JPopupMenu.Separator jSeparator3;
     private javax.swing.JPopupMenu.Separator jSeparator4;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JLabel linkCountLabel;

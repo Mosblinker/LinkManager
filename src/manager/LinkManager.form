@@ -120,7 +120,7 @@
                           <EmptySpace max="32767" attributes="0"/>
                           <Component id="locationControlPanel" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <Component id="setLocationPanel" alignment="0" pref="457" max="32767" attributes="0"/>
+                      <Component id="setLocationPanel" alignment="0" max="32767" attributes="0"/>
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="dbFileLabel" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
@@ -2423,24 +2423,6 @@
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dropboxRefreshTestButtonActionPerformed"/>
-                  </Events>
-                </MenuItem>
-                <MenuItem class="javax.swing.JPopupMenu$Separator" name="jSeparator3">
-                </MenuItem>
-                <MenuItem class="javax.swing.JMenuItem" name="dropboxLoginTestButton">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="Login to Dropbox"/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dropboxLoginTestButtonActionPerformed"/>
-                  </Events>
-                </MenuItem>
-                <MenuItem class="javax.swing.JMenuItem" name="dropboxClearLoginTestButton">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="Clear Dropbox Login"/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dropboxClearLoginTestButtonActionPerformed"/>
                   </Events>
                 </MenuItem>
                 <MenuItem class="javax.swing.JPopupMenu$Separator" name="jSeparator2">
