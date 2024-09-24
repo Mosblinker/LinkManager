@@ -1794,6 +1794,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setExternalCard.setName("logInCard"); // NOI18N
 
         dbxLogInButton.setText("Set Up Dropbox");
+        dbxLogInButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbxLogInButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout setExternalCardLayout = new javax.swing.GroupLayout(setExternalCard);
         setExternalCard.setLayout(setExternalCardLayout);
@@ -1874,6 +1879,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxDataPanel.add(dbxSpaceFreeLabel, gridBagConstraints);
 
         dbxLogOutButton.setText("Log Out");
+        dbxLogOutButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbxLogOutButtonActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
@@ -4972,6 +4982,73 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         loadExternalAccountData();
     }//GEN-LAST:event_dropboxClearLoginTestButtonActionPerformed
 
+    private void dbxLogOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogOutButtonActionPerformed
+        dbxUtils.clearCredentials();
+        savePrivateConfig();
+        setIndeterminate(false);
+        loadExternalAccountData();
+    }//GEN-LAST:event_dbxLogOutButtonActionPerformed
+
+    private void dbxLogInButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogInButtonActionPerformed
+        if (loadDbxUtils() == null){
+            JOptionPane.showMessageDialog(this,
+                    "Dropbox API data failed to load.", 
+                    "Dropbox API Failure", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        try{    // Run through the Dropbox API application process
+            DbxRequestConfig requestConfig = dbxUtils.createRequest();
+            DbxAppInfo appInfo = dbxUtils.getAppInfo();
+            DbxWebAuthWrapper webAuth = new DbxWebAuthWrapper(requestConfig,appInfo);
+            DbxWebAuth.Request webAuthRequest = dbxUtils.createWebAuthRequest();
+            
+            String authorizeURL = webAuth.authorize(webAuthRequest);
+            
+            try {
+                openLink(authorizeURL);
+            } catch (URISyntaxException | IOException ex) {}
+            
+            if (dropboxSetupPanel.showDialog(this, authorizeURL) != 
+                    DropboxSetupPanel.ACCEPT_OPTION){
+                return;
+            }
+            String code = dropboxSetupPanel.getAuthorizationCode();
+            
+            if (code == null || code.isBlank()){
+                return;
+            }
+            
+            DbxAuthFinish authFinish = webAuth.finishFromCode(code);
+            
+            if (dbxUtils.getPermissionScope() != null && 
+                    !dbxUtils.getPermissionScope().isEmpty()){
+                List<String> permissions = Arrays.asList(authFinish.getScope().split(" "));
+                if (!permissions.containsAll(dbxUtils.getPermissionScope())){
+                    ArrayList<String> missing = new ArrayList<>(permissions);
+                    missing.removeAll(dbxUtils.getPermissionScope());
+                    String message = "The app does not have the appropriate scope.\n"
+                            + "Missing the following required permissions:";
+                    for (String temp : missing){
+                        message += "\n\t"+missing;
+                    }
+                    JOptionPane.showMessageDialog(this,message,"Missing Permissions",
+                            JOptionPane.ERROR_MESSAGE);
+                    dbxUtils.clearCredentials();
+                    savePrivateConfig();
+                    setIndeterminate(false);
+                    loadExternalAccountData();
+                    return;
+                }
+            }
+            dbxUtils.setCredentials(authFinish);
+            savePrivateConfig();
+            setIndeterminate(false);
+        } catch (DbxException ex){
+            System.out.println("Error: " + ex);
+        }
+        loadExternalAccountData();
+    }//GEN-LAST:event_dbxLogInButtonActionPerformed
+
     private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_uploadDBItemActionPerformed
@@ -5046,6 +5123,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (cred.aboutToExpire()){
                     dbxUtils.refreshCredentials(client.refreshAccessToken());
                     savePrivateConfig();
+                    setIndeterminate(false);
                 }
                 FullAccount account = client.users().getCurrentAccount();
                 dbxAccountLabel.setText(account.getName().getDisplayName());
@@ -5179,7 +5257,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbFileBrowseButton.setEnabled(setDBLocationItem.isEnabled());
         dbFileField.setEditable(dbFileBrowseButton.isEnabled());
         
-        
+        dbxLogInButton.setEnabled(setDBLocationItem.isEnabled() && dbxUtils != null);
+        dbxLogOutButton.setEnabled(setDBLocationItem.isEnabled());
         
         updateDBLocationButtons();
     }
