@@ -94,10 +94,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public static final String CONFIG_FILE = "LinkManager.cfg";
     /**
+     * This is the name of the file used to store the private configuration. 
+     * This is used to store things like passwords and credentials.
+     */
+    private static final String PRIVATE_CONFIG_FILE = "LinkManagerPrivate.cfg";
+    /**
      * This is the header flag for the general settings in the configuration 
      * file.
      */
     private static final String GENERAL_CONFIG_FLAG = "[LinkManager Config]";
+    /**
+     * This is the header flag for the private settings in the configuration 
+     * file.
+     */
+    private static final String PRIVATE_CONFIG_FLAG = 
+            "[LinkManager Private Config]";
     /**
      * This is the configuration key for the progress display setting.
      */
@@ -136,7 +147,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     @Deprecated
     private static final String DATABASE_FILE_KEY = "DatabaseFile";
     /**
-     * This is the configuration key for the database file path setting.
+     * This is the configuration key for the database file path.
      */
     private static final String DATABASE_FILE_PATH_KEY = "DatabaseFilePath";
     /**
@@ -154,11 +165,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This is the configuration key for the autosave frequency setting.
      */
-    private static final String AUTOSAVE_FREQUENCY_KEY = "AutosaveFrequencyIndex";
+    private static final String AUTOSAVE_FREQUENCY_KEY = 
+            "AutosaveFrequencyIndex";
     /**
      * This is the configuration key for the auto-hide wait duration setting.
      */
-    private static final String AUTO_HIDE_WAIT_DURATION_KEY = "AutoHideWaitDurationIndex";
+    private static final String AUTO_HIDE_WAIT_DURATION_KEY = 
+            "AutoHideWaitDurationIndex";
     /**
      * This is the configuration key for the setting that determines if the 
      * search factors in capitalization.
