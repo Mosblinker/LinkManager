@@ -1688,6 +1688,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         updateListsItem = new javax.swing.JMenuItem();
         reloadListsItem = new javax.swing.JMenuItem();
         exportListsItem = new javax.swing.JMenuItem();
+        jSeparator2 = new javax.swing.JPopupMenu.Separator();
+        uploadDBItem = new javax.swing.JMenuItem();
+        downloadDBItem = new javax.swing.JMenuItem();
         javax.swing.JPopupMenu.Separator dbConfigSeparator = new javax.swing.JPopupMenu.Separator();
         saveConfigItem = new javax.swing.JMenuItem();
         loadConfigItem = new javax.swing.JMenuItem();
@@ -1732,9 +1735,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dropboxTestButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
-        jSeparator2 = new javax.swing.JPopupMenu.Separator();
-        uploadDBItem = new javax.swing.JMenuItem();
-        downloadDBItem = new javax.swing.JMenuItem();
 
         openFC.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -3068,6 +3068,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         fileMenu.add(exportListsItem);
+        fileMenu.add(jSeparator2);
+
+        uploadDBItem.setText("Upload Database");
+        uploadDBItem.setEnabled(false);
+        uploadDBItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                uploadDBItemActionPerformed(evt);
+            }
+        });
+        fileMenu.add(uploadDBItem);
+
+        downloadDBItem.setText("Download Database");
+        downloadDBItem.setEnabled(false);
+        downloadDBItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                downloadDBItemActionPerformed(evt);
+            }
+        });
+        fileMenu.add(downloadDBItem);
         fileMenu.add(dbConfigSeparator);
 
         saveConfigItem.setText("Save Config To File");
@@ -3357,25 +3376,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         jMenu2.add(dropboxRefreshTestButton);
-        jMenu2.add(jSeparator2);
-
-        uploadDBItem.setText("Upload Database");
-        uploadDBItem.setEnabled(false);
-        uploadDBItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                uploadDBItemActionPerformed(evt);
-            }
-        });
-        jMenu2.add(uploadDBItem);
-
-        downloadDBItem.setText("Download Database");
-        downloadDBItem.setEnabled(false);
-        downloadDBItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                downloadDBItemActionPerformed(evt);
-            }
-        });
-        jMenu2.add(downloadDBItem);
 
         debugMenu.add(jMenu2);
 
