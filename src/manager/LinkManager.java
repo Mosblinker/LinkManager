@@ -183,6 +183,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final int EXTERNAL_DATABASE_FILE_SOURCE_DROPBOX = 1;
     /**
+     * This is the configuration key for the database file path from an external 
+     * source such as Dropbox.
+     */
+    private static final String EXTERNAL_DATABASE_FILE_PATH_KEY = 
+            "ExternalDatabaseFilePath";
+    /**
      * This is the configuration key for the autosave frequency setting.
      */
     private static final String AUTOSAVE_FREQUENCY_KEY = 
