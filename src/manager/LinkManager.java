@@ -5,6 +5,7 @@
 package manager;
 
 import com.dropbox.core.*;
+import com.dropbox.core.json.JsonReader;
 import com.dropbox.core.oauth.*;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
@@ -861,63 +862,72 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private DropboxLinkUtils loadDbxUtils(){
-        if (dbxUtils != null)
-            return dbxUtils;
-        dbxUtils = new DropboxLinkUtils(){
-            @Override
-            public String getAppKey() {
-                return DROPBOX_API_APP_KEY;
+        if (dbxUtils == null){
+            DbxAppInfo appInfo;
+            try{
+                appInfo = DbxAppInfo.Reader.readFromFile(getDropboxAPIFile());
+            } catch (JsonReader.FileLoadException ex){
+                if (isInDebug())
+                    System.out.println("Error Reading File");
+                return null;
             }
-            @Override
-            public String getSecretKey() {
-                return getDropboxAPISecretKey();
-            }
-            @Override
-            public boolean usesPKCE() {
-                return DROPBOX_USES_PKCE;
-            }
-            @Override
-            public Collection<String> getPermissionScope() {
-                return DROPBOX_SCOPE_PERMISSIONS;
-            }
-            @Override
-            public String getClientID() {
-                return DROPBOX_CLIENT_ID;
-            }
-            @Override
-            public String getAccessToken() {
-                return getDropboxToken(DROPBOX_ACCESS_TOKEN_KEY);
-            }
-            @Override
-            public void setAccessToken(String token) {
-                setDropboxToken(DROPBOX_ACCESS_TOKEN_KEY,token);
-            }
-            @Override
-            public String getRefreshToken() {
-                return getDropboxToken(DROPBOX_REFRESH_TOKEN_KEY);
-            }
-            @Override
-            public void setRefreshToken(String token) {
-                setDropboxToken(DROPBOX_REFRESH_TOKEN_KEY,token);
-            }
-            @Override
-            public Long getTokenExpiresAt() {
-                if (config == null)
-                    return null;
-                String value = config.getProperty(DROPBOX_TOKEN_EXPIRATION_KEY);
-                if (value == null)
-                    return null;
-                try{
-                    return Long.valueOf(value);
-                } catch (NumberFormatException ex){
-                    return null;
+            dbxUtils = new DropboxLinkUtils(){
+                DbxAppInfo info = appInfo;
+                @Override
+                public String getAppKey() {
+                    return info.getKey();
                 }
-            }
-            @Override
-            public void setTokenExpiresAt(Long time) {
-                setConfigProperty(DROPBOX_TOKEN_EXPIRATION_KEY,time);
-            }
-        };
+                @Override
+                public String getSecretKey() {
+                    return info.getSecret();
+                }
+                @Override
+                public Collection<String> getPermissionScope() {
+                    return DROPBOX_SCOPE_PERMISSIONS;
+                }
+                @Override
+                public String getClientID() {
+                    return DROPBOX_CLIENT_ID;
+                }
+                @Override
+                public String getAccessToken() {
+                    return getDropboxToken(DROPBOX_ACCESS_TOKEN_KEY);
+                }
+                @Override
+                public void setAccessToken(String token) {
+                    setDropboxToken(DROPBOX_ACCESS_TOKEN_KEY,token);
+                }
+                @Override
+                public String getRefreshToken() {
+                    return getDropboxToken(DROPBOX_REFRESH_TOKEN_KEY);
+                }
+                @Override
+                public void setRefreshToken(String token) {
+                    setDropboxToken(DROPBOX_REFRESH_TOKEN_KEY,token);
+                }
+                @Override
+                public Long getTokenExpiresAt() {
+                    if (config == null)
+                        return null;
+                    String value = config.getProperty(DROPBOX_TOKEN_EXPIRATION_KEY);
+                    if (value == null)
+                        return null;
+                    try{
+                        return Long.valueOf(value);
+                    } catch (NumberFormatException ex){
+                        return null;
+                    }
+                }
+                @Override
+                public void setTokenExpiresAt(Long time) {
+                    setConfigProperty(DROPBOX_TOKEN_EXPIRATION_KEY,time);
+                }
+                @Override
+                public DbxAppInfo getAppInfo(){
+                    return info;
+                }
+            };
+        }
         return dbxUtils;
     }
     /**
