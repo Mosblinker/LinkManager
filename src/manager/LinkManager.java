@@ -830,11 +830,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     /**
-     * This returns whether the program uses Dropbox to store the database file.
-     * @return Whether the program uses Dropbox to store the database file.
+     * This returns whether the program is logged in to Dropbox.
+     * @return Whether the program is logged in to Dropbox.
      */
-    private boolean useDropboxForDatabaseFile(){
-        return getDatabaseFileSourceMode() == EXTERNAL_DATABASE_FILE_SOURCE_DROPBOX;
+    private boolean isLoggedInToDropbox(){
+        return loadDbxUtils() != null && dbxUtils.getAccessToken() != null;
     }
     /**
      * 
@@ -1226,7 +1226,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         defaultPrivateConfig.setProperty(EXTERNAL_DATABASE_FILE_SOURCE_KEY, 
                 Integer.toString(EXTERNAL_DATABASE_FILE_SOURCE_NONE));
         defaultPrivateConfig.setProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, 
-                LINK_DATABASE_FILE.toLowerCase());
+                LINK_DATABASE_FILE);
         privateConfig = new Properties(defaultPrivateConfig);
         
         sqlConfig = new SQLiteConfig();
@@ -5065,7 +5065,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private void loadExternalAccountData(){
-        if (loadDbxUtils() != null && dbxUtils.getAccessToken() != null){
+        if (isLoggedInToDropbox()){
             try{
                 DbxRequestConfig dbxConfig = dbxUtils.createRequest();
                 DbxCredential cred = dbxUtils.getCredentials();
