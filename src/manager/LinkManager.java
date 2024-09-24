@@ -5096,6 +5096,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
+    private boolean dbxFileExists(String path, DbxUserFilesRequests dbxFiles) throws DbxException{
+        try{    // Check if the file exists
+            dbxFiles.getMetadataBuilder(path).start();
+            return true;
+        } catch (GetMetadataErrorException ex){
+                // If the error is related to the path and it is because the 
+                // path is not found, then the file doesn't exist
+            if (ex.errorValue.isPath() && ex.errorValue.getPathValue().isNotFound())
+                return false;
+            throw ex;
+        }
+    }
+    
+    private boolean dbxFileExists(String path, DbxClientV2 client) throws DbxException{
+        return dbxFileExists(path,client.files());
+    }
+    
     private void loadExternalAccountData(){
         if (isLoggedInToDropbox()){
             try{
@@ -9129,18 +9146,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
                     // Refresh the Dropbox credentials if necessary
                 refreshDbxCredentials(cred,client);
-                    // Check if the file exists
-                client.files().getMetadataBuilder(dbxPath).start();
+                    // Get the file namespace for Dropbox
+                DbxUserFilesRequests dbxFiles = client.files();
+                    // If the file doesn't exist on dropbox
+                if (!dbxFileExists(dbxPath,dbxFiles)){
+                    fileFound = false;
+                    return false;
+                }
                     // Create an output stream to save the file 
                 try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file))){
                         // Download the file from Dropbox
-                    client.files().downloadBuilder(dbxPath).download(out);
+                    dbxFiles.downloadBuilder(dbxPath).download(out);
                 }
                 return true;
-            } catch (GetMetadataErrorException ex){
-                    // If the error is related to the path and it is because the 
-                    // path is not found, then the file was not found
-                fileFound = !(ex.errorValue.isPath() && ex.errorValue.getPathValue().isNotFound());
                 dbxEx = ex;
             } catch(DbxException ex){
                 dbxEx = ex;
