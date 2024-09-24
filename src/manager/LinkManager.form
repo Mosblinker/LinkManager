@@ -2421,14 +2421,6 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dbxPrintButtonActionPerformed"/>
                   </Events>
                 </MenuItem>
-                <MenuItem class="javax.swing.JMenuItem" name="dropboxTestButton">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="Dropbox Integration Tests"/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dropboxTestButtonActionPerformed"/>
-                  </Events>
-                </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="setDropboxTestButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Set Dropbox Access Token"/>

@@ -1625,7 +1625,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         listSetOpItem = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         dbxPrintButton = new javax.swing.JMenuItem();
-        dropboxTestButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
 
@@ -3246,14 +3245,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         });
         jMenu2.add(dbxPrintButton);
 
-        dropboxTestButton.setText("Dropbox Integration Tests");
-        dropboxTestButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dropboxTestButtonActionPerformed(evt);
-            }
-        });
-        jMenu2.add(dropboxTestButton);
-
         setDropboxTestButton.setText("Set Dropbox Access Token");
         setDropboxTestButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -4471,74 +4462,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }//GEN-LAST:event_dbSearchButtonActionPerformed
     
-    private void dropboxTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxTestButtonActionPerformed
-//        System.out.println("Dropbox Token Encryption Key: " + 
-//                getDropboxTokenEncryptionKey());
-        System.out.println("Dropbox API App Secret Key: " + dbxUtils.getSecretKey());
-        System.out.println("Dropbox Access Token: " + dbxUtils.getAccessToken());
-        System.out.println("Dropbox Refresh Token: " + dbxUtils.getRefreshToken());
-        System.out.println("Dropbox Expires At: " + dbxUtils.getTokenExpiresAtDate());
-        long time = System.currentTimeMillis();
-        try{
-            DbxRequestConfig dbxConfig = dbxUtils.createRequest();
-            DbxCredential cred = dbxUtils.getCredentials();
-            DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
-            if (cred.aboutToExpire()){
-                dbxUtils.refreshCredentials(client.refreshAccessToken());
-                System.out.println("New Dropbox Access Token: " + dbxUtils.getAccessToken());
-                System.out.println("New Dropbox Expiration Time: " + dbxUtils.getTokenExpiresAtDate());
-            }
-            time = System.currentTimeMillis() - time;
-            System.out.println("Client Accessed Time: " + time);
-            time = System.currentTimeMillis();
-            FullAccount account = client.users().getCurrentAccount();
-            System.out.println("Account: " + account.getName().getDisplayName());
-            time = System.currentTimeMillis() - time;
-            System.out.println("Account Loaded Time: " + time);
-            time = System.currentTimeMillis();
-            String pfpUrl = account.getProfilePhotoUrl();
-            ImageIcon pfpIcon = null;
-            if (pfpUrl != null)
-                pfpIcon = new ImageIcon(pfpUrl);
-            System.out.println("PFP: " + pfpUrl + " (Icon: " + pfpIcon+")");
-            time = System.currentTimeMillis() - time;
-            System.out.println("PFP Loaded Time: " + time);
-            time = System.currentTimeMillis();
-            SpaceUsage spaceUsage = client.users().getSpaceUsage();
-            System.out.println("Space Usage: " + spaceUsage);
-            long used = spaceUsage.getUsed();
-            SpaceAllocation spaceAllocation = spaceUsage.getAllocation();
-            long allocated;
-            if (spaceAllocation.isTeam())
-                allocated = spaceAllocation.getTeamValue().getAllocated();
-            else
-                allocated = spaceAllocation.getIndividualValue().getAllocated();
-            time = System.currentTimeMillis() - time;
-            System.out.println("Space Used: " + byteFormatter.format(used));
-            System.out.println("Space Free: " + byteFormatter.format(allocated - used));
-            System.out.println("Total Space: " + byteFormatter.format(allocated));
-            System.out.println("Space Used Loaded Time: " + time);
-            time = System.currentTimeMillis();
-            // Get files and folder metadata from Dropbox root directory
-            ListFolderResult result = client.files().listFolder("");
-            time = System.currentTimeMillis() - time;
-            System.out.println("Folder Loaded Time: " + time);
-            while (true) {
-                for (Metadata metadata : result.getEntries()) {
-                    System.out.println(metadata.getPathLower());
-                }
-
-                if (!result.getHasMore()) {
-                    break;
-                }
-
-                result = client.files().listFolderContinue(result.getCursor());
-            }
-        } catch (DbxException ex){
-            System.out.println("Error: " + ex);
-        }
-    }//GEN-LAST:event_dropboxTestButtonActionPerformed
-
     private void setDropboxTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDropboxTestButtonActionPerformed
         String token = JOptionPane.showInputDialog(this, 
                 "Set the access token to use for the Dropbox test.", "Set the Dropbox Access Token", 
@@ -5519,7 +5442,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem downloadDBItem;
     private javax.swing.JMenuItem dropboxRefreshTestButton;
     private manager.dropbox.DropboxSetupPanel dropboxSetupPanel;
-    private javax.swing.JMenuItem dropboxTestButton;
     private javax.swing.JButton editLinkButton;
     private javax.swing.JPopupMenu editPopupMenu;
     private javax.swing.JButton executeQueryButton;
