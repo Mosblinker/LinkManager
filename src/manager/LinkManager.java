@@ -5008,11 +5008,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 DbxRequestConfig dbxConfig = dbxUtils.createRequest();
                 DbxCredential cred = dbxUtils.getCredentials();
                 DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
-                if (cred.aboutToExpire()){
-                    dbxUtils.refreshCredentials(client.refreshAccessToken());
-                    savePrivateConfig();
-                    setIndeterminate(false);
-                }
+                refreshDbxCredentials(cred,client);
+                setIndeterminate(false);
                 
                 // Upload the database file to Dropbox
                 try (InputStream in = new BufferedInputStream(new FileInputStream(getDatabaseFile()))){
@@ -5119,17 +5116,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
+    private void refreshDbxCredentials(DbxCredential cred,DbxClientV2 client) 
+            throws DbxException{
+        if (cred.aboutToExpire()){
+            dbxUtils.refreshCredentials(client.refreshAccessToken());
+            savePrivateConfig();
+        }
+    }
+    
     private void loadExternalAccountData(){
         if (isLoggedInToDropbox()){
             try{
                 DbxRequestConfig dbxConfig = dbxUtils.createRequest();
                 DbxCredential cred = dbxUtils.getCredentials();
                 DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
-                if (cred.aboutToExpire()){
-                    dbxUtils.refreshCredentials(client.refreshAccessToken());
-                    savePrivateConfig();
-                    setIndeterminate(false);
-                }
+                refreshDbxCredentials(cred,client);
+                setIndeterminate(false);
                 FullAccount account = client.users().getCurrentAccount();
                 dbxAccountLabel.setText(account.getName().getDisplayName());
                 String pfpUrl = account.getProfilePhotoUrl();
