@@ -5003,24 +5003,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
         if (isLoggedInToDropbox()){
-            try{
-                    // Create the Dropbox client
-                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
-                DbxCredential cred = dbxUtils.getCredentials();
-                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
-                refreshDbxCredentials(cred,client);
-                setIndeterminate(false);
-                
-                // Upload the database file to Dropbox
-                try (InputStream in = new BufferedInputStream(new FileInputStream(getDatabaseFile()))){
-                    // Create the parent folders?
-                    // Use ProgressListener?
-                    FileMetadata metadata = client.files().uploadBuilder("/"+getExternalDatabaseFileName()).uploadAndFinish(in);
-                    System.out.println(metadata);
-                }
-            } catch(DbxException | IOException ex){
-                System.out.println("Error: " + ex);
-            }
+            loader = new DbxUploader("/"+getExternalDatabaseFileName(),getDatabaseFile(),true);
+            loader.execute();
         }
     }//GEN-LAST:event_uploadDBItemActionPerformed
 
@@ -9159,7 +9143,140 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     dbxFiles.downloadBuilder(dbxPath).download(out);
                 }
                 return true;
+            } catch(DbxException ex){
                 dbxEx = ex;
+            } catch(IOException ex){
+                ioEx = ex;
+            }
+            return false;
+        }
+    }
+    /**
+     * 
+     */
+    private class DbxUploader extends FileLoader{
+        /**
+         * The path for the file on Dropbox.
+         */
+        private String dbxPath;
+        /**
+         * Whether the success prompt should be shown.
+         */
+        protected boolean showSuccess;
+        /**
+         * This stores whether this should exit the program after saving.
+         */
+        protected volatile boolean exitAfterSaving;
+        /**
+         * This gets any Dropbox exceptions that get thrown while downloading 
+         * the file.
+         */
+        private DbxException dbxEx = null;
+        /**
+         * This gets any IOExceptions that get thrown while downloading the 
+         * file.
+         */
+        private IOException ioEx = null;
+        /**
+         * 
+         * @param dbxPath
+         * @param file
+         * @param showSuccess
+         * @param exit 
+         */
+        public DbxUploader(String dbxPath, File file, boolean showSuccess, 
+                boolean exit) {
+            super(file,true);
+            this.dbxPath = Objects.requireNonNull(dbxPath);
+            this.showSuccess = showSuccess;
+            exitAfterSaving = exit;
+        }
+        /**
+         * 
+         * @param dbxPath
+         * @param file
+         * @param showSuccess 
+         */
+        public DbxUploader(String dbxPath, File file, boolean showSuccess){
+            this(dbxPath,file,showSuccess,false);
+        }
+        /**
+         * 
+         * @param dbxPath
+         * @param file 
+         */
+        public DbxUploader(String dbxPath, File file){
+            this(dbxPath,file,false);
+        }
+        /**
+         * This sets whether the program will exit after this finishes saving 
+         * the file.
+         * @param value Whether the program will exit once the file is saved.
+         */
+        public void setExitAfterSaving(boolean value){
+            exitAfterSaving = value;
+        }
+        @Override
+        protected void showSuccessPrompt(File file){
+                // If this should show the success prompt and the program is not 
+                // to exit after saving the file
+            if (showSuccess && !exitAfterSaving){
+                JOptionPane.showMessageDialog(LinkManager.this, 
+                        "The file was successfully uploaded.", 
+                        "File Uploaded Successfully", 
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+        }
+        @Override
+        protected String getFailureTitle(){
+            return "ERROR - File Failed To Upload";
+        }
+        @Override
+        protected String getFailureMessage(){
+                // The message to return
+            String msg = "The file failed to upload.";
+                // If the program is either in debug mode or if details are to 
+                // be shown
+            if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
+                Exception exc = (dbxEx != null) ? dbxEx : ioEx;
+                if (exc != null)
+                    msg += "\nError: " + exc;
+            }
+            return msg;
+        }
+        @Override
+        protected boolean loadFile(File file) {
+                // Reset the exceptions to null
+            dbxEx = null;
+            ioEx = null;
+            try{    // Create the Dropbox client
+                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
+                    // Get the Dropbox credentials
+                DbxCredential cred = dbxUtils.getCredentials();
+                    // Get a client to communicate with Dropbox
+                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
+                    // Refresh the Dropbox credentials if necessary
+                refreshDbxCredentials(cred,client);
+                    // Get the file namespace for Dropbox
+                DbxUserFilesRequests dbxFiles = client.files();
+                    // If the file already exists
+                if (dbxFileExists(dbxPath,dbxFiles))
+                        // Delete the file so that it can be replaced
+                    dbxFiles.deleteV2(dbxPath);
+                
+                    // Set the progress bar to no longer be indeterminate
+                setIndeterminate(false);
+                
+                    // Create the parent folders?
+                
+                    // Create an input stream to load the file 
+                    // Upload the database file to Dropbox
+                try (InputStream in = new BufferedInputStream(new FileInputStream(file))){
+                        // Use ProgressListener?
+                        // Upload the file to Dropbox
+                    dbxFiles.uploadBuilder(dbxPath).uploadAndFinish(in);
+                }
+                return true;
             } catch(DbxException ex){
                 dbxEx = ex;
             } catch(IOException ex){
