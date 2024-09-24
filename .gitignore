@@ -34,3 +34,6 @@ replay_pid*
 
 # The private config file for the project
 /nbproject/private/*
+
+# Ignore windows shortcut files
+*.lnk
