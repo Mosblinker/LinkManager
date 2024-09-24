@@ -8928,6 +8928,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     fileFound = false;
                     return false;
                 }
+                
+                    // TODO: Handle files larger than 150MB
+                
                     // Create an output stream to save the file 
                 try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file))){
                         // Download the file from Dropbox
@@ -9076,6 +9079,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 setProgressMaximum((int)Math.ceil(file.length() / div));
                     // Set the progress bar to not be indeterminate
                 setIndeterminate(false);
+                
+                    // TODO: Handle files larger than 150MB
+                
                     // Create an input stream to load the file 
                 try (InputStream in = new BufferedInputStream(new FileInputStream(file))){
                         // Upload the file to Dropbox
