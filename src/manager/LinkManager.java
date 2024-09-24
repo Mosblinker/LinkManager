@@ -4190,12 +4190,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         saver.execute();
     }//GEN-LAST:event_updateDatabaseItemActionPerformed
     /**
+     * 
+     * @param loadAll 
+     */
+    protected void loadDatabase(boolean loadAll){
+        if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
+            saver = new DbxDownloader("/"+getExternalDatabaseFileName(),getDatabaseFile());
+            ((DbxDownloader)saver).setLoadsAll(loadAll);
+            saver.execute();
+        } else {
+            loader = new DatabaseLoader(loadAll);
+            loader.execute();
+        }
+    }
+    /**
      * This reloads the unedited lists from the database.
      * @param evt The ActionEvent.
      */
     private void updateListsItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateListsItemActionPerformed
-        loader = new DatabaseLoader(false);
-        loader.execute();
+        loadDatabase(false);
     }//GEN-LAST:event_updateListsItemActionPerformed
     /**
      * This reloads all the lists from the database.
@@ -4211,8 +4224,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     != JOptionPane.OK_OPTION)
             return;
         }
-        loader = new DatabaseLoader();
-        loader.execute();
+        loadDatabase(true);
     }//GEN-LAST:event_reloadListsItemActionPerformed
     /**
      * This exports the lists to files.
