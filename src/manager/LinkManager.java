@@ -297,6 +297,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private static final String REPLACE_OUTDATED_LISTS_KEY = 
             "ReplaceOutdatedLists";
     
+    private static final String SYNC_DATABASE_KEY = "SyncDatabase";
+    
     private static final String WIDTH_KEY_SUFFIX = "Width";
     
     private static final String HEIGHT_KEY_SUFFIX = "Height";
@@ -1094,6 +1096,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 //                Integer.toString(JFrame.NORMAL));
         defaultConfig.setProperty(DATABASE_FILE_CHANGE_OPERATION_KEY, 
                 Integer.toString(dbFileChangeCombo.getSelectedIndex()));
+        defaultConfig.setProperty(SYNC_DATABASE_KEY, 
+                Boolean.toString(syncDBToggle.isSelected()));
         
         for (Map.Entry<Component,String> entry : configCompKeyMap.entrySet()){
             String key = entry.getValue();
@@ -1608,6 +1612,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         hiddenLinkOperationToggle = new javax.swing.JCheckBoxMenuItem();
         showDBErrorDetailsToggle = new javax.swing.JCheckBoxMenuItem();
         setDBLocationItem = new javax.swing.JMenuItem();
+        syncDBToggle = new javax.swing.JCheckBoxMenuItem();
         autosaveMenu = new manager.AutosaveMenu();
         showHiddenListsToggle = new javax.swing.JCheckBoxMenuItem();
         autoHideMenu = new manager.AutoHideMenu();
@@ -3132,6 +3137,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         optionsMenu.add(setDBLocationItem);
+
+        syncDBToggle.setSelected(true);
+        syncDBToggle.setText("Sync Database");
+        syncDBToggle.setEnabled(false);
+        syncDBToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                syncDBToggleActionPerformed(evt);
+            }
+        });
+        optionsMenu.add(syncDBToggle);
 
         autosaveMenu.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -4819,6 +4834,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             saver.execute();
         }
     }//GEN-LAST:event_downloadDBItemActionPerformed
+
+    private void syncDBToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_syncDBToggleActionPerformed
+        setConfigProperty(SYNC_DATABASE_KEY,syncDBToggle.isSelected());
+    }//GEN-LAST:event_syncDBToggleActionPerformed
     
     private CustomTableModel getListSearchTableModel(){
         CustomTableModel model = new CustomTableModel("ListID", "List Name", 
@@ -5005,6 +5024,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void updateExternalDBButtons(){
         uploadDBItem.setEnabled(active && isLoggedInToDropbox());
         downloadDBItem.setEnabled(uploadDBItem.isEnabled());
+        syncDBToggle.setEnabled(uploadDBItem.isEnabled());
     }
     
     private void updateDBLocationEnabled(){
@@ -5534,6 +5554,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private manager.links.LinksListTabsPanel shownListsTabsPanel;
     private javax.swing.JLabel shownTotalSizeLabel;
     private components.debug.SlowTestMenuItem slowTestToggle;
+    private javax.swing.JCheckBoxMenuItem syncDBToggle;
     private javax.swing.JPanel tabsPanelDisplay;
     private javax.swing.JButton updateDBFileButton;
     private javax.swing.JComboBox<String> updateDBFileCombo;
