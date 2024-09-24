@@ -7471,8 +7471,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void done(){
                 // If we are exiting the program after saving the database
             if (exitAfterSaving){   
-                saver = new ConfigSaver(true);
-                saver.execute();
+                if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
+                    super.done();
+                    loader = new DbxUploader("/"+getExternalDatabaseFileName(),file,false,true);
+                    loader.execute();
+                } else {
+                    saver = new ConfigSaver(true);
+                    saver.execute();
+                }
             }
             else{
                 if (success){   // If this was successful
@@ -7481,6 +7487,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
                 super.done();
                 autosaveMenu.startAutosave();
+                if (success && syncDBToggle.isSelected() && isLoggedInToDropbox()){
+                    loader = new DbxUploader("/"+getExternalDatabaseFileName(),file,false);
+                    loader.execute();
+                }
             }
         }
     }
