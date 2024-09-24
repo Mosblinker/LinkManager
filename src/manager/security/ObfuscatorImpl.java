@@ -8,7 +8,9 @@ import java.security.*;
 import java.util.*;
 
 /**
- *
+ * TODO: Remove this file from the github and make some changes to make this not 
+ * work to deobfuscate/decrypt values from the program. Perhaps add more 
+ * ciphers.
  * @author Milo Steier
  */
 class ObfuscatorImpl extends Obfuscator{
