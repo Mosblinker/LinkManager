@@ -4716,6 +4716,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         } catch (DbxException ex){
             System.out.println("Error: " + ex);
         }
+        loadExternalAccountData();
     }//GEN-LAST:event_dropboxLoginTestButtonActionPerformed
 
     private void dropboxRefreshTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxRefreshTestButtonActionPerformed
@@ -4739,6 +4740,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (setLocationDialog.isLocationByPlatform())
             setLocationDialog.setLocationRelativeTo(this);
         setDatabaseFileLocationFields(getDatabaseFileName());
+        loadExternalAccountData();
         updateDBLocationEnabled();
         setLocationDialog.setVisible(true);
     }//GEN-LAST:event_setDBLocationItemActionPerformed
@@ -4967,6 +4969,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void dropboxClearLoginTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dropboxClearLoginTestButtonActionPerformed
         dbxUtils.clearCredentials();
+        loadExternalAccountData();
     }//GEN-LAST:event_dropboxClearLoginTestButtonActionPerformed
 
     private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
@@ -5034,6 +5037,51 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
+    private void loadExternalAccountData(){
+        if (loadDbxUtils() != null && dbxUtils.getAccessToken() != null){
+            try{
+                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
+                DbxCredential cred = dbxUtils.getCredentials();
+                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
+                if (cred.aboutToExpire()){
+                    dbxUtils.refreshCredentials(client.refreshAccessToken());
+                    savePrivateConfig();
+                }
+                FullAccount account = client.users().getCurrentAccount();
+                dbxAccountLabel.setText(account.getName().getDisplayName());
+                String pfpUrl = account.getProfilePhotoUrl();
+                ImageIcon pfpIcon = null;
+                if (pfpUrl != null){
+                    try{
+                        pfpIcon = new ImageIcon(new URL(pfpUrl), 
+                                dbxAccountLabel.getText()+"'s Profile Picture");
+                    } catch (MalformedURLException ex){ }
+                }
+                if (pfpIcon == null){
+                    pfpIcon = new ImageIcon(this.getClass()
+                            .getResource(DEFAULT_PFP_FILE));
+                }
+                dbxPfpLabel.setIcon(pfpIcon);
+                SpaceUsage spaceUsage = client.users().getSpaceUsage();
+                SpaceAllocation spaceAllocation = spaceUsage.getAllocation();
+                long used = spaceUsage.getUsed();
+                long allocated;
+                if (spaceAllocation.isTeam())
+                    allocated = spaceAllocation.getTeamValue().getAllocated();
+                else
+                    allocated = spaceAllocation.getIndividualValue().getAllocated();
+                long free = allocated - used;
+                dbxSpaceUsedLabel.setText(byteFormatter.format(used) + " ("+used+" Bytes)");
+                dbxSpaceFreeLabel.setText(byteFormatter.format(free) + " ("+free+" Bytes)");
+                setCard(setLocationPanel,setDropboxCard);
+                return;
+            } catch (DbxException ex){
+                if (isInDebug())
+                    System.out.println("Error: " + ex);
+            }
+        }
+        setCard(setLocationPanel,setExternalCard);
+    }
     /**
      * @param args the command line arguments
      */
