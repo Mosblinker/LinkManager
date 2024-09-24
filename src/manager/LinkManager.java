@@ -616,35 +616,55 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param propName The name of the property to get.
      * @param defaultValue The default value for the property if not set or if 
      * set to null or a blank String.
+     * @param config The Properties to get the property from.
      * @return The value of the property to use to get the database file.
      */
-    private String getDatabaseFileProperty(String propName,String defaultValue){
+    private String getDatabaseFileProperty(String propName,String defaultValue,
+            Properties config){
         if (config == null) // If the config map is not initialized yet
             return defaultValue;
             // This will get the value of the property from the config map
-        String value;
-        if (defaultValue == null)   // If the default value is null
-            value = config.getProperty(propName);
-        else
-            value = config.getProperty(propName, defaultValue);
+        String value = config.getProperty(propName, defaultValue);
             // If the value is not null and not blank, then return it. 
             // Otherwise, return the default value.
         return (value != null && !value.isBlank()) ? value.trim():defaultValue;
     }
     /**
+     * This returns a property to use to get the database file. This is 
+     * primarily used to get the file path for the folder and the file name of 
+     * the database file.
+     * @param propName The name of the property to get.
+     * @param defaultValue The default value for the property if not set or if 
+     * set to null or a blank String.
+     * @return The value of the property to use to get the database file.
+     */
+    private String getDatabaseFileProperty(String propName,String defaultValue){
+        return getDatabaseFileProperty(propName,defaultValue,config);
+    }
+    /**
      * 
-     * @param propName
+     * @param propName The name of the property to set.
      * @param value
+     * @param config The Properties to set the property in.
      * @return 
      */
-    private boolean setDatabaseFileProperty(String propName, String value){
+    private boolean setDatabaseFileProperty(String propName, String value, Properties config){
         if (config != null){
             String oldValue = config.getProperty(propName);
-            setConfigProperty(propName,(value!=null&&!value.isBlank())?value.trim():null);
+            setConfigProperty(propName,(value!=null&&!value.isBlank())?value.trim():null,config);
             value = config.getProperty(propName);
             return !Objects.equals(oldValue, value);
         }
         return false;
+    }
+    /**
+     * 
+     * @param propName The name of the property to set.
+     * @param value
+     * @return 
+     */
+    private boolean setDatabaseFileProperty(String propName, String value){
+        return setDatabaseFileProperty(propName,value,config);
     }
     /**
      * This returns the name for the file that stores the database for the 
