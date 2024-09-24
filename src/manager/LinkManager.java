@@ -651,8 +651,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private boolean setDatabaseFileProperty(String propName, String value, Properties config){
         if (config != null){
             String oldValue = config.getProperty(propName);
-            setConfigProperty(propName,(value!=null&&!value.isBlank())?value.trim():null,config);
-            value = config.getProperty(propName);
+            value = (value!=null&&!value.isBlank())?value.trim():null;
+            if (config == privateConfig)
+                setPrivateProperty(propName,value);
+            else
+                setConfigProperty(propName,value,config);
             return !Objects.equals(oldValue, value);
         }
         return false;
@@ -1185,8 +1188,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         defaultConfig.setProperty(LINK_MANAGER_Y_KEY, Integer.toString(0));
 //        defaultConfig.setProperty(LINK_MANAGER_WINDOW_STATE_KEY, 
 //                Integer.toString(JFrame.NORMAL));
-        defaultConfig.setProperty(EXTERNAL_DATABASE_FILE_SOURCE_KEY, 
-                Integer.toString(EXTERNAL_DATABASE_FILE_SOURCE_NONE));
         defaultConfig.setProperty(DATABASE_FILE_CHANGE_OPERATION_KEY, 
                 Integer.toString(dbFileChangeCombo.getSelectedIndex()));
         
@@ -1203,6 +1204,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config = new Properties(defaultConfig);
         
         defaultPrivateConfig = new Properties();
+        defaultPrivateConfig.setProperty(EXTERNAL_DATABASE_FILE_SOURCE_KEY, 
+                Integer.toString(EXTERNAL_DATABASE_FILE_SOURCE_NONE));
         
         privateConfig = new Properties(defaultPrivateConfig);
         
@@ -1433,7 +1436,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param defaultConfig 
      * @return 
      */
-    private Object setConfigProperty(String key, Object value,Properties config,
+    private Object setConfigProperty(String key,Object value,Properties config,
             Properties defaultConfig){
         if (config != null){
             if (value == null)
@@ -1451,11 +1454,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      * @param key
+     * @param value
+     * @param config
+     * @return 
+     */
+    private Object setConfigProperty(String key,Object value,Properties config){
+        return setConfigProperty(key,value,config,defaultConfig);
+    }
+    /**
+     * 
+     * @param key
      * @param value 
      * @return
      */
     private Object setConfigProperty(String key, Object value){
-        return setConfigProperty(key,value,config,defaultConfig);
+        return setConfigProperty(key,value,config);
     }
     /**
      * 
