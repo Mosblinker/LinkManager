@@ -47,7 +47,6 @@ import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
 import manager.links.*;
-import manager.security.Obfuscator;
 import measure.format.binary.ByteUnitFormat;
 import org.sqlite.*;
 import org.sqlite.core.*;
@@ -814,7 +813,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         undoCommands = new HashMap<>();
         textPopupMenus = new HashMap<>();
         
-        obfuscator = Obfuscator.getInstance();
+//        obfuscator = Obfuscator.getInstance();
         
         loadDbxUtils();
         
