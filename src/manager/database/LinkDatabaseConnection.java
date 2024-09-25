@@ -4905,13 +4905,19 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
-     * @param <E> 
+     * @param <E> The type of elements stored in this set.
      */
     private abstract class AbstractQuerySet<E> extends AbstractSQLSet<E>{
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public LinkDatabaseConnection getConnection() throws SQLException {
             return LinkDatabaseConnection.this;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean addAllSQL(Collection<? extends E> c)throws SQLException{
                 // Get the current state of the auto-commit
@@ -4927,6 +4933,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             setAutoCommit(autoCommit);
             return modified;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean removeAllSQL(Collection<?> c)throws SQLException{
                 // Get the current state of the auto-commit
@@ -4942,6 +4951,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             setAutoCommit(autoCommit);
             return modified;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean retainAllSQL(Collection<?> c)throws SQLException{
                 // Get the current state of the auto-commit
@@ -4957,8 +4969,14 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             setAutoCommit(autoCommit);
             return modified;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected abstract boolean containsSQL(Object o) throws SQLException;
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected abstract boolean removeSQL(Object o) throws SQLException;
         /**
@@ -4980,6 +4998,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 }
             };
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public Iterator<E> iterator(){
             try{
@@ -4989,6 +5010,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return Collections.emptyIterator();
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public boolean equals(Object obj){
                 // If the given object is this set
@@ -5003,6 +5027,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return false;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public int hashCode() {
                 // Create a copy of this set (to reduce the number of queries)
@@ -5012,20 +5039,35 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
-     * @param <K>
-     * @param <V> 
+     * @param <K> The type of keys maintained by the map.
+     * @param <V> The type of mapped values.
      */
     private abstract class AbstractQueryMap<K, V> extends AbstractSQLMap<K, V>{
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public LinkDatabaseConnection getConnection() throws SQLException {
             return LinkDatabaseConnection.this;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected abstract boolean containsKeySQL(Object key) throws SQLException;
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected abstract V removeSQL(Object key) throws SQLException;
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected abstract V getSQL(Object key) throws SQLException;
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected abstract V putSQL(K key, V value) throws SQLException;
         /**
@@ -5047,6 +5089,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 }
             };
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Iterator<Entry<K,V>> entryIterator(){
             try{
@@ -5056,6 +5101,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return Collections.emptyIterator();
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void putAllSQL(Map<? extends K, ? extends V> m) 
                 throws SQLException{
@@ -5070,6 +5118,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // Restore the auto-commit back to what it was set to before
             setAutoCommit(autoCommit);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public boolean equals(Object obj){
                 // If the given object is this map
@@ -5084,6 +5135,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return false;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public int hashCode() {
                 // Create a copy of this map (to reduce the number of queries)
@@ -5093,7 +5147,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
-     * @param <V> 
+     * @param <V> The type of mapped values.
      */
     private abstract class AbstractNavigableTypeIDMap<V> extends 
             AbstractNavigableSQLMap<Integer,V>{
@@ -5112,14 +5166,23 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         AbstractNavigableTypeIDMap(NavigableSet<Integer> typeIDSet){
             this.typeIDSet = typeIDSet;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public LinkDatabaseConnection getConnection() throws SQLException {
             return LinkDatabaseConnection.this;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public Comparator<? super Integer> comparator() {
             return typeIDSet.comparator();
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean containsKeySQL(Object key) throws SQLException{
                 // If the given key is null or not an integer
@@ -5127,10 +5190,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return false;
             return typeIDSet.contains((Integer)key);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected V removeSQL(Object key) throws SQLException{
             throw new UnsupportedOperationException("remove");
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected V putSQL(Integer key, V value) throws SQLException{
             throw new UnsupportedOperationException("put");
@@ -5155,6 +5224,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected V getSQL(Object key) throws SQLException{
                 // If the given key is null or not an integer
@@ -5179,54 +5251,90 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return null;
             return new AbstractMap.SimpleImmutableEntry<>(key,get(key));
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Integer firstKeySQL() throws SQLException {
             return typeIDSet.first();
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Entry<Integer, V> firstEntrySQL() throws SQLException {
                 // If this map is empty, return null. Otherwise return the entry 
                 // for the first key
             return (isEmpty()) ? null : getEntry(firstKey());   
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Integer lastKeySQL() throws SQLException {
             return typeIDSet.last();
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Entry<Integer, V> lastEntrySQL() throws SQLException {
                 // If this map is empty, return null. Otherwise return the entry 
                 // for the last key
             return (isEmpty()) ? null : getEntry(lastKey());
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Integer lowerKeySQL(Integer key) throws SQLException {
             return typeIDSet.lower(key);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Entry<Integer, V> lowerEntrySQL(Integer key) throws SQLException {
             return getEntry(lowerKey(key));
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Integer floorKeySQL(Integer key) throws SQLException {
             return typeIDSet.floor(key);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Entry<Integer, V> floorEntrySQL(Integer key) throws SQLException {
             return getEntry(floorKey(key));
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Integer ceilingKeySQL(Integer key) throws SQLException {
             return typeIDSet.ceiling(key);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Entry<Integer, V> ceilingEntrySQL(Integer key) throws SQLException {
             return getEntry(ceilingKey(key));
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Integer higherKeySQL(Integer key) throws SQLException {
             return typeIDSet.higher(key);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Entry<Integer, V> higherEntrySQL(Integer key) throws SQLException {
             return getEntry(higherKey(key));
@@ -5248,6 +5356,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     fromStart, fromKey, fromInclusive, 
                     toEnd, toKey, toInclusive);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected int sizeSQL(boolean fromStart, Integer fromKey, boolean fromInclusive, 
                 boolean toEnd, Integer toKey, boolean toInclusive) throws SQLException {
@@ -5275,6 +5386,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             return new EntryIterator((descending)?keys.descendingIterator():
                     keys.iterator());
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Iterator<Entry<Integer, V>> entryIterator(
                 boolean fromStart, Integer fromKey, boolean fromInclusive, 
@@ -5282,6 +5396,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             return entryIterator(fromStart,fromKey,fromInclusive,
                     toEnd,toKey,toInclusive,false);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Iterator<Entry<Integer, V>> descendingEntryIterator(
                 boolean fromStart, Integer fromKey, boolean fromInclusive, 
@@ -5289,6 +5406,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             return entryIterator(fromStart,fromKey,fromInclusive,
                     toEnd,toKey,toInclusive,true);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public boolean equals(Object obj){
                 // If the given object is this map
@@ -5303,6 +5423,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return false;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public int hashCode() {
                 // Create a copy of this map (to reduce the number of queries)
@@ -5371,10 +5494,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * @return 
          */
         protected abstract String getTypeColumn();
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean removeSQL(Object o) throws SQLException{
             throw new UnsupportedOperationException("remove");
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean containsSQL(Object o) throws SQLException{
                 // If the given value is null or not a String
@@ -5397,6 +5526,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return containsCountResult(pstmt.executeQuery());
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected int sizeSQL() throws SQLException {
             createTableView();  // Create the tables view
@@ -5416,6 +5548,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return 0;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Set<String> valueCacheSet() throws SQLException{
             createTableView();  // Create the tables view
@@ -5451,14 +5586,23 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         private TableSet(String type) {
             super(type);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getViewName() {
             return TABLES_VIEW_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getNameColumn() {
             return TABLES_NAME_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getTypeColumn() {
             return TABLES_TYPE_COLUMN_NAME;
@@ -5468,6 +5612,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * 
      */
     private class TableStructureMap extends AbstractQueryMap<String, String>{
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean containsKeySQL(Object key) throws SQLException {
                 // If the given key is null or not a string
@@ -5483,6 +5630,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return containsCountResult(pstmt.executeQuery());
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean containsValueSQL(Object value) throws SQLException {
                 // If the given value is null or not a string
@@ -5498,10 +5648,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return containsCountResult(pstmt.executeQuery());
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String removeSQL(Object key) throws SQLException {
             throw new UnsupportedOperationException("remove");
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getSQL(Object key) throws SQLException {
                 // If the given key is null or not a string
@@ -5524,10 +5680,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return null;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String putSQL(String key, String value) throws SQLException {
             throw new UnsupportedOperationException("put");
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Set<Entry<String, String>> entryCacheSet() throws SQLException {
             createTableView();  // Create the tables view
@@ -5551,6 +5713,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return cache;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected int sizeSQL() throws SQLException {
             createTableView();  // Create the tables view
@@ -5568,18 +5733,30 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         private TableIndexSet(String tableName) {
             super(tableName);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getViewName() {
             return TABLE_INDEX_VIEW_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getNameColumn() {
             return TABLE_INDEX_NAME_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getTypeColumn() {
             return TABLE_INDEX_TABLE_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean removeSQL(Object o) throws SQLException{
                 // If the value to remove is not a string
@@ -5617,6 +5794,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
 //         * 
 //         */
 //        private final TreeMap<Integer,String> cache = new TreeMap<>();
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public void syncCache(){
 //                // Clear the cache
@@ -5643,6 +5823,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         + "allowed (prefix \""+value+"\" is already mapped to "
                                 + "prefixID " + firstKeyFor(value)+")");
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean containsKeySQL(Object key) throws SQLException {
                 // If the given key is either null or not an integer
@@ -5658,6 +5841,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
 //            }
             return containsPrefixID((int)key);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean containsValueSQL(Object value) throws SQLException {
                 // If the given value is either null or not a string
@@ -5675,6 +5861,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return containsCountResult(pstmt.executeQuery());
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String removeSQL(Object key) throws SQLException {
                 // If the given key is either null or not an integer
@@ -5736,6 +5925,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return value;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Integer addSQL(String value) throws SQLException{
                 // Check if the value is null
@@ -5762,6 +5954,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
 //            cache.put(prefixID, value);
             return prefixID;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getSQL(Object key) throws SQLException{
                 // If the given key is either null or not an integer
@@ -5793,6 +5988,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return null;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String putSQL(Integer key, String value) throws SQLException{
                 // Check if the key is null
@@ -5827,28 +6025,46 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
 //            cache.put(key, value);
             return oldValue;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getTableName() {
             return PREFIX_TABLE_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getKeyColumn() {
             return PREFIX_ID_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getValueColumn() {
             return PREFIX_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void setPreparedKey(PreparedStatement pstmt, 
                 int parameterIndex, Integer key) throws SQLException {
             setParameter(pstmt,parameterIndex,key);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void setPreparedValue(PreparedStatement pstmt, 
                 int parameterIndex, String value) throws SQLException {
             pstmt.setString(parameterIndex, value);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Integer getKeyFromResults(ResultSet rs) throws SQLException {
                 // Get the key from the results
@@ -5856,10 +6072,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // If the key was null, return null. Otherwise, return the key
             return (rs.wasNull()) ? null : key;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getValueFromResults(ResultSet rs) throws SQLException{
             return rs.getString(PREFIX_COLUMN_NAME);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void removeSQL(boolean fromStart, Integer fromKey, boolean fromInclusive, 
                 boolean toEnd, Integer toKey, boolean toInclusive, 
@@ -5869,6 +6091,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             super.removeSQL(fromStart, fromKey, fromInclusive, 
                     toEnd, toKey, toInclusive, useValue, value);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public int getPrefixCount(int prefixID){
                 // Prepare a statement to get the amount of links that use the 
@@ -5896,6 +6121,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             throw new IllegalArgumentException("No prefix with prefix ID "+prefixID);
         }
+//        /**
+//         * {@inheritDoc }
+//         */
 //        @Override
 //        public int getPrefixCount(String value){
 //            Objects.requireNonNull(value);
@@ -5917,6 +6145,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
 //            }
 //            return 0;
 //        }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public NavigableMap<Integer, String> getPrefixes(String value){
                 // Check if the value is null
@@ -5970,6 +6201,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return matches;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public Map.Entry<Integer, String> getLongestPrefixEntryFor(String value){
                 // Check if the value is null
@@ -5999,10 +6233,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // Strings
             return getEmptyPrefixEntry();
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public NavigableMap<Integer, String> getSuffixes(String value) {
             return new SuffixMap(getPrefixes(value),value);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean removeUnusedRowsSQL()throws SQLException{
                 // Clear the cache
@@ -6012,10 +6252,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     LINK_TABLE_NAME,
                     PREFIX_ID_COLUMN_NAME) > 0;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean removeDuplicateRowsSQL()throws SQLException{
             return false;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public DefaultMutableTreeNode createPrefixTree(Collection<String> values){
                 // Get a sorted set copy of the collection
@@ -6663,6 +6909,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             public SortedMap<Integer, String> tailMap(Integer fromKey) {
                 return tailMap(fromKey,true);
             }
+            /**
+             * {@inheritDoc }
+             */
             @Override
             public Comparator<? super Integer> comparator() {
                 return prefixes.comparator();
@@ -6686,6 +6935,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * 
          */
         private InverseMap inverseMap = null;
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean containsKeySQL(Object key) throws SQLException {
                 // If the given key is null or not a long
@@ -6693,6 +6945,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return false;
             return containsLinkID((long)key);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean containsValueSQL(Object value) throws SQLException {
                 // If the given value is null or not a String
@@ -6707,6 +6962,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return containsCountResult(pstmt.executeQuery());
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String removeSQL(Object key) throws SQLException {
                 // If the given key is null or not a long
@@ -6729,6 +6987,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return value;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Long addSQL(String value) throws SQLException {
                 // Check if the link is null
@@ -6761,6 +7022,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // Otherwise, find it and return the linkID for the added link
             return (linkID != null) ? linkID:getGeneratedKey(value,existingIDs);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getSQL(Object key) throws SQLException {
                 // If the given key is null or not a long
@@ -6782,6 +7046,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return null;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String putSQL(Long key, String value) throws SQLException {
                 // Check if the key is null
@@ -6819,32 +7086,53 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 updateLink(key,prefixID,value);
             return oldValue;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getTableName() {
             return LINK_TABLE_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getDataViewName(){
             return FULL_LINK_VIEW_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getKeyColumn() {
             return LINK_ID_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getValueColumn() {
             return LINK_URL_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void setPreparedKey(PreparedStatement pstmt, 
                 int parameterIndex, Long key) throws SQLException {
             setParameter(pstmt,parameterIndex,key);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void setPreparedValue(PreparedStatement pstmt, 
                 int parameterIndex, String value) throws SQLException {
             pstmt.setString(parameterIndex, value);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Long getKeyFromResults(ResultSet rs) throws SQLException {
                 // Get the key from the results
@@ -6852,10 +7140,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // If the key was null, then return null. Otherwise, return the 
             return (rs.wasNull()) ? null : key;     // key
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getValueFromResults(ResultSet rs) throws SQLException {
             return rs.getString(LINK_URL_COLUMN_NAME);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getRemoveRangeConditions(
                 boolean fromStart, boolean fromInclusive, 
@@ -6875,6 +7169,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     super.getRemoveRangeConditions(fromStart, fromInclusive, 
                             toEnd, toInclusive,useValue,value));
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void removeSQL(boolean fromStart, Long fromKey, boolean fromInclusive, 
                 boolean toEnd, Long toKey, boolean toInclusive, 
@@ -6883,6 +7180,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     toEnd, toKey, toInclusive, useValue, value);
             // Update the list data table accordingly?
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean removeDuplicateRowsSQL() throws SQLException{
                 // This is a map to contain the first linkID and link of all the 
@@ -6950,6 +7250,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             setAutoCommit(autoCommit);
             return true;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean removeUnusedRowsSQL() throws SQLException{
             return getConnection().removeUnusedRows(
@@ -6957,6 +7260,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     LIST_DATA_TABLE_NAME,
                     LINK_ID_COLUMN_NAME) > 0;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Long firstKeyForSQL(String value) throws SQLException{
             checkValue(value);  // Check the value
@@ -6977,6 +7283,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return null;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public Map<String, Long> inverse() {
                 // If the inverse map has not been initialized yet
@@ -7025,6 +7334,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return map;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public NavigableMap<Long,String>getStartsWith(String prefix,int offset){
                 // Make sure the prefix is not null
@@ -7044,6 +7356,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             });
             return map;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public NavigableMap<Long, String> getEndsWith(String suffix){
                 // Get a map containing the results of the database search for 
@@ -7057,6 +7372,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             });
             return map;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public NavigableMap<Long, String> getContains(String s){
                 // Get a map containing the results of the database search for 
@@ -7088,6 +7406,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             protected LinkMap getParentMap(){
                 return LinkMapImpl.this;
             }
+            /**
+             * {@inheritDoc }
+             */
             @Override
             public boolean containsKey(Object key){
                     // If the given key is not a String
@@ -7096,6 +7417,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // Return whether the parent map contains the key as a value
                 return getParentMap().containsValue((String)key);
             }
+            /**
+             * {@inheritDoc }
+             */
             @Override
             public Long get(Object key){
                     // If the given key is a String or null
@@ -7105,6 +7429,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 }
                 return null;
             }
+            /**
+             * {@inheritDoc }
+             */
             @Override
             public Set<Entry<String, Long>> entrySet() {
                     // If the entry set has not been initialized yet
@@ -7198,6 +7525,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     private class ListNameMapImpl extends AbstractDatabaseRowMap<Integer, String> 
             implements ListNameMap{
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean containsKeySQL(Object key) throws SQLException {
                 // If the given key is null or not an integer
@@ -7205,6 +7535,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return false;
             return containsListID((int)key);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean containsValueSQL(Object value) throws SQLException {
                 // If the given value is null or not a String
@@ -7225,6 +7558,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return containsCountResult(pstmt.executeQuery());
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void checkValue(String value){
                 // Check the value to see if it is value
@@ -7233,6 +7569,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             if (value.contains("*"))
                 throw new IllegalArgumentException("Name cannot contain asterisks (*) (Name: \""+value+"\")");
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String removeSQL(Object key) throws SQLException {
                 // If the given key is null or not an integer
@@ -7246,6 +7585,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             removeList(listID);
             return value;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Integer addSQL(String value) throws SQLException {
                 // This gets a set of listIDs currently in this map
@@ -7276,6 +7618,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // Otherwise, find it and return the listID for the list name
             return (listID != null) ? listID:getGeneratedKey(value,existingIDs);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getSQL(Object key) throws SQLException {
                 // If the given key is null or not an integer
@@ -7298,6 +7643,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return null;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String putSQL(Integer key, String value) throws SQLException {
                 // Check if the key is null
@@ -7352,28 +7700,46 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return null;
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getTableName() {
             return LIST_TABLE_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getKeyColumn() {
             return LIST_ID_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getValueColumn() {
             return LIST_NAME_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void setPreparedKey(PreparedStatement pstmt, 
                 int parameterIndex, Integer key) throws SQLException {
             setParameter(pstmt,parameterIndex,key);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void setPreparedValue(PreparedStatement pstmt, 
                 int parameterIndex, String value) throws SQLException {
             pstmt.setString(parameterIndex, value);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Integer getKeyFromResults(ResultSet rs) throws SQLException {
                 // Get the key from the results
@@ -7381,14 +7747,23 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // If the key was null, return null. Otherwise, return the key
             return (rs.wasNull()) ? null : key;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getValueFromResults(ResultSet rs) throws SQLException{
             return rs.getString(LIST_NAME_COLUMN_NAME);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean canValueBeNull(){
             return true;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public Integer add(String value,long lastMod,long created,int flags,
                 Integer sizeLimit){
@@ -7429,6 +7804,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // Otherwise, find it and return the listID for the list name
             return (listID != null) ? listID:getGeneratedKey(value,existingIDs);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean removeUnusedRowsSQL()throws SQLException{
             return getConnection().removeUnusedRows(
@@ -7436,6 +7814,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     LIST_OF_LISTS_TABLE_NAME,
                     LIST_ID_COLUMN_NAME) > 0;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean removeDuplicateRowsSQL()throws SQLException{
             throw new UnsupportedOperationException("removeDuplicateRows");
@@ -7445,6 +7826,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * 
      */
     private class ListTypeSet extends AbstractQuerySet<Integer>{
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean containsSQL(Object o) throws SQLException {
                 // If the given object is null or not an integer
@@ -7460,10 +7844,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return containsCountResult(pstmt.executeQuery());
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean removeSQL(Object o) throws SQLException {
             throw new UnsupportedOperationException("remove");
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Set<Integer> valueCacheSet() throws SQLException {
                 // Prepare a statement to get the list types from the list of 
@@ -7483,6 +7873,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return cache;
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected int sizeSQL() throws SQLException {
                 // Prepare a statement to count the unique instances of the list 
@@ -7523,32 +7916,53 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         public int getListType(){
             return listType;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getTableName(){
             return LIST_OF_LISTS_TABLE_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getTypeIDColumn(){
             return LIST_TYPE_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getIndexColumn(){
             return LIST_INDEX_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getElementColumn(){
             return LIST_ID_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void setPreparedTypeID(PreparedStatement pstmt, 
                 int parameterIndex)throws SQLException{
             pstmt.setInt(parameterIndex, getListType());
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void setPreparedElement(PreparedStatement pstmt, 
                 int parameterIndex, Integer element)throws SQLException{
             setParameter(pstmt,parameterIndex,element);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Integer getElementFromResults(ResultSet rs)throws SQLException{
                 // Get the listID from the results
@@ -7558,6 +7972,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // If the listID was null, return null. Otherwise, return the 
             return (rs.wasNull()) ? null : listID;      // listID
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected int indexOfSQL(Object o, boolean descending) throws SQLException {
                 // If the object is not null and not an integer
@@ -7566,6 +7983,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // Get the index of the element
             return indexOfElement((Integer)o,descending);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void checkElement(Integer element)throws SQLException {
                 // If the element is not null
@@ -7573,10 +7993,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // Check the element as a listID
                 checkListID(element);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected int sizeSQL() throws SQLException {
             return getListCount(getListType());
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public int totalSize() {
             try{
@@ -7597,7 +8023,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
 //        ListTypeMapImpl() {
 //            super(getListTypes());
 //        }
-//
+//        /**
+//         * {@inheritDoc }
+//         */
 //        @Override
 //        protected ListIDList createValueSQL(Integer key) throws SQLException {
 //            return new ListIDListImpl(key);
@@ -7622,10 +8050,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         ListTypeMapImpl() throws SQLException{
             this.listTypeSet = getListTypes();
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public LinkDatabaseConnection getConnection() throws SQLException {
             return LinkDatabaseConnection.this;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean containsKeySQL(Object key) throws SQLException{
                 // If the given key is null or not an integer
@@ -7633,15 +8067,24 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return false;
             return listTypeSet.contains((Integer)key);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected ListIDList removeSQL(Object key) throws SQLException{
             throw new UnsupportedOperationException("remove");
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected ListIDList putSQL(Integer key, ListIDList value) 
                 throws SQLException{
             throw new UnsupportedOperationException("put");
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected ListIDList getSQL(Object key) throws SQLException{
             if (key == null || !(key instanceof Integer))
@@ -7666,6 +8109,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return null;
             return new AbstractMap.SimpleImmutableEntry<>(key,get(key));
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Set<Entry<Integer, ListIDList>> entryCacheSet() throws SQLException {
                 // Create a set to cache the entries
@@ -7677,6 +8123,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return cacheSet;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected int sizeSQL() throws SQLException {
             return listTypeSet.size();
@@ -7698,10 +8147,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         ListContentsImpl(int listID){
             this.listID = listID;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public int getListID() {
             return listID;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public boolean isHidden(){
             try {
@@ -7711,6 +8166,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return false;
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public boolean exists() {
             try {
@@ -7733,6 +8191,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             if (!exists())
                 throw new IllegalStateException("List with ID "+listID+" does not exist");
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public String getName() {
             try {
@@ -7744,6 +8205,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public void setName(String name) {
             try {
@@ -7756,6 +8220,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public long getLastModified() {
             try{
@@ -7780,6 +8247,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public void setLastModified(long lastMod) {
             try{
@@ -7803,6 +8273,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public long getCreationTime() {
             try{
@@ -7827,6 +8300,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public void setCreationTime(long time) {
             try{
@@ -7850,6 +8326,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public int getFlags() {
             try{
@@ -7874,6 +8353,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public void setFlags(int flags) {
             try{
@@ -7897,6 +8379,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public Integer getSizeLimit() {
             try{
@@ -7926,6 +8411,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public void setSizeLimit(Integer sizeLimit) {
             try{
@@ -7949,49 +8437,82 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getTableName(){
             return LIST_DATA_TABLE_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getDataViewName(){
             return LIST_CONTENTS_VIEW_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getTypeIDColumn(){
             return LIST_ID_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getIndexColumn(){
             return LINK_INDEX_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getElementColumn(){
             return LINK_ID_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getDataElementColumn(){
             return LINK_URL_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void setPreparedTypeID(PreparedStatement pstmt, 
                 int parameterIndex)throws SQLException{
             pstmt.setInt(parameterIndex, listID);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void setPreparedElement(PreparedStatement pstmt, 
                 int parameterIndex, String element)throws SQLException{
             pstmt.setString(parameterIndex, element);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void setReplaceIndexElement(PreparedStatement pstmt, 
                 int parameterIndex, String element)throws SQLException{
             setParameter(pstmt,parameterIndex,getLinkMap().addIfAbsent(element));
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getElementFromResults(ResultSet rs)throws SQLException{
             return rs.getString(LINK_URL_COLUMN_NAME);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected int indexOfSQL(Object o, boolean descending) throws SQLException {
             requireListExists();    // Requre the list to exist
@@ -8000,21 +8521,33 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return -1;
             return indexOfElement((String)o,descending);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected int sizeSQL() throws SQLException{
             if (!exists())  // If the list does not exist
                 return 0;
             return getListSize(listID);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getSQL(int index) throws SQLException {
             requireListExists();    // Requre the list to exist
             return super.getSQL(index);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void checkElement(String element)throws SQLException {
             requireListExists();    // Requre the list to exist
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public LinksListModel toModel(LinksListModel model, 
                 BiConsumer<Integer,Integer> observer){
@@ -8110,6 +8643,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return model;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public void updateContents(LinksListModel model, 
                 BiConsumer<Integer,Integer>observer,Map<String,Long> linkIDMap){
@@ -8188,10 +8724,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         ListDataMapImpl() throws SQLException {
             super(LinkDatabaseConnection.this.getListNameMap().navigableKeySet());
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected ListContents createValueSQL(Integer key) throws SQLException{
             return new ListContentsImpl(key);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public ListNameMap getListNameMap() {
             try{
@@ -8201,6 +8743,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public void clearAll() {
             try {
@@ -8210,6 +8755,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public int totalSize() {
             try{
@@ -8235,14 +8783,23 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         ListDataListImpl(int listType) throws SQLException{
             listIDs = LinkDatabaseConnection.this.getListIDs(listType);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public LinkDatabaseConnection getConnection() throws SQLException {
             return LinkDatabaseConnection.this;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public ListIDList getListIDs() {
             return listIDs;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public ListDataMap getListDataMap() {
             try{
@@ -8263,6 +8820,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * @return 
          */
         protected abstract String getValueColumn();
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean containsKeySQL(Object key) throws SQLException {
                 // If the given key is null or a String
@@ -8281,6 +8841,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return containsCountResult(pstmt.executeQuery());
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected boolean containsValueSQL(Object value) throws SQLException {
                 // If the given value is null or a String
@@ -8312,6 +8875,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 pstmt.executeUpdate();
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String removeSQL(Object key) throws SQLException {
                 // If the given key is null or a String
@@ -8340,6 +8906,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             removeUnusedProperties();
             return value;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getSQL(Object key) throws SQLException {
                 // If the given key is null or a String
@@ -8361,6 +8930,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return null;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String putSQL(String key, String value) throws SQLException {
                 // Check if the key is null
@@ -8411,6 +8983,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return oldValue;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected int sizeSQL() throws SQLException {
                 // Prepare a statement to get the amount of entries in the 
@@ -8428,6 +9003,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return 0;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected void clearSQL() throws SQLException {
                 // Prepare a statement to set all the values to null
@@ -8442,6 +9020,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }   // Remove any properties that are unused
             removeUnusedProperties();
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected Set<Entry<String, String>> entryCacheSet() throws SQLException {
                 // A set to cache the entries from the database
@@ -8470,10 +9051,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * 
      */
     private class DatabasePropertyDefaults extends AbstractDatabasePropertyMap{
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getValueColumn() {
             return DATABASE_CONFIG_DEFAULT_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public DatabasePropertyMap getDefaults() {
             return null;    // This is the default properties map
@@ -8487,10 +9074,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * The default properties map
          */
         private DatabasePropertyMap defaults = null;
+        /**
+         * {@inheritDoc }
+         */
         @Override
         protected String getValueColumn() {
             return DATABASE_CONFIG_VALUE_COLUMN_NAME;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public DatabasePropertyMap getDefaults() {
                 // If the default properties map has not been initialized yet
@@ -8511,6 +9104,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             return (value != null) ? value :    // return the default value
                     rs.getString(DATABASE_CONFIG_DEFAULT_COLUMN_NAME);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public String getProperty(String key) {
             if (key == null)    // If the key is null
@@ -8537,6 +9133,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             return null;
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public Set<String> propertyNameSet() {
                 // A set to cache the property names from the database
@@ -8560,6 +9159,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }   // Return an unmodifiable version of the set
             return Collections.unmodifiableSet(cache);
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public boolean containsPropertyName(String key){
             if (key == null)    // If the key is null
@@ -8582,6 +9184,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public void setProperty(String key, String value, String defaultValue){
                 // Check if the key is not null
@@ -8623,6 +9228,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
+        /**
+         * {@inheritDoc }
+         */
         @Override
         public Set<Entry<String, String>> propertyEntrySet(){
                 // A set to cache the property entries from the database
