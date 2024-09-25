@@ -1605,10 +1605,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         {DATABASE_VERSION_CONFIG_KEY,DEFAULT_DATABASE_VERSION, DATABASE_VERSION}
     };
     
-    private static final String TABLE_SIZE_QUERY_TEMPLATE = 
+    protected static final String TABLE_SIZE_QUERY_TEMPLATE = 
             "SELECT COUNT(%s) AS "+COUNT_COLUMN_NAME+" FROM %s";
     
-    private static final String TABLE_CONTAINS_QUERY_TEMPLATE = 
+    protected static final String TABLE_CONTAINS_QUERY_TEMPLATE = 
             TABLE_SIZE_QUERY_TEMPLATE+" WHERE %s = ?";
     /**
      * This is the query used to search for prefixes that match a given String. 
@@ -1669,7 +1669,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @param limit The limit on the amount of rows that the query will return.
      * @return 
      */
-    private static String getSortedQuery(String columnNames,String tableName, 
+    protected static String getSortedQuery(String columnNames,String tableName, 
             String conditions,String sortColumn,boolean descending,Integer limit){
         return String.format("SELECT %s FROM %s%s ORDER BY %s%s%s", 
                 columnNames,
