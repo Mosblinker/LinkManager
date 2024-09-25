@@ -7517,15 +7517,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             this.listType = listType;
         }
         /**
-         * 
-         * @param includeHidden
-         * @deprecated
+         * {@inheritDoc }
          */
-        @Deprecated
-        ListIDListImpl(boolean includeHidden){
-            this((includeHidden) ? LIST_OF_ALL_LISTS_TYPE : 
-                    LIST_OF_SHOWN_LISTS_TYPE);
-        }
         @Override
         public int getListType(){
             return listType;
