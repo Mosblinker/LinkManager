@@ -4004,6 +4004,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 ((AbstractDatabaseSaver)saver).setExitAfterSaving(true);
                 return;
             }
+        } else if (isLoadingFiles() && loader instanceof DbxUploader){
+            if (((DbxUploader)loader).getExitAfterSaving()){
+                return;
+            }
         }   // If the program fully loaded initially and it is to save after the 
             // initial load
         if (fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
