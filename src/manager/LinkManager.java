@@ -66,7 +66,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This is the version of the program.
      */
-    public static final String PROGRAM_VERSION = "0.1.0-alpha";
+    public static final String PROGRAM_VERSION = "0.1.0";
     /**
      * This is the client identifier to pass to Dropbox for this program. This 
      * contains the name of this program (without any spaces) and the version.
