@@ -517,6 +517,8 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
                 offset++;
         }
         menu.insert(item, Math.min(Math.max(index-offset, 0), menuSize));
+        // TODO: Possibly set the menu item's visibility if the panel is 
+        // hidden and this is showing hidden lists
 //        if (panel != null && panel.isPrivate() && !showPrivate)
 //            item.setVisible(false);
     }
@@ -530,6 +532,8 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
                 menu.add(separator);
             }
             menu.add(item);
+            // TODO: Possibly set the menu item's visibility if the panel is 
+            // hidden and this is showing hidden lists
 //            if (panel != null && panel.isPrivate() && !showPrivate)
 //                item.setVisible(false);
         }
@@ -1111,6 +1115,7 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
         }
     }
     
+    // TODO: Implement a tab component with a + button for adding tabs
     public class AddTabComponent extends JPanel{
         
         private final JButton addButton;
@@ -1126,6 +1131,8 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
         
     }
     
+    // TODO: Implement a custom tab component for the lists with a bunch of 
+    // buttons for deleting the list, making a list read-only, etc.
 //    public class ListTabComponent extends JPanel{
 //        
 //        

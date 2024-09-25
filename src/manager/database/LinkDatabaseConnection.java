@@ -1504,6 +1504,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         LIST_CONTENTS_VIEW_CREATION_QUERY,          // List contents view
         LIST_SIZE_VIEW_CREATION_QUERY,              // List size view
         TOTAL_LIST_SIZE_VIEW_CREATION_QUERY,        // Total size view
+        // TODO: Implement Exclusive lists and create their tables in the database
 //        EXCLUSIVE_LISTS_TABLE_CREATION_QUERY,       // Exclusive lists table
 //        EXCLUSIVE_LISTS_INDEX_CREATION_QUERY,       // Exclusive lists index
         DATABASE_CONFIG_TABLE_CREATION_QUERY        // Database settings table
@@ -1576,6 +1577,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     
     protected static final String DEFAULT_DATABASE_VERSION = "0.5.0";
     
+    // TODO: Is there going to be a last modified variable in the config?
 //    public static final String DATABASE_LAST_MODIFIED_CONFIG_KEY = "lastModified";
 //    
 //    private static final String DATABASE_LAST_MODIFIED_CONFIG_DEFAULT = "0";
@@ -3509,6 +3511,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         }
             // This gets whether this was successful in updating the database
         boolean updateSuccess = true;
+            // TODO: Figure out possibly how to use the numbers in the versioning?
 //            // If the version is 0.x.x
 //        if (version[0] == 0){
 //                // Try to update the pre-config database
@@ -3638,7 +3641,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @throws SQLException 
      */
     public int[] getDatabaseVersion() throws SQLException{
-        // Implement a check for semantic versioning
+        // TODO: Implement a check for semantic versioning
             // Get the version from the database, as a String
         String version = getDatabaseVersionStr();
             // Split it at periods
@@ -3662,7 +3665,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @throws SQLException 
      */
     private int getDatabaseVersionAt(int index) throws SQLException{
-        // Implement a check for semantic versioning
+        // TODO: Implement a check for semantic versioning
             // Get the version from the database, as a String
         String version = getDatabaseVersionStr();
             // Split it at periods
@@ -3703,7 +3706,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @throws SQLException 
      */
     public boolean isDatabaseCompatible() throws SQLException{
-        // Implement a check for semantic versioning
+        // TODO: Implement a check for semantic versioning
             // Get the major version of the database
         int major = getDatabaseMajorVersion();
             // Return whether the database is at least version 1.0.0 and is at 
@@ -3716,7 +3719,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @throws SQLException 
      */
     public boolean isDatabaseOutdated() throws SQLException{
-        // Implement a check for semantic versioning
+        // TODO: Implement a check for semantic versioning
             // Get the database version
         int[] version = getDatabaseVersion();
         return version[0] != DATABASE_MAJOR_VERSION ||  
@@ -5507,6 +5510,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     private class PrefixMapImpl extends AbstractDatabaseRowMap<Integer,String> 
             implements PrefixMap {
+        // TODO: Implement caching
 //        /**
 //         * 
 //         */
@@ -5516,6 +5520,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          */
         @Override
         public void syncCache(){
+            // TODO: Implement caching
 //                // Clear the cache
 //            cache.clear();
 //                // Create an iterator to go through the entries in this map
@@ -5548,6 +5553,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // If the given key is either null or not an integer
             if (key == null || !(key instanceof Integer))
                 return false;
+            // TODO: Implement caching
 //            if (cache.containsKey((Integer)key))
 //                return true;
 //            try(PreparedStatement pstmt = prepareContainsStatement(
@@ -5566,6 +5572,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // If the given value is either null or not a string
             if (value == null || !(value instanceof String))
                 return false;
+            // TODO: Implement caching
 //            if (cache.containsValue((String)value))
 //                return true;
                 // Prepare a statement to check if the prefix table contains the 
@@ -5596,6 +5603,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // If the value to remove is empty
             if (value.isEmpty())
                 throw new IllegalArgumentException("Cannot remove empty prefix");
+            // TODO: Implement caching
 //            cache.remove(prefixID);
                 // This gets a map containing any prefixes for the prefix being 
                 // removed. This is so that we can change the prefixID for the 
@@ -5668,6 +5676,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             if (prefixID == null)
                     // Get the first key for the newly added prefix
                 prefixID = firstKeyFor(value);
+            // TODO: Implement caching
 //            cache.put(prefixID, value);
             return prefixID;
         }
@@ -5681,6 +5690,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return null;
                 // Get the key as an integer
             Integer prefixID = (Integer)key;
+                // TODO: Implement caching
 //            if (cache.containsKey(prefixID))
 //                return cache.get(prefixID);
                 // Prepare a statement to get the value mapped to the given key
@@ -5697,6 +5707,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 if (rs.next()){
                         // Get the value from the results
                     String value = rs.getString(PREFIX_COLUMN_NAME);
+                        // TODO: Implement caching
 //                    if (value != null)
 //                        cache.put(prefixID, value);
 //                        putIntoCache(prefixID,value);
@@ -5738,7 +5749,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 pstmt.setInt(2, key);
                     // Update the database
                 pstmt.executeUpdate();
-            }
+            }   // TODO: Implement caching
 //            cache.put(key, value);
             return oldValue;
         }
@@ -5838,6 +5849,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
             throw new IllegalArgumentException("No prefix with prefix ID "+prefixID);
         }
+        // TODO: Re-add this function to PrefixMap or remove it?
 //        /**
 //         * {@inheritDoc }
 //         */
@@ -6691,7 +6703,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             Long linkID = (Long)key;
                 // Get the old value
             String value = getSQL(linkID);
-            // Remove value from the list data table and shift the indexes accordingly?
+            // TODO: Remove value from the list data table and shift the indexes accordingly?
                 // Prepare a statement to remove the entry from the links table
             try (PreparedStatement pstmt = prepareStatement(
                     String.format("DELETE FROM %s WHERE %s = ?", 
@@ -6895,7 +6907,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 boolean useValue, String value)throws SQLException{
             super.removeSQL(fromStart, fromKey, fromInclusive, 
                     toEnd, toKey, toInclusive, useValue, value);
-            // Update the list data table accordingly?
+            // TODO: Update the list data table accordingly?
         }
         /**
          * {@inheritDoc }
@@ -7210,7 +7222,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * @throws SQLException 
          */
         protected int removeInverseSQL(String key, Long value)throws SQLException {
-            // Remove values from the list data table and shift the indexes accordingly?
+            // TODO: Remove values from the list data table and shift the indexes accordingly?
 //            try (PreparedStatement pstmt = prepareStatement(
 //                    String.format("DELETE FROM %s WHERE %s = ?", 
 //                            LINK_TABLE_NAME,
@@ -7730,6 +7742,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             return 0;
         }
     }
+    // TODO: Implement this class or remove it?
 //    /**
 //     * 
 //     */

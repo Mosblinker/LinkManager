@@ -294,6 +294,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is the configuration key for whether outdated lists should be 
      * overwritten when saving the lists to the database. {@code 0} for no, 
      * {@code 1} for yes, and {@code 2} for ask before saving.
+     * 
+     * @todo Implement this feature.
      */
     private static final String REPLACE_OUTDATED_LISTS_KEY = 
             "ReplaceOutdatedLists";
@@ -340,7 +342,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private static final String LINK_MANAGER_Y_KEY = 
             LINK_MANAGER_KEY_PREFIX+"Y";
-    
+    /**
+     * 
+     * @todo Implement the storing of the window state.
+     */
     private static final String LINK_MANAGER_WINDOW_STATE_KEY = 
             LINK_MANAGER_KEY_PREFIX+"WindowState";
     /**
@@ -348,8 +353,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * Dropbox account to use to access the database file if the database file 
      * is stored in a Dropbox account. Notice that the access token is 
      * encrypted so as to prevent malicious actors from retrieving the access 
-     * token from the configuration file. This value also contains a checksum, a 
-     * public key, and is encoded in base 64.
+     * token from the private configuration file. This value also contains a 
+     * checksum, a public key, and is encoded in base 64.
+     * 
+     * @todo Implement the encryption of the Dropbox access token.
      */
     private static final String DROPBOX_ACCESS_TOKEN_KEY = "DropboxAccessToken";
     /**
@@ -357,8 +364,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * Dropbox account to use to access the database file if the database file 
      * is stored in a Dropbox account. Notice that the refresh token is 
      * encrypted so as to prevent malicious actors from retrieving the refresh 
-     * token from the configuration file. This value also contains a checksum, a 
-     * public key, and is encoded in base 64. 
+     * token from the private configuration file. This value also contains a 
+     * checksum, a public key, and is encoded in base 64. 
+     * 
+     * @todo Implement the encryption of the Dropbox access token.
      */
     private static final String DROPBOX_REFRESH_TOKEN_KEY="DropboxRefreshToken";
     /**
@@ -700,6 +709,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
+     * @todo Add decryption of the Dropbox token.
+     * 
      * @param key
      * @return 
      */
@@ -710,6 +721,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return token;
     }
     /**
+     * 
+     * @todo Add encryption of the Dropbox token.
      * 
      * @param key
      * @param token 
@@ -815,6 +828,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         undoCommands = new HashMap<>();
         textPopupMenus = new HashMap<>();
         
+        // TODO: Uncomment this when Dropbox token encryption is implemented
 //        obfuscator = Obfuscator.getInstance();
         
         loadDbxUtils();
@@ -1103,6 +1117,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 Boolean.toString(showDBErrorDetailsToggle.isSelected()));
         defaultConfig.setProperty(LINK_MANAGER_X_KEY, Integer.toString(0));
         defaultConfig.setProperty(LINK_MANAGER_Y_KEY, Integer.toString(0));
+            // TODO: Implement the window state key
 //        defaultConfig.setProperty(LINK_MANAGER_WINDOW_STATE_KEY, 
 //                Integer.toString(JFrame.NORMAL));
         defaultConfig.setProperty(DATABASE_FILE_CHANGE_OPERATION_KEY, 
@@ -1276,6 +1291,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void updateVisibleTabsPanel(){
         if (showHiddenListsToggle.isSelected()){
+            // TODO: Perhaps stop the auto-hide timer if a hidden list is edited 
+            // and/or selected, and only resumes after the lists are saved or a 
+            // non-hidden list is selected?
 //            if (!autoHideMenu.isRunning())
                 autoHideMenu.startAutoHide();
         } else
@@ -3537,6 +3555,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             beep();
             return;
         }
+        // TODO: Move this into a SwingWorker (or at least update the links in one)?
         String prefix = prefixField.getText();
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             PrefixMap prefixMap = conn.getPrefixMap();
@@ -3577,6 +3596,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 "No Prefix Selected", JOptionPane.WARNING_MESSAGE);
             return;
         }
+            // TODO: Move this into a SwingWorker?
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             String prefix = conn.getPrefixMap().remove((Integer)
                     dbPrefixTable.getValueAt(selRow, 0));
@@ -4482,6 +4502,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_formComponentResized
 
     private void formWindowStateChanged(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowStateChanged
+        // TODO: Implement saving the window state
 //        System.out.println(evt);
 //        setConfigProperty(LINK_MANAGER_WINDOW_STATE_KEY)
 //        defaultConfig.setProperty(LINK_MANAGER_WINDOW_STATE_KEY, Integer.toString(JFrame.NORMAL));
@@ -4569,6 +4590,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return;
         }
         
+        // TODO: Implement setting the location for the dropbox file
         String extFileName = dbxDbFileField.getText();
         System.out.println(extFileName);
         
@@ -4774,6 +4796,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void dbxLogOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogOutButtonActionPerformed
         dbxUtils.clearCredentials();
+        // TODO: Figure out how to properly deal with logging out from this program
         saver = new PrivateConfigSaver(){
             @Override
             protected void done(){
@@ -6095,6 +6118,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             config.remove(DATABASE_FILE_KEY);
                 // Remove the old folder
             config.remove(DATABASE_FOLDER_KEY);
+            
         }   // Get the search text
         String text = searchPanel.getSearchText();
             // Set the search text in the configuration
@@ -6163,8 +6187,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void loadConfiguration(File file, Properties config) throws IOException{
         loadProperties(file,config);
         
-            // TODO: These configuration keys are deprecated and are here for 
-            // legacy reasons
+        // TODO: These configuration keys are deprecated and are here for legacy 
+        // reasons
         
             // If the config does not have the database file key
         if (!config.containsKey(DATABASE_FILE_PATH_KEY)){
@@ -6196,10 +6220,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     config.setProperty(DATABASE_FILE_PATH_KEY, fileName);
             }
         }
-        
-            // TODO: These configuration keys are deprecated and should be 
-            // removed
-            
+        // These configuration keys are deprecated and should be removed
             // Remove the old file name key
         config.remove(DATABASE_FILE_KEY);
             // Remove the old folder key
@@ -6385,6 +6406,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         selListIDMap.put(1, legacySelListMap.get(SHOWN_CURRENT_TAB_LIST_ID_KEY));
         selListMap.put(0, legacySelListMap.get(CURRENT_TAB_INDEX_KEY));
         selListMap.put(1, legacySelListMap.get(SHOWN_CURRENT_TAB_INDEX_KEY));
+        
             // Go through the prefixed selection keys
         for (String key : keys){
             String keyPrefix;   // Get the prefix for the current key
@@ -9568,7 +9590,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             for (LinksListPanel panel : allListsTabsPanel)
                 max += panel.getModel().size();
             setProgressMaximum(max);
-            /*
+            /* Copied path checking code from FileRearranger
             try{
                 path = newFile.toPath();
             }
@@ -9579,6 +9601,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         exc.getIndex() >= 0 && exc.getIndex() < newFileName.length()){
             */
             for (LinksListPanel panel : allListsTabsPanel){
+                    // TODO: Check for whether any for the list names are invalid
 //                File listFile = null;
 //                String fileName = panel.getListName()+".txt";
 //                do{

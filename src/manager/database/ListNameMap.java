@@ -7,7 +7,6 @@ package manager.database;
 import java.util.Objects;
 import manager.links.LinksListModel;
 import sql.UncheckedSQLException;
-import sql.util.*;
 
 /**
  * This is a map view of the list table in the database storing the links which 
@@ -138,7 +137,7 @@ public interface ListNameMap extends SQLRowMap<Integer, String>{
      */
     public default Integer add(LinksListModel model){
         Objects.requireNonNull(model);
-            // Should this be the case for adding a model that may already exist?
+            // TODO: Should this be the case for adding a model that may already exist?
         model.setLastModified();
         model.setCreationTime(model.getLastModified());
             // Tell the model to consider its contents modified (this tells the 
