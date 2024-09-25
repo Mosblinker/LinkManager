@@ -5,6 +5,7 @@
 package manager.links;
 
 import java.awt.event.ActionEvent;
+import javax.swing.AbstractButton;
 
 /**
  *
@@ -176,7 +177,7 @@ public abstract class LinksListTabAction extends LinksListAction{
          * @param panel 
          */
         public LinksListTabEditAction(String name, String actionCmd, 
-            LinksListTabsPanel tabsPanel, LinksListPanel panel){
+                LinksListTabsPanel tabsPanel, LinksListPanel panel){
             super(name,actionCmd,tabsPanel,panel);
         }
         /**
@@ -186,7 +187,7 @@ public abstract class LinksListTabAction extends LinksListAction{
          * @param tabsPanel 
          */
         public LinksListTabEditAction(String name, String actionCmd, 
-            LinksListTabsPanel tabsPanel){
+                LinksListTabsPanel tabsPanel){
             super(name,actionCmd,tabsPanel);
         }
         /**
@@ -238,6 +239,111 @@ public abstract class LinksListTabAction extends LinksListAction{
         @Override
         public int getRequiredFlags(){
             return super.getRequiredFlags() | LinksListModel.READ_ONLY_FLAG;
+        }
+    }
+    /**
+     * 
+     */
+    public static abstract class LinksListTabCheckAction extends LinksListTabAction{
+        /**
+         * 
+         * @param name
+         * @param actionCmd
+         * @param tabsPanel
+         * @param panel 
+         */
+        public LinksListTabCheckAction(String name, String actionCmd, 
+                LinksListTabsPanel tabsPanel, LinksListPanel panel){
+            super(name,actionCmd,tabsPanel,panel);
+        }
+        /**
+         * 
+         * @param name
+         * @param actionCmd
+         * @param tabsPanel 
+         */
+        public LinksListTabCheckAction(String name, String actionCmd, 
+                LinksListTabsPanel tabsPanel){
+            super(name,actionCmd,tabsPanel);
+        }
+        /**
+         * 
+         * @param actionCmd
+         * @param tabsPanel
+         * @param panel 
+         */
+        public LinksListTabCheckAction(String actionCmd, 
+                LinksListTabsPanel tabsPanel, LinksListPanel panel){
+            super(actionCmd,tabsPanel,panel);
+        }
+        /**
+         * 
+         * @param actionCmd
+         * @param tabsPanel 
+         */
+        public LinksListTabCheckAction(String actionCmd, 
+                LinksListTabsPanel tabsPanel){
+            super(actionCmd,tabsPanel);
+        }
+        /**
+         * 
+         * @param tabsPanel
+         * @param panel 
+         */
+        public LinksListTabCheckAction(LinksListTabsPanel tabsPanel,
+                LinksListPanel panel){
+            super(tabsPanel,panel);
+        }
+        /**
+         * 
+         * @param tabsPanel 
+         */
+        public LinksListTabCheckAction(LinksListTabsPanel tabsPanel){
+            super(tabsPanel);
+        }
+        /**
+         * 
+         */
+        public LinksListTabCheckAction(){
+            super();
+        }
+        @Override
+        public int getActionControlFlags(){
+            return super.getActionControlFlags() | 
+                    LinksListAction.CHECK_BOX_FLAG;
+        }
+        /**
+         * Invoked when an action occurs.
+         * @param evt The event to be processed.
+         * @param panel The LinksListPanel to use for the event.
+         * @param tabsPanel The LinksListTabsPanel to use for the event.
+         * @param button The button that generated the event.
+         * @param isSelected Whether the button is selected.
+         */
+        protected abstract void actionPerformed(ActionEvent evt, 
+                LinksListPanel panel, LinksListTabsPanel tabsPanel, 
+                AbstractButton button, boolean isSelected);
+        @Override
+        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
+                LinksListTabsPanel tabsPanel) {
+                // If the source for the event is a button
+            if (evt.getSource() instanceof AbstractButton){
+                    // Get the button that generated the event
+                AbstractButton button = (AbstractButton)evt.getSource();
+                actionPerformed(evt,panel,tabsPanel,button,button.isSelected());
+            }
+        }
+        /**
+         * This returns whether the item should be selected for the given panel
+         * @param panel
+         * @return 
+         */
+        protected abstract boolean isSelected(LinksListPanel panel);
+        @Override
+        protected void updateButton(LinksListPanel panel,AbstractButton button){
+                // If the button is not null
+            if (button != null)
+                button.setSelected(isSelected(panel));
         }
     }
 }
