@@ -9611,41 +9611,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // If the source list is not null
             if (source != null)
                 source.setEnabled(false);
-                // This gets a list of items that will be added to the given 
-            List<String> added = list;  // list
-                // Get the space remaining in the given list (or null if the 
-                // given list does not have a size limit)
-            Integer remaining = model.getSpaceRemaining();
-                // If the given list has a size limit and the list of items to 
-                // add is larger than the remaining space in the list
-            if (remaining != null && remaining < list.size()){
-                    // If the list allows duplicates
-                if (model.getAllowsDuplicates()){
-                        // Get a sublist that is the right size to be added 
-                        // without exceeding the space remaining
-                    added = list.subList(0, remaining);
-                } else {
-                        // Duplicates will not count towards the space remaining
-                    do{     // Get a sublist that is the right size to be added 
-                            // without exceeding the space remaining
-                        added = list.subList(0, remaining);
-                            // Get a copy of the list of items to be added
-                        List<String> moved = new ArrayList<>(added);
-                            // Remove all the items already in the list, since 
-                            // they will be moved instead of added to the list
-                        moved.retainAll(model);
-                            // Get the space remaining, adjusted for the items 
-                            // that will be moved instead of added
-                        remaining = model.getSpaceRemaining() + moved.size();
-                    }   // While there is still the potential to add more items 
-                        // due to the list containing duplicates
-                    while (remaining < list.size() && added.size() < remaining);
-                        // If, once duplicates are accounted for, there is 
-                        // enough space in the list for all the items to be 
-                    if (remaining >= list.size())   // added
-                        added = list;
-                }
-            }
+                // This gets a list of items that can and will be added to the 
+                // given list
+            List<String> added = model.getCompatibleList(list);
+            System.out.println(added.size() + " " + added);
             try{    // Try to add all the item this can add
                 model.addAll(added);
             }

@@ -647,6 +647,61 @@ public class LinksListModel extends ArrayListModel<String> implements
     }
     /**
      * 
+     * @param list
+     * @return 
+     */
+    public List<String> getCompatibleList(List<String> list){
+            // If this model is read only or full.
+        if (isReadOnly() || isFull())
+            return new ArrayList<>();
+            // Get the space remaining in this model (or null if this model 
+            // does not have a size limit)
+        Integer remaining = getSpaceRemaining();
+            // Create a copy of the given list
+        List<String> copy = new ArrayList<>(list);
+            // Remove any elements from the copy that can't be added to this 
+        copy.removeIf((String t) -> !isValidElement(t));    // model
+            // If the list originally contained elements that can't be added to 
+        if (!copy.equals(list)) // this model
+                // Use the copy for the rest of this operation.
+            list = copy;
+            // If this model does not have a size limit or the given list could 
+            // fit within this model as is
+        if (remaining == null || remaining >= list.size())
+            return list;
+            // If this model allows duplicate items
+        if (getAllowsDuplicates())
+                // Return a sublist of the given list that is the right size to 
+                // be added to this model without exceeding the space remaining
+            return list.subList(0, remaining);
+        
+            // Items shared between this model and the list will not count 
+            // towards the space remaining
+        
+            // This will get a list of items that can be added to this model
+        List<String> added;
+        do{     // Get a sublist that is the right size to be added to this 
+                // model without exceeding the space remaining
+            added = list.subList(0, remaining);
+                // Get a copy of the list of items to be added
+            List<String> moved = new ArrayList<>(added);
+                // Remove all the items already in this model, since they will 
+                // be moved instead of added to this model
+            moved.retainAll(this);
+                // Get the space remaining, adjusted for the items that will be 
+                // moved instead of added
+            remaining = getSpaceRemaining() + moved.size();
+        }   // While there is still the potential to add more items due to the 
+            // list containing duplicates
+        while (remaining < list.size() && added.size() < remaining);
+            // If, once duplicates are accounted for, there is enough space in 
+            // the list for all the items to be added
+        if (remaining >= list.size())
+            return list;
+        return added;
+    }
+    /**
+     * 
      * @return 
      */
     public String getToolTipText(){
