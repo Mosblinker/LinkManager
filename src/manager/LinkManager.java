@@ -7599,39 +7599,42 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // If this should show file not found prompts
                 if (showFileNotFound){
                     JOptionPane.showMessageDialog(LinkManager.this, 
-                            getFileNotFoundMessage(), getFailureTitle(), 
+                            getFileNotFoundMessage(file), getFailureTitle(file), 
                             JOptionPane.ERROR_MESSAGE);
                 }
                 return false;
             }
             else{   // Ask the user if they would like to try loading the file
                 return JOptionPane.showConfirmDialog(LinkManager.this, // again
-                        getFailureMessage()+"\nWould you like to try again?",
-                        getFailureTitle(),JOptionPane.YES_NO_OPTION,
+                        getFailureMessage(file)+"\nWould you like to try again?",
+                        getFailureTitle(file),JOptionPane.YES_NO_OPTION,
                         JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
             }
         }
         /**
          * This returns the title for the dialog to display if the file fails to 
          * be saved.
+         * @param file The file that failed to load.
          * @return The title for the dialog to display if the file fails to
          * save.
          */
-        protected String getFailureTitle(){
+        protected String getFailureTitle(File file){
             return "ERROR - File Failed To Load";
         }
         /**
          * This returns the message to display if the file fails to load.
+         * @param file The file that failed to load.
          * @return The message to display if the file fails to load.
          */
-        protected String getFailureMessage(){
+        protected String getFailureMessage(File file){
             return "The file failed to load.";
         }
         /**
          * This returns the message to display if the file does not exist.
+         * @param file The file that did not exist.
          * @return The message to display if the file does not exist.
          */
-        protected String getFileNotFoundMessage(){
+        protected String getFileNotFoundMessage(File file){
             return "The file does not exist.";
         }
         @Override
@@ -7798,36 +7801,48 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         /**
          * This returns the title for the dialog to display if the file is 
          * successfully saved.
+         * @param file The file that was successfully saved.
          * @return The title for the dialog to display if the file is 
          * successfully saved.
          */
-        protected String getSuccessTitle(){
+        protected String getSuccessTitle(File file){
             return "File Saved Successfully";
         }
         /**
          * This returns the message to display if the file is successfully 
          * saved.
+         * @param file The file that was successfully saved.
          * @return The message to display if the file is successfully saved.
          */
-        protected String getSuccessMessage(){
+        protected String getSuccessMessage(File file){
             return "The file was successfully saved.";
         }
         /**
          * This returns the title for the dialog to display if the file fails to 
          * be saved.
+         * @param file The file that failed to be saved.
          * @return The title for the dialog to display if the file fails to
          * save.
          */
-        protected String getFailureTitle(){
+        protected String getFailureTitle(File file){
             return "ERROR - File Failed To Save";
         }
         /**
+         * This returns the message to display if the backup of the file failed 
+         * to be created.
+         * @param file The file that failed to be backed up.
+         * @return The message to display if a backup of the file failed to be 
+         * created.
+         */
+        protected String getBackupFailedMessage(File file){
+            return "The backup file failed to be created.";
+        }
+        /**
          * This returns the message to display if the file fails to be saved.
+         * @param file The file that failed to be saved.
          * @return The message to display if the file fails to save.
          */
-        protected String getFailureMessage(){
-            if (backupFailed)   // If this failed to create the backup file
-                return "The backup file failed to be created.";
+        protected String getFailureMessage(File file){
             return "The file failed to save.";
         }
         /**
@@ -7842,7 +7857,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // If the program is not to exit after saving the file
             if (!exitAfterSaving)   
                 JOptionPane.showMessageDialog(LinkManager.this, 
-                        getSuccessMessage(), getSuccessTitle(), 
+                        getSuccessMessage(file), getSuccessTitle(file), 
                         JOptionPane.INFORMATION_MESSAGE);
         }
         /**
@@ -7853,11 +7868,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         @Override
         protected boolean showFailurePrompt(File file){
+                // Get the message to be displayed. If the file failed to be 
+                // backed up, show the backup failed message. Otherwise show the 
+                // normal failure message.
+            String message = (backupFailed) ? getBackupFailedMessage(file) : 
+                    getFailureMessage(file);
                 // Show a dialog prompt asking the user if they would like to 
                 // try and save the file again and get their input. 
             int option = JOptionPane.showConfirmDialog(LinkManager.this, 
-                    getFailureMessage()+"\nWould you like to try again?",
-                    getFailureTitle(),
+                    message+"\nWould you like to try again?",
+                    getFailureTitle(file),
                         // If the program is to exit after saving the file, show 
                         // a third "cancel" option to allow the user to cancel 
                         // exiting the program
@@ -7937,11 +7957,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return true;
         }
         @Override
-        protected String getSuccessMessage(){
+        protected String getSuccessMessage(File file){
             return "The backup file was successfully created.";
         }
         @Override
-        protected String getFailureMessage(){
+        protected String getBackupFailedMessage(File file){
+            return getFailureMessage(file);
+        }
+        @Override
+        protected String getFailureMessage(File file){
                 // If the file does not exist
             if (!file.exists())
                 return "Cannot create backup of a non-existent file.";
@@ -7952,8 +7976,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected boolean showFailurePrompt(File file){
             if (!file.exists()){    // If the file doesn't exist
                 JOptionPane.showMessageDialog(LinkManager.this, 
-                        getFailureMessage(), 
-                        "ERROR - File Failed To Save", 
+                        getFailureMessage(file),getFailureTitle(file), 
                         JOptionPane.ERROR_MESSAGE);
                 return false;
             }
@@ -8263,7 +8286,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return sqlExc;
         }
         @Override
-        protected String getFailureMessage(){
+        protected String getFailureMessage(File file){
                 // The message to return
             String msg = "The database failed to load.";
             if (sqlExc != null){    // If an SQLException was thrown
@@ -8288,7 +8311,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return msg;
         }
         @Override
-        protected String getFileNotFoundMessage(){
+        protected String getFileNotFoundMessage(File file){
             return "The database file does not exist.";
         }
     }
@@ -8458,7 +8481,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
         @Override
-        protected String getSuccessMessage(){
+        protected String getSuccessMessage(File file){
             return "The database was successfully saved.";
         }
         /**
@@ -8471,9 +8494,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return sqlExc;
         }
         @Override
-        protected String getFailureMessage(){
-            if (didBackupFail())   // If this failed to create the backup file
-                return "The database backup file failed to be created.";
+        protected String getBackupFailedMessage(File file){
+            return "The database backup file failed to be created.";
+        }
+        @Override
+        protected String getFailureMessage(File file){
                 // The message to return
             String msg = "The database failed to save.";
             if (sqlExc != null){    // If an SQLException was thrown
@@ -8733,7 +8758,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return true;
         }
         @Override
-        protected String getFailureMessage(){
+        protected String getFailureMessage(File file){
                 // If the database is outdated and cannot be updated 
             if (isDBOutdated){  // automatically by this program
                 return String.format(
@@ -8741,7 +8766,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         + "Database Version is %s, latest supported major version is %d.x.x", 
                         dbVersion, DATABASE_MAJOR_VERSION);
             }
-            return super.getFailureMessage();
+            return super.getFailureMessage(file);
         }
         @Override
         protected void done(){
@@ -9575,11 +9600,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return "Exporting Lists";
         }
         @Override
-        protected String getSuccessMessage(){
+        protected String getSuccessMessage(File file){
             return "The files were successfully created.";
         }
         @Override
-        protected String getFailureMessage(){
+        protected String getFailureMessage(File file){
             return "The files failed to be created.";
         }
         @Override
@@ -9673,7 +9698,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return false;
         }
         @Override
-        protected String getSuccessMessage(){
+        protected String getSuccessMessage(File file){
             switch (mode){
                 case(1):
                     return "The database file was successfully copied.";
@@ -9684,7 +9709,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
         @Override
-        protected String getFailureMessage(){
+        protected String getFailureMessage(File file){
             String msg;
             if (didBackupFail())   // If this failed to create the backup file
                 msg = "The backup file failed to be created.";
@@ -9786,23 +9811,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return "Downloading File";
         }
         @Override
-        protected String getSuccessTitle(){
+        protected String getSuccessTitle(File file){
             return "File Downloaded Successfully";
         }
         @Override
-        protected String getSuccessMessage(){
+        protected String getSuccessMessage(File file){
             return "The file was successfully downloaded.";
         }
         @Override
-        protected String getFailureTitle(){
+        protected String getFailureTitle(File file){
             return "ERROR - File Failed To Download";
         }
         @Override
-        protected String getFailureMessage(){
+        protected String getFailureMessage(File file){
             if (!fileFound)
                 return "The file was not found on Dropbox.";
-            if (didBackupFail())   // If this failed to create the backup file
-                return "The backup file failed to be created.";
                 // The message to return
             String msg = "The file failed to download.";
                 // If the program is either in debug mode or if details are to 
@@ -9820,7 +9843,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // If this should show file not found prompts
                 if (showFileNotFound){
                     JOptionPane.showMessageDialog(LinkManager.this, 
-                            getFailureMessage(), getFailureTitle(), 
+                            getFailureMessage(file), getFailureTitle(file), 
                             JOptionPane.ERROR_MESSAGE);
                 }
                 return false;
@@ -9957,11 +9980,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
         @Override
-        protected String getFailureTitle(){
+        protected String getFailureTitle(File file){
             return "ERROR - File Failed To Upload";
         }
         @Override
-        protected String getFailureMessage(){
+        protected String getFailureMessage(File file){
                 // The message to return
             String msg = "The file failed to upload.";
                 // If the program is either in debug mode or if details are to 
