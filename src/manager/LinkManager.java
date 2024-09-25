@@ -9308,10 +9308,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (success){
                 dbxAccountLabel.setText(accountName);
                 dbxPfpLabel.setIcon(pfpIcon);
-                dbxSpaceUsedLabel.setText(byteFormatter.format(used) + " ("+used+" Bytes)");
+                dbxSpaceUsedLabel.setText(String.format("%s (%,d Bytes)", 
+                        byteFormatter.format(used),used));
                     // Get the space the user has free
                 long free = allocated - used;
-                dbxSpaceFreeLabel.setText(byteFormatter.format(free) + " ("+free+" Bytes)");
+                dbxSpaceFreeLabel.setText(String.format("%s (%,d Bytes)", 
+                        byteFormatter.format(free),free));
                 setCard(setLocationPanel,setDropboxCard);
             } else if (!validAccount){
                 dbxUtils.clearCredentials();
