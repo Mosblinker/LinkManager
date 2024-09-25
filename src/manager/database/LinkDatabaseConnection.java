@@ -2180,6 +2180,14 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         return model;
     }
     /**
+     * This returns SQLiteConfig used to construct this connection if one was 
+     * provided.
+     * @return The SQLiteConfig for this connection, or null.
+     */
+    public SQLiteConfig getConfig(){
+        return config;
+    }
+    /**
      * 
      * @return
      * @throws SQLException If a database error occurs.
