@@ -9614,7 +9614,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // This gets a list of items that can and will be added to the 
                 // given list
             List<String> added = model.getCompatibleList(list);
-            System.out.println(added.size() + " " + added);
             try{    // Try to add all the item this can add
                 model.addAll(added);
             }
