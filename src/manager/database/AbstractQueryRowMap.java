@@ -133,7 +133,7 @@ abstract class AbstractQueryRowMap <K,V> extends AbstractSQLRowMap<K,V> {
      */
     protected abstract String getKeyColumn();
     /**
-     * This returns the name of the column in the table in the databas that 
+     * This returns the name of the column in the table in the database that 
      * stores the values for this map.
      * @return The name of the value column in the table.
      * @see #getTableName() 
