@@ -973,7 +973,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         textPopupMenus.put(dropboxSetupPanel.getAuthorizationCodeField(), 
                 dropboxSetupPanel.getAuthorizationCodePopupMenu());
         
-        pasteAndAddAction = new PasteAndAddAction();
+        pasteAndAddAction = new PasteAndAddAction(){
+            @Override
+            public List<String> getList() {
+                return getSelectedTabsPanel().getSelectedModel();
+            }
+            @Override
+            public JTextComponent getTextComponent() {
+                return linkTextField;
+            }
+        };
         pasteAndAddButton.setAction(pasteAndAddAction);
         pasteAndAddButton.setText("Add From Clipboard");
         
@@ -10255,40 +10264,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected boolean isSelected(LinksListPanel panel) {
             return panel.isReadOnly();
-        }
-    }
-    /**
-     * This is an action that is used to add a link from the clipboard to the 
-     * currently selected list.
-     */
-    private class PasteAndAddAction extends AbstractAction{
-        /**
-         * This constructs a {@code PasteAndAddAction}.
-         */
-        PasteAndAddAction(){
-            super("Paste and Add");
-            putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_V, 
-                    InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK));
-            putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A);
-            putValue(Action.DISPLAYED_MNEMONIC_INDEX_KEY,10);
-            putValue(Action.SHORT_DESCRIPTION,
-                    "This adds the contents of the clipboard to the list");
-        }
-        @Override
-        public void actionPerformed(ActionEvent evt) {
-            if (beepWhenDisabled()) // If input is disabled
-                return;
-                // Gets the clipboard
-            Clipboard clipboard = linkTextField.getToolkit().getSystemClipboard();
-                // If a String is currently in the clipboard
-            if (clipboard.isDataFlavorAvailable(DataFlavor.stringFlavor)){
-                try {   // Gets the String from the clipboard
-                    String text = (String) clipboard.getData(DataFlavor.stringFlavor);
-                    getSelectedTabsPanel().getSelectedModel().add(text.trim());
-                    linkTextField.grabFocus();
-                } catch (UnsupportedFlavorException | IOException ex) {
-                }
-            }
         }
     }
 }
