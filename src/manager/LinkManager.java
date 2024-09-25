@@ -6538,2861 +6538,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     /**
-     * This is an abstract class that provides the basic framework for working 
-     * with a file, such as saving to a file or loading from a file.
-     */
-    private abstract class FileWorker extends LinkManagerWorker<Void>{
-        /**
-         * The file to process.
-         */
-        protected File file;
-        /**
-         * Whether this was successful at processing the file.
-         */
-        protected boolean success = false;
-        /**
-         * This constructs a FileWorker that will process the given file.
-         * @param file The file to process.
-         */
-        FileWorker(File file){
-            this.file = file;
-        }
-        /**
-         * This returns whether this was successful at processing the file. 
-         * This will be inaccurate up until the file is finished being 
-         * processed.
-         * @return Whether this has successfully processed the file.
-         */
-        public boolean isSuccessful(){
-            return success;
-        }
-        /**
-         * This returns the file being processed by this FileWorker.
-         * @return The file that will be processed.
-         */
-        public File getFile(){
-            return file;
-        }
-        /**
-         * This is used to display a success prompt to the user when the file is 
-         * successfully processed.
-         * @param file The file that was successfully processed.
-         */
-        protected void showSuccessPrompt(File file){}
-        /**
-         * This is used to display a failure prompt to the user when the file 
-         * fails to be processed. If the failure prompt is a retry prompt, then 
-         * this method should return whether to try processing the file again. 
-         * Otherwise, this method should return {@code false}.
-         * @param file The file that failed to be processed.
-         * @return {@code true} if this should attempt to process the file 
-         * again, {@code false} otherwise.
-         */
-        protected boolean showFailurePrompt(File file){
-            return false;
-        }
-        /**
-         * This processes the given file.
-         * @param file The file to be processed.
-         * @return Whether this was successful at processing the file.
-         */
-        protected abstract boolean processFile(File file);
-        @Override
-        protected Void backgroundAction() throws Exception {
-                // Whether the user wants this to try processing the file again 
-            boolean retry = false;  // if unsuccessful
-            do{
-                success = processFile(file);    // Try to process the file
-                if (success)    // If the file was successfully processed
-                    showSuccessPrompt(file);    // Show the success prompt
-                else            // If the file failed to be processed
-                        // Show the failure prompt and get if the user wants to 
-                    retry = showFailurePrompt(file);    // try again
-            }   // While the file failed to be processed and the user wants to 
-            while(!success && retry);   // try again
-            return null;
-        }
-    }
-    /**
-     * This is an abstract class that provides the framework for loading from a 
-     * file.
-     */
-    private abstract class FileLoader extends FileWorker{
-        /**
-         * Whether this is currently loading a file.
-         */
-        protected volatile boolean loading = false;
-        /**
-         * Whether file not found errors should be shown.
-         */
-        protected boolean showFileNotFound;
-        /**
-         * This constructs a FileLoader that will load the data from the given 
-         * file.
-         * @param file The file to load the data from.
-         * @param showFileNotFound Whether a file not found error should result 
-         * in a popup being shown to the user.
-         */
-        FileLoader(File file, boolean showFileNotFound){
-            super(file);
-            this.showFileNotFound = showFileNotFound;
-        }
-        /**
-         * This constructs a FileLoader that will load the data from the given 
-         * file.
-         * @param file The file to load the data from.
-         */
-        FileLoader(File file){
-            this(file,true);
-        }
-        @Override
-        public String getProgressString(){
-            return "Loading";
-        }
-        /**
-         * This returns whether this is currently loading from a file.
-         * @return Whether a file is currently being loaded.
-         */
-        public boolean isLoading(){
-            return loading;
-        }
-        /**
-         * This returns whether this was successful at loading from the file. 
-         * This will be inaccurate up until the file is loaded.
-         * @return Whether this has successfully loaded the file.
-         */
-        @Override
-        public boolean isSuccessful(){
-            return super.isSuccessful();
-        }
-        /**
-         * This returns whether this shows a failure prompt when the file is not 
-         * found.
-         * @return Whether the file not found failure prompt is shown.
-         */
-        public boolean getShowsFileNotFoundPrompts(){
-            return showFileNotFound;
-        }
-        /**
-         * This returns the file being loaded by this FileLoader.
-         * @return The file that will be loaded.
-         */
-        @Override
-        public File getFile(){
-            return super.getFile();
-        }
-        /**
-         * This loads the data from the given file. This is called by {@link 
-         * #processFile(File) processFile} in order to load the file.
-         * @param file The file to load the data from.
-         * @return Whether the file was successfully loaded.
-         * @see #processFile(File) 
-         */
-        protected abstract boolean loadFile(File file);
-        /**
-         * {@inheritDoc } This delegates to {@link #loadFile(File) loadFile}.
-         * @see #loadFile(File) 
-         */
-        @Override
-        protected boolean processFile(File file){
-            loading = true;
-            return loadFile(file);
-        }
-        /**
-         * This is used to display a success prompt to the user when the file is 
-         * successfully loaded.
-         * @param file The file that was successfully loaded.
-         */
-        @Override
-        protected void showSuccessPrompt(File file){}
-        /**
-         * This is used to display a failure prompt to the user when the file 
-         * fails to be loaded. 
-         * @param file The file that failed to load.
-         * @return {@inheritDoc}
-         */
-        @Override
-        protected boolean showFailurePrompt(File file){
-            if (!file.exists()){    // If the file doesn't exist
-                    // If this should show file not found prompts
-                if (showFileNotFound){
-                    JOptionPane.showMessageDialog(LinkManager.this, 
-                            getFileNotFoundMessage(), getFailureTitle(), 
-                            JOptionPane.ERROR_MESSAGE);
-                }
-                return false;
-            }
-            else{   // Ask the user if they would like to try loading the file
-                return JOptionPane.showConfirmDialog(LinkManager.this, // again
-                        getFailureMessage()+"\nWould you like to try again?",
-                        getFailureTitle(),JOptionPane.YES_NO_OPTION,
-                        JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
-            }
-        }
-        /**
-         * This returns the title for the dialog to display if the file fails to 
-         * be saved.
-         * @return The title for the dialog to display if the file fails to
-         * save.
-         */
-        protected String getFailureTitle(){
-            return "ERROR - File Failed To Load";
-        }
-        /**
-         * This returns the message to display if the file fails to load.
-         * @return The message to display if the file fails to load.
-         */
-        protected String getFailureMessage(){
-            return "The file failed to load.";
-        }
-        /**
-         * This returns the message to display if the file does not exist.
-         * @return The message to display if the file does not exist.
-         */
-        protected String getFileNotFoundMessage(){
-            return "The file does not exist.";
-        }
-        @Override
-        protected void done(){
-            loading = false;
-            super.done();
-        }
-    }
-    /**
-     * This is an abstract class that provides the framework for saving to a 
-     * file.
-     */
-    private abstract class FileSaver extends FileWorker{
-        /**
-         * Whether this is currently saving a file.
-         */
-        protected volatile boolean saving = false;
-        /**
-         * This stores whether this should exit the program after saving.
-         */
-        protected volatile boolean exitAfterSaving;
-        /**
-         * This stores the backup of the existing version of the file being 
-         * saved if a backup is to be created.
-         */
-        protected File backupFile = null;
-        /**
-         * This stores whether the file failed to save due to an error occurring 
-         * while creating the backup file.
-         */
-        private boolean backupFailed = false;
-        /**
-         * This constructs a FileSaver that will save data to the given file 
-         * and, if {@code exit} is {@code true}, will exit the program after 
-         * saving the file.
-         * @param file The file to save the data to.
-         * @param exit Whether the program will exit after saving the file.
-         */
-        FileSaver(File file, boolean exit){
-            super(file);
-            exitAfterSaving = exit;
-        }
-        /**
-         * This constructs a FileSaver that will save data to the given file.
-         * @param file The file to save the data to.
-         */
-        FileSaver(File file){
-            this(file,false);
-        }
-        @Override
-        public String getProgressString(){
-            return "Saving";
-        }
-        /**
-         * This returns whether this is currently saving to a file.
-         * @return Whether a file is currently being saved to.
-         */
-        public boolean isSaving(){
-            return saving;
-        }
-        /**
-         * This returns whether this was successful at saving to the file. This 
-         * will be inaccurate up until the file is saved.
-         * @return Whether this has successfully saved the file.
-         */
-        @Override
-        public boolean isSuccessful(){
-            return super.isSuccessful();
-        }
-        /**
-         * This returns whether the program will exit after this finishes saving 
-         * the file.
-         * @return Whether the program will exit once the file is saved.
-         */
-        public boolean getExitAfterSaving(){
-            return exitAfterSaving;
-        }
-        /**
-         * This returns the file being saved to by this FileSaver.
-         * @return The file that will be saved.
-         */
-        @Override
-        public File getFile(){
-            return super.getFile();
-        }
-        /**
-         * This returns whether this should consider the file returned by {@link 
-         * #getFile() getFile} as a directory in which to save files into.
-         * @return Whether the file given to this FileSaver is actually a 
-         * directory.
-         */
-        protected boolean isFileTheDirectory(){
-            return false;
-        }
-        /**
-         * This returns the file containing a backup of the file before being 
-         * saved if it previously existed and a backup was created.
-         * @return The backup of the file, or null if no backup was created.
-         */
-        public File getBackupFile(){
-            return backupFile;
-        }
-        /**
-         * This returns whether this should first try to create a backup of the 
-         * file being saved before saving the file.
-         * @return Whether this should try to backup the file before saving.
-         */
-        protected boolean willCreateBackup(){
-            return false;
-        }
-        /**
-         * This will delete the backup file if the program successfully saved 
-         * the file.
-         */
-        protected void deleteBackupIfSuccessful(){
-                // If the file was successfully saved and there is a backup file
-            if (success && backupFile != null){
-                backupFile.delete();
-            }
-        }
-        /**
-         * This returns whether this tried and failed to create a backup of the 
-         * file before saving it.
-         * @return Whether the backup failed to be created.
-         */
-        protected boolean didBackupFail(){
-            return backupFailed;
-        }
-        /**
-         * This attempts to save to the given file. This is called by {@link 
-         * #processFile(File) processFile} in order to save the file.
-         * @param file The file to save.
-         * @return Whether the file was successfully saved to.
-         * @see #processFile(File) 
-         */
-        protected abstract boolean saveFile(File file);
-        /**
-         * {@inheritDoc } This delegates the saving of the file to {@link 
-         * #saveFile(File) saveFile}.
-         * @see #saveFile(File) 
-         */
-        @Override
-        protected boolean processFile(File file){
-            saving = true;
-                // Try to create the directories and if that fails, then give up 
-                // on saving the file. (If the file is the directory, include it 
-                // as a directory to be created. Otherwise, create the parent 
-                // file of the file to be saved)
-            if (!FilesExtended.createDirectories(LinkManager.this, 
-                    (isFileTheDirectory())?file:file.getParentFile()))
-                return false;
-                // If this is to create a backup of the file
-            if (willCreateBackup()){
-                try {   // Try to create a backup of the file
-                    backupFile = createBackupCopy(file);
-                    backupFailed = false;
-                } catch (IOException ex) {
-                    backupFailed = true;    // The backup failed
-                    return false;
-                }
-            }
-            return saveFile(file);
-        }
-        /**
-         * This returns the title for the dialog to display if the file is 
-         * successfully saved.
-         * @return The title for the dialog to display if the file is 
-         * successfully saved.
-         */
-        protected String getSuccessTitle(){
-            return "File Saved Successfully";
-        }
-        /**
-         * This returns the message to display if the file is successfully 
-         * saved.
-         * @return The message to display if the file is successfully saved.
-         */
-        protected String getSuccessMessage(){
-            return "The file was successfully saved.";
-        }
-        /**
-         * This returns the title for the dialog to display if the file fails to 
-         * be saved.
-         * @return The title for the dialog to display if the file fails to
-         * save.
-         */
-        protected String getFailureTitle(){
-            return "ERROR - File Failed To Save";
-        }
-        /**
-         * This returns the message to display if the file fails to be saved.
-         * @return The message to display if the file fails to save.
-         */
-        protected String getFailureMessage(){
-            if (backupFailed)   // If this failed to create the backup file
-                return "The backup file failed to be created.";
-            return "The file failed to save.";
-        }
-        /**
-         * This is used to display a success prompt to the user when the file is 
-         * successfully saved. The success prompt will display the message 
-         * returned by {@link #getSuccessMessage()}. If the program is to exit 
-         * after saving the file, then this will show nothing.
-         * @param file The file that was successfully saved.
-         */
-        @Override
-        protected void showSuccessPrompt(File file){
-                // If the program is not to exit after saving the file
-            if (!exitAfterSaving)   
-                JOptionPane.showMessageDialog(LinkManager.this, 
-                        getSuccessMessage(), getSuccessTitle(), 
-                        JOptionPane.INFORMATION_MESSAGE);
-        }
-        /**
-         * This is used to display a failure and retry prompt to the user when 
-         * the file fails to be saved.
-         * @param file The file that failed to be saved.
-         * @return {@inheritDoc }
-         */
-        @Override
-        protected boolean showFailurePrompt(File file){
-                // Show a dialog prompt asking the user if they would like to 
-                // try and save the file again and get their input. 
-            int option = JOptionPane.showConfirmDialog(LinkManager.this, 
-                    getFailureMessage()+"\nWould you like to try again?",
-                    getFailureTitle(),
-                        // If the program is to exit after saving the file, show 
-                        // a third "cancel" option to allow the user to cancel 
-                        // exiting the program
-                    (exitAfterSaving)?JOptionPane.YES_NO_CANCEL_OPTION:
-                            JOptionPane.YES_NO_OPTION,
-                    JOptionPane.ERROR_MESSAGE);
-                // If the program was going to exit after saving the file
-            if (exitAfterSaving){   
-                    // If the option selected was the cancel option or the user 
-                    // closed the dialog without selecting anything, then don't 
-                    // exit the program
-                exitAfterSaving = option != JOptionPane.CLOSED_OPTION && 
-                        option != JOptionPane.CANCEL_OPTION;
-            }   // Return whether the user selected yes
-            return option == JOptionPane.YES_OPTION;    
-        }
-        /**
-         * This is used to exit the program after this finishes saving the file.
-         */
-        protected void exitProgram(){
-            System.exit(0);         // Exit the program
-        }
-        @Override
-        protected void done(){
-            if (exitAfterSaving)    // If the program is to exit after saving
-                exitProgram();      // Exit the program
-            saving = false;
-            super.done();
-        }
-    }
-    /**
-     * This is a FileSaver dedicated to creating a backup of a given file.
-     */
-    private class BackupFileSaver extends FileSaver{
-        /**
-         * The progress string to display on the progress bar.
-         */
-        private String progressStr;
-        /**
-         * This constructs a BackupFileSaver that will create a backup of the 
-         * given file.
-         * @param file The file to create a backup of.
-         * @param progressStr The string to display on the progress bar, or null 
-         * to display the default string.
-         */
-        BackupFileSaver(File file, String progressStr) {
-            super(file);
-            this.progressStr = progressStr;
-        }
-        /**
-         * This constructs a BackupFileSaver that will create a backup of the 
-         * given file.
-         * @param file The file to create a backup of.
-         */
-        BackupFileSaver(File file){
-            this(file,null);
-        }
-        @Override
-        public String getProgressString(){
-                // If the progress string is not null
-            if (progressStr != null)
-                return progressStr;
-            return "Creating Backup";
-        }
-        /**
-         * This sets the progress string to the given string.
-         * @param text The string to display on the progress bar, or null 
-         * to display the default string.
-         */
-        public void setProgressString(String text){
-            progressStr = text;
-            if (super.isSaving())   // If this is currently saving a file
-                updateProgressString();
-        }
-        @Override
-        protected boolean willCreateBackup(){
-            return true;
-        }
-        @Override
-        protected String getSuccessMessage(){
-            return "The backup file was successfully created.";
-        }
-        @Override
-        protected String getFailureMessage(){
-                // If the file does not exist
-            if (!file.exists())
-                return "Cannot create backup of a non-existent file.";
-            else
-                return "The backup file failed to be created.";
-        }
-        @Override
-        protected boolean showFailurePrompt(File file){
-            if (!file.exists()){    // If the file doesn't exist
-                JOptionPane.showMessageDialog(LinkManager.this, 
-                        getFailureMessage(), 
-                        "ERROR - File Failed To Save", 
-                        JOptionPane.ERROR_MESSAGE);
-                return false;
-            }
-            return super.showFailurePrompt(file);
-        }
-        @Override
-        protected boolean saveFile(File file) {
-                // Since we're only interested in creating a backup of the given 
-                // file, a process already covered by FileSaver, just return 
-                // whether the backup was successful and whether the backup file 
-                // is not null
-            return !didBackupFail() && backupFile != null;    
-        }
-    }
-    /**
-     * 
-     */
-    private class DatabaseFileChanger extends FileSaver{
-        
-        private int mode;
-        
-        private File source;
-        
-        private String target;
-        
-        private Exception exc = null;
-
-        DatabaseFileChanger(int mode, File source, String target) {
-            super(getDatabaseFile(target));
-            this.mode = mode;
-            this.source = source;
-            this.target = target;
-        }
-        @Override
-        public String getProgressString() {
-            switch(mode){
-                case(1):
-                    return "Copying Database File";
-                case(2):
-                    return "Moving Database File";
-                default:
-                    return "Changing Database File";
-            }
-        }
-        @Override
-        protected boolean saveFile(File file) {
-            try{
-                Path path = file.toPath();
-                switch(mode){
-                    case(0):
-                        return true;
-                    case(1):
-                        Files.copy(source.toPath(), path, 
-                                StandardCopyOption.COPY_ATTRIBUTES, 
-                                StandardCopyOption.REPLACE_EXISTING);
-                        return true;
-                    case(2):
-                        Files.move(source.toPath(), path, 
-                                StandardCopyOption.REPLACE_EXISTING);
-                        return true;
-                    default:
-                        return false;
-                }
-            } catch(InvalidPathException | IOException ex){ 
-                exc = ex;
-            }
-            return false;
-        }
-        @Override
-        protected String getSuccessMessage(){
-            switch (mode){
-                case(1):
-                    return "The database file was successfully copied.";
-                case(2):
-                    return "The database file was successfully moved.";
-                default:
-                    return "The database file was successfully changed.";
-            }
-        }
-        @Override
-        protected String getFailureMessage(){
-            String msg;
-            if (didBackupFail())   // If this failed to create the backup file
-                msg = "The backup file failed to be created.";
-            else{
-                switch (mode){
-                    case(1):
-                        msg = "The database file failed to be copied.";
-                        break;
-                    case(2):
-                        msg = "The database file failed to be moved.";
-                        break;
-                    default:
-                        msg = "The database file failed to be changed.";
-                }
-            }
-            if (exc != null)
-                msg += "\n\nError: " + exc;
-            return msg;
-        }
-        @Override
-        protected void done(){
-            if (success){
-                setDatabaseFileProperty(DATABASE_FILE_PATH_KEY,target);
-            }
-            super.done();
-            setLocationDialog.setVisible(false);
-        }
-    }
-    /**
-     * This is an abstract class that provides the framework for loading from a 
-     * database file.
-     */
-    private abstract class AbstractDatabaseLoader extends FileLoader{
-        /**
-         * The SQLException thrown while loading from the database if an error 
-         * occurred.
-         */
-        protected SQLException sqlExc = null;
-        /**
-         * This constructs a AbstractDatabaseLoader that will load the data from 
-         * the database stored in the given file.
-         * @param file The database file to load the data from.
-         * @param showFileNotFound Whether a file not found error should result 
-         * in a popup being shown to the user.
-         */
-        AbstractDatabaseLoader(File file, boolean showFileNotFound) {
-            super(file, showFileNotFound);
-        }
-        /**
-         * This constructs a AbstractDatabaseLoader that will load the data from 
-         * the database stored in the given file.
-         * @param file The database file to load the data from.
-         */
-        AbstractDatabaseLoader(File file) {
-            super(file);
-        }
-        /**
-         * This constructs a AbstractDatabaseLoader that will load the data from 
-         * the program's {@link #getDatabaseFile() database file}.
-         * @param showFileNotFound Whether a file not found error should result 
-         * in a popup being shown to the user.
-         */
-        AbstractDatabaseLoader(boolean showFileNotFound){
-            this(getDatabaseFile(), showFileNotFound);
-        }
-        /**
-         * This constructs a AbstractDatabaseLoader that will load the data from 
-         * the program's {@link #getDatabaseFile() database file}.
-         */
-        AbstractDatabaseLoader(){
-            this(true);
-        }
-        /**
-         * This attempts to load from the database using the given database 
-         * connection and provided reusable statement.
-         * @param conn The connection to the database.
-         * @param stmt An SQL statement that can be used to interact with the 
-         * database.
-         * @return Whether this successfully loaded from the database.
-         * @throws SQLException If a database error occurs.
-         * @see #loadFile(File) 
-         */
-        protected abstract boolean loadDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException;
-        @Override
-        protected boolean loadFile(File file){
-            sqlExc = null;
-            if (!file.exists())     // If the file doesn't exist
-                return false;
-                // Connect to the database and create an SQL statement
-            try(LinkDatabaseConnection conn = connect(file);
-                    Statement stmt = conn.createStatement()){
-                return loadDatabase(conn,stmt); // Load from the database
-            } catch(SQLException ex){
-                sqlExc = ex;
-                return false;
-            } catch (UncheckedSQLException ex){
-                sqlExc = ex.getCause();
-                return false;
-            }
-        }
-        /**
-         * This returns any SQLExceptions that were thrown while this was 
-         * loading data from the database.
-         * @return The SQLException thrown while loading, or null if no 
-         * SQLException was thrown.
-         */
-        protected SQLException getSQLExceptionThrown(){
-            return sqlExc;
-        }
-        @Override
-        protected String getFailureMessage(){
-                // The message to return
-            String msg = "The database failed to load.";
-            if (sqlExc != null){    // If an SQLException was thrown
-                    // Custom error messages for certain error codes
-                switch(sqlExc.getErrorCode()){
-                        // If the database failed to save because it was busy
-                    case (Codes.SQLITE_BUSY):
-                        msg = "Please wait, the database is currently busy.";
-                        break;
-                        // If the database could not be opened
-                    case(Codes.SQLITE_CANTOPEN):
-                        msg = "The database could not be opened.";
-                        break;
-                        // If the database is corrupted
-                    case(Codes.SQLITE_CORRUPT):
-                        msg = "The database failed to load due to being corrupted.";
-                }   // If the program is either in debug mode or if details are to be shown
-                if (isInDebug() || showDBErrorDetailsToggle.isSelected())    
-                    msg += "\nError: " + sqlExc + 
-                            "\nError Code: " + sqlExc.getErrorCode();
-            }
-            return msg;
-        }
-        @Override
-        protected String getFileNotFoundMessage(){
-            return "The database file does not exist.";
-        }
-    }
-    /**
-     * This is an abstract class that provides the framework for saving to a 
-     * database file.
-     */
-    private abstract class AbstractDatabaseSaver extends FileSaver{
-        /**
-         * The SQLException thrown while saving to the database if an error 
-         * occurred.
-         */
-        protected SQLException sqlExc = null;
-        /**
-         * Whether this is currently verifying the changes to the database.
-         */
-        private boolean verifying = false;
-        /**
-         * This constructs a AbstractDatabaseSaver that will save the data to 
-         * the database stored in the given file.
-         * @param file The database file to save the data to.
-         */
-        AbstractDatabaseSaver(File file) {
-            super(file);
-        }
-        /**
-         * This constructs a AbstractDatabaseSaver that will save the data to 
-         * the program's {@link #getDatabaseFile() database file}.
-         */
-        AbstractDatabaseSaver(){
-            this(getDatabaseFile());
-        }
-        /**
-         * This constructs a AbstractDatabaseSaver that will save the data to 
-         * the database stored in the given file and, if {@code exit} is {@code 
-         * true}, will exit the program afterwards.
-         * @param file The database file to save the data to.
-         * @param exit Whether the program will exit after saving the file.
-         */
-        AbstractDatabaseSaver(File file, boolean exit) {
-            super(file, exit);
-        }
-        /**
-         * This constructs a AbstractDatabaseSaver that will save the data to 
-         * the program's {@link #getDatabaseFile() database file} and, if {@code 
-         * exit} is {@code true}, will exit the program afterwards.
-         * @param exit Whether the program will exit after saving the file.
-         */
-        AbstractDatabaseSaver(boolean exit){
-            this(getDatabaseFile(), exit);
-        }
-        /**
-         * This attempts to save to the database using the given database 
-         * connection and provided reusable statement.
-         * @param conn The connection to the database.
-         * @param stmt An SQL statement that can be used to interact with the 
-         * database.
-         * @return Whether this successfully saved to the database.
-         * @throws SQLException If a database error occurs.
-         * @see #saveFile(File) 
-         */
-        protected abstract boolean saveDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException;
-        /**
-         * This returns whether the connection will be in auto-commit mode or 
-         * not. For more information, refer to {@link Connection#setAutoCommit}.
-         * @return Whether the database will be in auto-commit mode.
-         */
-        protected boolean getAutoCommit(){
-            return false;
-        }
-        /**
-         * This sets whether the program will exit after this finishes saving 
-         * the file.
-         * @param value Whether the program will exit once the file is saved.
-         */
-        public void setExitAfterSaving(boolean value){
-            exitAfterSaving = value;
-        }
-        /**
-         * 
-         * @param file
-         * @param conn
-         * @param stmt
-         * @return
-         * @throws SQLException 
-         */
-        protected boolean prepareDatabase(File file, LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException{
-            conn.createTables(stmt);
-            return conn.updateDatabaseDefinitions(stmt,LinkManager.this);
-        }
-        @Override
-        protected boolean willCreateBackup(){
-            return true;
-        }
-        /**
-         * 
-         * @return 
-         */
-        protected boolean isVerifyingDatabase(){
-            return verifying;
-        }
-        /**
-         * 
-         * @param value 
-         */
-        protected void setVerifyingDatabase(boolean value){
-            verifying = value;
-            updateProgressString();
-        }
-        /**
-         * 
-         * @return 
-         */
-        public abstract String getNormalProgressString();
-        /**
-         * 
-         * @return 
-         */
-        public String getVerifyingProgressString(){
-            return "Verifying Changes";
-        }
-        @Override
-        public String getProgressString(){
-                // If this is verifying the changes to the database
-            if (verifying)
-                return getVerifyingProgressString();
-            return getNormalProgressString();
-        }
-        @Override
-        protected boolean saveFile(File file){
-            sqlExc = null;
-                // Connect to the database and create an SQL statement
-            try(LinkDatabaseConnection conn = connect(file);
-                    Statement stmt = conn.createStatement()){
-                conn.setAutoCommit(getAutoCommit());
-                    // Try to prepare the database
-                boolean value = prepareDatabase(file,conn,stmt);
-                    // If the connection is not in auto-commit mode
-                if (!conn.getAutoCommit())
-                    conn.commit();       // Commit the changes to the database
-                if (!value) // If the database failed to be prepared
-                    return false;
-                    // Save to the database and get if we are successful
-                value = saveDatabase(conn,stmt);
-                    // If the connection is not in auto-commit mode
-                if (!conn.getAutoCommit()){
-                    setIndeterminate(true);
-                    conn.commit();       // Commit the changes to the database
-                }
-                return value;
-            } catch(SQLException ex){
-                sqlExc = ex;
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
-                return false;
-            } catch (UncheckedSQLException ex){
-                sqlExc = ex.getCause();
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
-                return false;
-            } catch(Exception ex){
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
-                return false;
-            }
-        }
-        @Override
-        protected String getSuccessMessage(){
-            return "The database was successfully saved.";
-        }
-        /**
-         * This returns any SQLExceptions that were thrown while this was 
-         * saving data to the database.
-         * @return The SQLException thrown while saving, or null if no 
-         * SQLException was thrown.
-         */
-        protected SQLException getSQLExceptionThrown(){
-            return sqlExc;
-        }
-        @Override
-        protected String getFailureMessage(){
-            if (didBackupFail())   // If this failed to create the backup file
-                return "The database backup file failed to be created.";
-                // The message to return
-            String msg = "The database failed to save.";
-            if (sqlExc != null){    // If an SQLException was thrown
-                    // Custom error messages for certain error codes
-                switch(sqlExc.getErrorCode()){
-                        // If the database failed to save because it was busy
-                    case (Codes.SQLITE_BUSY):
-                        msg = "Please wait, the database is currently busy.";
-                        break;
-                        // If the database is read only
-                    case(Codes.SQLITE_READONLY):
-                        msg = "The database could not be saved due to being read only.";
-                        break;
-                        // If the database is full
-                    case(Codes.SQLITE_FULL):
-                        msg = "The database could not be saved due to being full.";
-                        break;
-                        // If the database could not be opened
-                    case(Codes.SQLITE_CANTOPEN):
-                        msg = "The database could not be opened for saving.";
-                        break;
-                        // If the database is corrupted
-                    case(Codes.SQLITE_CORRUPT):
-                        msg = "The database failed to save due to being corrupted.";
-                }   // If the program is either in debug mode or if details are to be shown
-                if (isInDebug() || showDBErrorDetailsToggle.isSelected())    
-                    msg += "\nError: " + sqlExc + 
-                            "\nError Code: " + sqlExc.getErrorCode();
-            }
-            return msg;
-        }
-        /**
-         * 
-         */
-        protected void uploadDatabase(){
-            loader = new DbxUploader("/"+getExternalDatabaseFileName(),file,false,exitAfterSaving);
-            loader.execute();
-        }
-        @Override
-        protected void exitProgram(){
-            if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-                uploadDatabase();
-            } else {
-                saver = new ConfigSaver(true);
-                saver.execute();
-            }
-        }
-        @Override
-        protected void done(){
-            if (success){   // If this was successful
-                allListsTabsPanel.clearEdited();
-                shownListsTabsPanel.clearEdited();
-            }
-            super.done();
-                // If we are not exiting the program after saving the database
-            if (!exitAfterSaving){   
-                autosaveMenu.startAutosave();
-                if (success && syncDBToggle.isSelected() && isLoggedInToDropbox()){
-                    uploadDatabase();
-                }
-            }
-        }
-    }
-    /**
-     * This loads the tables in the database and displays them in the database 
-     * viewer.
-     */
-    private class LoadDatabaseViewer extends AbstractDatabaseLoader{
-        /**
-         * This is the table model displaying the configuration for the program 
-         * and the database. If this is null after loading, then the 
-         * configuration data failed to load. 
-         */
-        private CustomTableModel configTableModel = null;
-        /**
-         * This is the table model displaying the prefixes for the links in the 
-         * database. If this is null after loading, then the prefixes failed to 
-         * load.
-         */
-        private CustomTableModel prefixTableModel = null;
-        /**
-         * This is the table model displaying the list metadata for the lists of 
-         * links in the database. If this is null after loading, then the lists 
-         * failed to load.
-         */
-        private CustomTableModel listTableModel = null;
-        /**
-         * This is the table model displaying the structure of the tables, 
-         * views, and indexes in the database. If this is null after loading, 
-         * then the structure data failed to load.
-         */
-        private CustomTableModel tableTableModel = null;
-        /**
-         * This is the combo box model of the combo box 
-         */
-        private ArrayComboBoxModel<Integer> listIDComboModel = null;
-        /**
-         * 
-         */
-        private ArrayComboBoxModel<String> usedPrefixComboModel = null;
-        /**
-         * This is the file size of the file storing the database.
-         */
-        private Long dbFileSize = null;
-        /**
-         * 
-         */
-        private UUID dbUUID = null;
-        /**
-         * 
-         */
-        private String dbVersion = null;
-        /**
-         * 
-         */
-        private Integer prefixThreshold = null;
-        /**
-         * 
-         */
-        private Integer linkCount = null;
-        /**
-         * 
-         */
-        private Integer shownTotalSize = null;
-        /**
-         * 
-         */
-        private Integer allTotalSize = null;
-        /**
-         * 
-         */
-        private String prefixSeparators = null;
-        /**
-         * 
-         */
-        private DefaultMutableTreeNode createPrefixTestNode = null;
-        /**
-         * This constructs a LoadDatabaseViewer.
-         * @param showFileNotFound Whether a file not found error should result 
-         * in a popup being shown to the user.
-         */
-        LoadDatabaseViewer(boolean showFileNotFound){
-            super(showFileNotFound);
-        }
-        @Override
-        public String getProgressString(){
-            return "Loading Tables";
-        }
-        @Override
-        protected boolean loadDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException {
-                // Load the table view from the database
-            dbViewer.loadTables(showSchemaToggle.isSelected(), conn, stmt, progressBar);
-            
-            // Foreign Key Toggle Stuff
-            
-            prefixTableModel = new CustomTableModel("PrefixID","Prefix");
-            prefixTableModel.setColumnClass(0, Integer.class);
-            prefixTableModel.setColumnClass(1, String.class);
-                // This gets the prefix map from the database
-            PrefixMap prefixMap = conn.getPrefixMap();
-                // Make sure the prefix map contains the empty prefix
-            prefixMap.getEmptyPrefixID();
-            usedPrefixComboModel = new ArrayComboBoxModel<>();
-            clearProgressValue();
-            setProgressMaximum(prefixMap.size());
-            setIndeterminate(false);
-                // Go through the prefix map's entries
-            for (Map.Entry<Integer,String> entry : prefixMap.entrySet()){
-                    // Add a row to the prefix table model
-                prefixTableModel.addRow(new Object[]{entry.getKey(), entry.getValue()});
-                    // If the current entry is the entry for the empty prefix
-                if (entry.getValue().isEmpty()){
-                    usedPrefixComboModel.add(entry.getKey() + " - \"\"");
-                    usedPrefixComboModel.setSelectedItem(
-                            usedPrefixComboModel.get(usedPrefixComboModel.size()-1));
-                }
-                else
-                    usedPrefixComboModel.add(entry.getKey() + " - " + entry.getValue());
-                incrementProgressValue();
-            }
-            
-            setIndeterminate(true);
-                // Search for the empty prefix
-            searchUsedPrefixes(conn,prefixMap.getEmptyPrefixID());
-            dbLinkSearchTable.setModel(getListSearchTableModel());
-                // Create the config table model if not already created
-            createConfigModel();
-                // Get the database properties
-            DatabasePropertyMap dbProperty = conn.getDatabaseProperties();
-                // Get a copy of the database property names
-            Set<String> propNames = new TreeSet<>(dbProperty.propertyNameSet());
-            clearProgressValue();
-            setProgressMaximum(propNames.size());
-            setIndeterminate(false);
-                // Go through the database property names
-            for (String property : propNames){
-                addConfigRow(
-                        "Database",
-                        property,
-                        dbProperty.getProperty(property),
-                        dbProperty.containsKey(property),
-                        dbProperty.getDefaults().get(property)
-                );
-                incrementProgressValue();
-            }
-            
-            setIndeterminate(true);
-                // Get the list data map from the database
-            ListDataMap listDataMap = conn.getListDataMap();
-            listTableModel = new CustomTableModel("ListID","List Name",
-                    "List Created","Last Modified","Flags","Size Limit","Size");
-            listTableModel.setColumnClass(0, Integer.class);
-            listTableModel.setColumnClass(1, String.class);
-            listTableModel.setColumnClass(2, java.util.Date.class);
-            listTableModel.setColumnClass(3, java.util.Date.class);
-            listTableModel.setColumnClass(4, Integer.class);
-            listTableModel.setColumnClass(5, Integer.class);
-            listTableModel.setColumnClass(6, Integer.class);
-            listIDComboModel = new ArrayComboBoxModel<>(listDataMap.navigableKeySet());
-            try{    // Get the listID of the currently selected list in the 
-                    // listID combo model
-                Integer listID = (Integer)listIDComboModel.getSelectedItem();
-                    // If there is a listID selected
-                if (listID != null)
-                        // Configure the values shown by the list edit settings
-                    setListEditSettings(conn,listID);
-            } catch (IllegalArgumentException ex){}
-            clearProgressValue();
-            setProgressMaximum(listDataMap.size());
-            setIndeterminate(false);
-                // Go through the list contents objects
-            for (ListContents list : listDataMap.values()){
-                listTableModel.addRow(new Object[]{
-                    list.getListID(),
-                    list.getName(),
-                        // Get the date and time the list was created
-                    new java.util.Date(list.getCreationTime()),
-                        // Get the date and time the list was last modified
-                    new java.util.Date(list.getLastModified()),
-                    list.getFlags(),
-                    list.getSizeLimit(),
-                    list.size()
-                });
-                incrementProgressValue();
-            }
-            
-            setIndeterminate(true);
-                // Get the set of table names in the database
-            Set<String> tableSet = conn.showTables();
-                // Get the set of views names in the database
-            Set<String> viewSet = conn.showViews();
-                // Get the set of indexes names in the database
-            Set<String> indexSet = conn.showIndexes();
-                // Get a copy of the map of the structures in the database
-            Map<String,String> structMap = new HashMap<>(conn.showStructures());
-                // Remove any structures that are null
-            structMap.values().removeIf((String t) -> t == null);
-            clearProgressValue();
-            setProgressMaximum(structMap.size());
-            tableTableModel = new CustomTableModel("Name", "Type", "Structure");
-            tableTableModel.setColumnClass(0, String.class);
-            tableTableModel.setColumnClass(1, String.class);
-            tableTableModel.setColumnClass(2, String.class);
-            setIndeterminate(false);
-                // Load the structures for the tables
-            loadStructure(tableSet,structMap,"Table");
-                // Load the structures for the views
-            loadStructure(viewSet,structMap,"View");
-                // Load the structures for the indexes
-            loadStructure(indexSet,structMap,"Index");
-            
-            setIndeterminate(true);
-            
-            
-            
-            try{
-                prefixThreshold = Integer.valueOf(dbProperty.getProperty(
-                        LinkDatabaseConnection.PREFIX_THRESHOLD_CONFIG_KEY));
-            } catch(NumberFormatException ex){
-                prefixThreshold = null;
-            }
-            prefixSeparators = dbProperty.getProperty(
-                    LinkDatabaseConnection.PREFIX_SEPARATORS_CONFIG_KEY);
-            dbVersion = dbProperty.getProperty(
-                    LinkDatabaseConnection.DATABASE_VERSION_CONFIG_KEY,"N/A");
-            dbUUID = conn.getDatabaseUUID();
-            linkCount = conn.getLinkMap().size();
-            shownTotalSize = conn.getShownListIDs().totalSize();
-            allTotalSize = conn.getAllListIDs().totalSize();
-                // This gets a set of all the links in the program
-            Set<String> linksSet = new LinkedHashSet<>();
-                // This gets a set of the list models
-            Set<LinksListModel> modelSet = new LinkedHashSet<>(allListsTabsPanel.getModels());
-                // Add any shown list models that were somehow not available in 
-                // the all tabs panel
-            modelSet.addAll(shownListsTabsPanel.getModels());
-                // Go through the list modesl
-            for (LinksListModel model : modelSet){
-                linksSet.addAll(model);
-            }   // Remove null if present in the set of links
-            linksSet.remove(null);
-                // Create the prefix tree
-            createPrefixTestNode = prefixMap.createPrefixTree(linksSet);
-                // An iterator to go through the nodes in preorder
-            Iterator<TreeNode> itr = createPrefixTestNode.preorderEnumeration().asIterator();
-                // While there are nodes to go through
-            while (itr.hasNext()){
-                    // Get the next node
-                TreeNode temp = itr.next();
-                    // If the node is a DefaultMutableTreeNode
-                if (temp instanceof DefaultMutableTreeNode){
-                        // Get the node as a DefaultMutableTreeNode
-                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)temp;
-                        // If the current node is either the root, has a user 
-                        // object of null, or does not allow children
-                    if (node.isRoot() || node.getUserObject() == null || 
-                            !node.getAllowsChildren())
-                            // Skip this node
-                        continue;
-                        // Get the first key for the node's user object if there 
-                        // is one
-                    Integer prefixID = prefixMap.firstKeyFor(node.getUserObject().toString());
-                        // If a prefixID for the user object was found
-                    if (prefixID != null)
-                        node.setUserObject(prefixID + ": \""+node.getUserObject()+"\"");
-                    else
-                        node.setUserObject("\""+node.getUserObject()+"\"");
-                }
-            }
-            return true;
-        }
-        /**
-         * 
-         * @param names
-         * @param structMap
-         * @param type 
-         */
-        private void loadStructure(Set<String>names,Map<String,String>structMap,
-                String type){
-                // Go through the names of the items
-            for (String name : names){
-                    // If the structure map does not contain the item
-                if (!structMap.containsKey(name))
-                        // Skip it
-                    continue;
-                tableTableModel.addRow(new Object[]{
-                    name,type,structMap.get(name)
-                });
-                incrementProgressValue();
-            }
-        }
-        /**
-         * 
-         */
-        private void createConfigModel(){
-                // If the config table model has not been constructed yet
-            if (configTableModel == null){
-                configTableModel = new CustomTableModel(
-                        "Source","Property Name","Property",
-                        "Is Set","Default Value");
-                configTableModel.setColumnClass(0, String.class);
-                configTableModel.setColumnClass(1, String.class);
-                configTableModel.setColumnClass(2, Object.class);
-                configTableModel.setColumnClass(3, String.class);
-                configTableModel.setColumnClass(4, Object.class);
-            }
-        }
-        /**
-         * 
-         * @param source
-         * @param property
-         * @param value
-         * @param isSet
-         * @param defaultValue 
-         */
-        private void addConfigRow(String source, String property, Object value, 
-                Boolean isSet, Object defaultValue){
-            configTableModel.addRow(new Object[]{
-                source,
-                property,
-                value,
-                Objects.toString(isSet, ""),
-                defaultValue
-            });
-        }
-        @Override
-        protected boolean loadFile(File file){
-            if (file.exists())  // If the database file exists
-                dbFileSize = file.length();
-            return super.loadFile(file);
-        }
-        @Override
-        protected Void backgroundAction() throws Exception {
-                // Load the database stuff
-            super.backgroundAction();
-            
-            setIndeterminate(true);
-                // Create the config table model if not already created
-            createConfigModel();
-                // Get the property names for this program
-            Set<String> propNames = new TreeSet<>(config.stringPropertyNames());
-                // Add all the default property names too
-            propNames.addAll(defaultConfig.stringPropertyNames());
-                // Get the SQLite configuration as a properties
-            Properties sqlProp = sqlConfig.toProperties();
-                // Create a new SQLiteConfig object to get the properties of a 
-                // newly created SQLiteConfig object
-            Properties defSQLProp = new SQLiteConfig().toProperties();
-                // Get the property names for the SQLite configuration
-            Set<String> sqlPropNames = new TreeSet<>(sqlProp.stringPropertyNames());
-                // Add all the default SQLite configuration property names too
-            sqlPropNames.addAll(defSQLProp.stringPropertyNames());
-                // Get the property names for this program's private settings
-            Set<String> privatePropNames = new TreeSet<>(privateConfig.stringPropertyNames());
-                // Add all the default private property names too
-            privatePropNames.addAll(defaultPrivateConfig.stringPropertyNames());
-            clearProgressValue();
-            setProgressMaximum(propNames.size()+sqlPropNames.size()+privatePropNames.size());
-            setIndeterminate(false);
-                // Go through the program's property names
-            for (String property : propNames){
-                addConfigRow(
-                        "Properties",
-                        property,
-                        config.getProperty(property),
-                        config.containsKey(property),
-                        defaultConfig.getProperty(property)
-                );
-                incrementProgressValue();
-            }
-                // Go through the program's private property names
-            for (String property : privatePropNames){
-                addConfigRow(
-                        "Private Properties",
-                        property,
-                        privateConfig.getProperty(property),
-                        privateConfig.containsKey(property),
-                        defaultPrivateConfig.getProperty(property)
-                );
-                incrementProgressValue();
-            }
-                // Go through the SQLite configuration property names
-            for (String property : sqlPropNames){
-                    // Get the set property value
-                String propValue = sqlProp.getProperty(property);
-                    // Get the default property value
-                String propDefault = defSQLProp.getProperty(property);
-                addConfigRow(
-                        "SQLiteConfig",
-                        property,
-                        propValue,
-                        !Objects.equals(propValue, propDefault),
-                        propDefault
-                );
-                incrementProgressValue();
-            }
-            
-            return null;
-        }
-        /**
-         * 
-         * @param tab The tab component
-         * @param enabled 
-         */
-        protected void setTabEnabled(JComponent tab, boolean enabled){
-            dbTabbedPane.setEnabledAt(dbTabbedPane.indexOfComponent(tab), enabled);
-        }
-        /**
-         * 
-         * @param table
-         * @param model
-         * @param tab The tab component
-         */
-        protected void setTableModel(JTable table, TableModel model, JComponent tab){
-                // If the tab component is not null
-            if (tab != null)
-                    // Set the tab enabled if the table model is not null
-                setTabEnabled(tab, model != null);
-                // If the table model is not null
-            if (model != null)
-                table.setModel(model);
-        }
-        @Override
-        protected void done(){
-            if (success)    // If this successfully loaded the database
-                    // Populate the tables in the database view
-                dbViewer.populateTables();
-            setTableModel(configTable,configTableModel,configScrollPane);
-            setTableModel(dbPrefixTable,prefixTableModel,null);
-            setTableModel(dbListTable,listTableModel,dbListPanel);
-            setTableModel(dbTableTable,tableTableModel,dbTablePanel);
-            if (dbFileSize == null)
-                dbFileSizeLabel.setText("N/A");
-            else
-                dbFileSizeLabel.setText(String.format("%s (%d Bytes)", 
-                        byteFormatter.format(dbFileSize), dbFileSize));
-            if (dbUUID == null)
-                dbUUIDLabel.setText("N/A");
-            else
-                dbUUIDLabel.setText(dbUUID.toString());
-            dbVersionLabel.setText(Objects.toString(dbVersion,"N/A"));
-            if (prefixThreshold != null)
-                prefixThresholdSpinner.setValue(prefixThreshold);
-            if (prefixSeparators != null)
-                prefixSeparatorField.setText(prefixSeparators);
-            if (listIDComboModel != null)
-                dbListIDCombo.setModel(listIDComboModel);
-            dbListIDCombo.setEnabled(listIDComboModel != null);
-            updateListEditButtons();
-            if (usedPrefixComboModel != null){
-                dbUsedPrefixCombo.setModel(usedPrefixComboModel);
-                dbSearchPrefixCombo.setModel(usedPrefixComboModel);
-            }
-            setTabEnabled(dbUsedPrefixesPanel,usedPrefixComboModel != null);
-            linkCountLabel.setText(Objects.toString(linkCount,"N/A"));
-            shownTotalSizeLabel.setText(Objects.toString(shownTotalSize,"N/A"));
-            allTotalSizeLabel.setText(Objects.toString(allTotalSize,"N/A"));
-            
-            setTabEnabled(dbCreatePrefixScrollPane,createPrefixTestNode != null);
-            if (createPrefixTestNode != null)
-                dbCreatePrefixTree.setModel(new DefaultTreeModel(createPrefixTestNode,true));
-            
-            super.done();
-        }
-    }
-    /**
-     * This resets the IDs in the database.
-     */
-    private class ResetDatabaseIDs extends AbstractDatabaseSaver{
-        @Override
-        public String getNormalProgressString(){
-            return "Resetting IDs";
-        }
-        @Override
-        protected boolean saveDatabase(LinkDatabaseConnection conn, Statement stmt) 
-                throws SQLException {
-                // Remove all existing IDs from the program
-            allListsTabsPanel.removeAllIDs();
-            shownListsTabsPanel.removeAllIDs();
-                // Get the map containing the list data
-            ListDataMap listDataMap = conn.getListDataMap();
-                // Get the map containing the links
-            LinkMap linkMap = conn.getLinkMap();
-                // Get the list of all listIDs
-            ListIDList allListsList = conn.getAllListIDs();
-                // Get the list of shown listIDs
-            ListIDList shownListsList = conn.getShownListIDs();
-                // Get the map containing the list names
-            ListNameMap listNameMap = conn.getListNameMap();
-            
-                // Clear the list data
-            listDataMap.clearAll();
-                // Remove all links
-            linkMap.clear();
-                // Clear the list of all listIDs
-            allListsList.clear();
-                // Clear the list of shown listIDs
-            shownListsList.clear();
-                // Remove all the lists
-            listNameMap.clear();
-            conn.commit();          // Commit the changes to the database
-            System.gc();            // Run the garbage collector
-                // This is a set containing all the models in the program
-            Set<LinksListModel> models = new LinkedHashSet<>(allListsTabsPanel.getModels());
-                // Add any models that are in the shown lists panel that are 
-                // missing from the all lists panel
-            models.addAll(shownListsTabsPanel.getModels());
-                // Write the models to the database
-            writeToDatabase(conn, models);
-            
-            setIndeterminate(true);
-            conn.commit();          // Commit the changes to the database
-            System.gc();            // Run the garbage collector
-            
-                // Verify the database to ensure all the data has been written
-            setVerifyingDatabase(true);
-                // This is a set containing all the links in the models
-            Set<String> linkSet1 = new LinkedHashSet<>();
-                // This is a set containing all the links in the database
-            Set<String> linkSet2 = new LinkedHashSet<>(linkMap.values());
-                // This is a map to get the names of the lists from the models
-            Map<Integer,String> listNames = new HashMap<>();
-                // This is a map that maps the models to their listIDs
-            Map<Integer,LinksListModel> modelMap = new LinkedHashMap<>();
-                // Go through the models that were saved
-            for (LinksListModel model : models){
-                    // Add all the links in the model
-                linkSet1.addAll(model);
-                listNames.put(model.getListID(), model.getListName());
-                modelMap.put(model.getListID(), model);
-            }
-            
-            clearProgressValue();
-            setProgressMaximum(listDataMap.size()+4);
-            setIndeterminate(false);
-                // Check to make sure the database contains all the links in the 
-            if (!linkSet2.containsAll(linkSet1))    // program
-                return false;
-            incrementProgressValue();
-                // Check to make sure the database contains all the lists and 
-                // their names in the program
-            if (!listNames.equals(listNameMap))
-                return false;
-            incrementProgressValue();
-                // Check to make sure the all listIDs list contains all the 
-                // listIDs of the lists shown by the all lists panel
-            if (!allListsTabsPanel.getListIDs().equals(allListsList))
-                return false;
-            incrementProgressValue();
-                // Check to make sure the shown listIDs list contains all the 
-                // listIDs of the shown lists
-            if (!shownListsTabsPanel.getListIDs().equals(shownListsList))
-                return false;
-            incrementProgressValue();
-                // Go through the listIDs of the lists in the database
-            for (Integer listID : listDataMap.navigableKeySet()){
-                    // Check to make sure the list in the database matches its 
-                    // corresponding model
-                if (!listDataMap.get(listID).equalsModel(modelMap.get(listID)))
-                    return false;
-                incrementProgressValue();
-            }
-            return true;
-        }
-        @Override
-        protected void done(){
-            deleteBackupIfSuccessful();
-            super.done();
-                // Reload the database view data
-            loader = new LoadDatabaseViewer(true);
-            loader.execute();
-        }
-    }
-    
-    private class LinkPrefixUpdater extends AbstractDatabaseSaver{
-        @Override
-        public String getNormalProgressString(){
-            return "Updating Prefixes";
-        }
-        @Override
-        protected boolean saveDatabase(LinkDatabaseConnection conn, Statement stmt) 
-                throws SQLException {
-                // Get the map of prefixes and their prefixIDs
-            PrefixMap prefixes = conn.getPrefixMap();
-                // Get the map of links and their linkIDs
-            LinkMap links = conn.getLinkMap();
-                // Make sure that we have the longest possible prefixes for all 
-                // the links in the database
-            prefixes.createPrefixesFrom(links.values());
-            conn.commit();       // Commit the changes to the database
-                // Get a copy of the links map to compare with after the 
-                // prefixes have been updated
-            Map<Long,String> storedLinks = new LinkedHashMap<>(links);
-            
-            setProgressMaximum(links.size());
-            setIndeterminate(false);
-                // Update the prefixes for the links in the database
-            updatePrefixesInDatabase(conn, links, links.navigableKeySet());
-            conn.commit();       // Commit the changes to the database
-            
-            setIndeterminate(true);
-//            prefixes.removeUnusedRows();
-            
-                // Check to make sure everything is effectively the same, just 
-                // updated
-            setVerifyingDatabase(true);
-            return storedLinks.equals(links);
-        }
-        @Override
-        protected void done(){
-            deleteBackupIfSuccessful();
-            super.done();
-                // Reload the database view data
-            loader = new LoadDatabaseViewer(true);
-            loader.execute();
-        }
-    }
-    /**
-     * This loads the lists of links from the database.
-     */
-    private class DatabaseLoader extends AbstractDatabaseLoader{
-        /**
-         * This is a map that maps the tabs panels to the list of models that 
-         * will be displayed by those tabs panels when we finish loading.
-         */
-        private HashMap<LinksListTabsPanel, List<LinksListModel>> tabsModels = 
-                new HashMap<>();
-        /**
-         * This stores whether this will be loading all the lists from the 
-         * database or only the lists that are outdated.
-         */
-        private boolean loadAll;
-        /**
-         * This stores whether this failed to load the database due to the 
-         * database being an incompatible version that cannot be updated 
-         * automatically by the program.
-         */
-        private boolean isDBOutdated = false;
-        /**
-         * This stores the version of the database being loaded.
-         */
-        private String dbVersion = "N/A";
-        
-        DatabaseLoader(boolean loadAll){
-            super(fullyLoaded);
-            this.loadAll = loadAll || !fullyLoaded;
-        }
-        
-        DatabaseLoader(){
-            this(true);
-        }
-        @Override
-        public String getProgressString(){
-            return "Loading Lists";
-        }
-        @Override
-        protected boolean loadDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException {
-                // Disable all the lists
-            setTabsPanelListsEnabled(false);
-                // Create any tables in the database that need to be created
-            conn.createTables(stmt);
-                // Get the version of the database
-            dbVersion = conn.getDatabaseVersionStr();
-                // Get whether the database is outdated
-            isDBOutdated = conn.isDatabaseOutdated();
-                // If the database is incompatible with this version of the 
-            if (!conn.isDatabaseCompatible())   // program
-                return false;
-            // TODO: This should be made to backup the database, just in case
-                // If the database was not successfully updated to the latest 
-                // version this program supports
-            if (!conn.updateDatabaseDefinitions(stmt,LinkManager.this))
-                return false;
-                // Get the map containing the list IDs and data
-            ListDataMap listDataMap = conn.getListDataMap();
-                // Get the map of list data that will be loaded. If we are 
-                // loading all the lists, then this will just be the list data 
-            NavigableMap<Integer, ListContents> loadData = listDataMap; // map
-                // This will get a map of list IDs and models to be used
-            HashMap<Integer, LinksListModel> models = new HashMap<>();
-                // This will get the total size of the lists that will be loaded
-            int total = 0;
-                // If we are loading all the lists
-            if (loadAll){
-                    // Get the total size of all the lists in the database
-                total = listDataMap.totalSize();
-            } else {// Get a set of models that currently already exist
-                Set<LinksListModel> existingModels = new HashSet<>(allListsTabsPanel.getModels());
-                    // Make sure this set has ALL the models, even those that 
-                    // are somehow absent from the all lists panel
-                existingModels.addAll(shownListsTabsPanel.getModels());
-                    // Go through the existing models
-                for (LinksListModel model : existingModels){
-                        // If the current model does not have a null listID
-                    if (model.getListID() != null)
-                            // Put the current model into the map of models 
-                        models.put(model.getListID(), model);
-                }
-                    // Copy the list data map, since we don't want to edit the 
-                loadData = new TreeMap<>(listDataMap);  // actual database
-                // Remove any lists that do not need to be re-loaded
-                    // Remove all the lists that have been removed
-                loadData.keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
-                    // Remove all the lists that are outdated compared to the 
-                    // existing models
-                loadData.values().removeIf((ListContents t) -> {
-                        // Get the model with the listID of the current list if 
-                        // there is one
-                    LinksListModel model = models.get(t.getListID());
-                        // Return whether there is a model with that listID and 
-                        // the list in the database is outdated
-                    return model != null && t.isOutdated(model);
-                });
-                    // Go through the lists that will be loaded
-                for (ListContents temp : loadData.values()){
-                    total += temp.size();
-                }
-            }   // Set the progress maximum to the amount of links that will be 
-            setProgressMaximum(total);  // loaded
-            setIndeterminate(false);
-                // Go through the lists to be loaded
-            for (Map.Entry<Integer,ListContents> listData:loadData.entrySet()){
-                    // Get a model version of the current list and put it in the 
-                    // map containing the loaded models
-                models.put(listData.getKey(), 
-                        listData.getValue().toModel(listContentsObserver));
-            }
-            setIndeterminate(true);
-                // This gets a map mapping the tabs panels to the list of 
-                // listIDs for the lists to be shown by the panels
-            HashMap<LinksListTabsPanel, List<Integer>> tabsListIDs = new HashMap<>();
-                // Get a copy of the list of listIDs for the all lists panel
-            List<Integer> allListIDs = new ArrayList<>(conn.getAllListIDs());
-                // Remove any null listIDs
-            allListIDs.removeIf((Integer t) -> t == null);
-                // Put the copy into the map, mapping it to the all lists panel
-            tabsListIDs.put(allListsTabsPanel, allListIDs);
-                // Get a copy of the list of shown listIDs
-            List<Integer> shownListIDs = new ArrayList<>(conn.getShownListIDs());
-                // Remove any null listIDs
-            shownListIDs.removeIf((Integer t) -> t == null);
-                // Put the copy into the map, mapping it to the shown lists 
-            tabsListIDs.put(shownListsTabsPanel, shownListIDs); // panel
-                // This is a set that will get the listIDs missing from the all 
-                // listIDs list
-            Set<Integer> missingListIDs = new LinkedHashSet<>(shownListIDs);
-                // Remove any listIDs that are already in the all listIDs list
-            missingListIDs.removeAll(allListIDs);
-                // Add any missing listIDs to the all listIDs list
-            allListIDs.addAll(missingListIDs);
-                // Go through the panels and listIDs to get models for
-            for (Map.Entry<LinksListTabsPanel,List<Integer>> entry : tabsListIDs.entrySet()){
-                    // A list to get the models to use for the current tabs panel
-                List<LinksListModel> modelList = new ArrayList<>();
-                    // If we are not loading all the lists, only the outdated ones
-                if (!loadAll){
-                        // Remove all listIDs of lists that were removed by the 
-                        // program
-                    entry.getValue().removeAll(allListsTabsPanel.getRemovedListIDs());
-                        // Remove all listIDs of lists that are already loaded, 
-                        // since we will be replacing them in-situ instead of 
-                        // re-adding them. This is to perserve the order of the 
-                        // existing lists, including those that have not been 
-                        // assigned a listID yet.
-                    entry.getValue().removeAll(entry.getKey().getListIDs());
-                        // Add all the currently existing models from the tabs 
-                        // panel
-                    modelList.addAll(entry.getKey().getModels());
-                        // Replace any outdated models with ones loaded from the 
-                        // database
-                    modelList.replaceAll((LinksListModel t) -> {
-                        // If this model is somehow null or (more realistically) 
-                        // this model's listID is null (i.e. no listID assigned, 
-                        // typical of newly created lists)
-                        if (t == null || t.getListID() == null)
-                            return t;   // Do not replace this model
-                        // Check for any models loaded from the database with 
-                        // the same listID, and if there is one, replace the  
-                        // current model with the loaded model. If not, then use 
-                        // the current model, don't replace it.
-                        LinksListModel temp = models.getOrDefault(t.getListID(), t);
-                        // If the replacement model is the same as this model or 
-                        // if the replacement model is somehow null
-                        if (temp == t || temp == null)
-                            return t;   // Do not replace this model
-                            // Copy the selection from the original model
-                        temp.setSelectionFrom(t);
-                        return temp;
-                    });
-                }
-                // Go through the listIDs for the lists in the database that are 
-                // to be displayed on this tabs panel. If we were only loading 
-                // any outdated lists, this will only be going through lists 
-                // that were added to this tabs panel later and aren't currently 
-                // being displayed.
-                for (Integer listID : entry.getValue()){
-                    // Append the loaded list's model to the models for this 
-                    modelList.add(models.get(listID));  // panel
-                }
-                // Set the list of models for this tabs panel
-                tabsModels.put(entry.getKey(), modelList);
-            }   // If we are only reloading outdated lists
-            if (!loadAll){
-                    // The shown lists tabs panel may be showing lists that have 
-                    // since been hidden. Remove any lists that are now hidden
-                tabsModels.get(shownListsTabsPanel).removeIf((LinksListModel t) 
-                        -> t == null || t.isHidden());
-            }
-            
-            return true;
-        }
-        @Override
-        protected String getFailureMessage(){
-                // If the database is outdated and cannot be updated 
-            if (isDBOutdated){  // automatically by this program
-                return String.format(
-                        "The database is incompatable with this version of the program.%n"
-                        + "Database Version is %s, latest supported major version is %d.x.x", 
-                        dbVersion, DATABASE_MAJOR_VERSION);
-            }
-            return super.getFailureMessage();
-        }
-        @Override
-        protected void done(){
-                // If this should create the default lists during the initial 
-                // load since the lists were not loaded either due to this 
-                // failing to load the database or the database file does not 
-                // exist
-            boolean createLists = !success && !file.exists() && !fullyLoaded;
-                // If this should create the default lists
-            if (createLists){
-                    // Create a list to contain the created models
-                List<LinksListModel> modelList = new ArrayList<>();
-                    // Go through the names for the default lists
-                for (String name : DEFAULT_LIST_NAMES){
-                        // Create the list
-                    LinksListModel model = new LinksListModel(name);
-                        // Set it to edited
-                    model.setEdited(true);
-                    modelList.add(model);
-                }
-                tabsModels.put(allListsTabsPanel, modelList);
-                tabsModels.put(shownListsTabsPanel, modelList);
-            }   // If this successfully loaded the database or this created the 
-            if (success || createLists){    // default lists
-                    // Go through the model lists for each tabs panel
-                for (Map.Entry<LinksListTabsPanel,List<LinksListModel>> entry : 
-                        tabsModels.entrySet()){
-                        // Get the tabs panel
-                    LinksListTabsPanel tabsPanel = entry.getKey();
-                        // Set the models for the tabs panel
-                    tabsPanel.setModels(entry.getValue());
-                        // Go through the lists for the tabs panel
-                    for (LinksListPanel panel : tabsPanel){
-                            // Set the read only toggle for the current list to 
-                            // show whether the list is read only
-                        tabsPanel.getListMenuItem(panel, MAKE_LIST_READ_ONLY_ACTION_KEY)
-                                .setSelected(panel.isReadOnly());
-                            // Get the item used to hide the list if there is one
-                        JMenuItem hideItem = tabsPanel.getListMenuItem(panel, 
-                                HIDE_LIST_ACTION_KEY);
-                            // If there is an item to hide the list
-                        if (hideItem != null)
-                            hideItem.setSelected(panel.isHidden());
-                    }   // If the lists were completely reloaded
-                    if (loadAll)
-                        tabsPanel.setStructureEdited(false);
-                        // If this successfully loaded the lists, none of the 
-                        // lists are edited, and there are no structural changes 
-                        // to the tabs panel
-                    if (success && !tabsPanel.getListsEdited() && 
-                            !tabsPanel.isStructureEdited())
-                        tabsPanel.clearEdited();
-                        // If the program has not fully loaded (this is the 
-                    if (!fullyLoaded){  // initial load)
-                            // Go through the lists in the tabs panel
-                        for (LinksListPanel panel : tabsPanel){
-                                // Ensure the last item is visible
-                            panel.ensureIndexIsVisible(panel.getModel().size()-1);
-                        }
-                    }
-                }
-            }   //If the program has not fully loaded (this is the initial load)
-            if (!fullyLoaded){
-                    // Set the selected items from the configuration
-                setSelectedFromConfig();
-                    // Update the program title
-                updateProgramTitle();
-            }   // Update whether the program has fully loaded
-            fullyLoaded = fullyLoaded || loadAll;
-                // Re-enable all the lists
-            setTabsPanelListsEnabled(true);
-            super.done();
-            autosaveMenu.startAutosave();
-        }
-    }
-//    /**
-//     * This updates the database before loading the database
-//     */
-//    private class DatabaseLoadUpdater extends AbstractDatabaseSaver{
-//
-//        @Override
-//        protected boolean saveDatabase(LinkDatabaseConnection conn, 
-//                Statement stmt) throws SQLException {
-//                // This does nothing. Everything was handled in prepareDatabase
-//            return true;
-//        }
-//        @Override
-//        public String getNormalProgressString() {
-//            return "Updating Database";
-//        }
-//        @Override
-//        protected void done(){
-//            loader = new DatabaseLoader(true);
-//            loader.execute();
-//        }
-//    }
-    /**
-     * This saves the lists of links to the database.
-     */
-    private class DatabaseSaver extends AbstractDatabaseSaver{
-        
-        DatabaseSaver(boolean exit){
-            super(exit);
-        }
-        
-        DatabaseSaver(){
-            super();
-        }
-        @Override
-        public String getNormalProgressString(){
-            return "Saving Lists";
-        }
-        @Override
-        protected boolean saveDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException {
-                // Remove the listIDs of any lists that have been removed
-            conn.getAllListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
-                // Remove the listIDs of any lists that have been removed
-            conn.getShownListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
-                // Remove the listIDs of any lists that have been hidden
-            conn.getShownListIDs().removeAll(shownListsTabsPanel.getRemovedListIDs());
-                // Remove any lists that have been removed
-            conn.getListNameMap().keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
-                // Clear the sets of removed ListIDs
-            allListsTabsPanel.clearRemovedListIDs();
-            shownListsTabsPanel.clearRemovedListIDs();
-            conn.commit();       // Commit the changes to the database
-                // This is a set containing all the models in the program
-            Set<LinksListModel> models = new LinkedHashSet<>(allListsTabsPanel.getModels());
-                // Add any models that are in the shown lists panel that are 
-                // missing from the all lists panel
-            models.addAll(shownListsTabsPanel.getModels());
-                // Write the models to the database
-            writeToDatabase(conn, models);
-            
-            return true;
-        }
-        @Override
-        protected void showSuccessPrompt(File file){ }
-        @Override
-        protected void done(){
-            deleteBackupIfSuccessful();
-            super.done();
-        }
-    }
-    
-    private class UpdateDatabase extends AbstractDatabaseSaver{
-        
-        private int mode;
-        
-        UpdateDatabase(File file, int updateType){
-            super(file);
-            this.mode = updateType;
-        }
-        @Override
-        public String getNormalProgressString(){
-            return "Updating Database";
-        }
-        @Override
-        protected boolean prepareDatabase(File file, LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException{ 
-            return true;
-        }
-        @Override
-        protected boolean saveDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException {
-            boolean updateSuccess = true;
-            if (mode != 0)
-                conn.setForeignKeysEnabled(false, stmt);
-            switch(mode){
-                case(0):
-                    updateSuccess = conn.updateDatabaseDefinitions(stmt, LinkManager.this);
-                    break;
-                case(1):
-                    updateSuccess = conn.updateAddConfigTable(stmt, LinkManager.this);
-                    break;
-                case(2):
-                    updateSuccess = conn.updateToVersion1_0_0(stmt, LinkManager.this);
-                    break;
-                case(3):
-                    updateSuccess = conn.updateAddListSizeLimitColumn(stmt, LinkManager.this);
-                    break;
-                case(4):
-                    updateSuccess = conn.updateToVersion0_5_0(stmt, LinkManager.this);
-                    break;
-                case(5):
-                    updateSuccess = conn.updateAddPrefixTable(stmt, LinkManager.this);
-                    break;
-                case(6):
-                    updateSuccess = conn.updateAddListFlagsColumn(stmt, LinkManager.this);
-                    break;
-                case(7):
-                    updateSuccess = conn.updateRenameInitialColumns(stmt, LinkManager.this);
-                    break;
-                case(8):
-                    updateSuccess = conn.updateRenameLinkColumns(stmt, LinkManager.this);
-            }
-            if (mode != 0)
-                conn.setForeignKeysEnabled(true, stmt);
-            return updateSuccess;
-        }
-    }
-    
-    private class ExportDatabase extends FileSaver{
-
-        ExportDatabase(File file) {
-            super(file);
-        }
-        
-        @Override
-        protected boolean isFileTheDirectory(){
-            return true;
-        }
-        @Override
-        public String getProgressString(){
-            return "Exporting Lists";
-        }
-        @Override
-        protected String getSuccessMessage(){
-            return "The files were successfully created.";
-        }
-        @Override
-        protected String getFailureMessage(){
-            return "The files failed to be created.";
-        }
-        @Override
-        protected boolean saveFile(File file) {
-            int max = 0;
-            for (LinksListPanel panel : allListsTabsPanel)
-                max += panel.getModel().size();
-            setProgressMaximum(max);
-            /*
-            try{
-                path = newFile.toPath();
-            }
-            catch (java.nio.file.InvalidPathException exc){
-                String message = null;  // The error message to print
-                    // If it's an illegal character, and the index is within the string
-                if (exc.getReason().startsWith("Illegal char") && 
-                        exc.getIndex() >= 0 && exc.getIndex() < newFileName.length()){
-            */
-            for (LinksListPanel panel : allListsTabsPanel){
-//                File listFile = null;
-//                String fileName = panel.getListName()+".txt";
-//                do{
-//                    listFile = new File(file,fileName);
-//                    try{
-//                        listFile.toPath();
-//                    }catch (InvalidPathException exc){
-//                        int index = exc.
-//                    }
-//                }
-//                while (listFile == null);
-                
-                if (!writeToFile(new File(file,panel.getListName()+".txt"),panel.getModel()))
-                    return false;
-            }
-            return true;
-        }
-    }
-    /**
-     * This loads the data from a file into a List of Strings and, if one is 
-     * provided, will add the list to the model of a SetOfLinksPanel.
-     */
-    private class ListLoader extends FileLoader{
-        /**
-         * The List of Strings to store the data from the file in.
-         */
-        protected List<String> list;
-        /**
-         * The panel to add the loaded list's contents to (optional).
-         */
-        protected LinksListPanel panel;
-        
-        ListLoader(File file, List<String> list, LinksListPanel panel){
-            super(file);
-            this.list = Objects.requireNonNull(list);
-            this.panel = panel;
-        }
-        
-        ListLoader(File file, List<String> list){
-            this(file,list,null);
-        }
-        
-        ListLoader(File file, LinksListPanel panel){
-            this(file,new ArrayList<>(),panel);
-        }
-        
-        ListLoader(File file) {
-            this(file,new ArrayList<>());
-        }
-        /**
-         * This returns the List used to retrieve the data from the file.
-         * @return The List used to retrieve data from the file.
-         */
-        public List<String> getData(){
-            return list;
-        }
-        /**
-         * This returns the panel with the model that the list of Strings will 
-         * be added to.
-         * @return The panel who's model that is being added to, or null.
-         */
-        public LinksListPanel getPanel(){
-            return panel;
-        }
-        @Override
-        public String getProgressString(){
-            return "Loading List";
-        }
-        @Override
-        protected boolean loadFile(File file) {
-            try {
-                readIntoList(file,list);
-                    // If the file was a shortcut file and we're adding to a panel
-                if (panel != null && SHORTCUT_FILE_FILTER.accept(file)){
-                        // Get the URL from the file
-                    String temp = getShortcutURL(list);
-                    list.clear();
-                    if (temp != null)   // If a URL was found in the file
-                        list.add(temp);
-                }   // If we're adding the results to a panel's model
-                if (panel != null)
-                    panel.getModel().addAll(list);
-                return true;
-            } catch (IOException ex) {
-                return false;
-            }
-        }
-    }
-    /**
-     * This is used to save a List of Strings to a file.
-     */
-    private class ListSaver extends FileSaver{
-        /**
-         * The List of Strings to save to the file.
-         */
-        protected List<String> list;
-        
-        ListSaver(File file, List<String> list, boolean exit) {
-            super(file, exit);
-            this.list = Objects.requireNonNull(list);
-        }
-        
-        ListSaver(File file, List<String> list){
-            this(file,list,false);
-        }
-        /**
-         * This returns the List containing the data that will be saved to the 
-         * file.
-         * @return The List of the data to save to the file.
-         */
-        public List<String> getData(){
-            return list;
-        }
-        @Override
-        public String getProgressString(){
-            return "Saving List";
-        }
-        @Override
-        protected boolean saveFile(File file) {
-            setProgressMaximum(list.size());
-            return writeToFile(file,list);
-        }
-    }
-    
-    private class ConfigLoader extends FileLoader{
-        
-//        private Properties loadedConfig = new Properties();
-
-        ConfigLoader(File file) {
-            super(file,fullyLoaded);
-        }
-        @Override
-        public String getProgressString(){
-            return "Loading Configuration";
-        }
-        @Override
-        protected boolean loadFile(File file) {
-            showHiddenListsToggle.setEnabled(false);
-            return loadConfigFile(file,config);
-        }
-        @Override
-        protected void done(){
-//            config.putAll(loadedConfig);
-            configureProgram();
-            super.done();
-            showHiddenListsToggle.setEnabled(true);
-            if (!fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
-                loader = new DatabaseLoader();
-                loader.execute();
-            }
-        }
-    }
-    
-    private class ConfigSaver extends FileSaver{
-        
-//        private Properties savedConfig = new Properties();
-
-        ConfigSaver(File file, boolean exit) {
-            super(file, exit);
-        }
-        
-        ConfigSaver(File file){
-            super(file);
-        }
-        
-        ConfigSaver(boolean exit){
-            this(getConfigFile(),exit);
-        }
-        
-        ConfigSaver(){
-            this(getConfigFile());
-        }
-        @Override
-        protected boolean saveFile(File file) {
-            showHiddenListsToggle.setEnabled(false);
-            setIndeterminate(true);
-            Properties saveConfig = createSaveConfig(config);
-            if (exitAfterSaving && autoHideMenu.getDurationIndex() != 0)
-                    // Make sure hidden lists are hidden
-                setConfigProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,false,saveConfig);
-            return saveConfiguration(file,saveConfig, GENERAL_CONFIG_FLAG);
-        }
-        @Override
-        public String getProgressString(){
-            return "Saving Configuration";
-        }
-        @Override
-        protected void exitProgram(){
-            saver = new PrivateConfigSaver(true);
-            saver.execute();
-        }
-        @Override
-        protected void done(){
-            super.done();
-            showHiddenListsToggle.setEnabled(!exitAfterSaving);
-        }
-    }
-    
-    private class FileMover extends FileWorker{
-        
-        private final File target;
-        
-        private IOException exc = null;
-
-        FileMover(File source, File target) {
-            super(source);
-            this.target = Objects.requireNonNull(target);
-        }
-        
-        public File getSource(){
-            return getFile();
-        }
-        
-        public File getTarget(){
-            return target;
-        }
-        
-        protected IOException getIOExceptionThrown(){
-            return exc;
-        }
-        @Override
-        protected void showSuccessPrompt(File file){
-            JOptionPane.showMessageDialog(LinkManager.this, 
-                    "The file was successfully renamed\n"
-                            + "Source: \""+file+"\"\n"
-                                    + "Target: \""+target+"\"", 
-                    "File Moved Successfully", 
-                    JOptionPane.INFORMATION_MESSAGE);
-        }
-        @Override
-        protected boolean showFailurePrompt(File file){
-            String msg;
-            boolean canRetry = false;
-            if (exc instanceof FileNotFoundException)
-                msg = exc.getMessage();
-            else if (exc instanceof FileAlreadyExistsException)
-                msg = ((FileAlreadyExistsException)exc).getReason();
-            else if (!file.exists())
-                msg = "The source file \""+file+"\" does not exist";
-            else{
-                msg = "The file failed to move.";
-                canRetry = true;
-            }
-            if (canRetry){
-                    // Ask the user if they would like to try move the file again
-                return JOptionPane.showConfirmDialog(LinkManager.this, 
-                        msg+"\nWould you like to try again?",
-                        "ERROR - Could Not Move File",JOptionPane.YES_NO_OPTION,
-                        JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
-            }
-            else{
-                JOptionPane.showMessageDialog(LinkManager.this, msg,
-                        "ERROR - Could Not Move File", 
-                        JOptionPane.ERROR_MESSAGE);
-            }
-            return false;
-        }
-        @Override
-        protected boolean processFile(File file) {
-            try{
-                return FilesExtended.rename(file, target);
-            } catch(IOException ex){
-                exc = ex;
-                return false;
-            }
-        }
-        @Override
-        public String getProgressString() {
-            return "Moving File";
-        }
-    }
-    /**
-     * 
-     */
-    private class DbxDownloader extends FileSaver{
-        /**
-         * The path for the file on Dropbox.
-         */
-        private String dbxPath;
-        /**
-         * Whether file not found errors should be shown.
-         */
-        protected boolean showFileNotFound;
-        /**
-         * Whether the file was found on Dropbox.
-         */
-        private boolean fileFound = true;
-        /**
-         * This gets any Dropbox exceptions that get thrown while downloading 
-         * the file.
-         */
-        private DbxException dbxEx = null;
-        /**
-         * This gets any IOExceptions that get thrown while downloading the 
-         * file.
-         */
-        private IOException ioEx = null;
-        /**
-         * Whether this should load all the lists. If this is null, then the 
-         * database will not be loaded after this.
-         */
-        private Boolean loadAll = null;
-        /**
-         * 
-         * @param dbxPath
-         * @param file
-         * @param showFileNotFound 
-         */
-        public DbxDownloader(String dbxPath,File file,boolean showFileNotFound){
-            super(file);
-            this.dbxPath = Objects.requireNonNull(dbxPath);
-            this.showFileNotFound = showFileNotFound;
-        }
-        /**
-         * 
-         * @param dbxPath
-         * @param file 
-         */
-        public DbxDownloader(String dbxPath, File file){
-            this(dbxPath,file,true);
-        }
-        
-        public Boolean getLoadsAll(){
-            return loadAll;
-        }
-        
-        public void setLoadsAll(Boolean loadAll){
-            this.loadAll = loadAll;
-        }
-        
-        public boolean willLoadDatabase(){
-            return loadAll != null;
-        }
-        
-        @Override
-        protected void showSuccessPrompt(File file){
-            if (!willLoadDatabase())
-                showSuccessPrompt(file);
-        }
-        @Override
-        public String getProgressString(){
-            return "Downloading File";
-        }
-        @Override
-        protected String getSuccessTitle(){
-            return "File Downloaded Successfully";
-        }
-        @Override
-        protected String getSuccessMessage(){
-            return "The file was successfully downloaded.";
-        }
-        @Override
-        protected String getFailureTitle(){
-            return "ERROR - File Failed To Download";
-        }
-        @Override
-        protected String getFailureMessage(){
-            if (!fileFound)
-                return "The file was not found on Dropbox.";
-            if (didBackupFail())   // If this failed to create the backup file
-                return "The backup file failed to be created.";
-                // The message to return
-            String msg = "The file failed to download.";
-                // If the program is either in debug mode or if details are to 
-                // be shown
-            if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
-                Exception exc = (dbxEx != null) ? dbxEx : ioEx;
-                if (exc != null)
-                    msg += "\nError: " + exc;
-            }
-            return msg;
-        }
-        @Override
-        protected boolean showFailurePrompt(File file){
-            if (!fileFound){
-                    // If this should show file not found prompts
-                if (showFileNotFound){
-                    JOptionPane.showMessageDialog(LinkManager.this, 
-                            getFailureMessage(), getFailureTitle(), 
-                            JOptionPane.ERROR_MESSAGE);
-                }
-                return false;
-            }
-            return super.showFailurePrompt(file);
-        }
-        @Override
-        protected boolean saveFile(File file) {
-                // Reset the exceptions to null
-            dbxEx = null;
-            ioEx = null;
-            try{    // Create the Dropbox client
-                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
-                    // Get the Dropbox credentials
-                DbxCredential cred = dbxUtils.getCredentials();
-                    // Get a client to communicate with Dropbox
-                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
-                    // Refresh the Dropbox credentials if necessary
-                refreshDbxCredentials(cred,client);
-                    // Get the file namespace for Dropbox
-                DbxUserFilesRequests dbxFiles = client.files();
-                    // If the file doesn't exist on dropbox
-                if (!dbxFileExists(dbxPath,dbxFiles)){
-                    fileFound = false;
-                    return false;
-                }
-                
-                    // TODO: Handle files larger than 150MB
-                
-                    // Create an output stream to save the file 
-                try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file))){
-                        // Download the file from Dropbox
-                    dbxFiles.downloadBuilder(dbxPath).download(out);
-                }
-                return true;
-            } catch(DbxException ex){
-                dbxEx = ex;
-            } catch(IOException ex){
-                ioEx = ex;
-            }
-            return false;
-        }
-        @Override
-        protected void done(){
-            super.done();
-            if (willLoadDatabase()){
-                loader = new DatabaseLoader(loadAll);
-                loader.execute();
-            }
-        }
-    }
-    /**
-     * 
-     */
-    private class DbxUploader extends FileLoader{
-        /**
-         * The path for the file on Dropbox.
-         */
-        private String dbxPath;
-        /**
-         * Whether the success prompt should be shown.
-         */
-        protected boolean showSuccess;
-        /**
-         * This stores whether this should exit the program after saving.
-         */
-        protected volatile boolean exitAfterSaving;
-        /**
-         * This gets any Dropbox exceptions that get thrown while downloading 
-         * the file.
-         */
-        private DbxException dbxEx = null;
-        /**
-         * This gets any IOExceptions that get thrown while downloading the 
-         * file.
-         */
-        private IOException ioEx = null;
-        /**
-         * 
-         * @param dbxPath
-         * @param file
-         * @param showSuccess
-         * @param exit 
-         */
-        public DbxUploader(String dbxPath, File file, boolean showSuccess, 
-                boolean exit) {
-            super(file,true);
-            this.dbxPath = Objects.requireNonNull(dbxPath);
-            this.showSuccess = showSuccess;
-            exitAfterSaving = exit;
-        }
-        /**
-         * 
-         * @param dbxPath
-         * @param file
-         * @param showSuccess 
-         */
-        public DbxUploader(String dbxPath, File file, boolean showSuccess){
-            this(dbxPath,file,showSuccess,false);
-        }
-        /**
-         * 
-         * @param dbxPath
-         * @param file 
-         */
-        public DbxUploader(String dbxPath, File file){
-            this(dbxPath,file,false);
-        }
-        @Override
-        public String getProgressString(){
-            return "Uploading File";
-        }
-        
-        public boolean getExitAfterSaving(){
-            return exitAfterSaving;
-        }
-        /**
-         * This sets whether the program will exit after this finishes saving 
-         * the file.
-         * @param value Whether the program will exit once the file is saved.
-         */
-        public void setExitAfterSaving(boolean value){
-            exitAfterSaving = value;
-        }
-        @Override
-        protected void showSuccessPrompt(File file){
-                // If this should show the success prompt and the program is not 
-                // to exit after saving the file
-            if (showSuccess && !exitAfterSaving){
-                JOptionPane.showMessageDialog(LinkManager.this, 
-                        "The file was successfully uploaded.", 
-                        "File Uploaded Successfully", 
-                        JOptionPane.INFORMATION_MESSAGE);
-            }
-        }
-        @Override
-        protected String getFailureTitle(){
-            return "ERROR - File Failed To Upload";
-        }
-        @Override
-        protected String getFailureMessage(){
-                // The message to return
-            String msg = "The file failed to upload.";
-                // If the program is either in debug mode or if details are to 
-                // be shown
-            if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
-                Exception exc = (dbxEx != null) ? dbxEx : ioEx;
-                if (exc != null)
-                    msg += "\nError: " + exc;
-            }
-            return msg;
-        }
-        @Override
-        protected boolean loadFile(File file) {
-                // Reset the exceptions to null
-            dbxEx = null;
-            ioEx = null;
-            try{    // Create the Dropbox client
-                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
-                    // Get the Dropbox credentials
-                DbxCredential cred = dbxUtils.getCredentials();
-                    // Get a client to communicate with Dropbox
-                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
-                    // Refresh the Dropbox credentials if necessary
-                refreshDbxCredentials(cred,client);
-                    // Get the file namespace for Dropbox
-                DbxUserFilesRequests dbxFiles = client.files();
-                    // If the file already exists
-                if (dbxFileExists(dbxPath,dbxFiles))
-                        // Delete the file so that it can be replaced
-                    dbxFiles.deleteV2(dbxPath);
-                    // Set the progress to be zero
-                setProgressValue(0);
-                    // Get the value needed to divide the file length to get it 
-                    // back into the range of integers
-                int divider = 1;
-                    // While the divided file length is larger than the integer 
-                    // maximum
-                while (Math.ceil(file.length() / ((double)divider)) > Integer.MAX_VALUE)
-                    divider++;
-                    // Create a copy of divisor to get around it needing to 
-                    // be effectively final
-                double div = divider;
-                    // Set the progress maximum to the file length divided by 
-                    // the divisor
-                setProgressMaximum((int)Math.ceil(file.length() / div));
-                    // Set the progress bar to not be indeterminate
-                setIndeterminate(false);
-                
-                    // TODO: Handle files larger than 150MB
-                
-                    // Create an input stream to load the file 
-                try (InputStream in = new BufferedInputStream(new FileInputStream(file))){
-                        // Upload the file to Dropbox
-                    dbxFiles.uploadBuilder(dbxPath).uploadAndFinish(in, (long bytesWritten) -> {
-                            // Update the progress with the amount of bytes 
-                            // written
-                        setProgressValue((int)Math.ceil(bytesWritten / div));
-                    });
-                }
-                return true;
-            } catch(DbxException ex){
-                dbxEx = ex;
-            } catch(IOException ex){
-                ioEx = ex;
-            }
-            return false;
-        }
-        @Override
-        protected void done(){
-            super.done();
-                // If we are exiting the program after saving the database
-            if (exitAfterSaving){   
-                saver = new ConfigSaver(true);
-                saver.execute();
-            }
-        }
-    }
-    /**
-     * 
-     */
-    private class DbxAccountLoader extends LinkManagerWorker<Void>{
-        /**
-         * This gets any Dropbox exceptions that get thrown while loading the 
-         * Dropbox account.
-         */
-        private DbxException dbxEx = null;
-        /**
-         * Whether this successfully loaded the account information.
-         */
-        private boolean success = false;
-        /**
-         * Whether the account is a valid Dropbox account.
-         */
-        private boolean validAccount = true;
-        /**
-         * The Dropbox account's user name.
-         */
-        private String accountName = null;
-        /**
-         * The Dropbox account's profile picture.
-         */
-        private Icon pfpIcon = null;
-        /**
-         * The amount of space that the user has used in their Dropbox account.
-         */
-        private long used = 0;
-        /**
-         * The amount of space allocated to the user's Dropbox account.
-         */
-        private long allocated = 0;
-        @Override
-        public String getProgressString() {
-            return "Loading Dropbox Account";
-        }
-        /**
-         * This is used to display a failure prompt to the user when the dropbox 
-         * account fails to load. If the failure prompt is a retry prompt, then 
-         * this method should return whether to try load the account again. 
-         * Otherwise, this method should return {@code false}.
-         * @return {@code true} if this should attempt to load the account 
-         * again, {@code false} otherwise.
-         */
-        protected boolean showFailurePrompt(){
-            if (!validAccount){
-                JOptionPane.showMessageDialog(setLocationDialog, 
-                        "Dropbox failed to load due to the account being invalid.",
-                        "ERROR - Dropbox Account Load Failed",
-                        JOptionPane.ERROR_MESSAGE);
-                return false;
-            }
-                // The message to return
-            String msg = "An error occurred loading the information for your "
-                    + "Dropbox account.";
-                // If the program is either in debug mode or if details are to 
-                // be shown
-            if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
-                if (dbxEx != null)
-                    msg += "\nError: " + dbxEx;
-            }
-               // Ask the user if they would like to try loading the account
-            return JOptionPane.showConfirmDialog(LinkManager.this, // again
-                    msg+"\nWould you like to try again?",
-                    "ERROR - Dropbox Account Load Failed",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
-        }
-        /**
-         * 
-         * @throws DbxException 
-         * @return 
-         */
-        protected boolean loadDropboxAccount(){
-                // Reset the exceptions
-            dbxEx = null;
-            try{    // Create the Dropbox client
-                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
-                    // Get the Dropbox credentials
-                DbxCredential cred = dbxUtils.getCredentials();
-                    // Get a client to communicate with Dropbox
-                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
-                    // Refresh the Dropbox credentials if necessary
-                refreshDbxCredentials(cred,client);
-                    // Get the request for the user
-                DbxUserUsersRequests users = client.users();
-                    // Get the account details for the user
-                FullAccount account = users.getCurrentAccount();
-                    // Get the user's account name
-                accountName = account.getName().getDisplayName();
-                    // Get the URL for the user's profile picture
-                String pfpUrl = account.getProfilePhotoUrl();
-                    // If the user has a profile picture set.
-                if (pfpUrl != null){
-                    try{    // Load the profile picture
-                        pfpIcon = new ImageIcon(new URL(pfpUrl), 
-                                accountName+"'s Profile Picture");
-                    } catch (MalformedURLException ex){ }
-                }   // If the user did not have a profile picture set or the 
-                    // profile picture failed to load
-                if (pfpIcon == null || (((ImageIcon)pfpIcon).getImageLoadStatus() 
-                        & (java.awt.MediaTracker.ABORTED | java.awt.MediaTracker.ERRORED)) != 0)
-                        // Set the profile picture to a default profile picture 
-                        // with a background color dependent on the hash code of 
-                        // their unique user ID.
-                    pfpIcon = new DefaultPfpIcon(new Color(account.getAccountId().hashCode()));
-                    // Get the space usage for the user
-                SpaceUsage spaceUsage = users.getSpaceUsage();
-                    // Get the allocation of the space for the user
-                SpaceAllocation spaceAllocation = spaceUsage.getAllocation();
-                    // Get the amount of space used by the user
-                used = spaceUsage.getUsed();
-                    // If the user's account is part of a team
-                if (spaceAllocation.isTeam())
-                        // Get the amount of space allocated to the team
-                    allocated = spaceAllocation.getTeamValue().getAllocated();
-                else    // Get the amount of space allocated to the user alone
-                    allocated = spaceAllocation.getIndividualValue().getAllocated();
-                return true;
-            } catch (InvalidAccessTokenException ex){
-                validAccount = false;
-            } catch(DbxException ex){
-                dbxEx = ex;
-            }
-            return false;
-        }
-        @Override
-        protected Void backgroundAction() throws Exception {
-                // Whether the user wants this to try loading the account again 
-            boolean retry = false;  // if unsuccessful
-            do{
-                success = loadDropboxAccount();    // Try to load the account
-                if (!success)    // If the acount failed to load
-                        // Show the failure prompt and get if the user wants to 
-                    retry = showFailurePrompt();    // try again
-            }   // While the account failed to load and the user wants to try 
-            while(!success && retry);   // again
-            return null;
-        }
-        @Override
-        protected void done(){
-            if (success){
-                dbxAccountLabel.setText(accountName);
-                dbxPfpLabel.setIcon(pfpIcon);
-                dbxSpaceUsedLabel.setText(String.format("%s (%,d Bytes)", 
-                        byteFormatter.format(used),used));
-                    // Get the space the user has free
-                long free = allocated - used;
-                dbxSpaceFreeLabel.setText(String.format("%s (%,d Bytes)", 
-                        byteFormatter.format(free),free));
-                setCard(setLocationPanel,setDropboxCard);
-            } else if (!validAccount){
-                dbxUtils.clearCredentials();
-                saver = new PrivateConfigSaver();
-                saver.execute();
-            } else {
-                setCard(setLocationPanel,setExternalCard);
-            }
-            super.done();
-        }
-    }
-    /**
-     * 
-     */
-    private class PrivateConfigSaver extends FileSaver{
-        /**
-         * 
-         * @param exit 
-         */
-        public PrivateConfigSaver(boolean exit) {
-            super(getPrivateConfigFile(), exit);
-        }
-        /**
-         * 
-         */
-        public PrivateConfigSaver() {
-            super(getPrivateConfigFile());
-        }
-        @Override
-        public String getProgressString(){
-            return "Saving Configuration";
-        }
-        @Override
-        protected void showSuccessPrompt(File file){ }
-        @Override
-        protected boolean saveFile(File file) {
-            return savePrivateConfig();
-        }
-        @Override
-        protected void done(){
-            super.done();
-            loadExternalAccountData();
-        }
-    }
-    /**
      * 
      * @param <E> 
      */
@@ -9440,38 +6585,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         public String getProgressString() {
             return "Updating List";
-        }
-    }
-    
-    private class AddFromTextWorker extends LinksListWorker<Void>{
-        
-        protected List<String> list;
-        
-        protected String text;
-
-        AddFromTextWorker(LinksListPanel panel, String text) {
-            super(panel);
-            list = new ArrayList<>();
-            this.text = text;
-        }
-        @Override
-        protected Void processLinks(LinksListPanel panel) {
-                // Creates a Scanner that goes through the entered list
-            try (Scanner scanner = new Scanner(text)) {
-                readIntoList(scanner,list);
-            }
-            try{
-                panel.getModel().addAll(list);
-            } catch(Exception ex){
-                if (isInDebug()){   // If the program is in debug mode
-                    System.out.println("AddAll Error: " + ex);
-                }
-            }
-            return null;
-        }
-        @Override
-        public String getProgressString() {
-            return "Adding Links";
         }
     }
     /**
@@ -9548,6 +6661,38 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         "Could not find \""+text+"\"", "Search Results", 
                         JOptionPane.INFORMATION_MESSAGE);
             }
+        }
+    }
+    
+    private class AddFromTextWorker extends LinksListWorker<Void>{
+        
+        protected List<String> list;
+        
+        protected String text;
+
+        AddFromTextWorker(LinksListPanel panel, String text) {
+            super(panel);
+            list = new ArrayList<>();
+            this.text = text;
+        }
+        @Override
+        protected Void processLinks(LinksListPanel panel) {
+                // Creates a Scanner that goes through the entered list
+            try (Scanner scanner = new Scanner(text)) {
+                readIntoList(scanner,list);
+            }
+            try{
+                panel.getModel().addAll(list);
+            } catch(Exception ex){
+                if (isInDebug()){   // If the program is in debug mode
+                    System.out.println("AddAll Error: " + ex);
+                }
+            }
+            return null;
+        }
+        @Override
+        public String getProgressString() {
+            return "Adding Links";
         }
     }
     /**
@@ -10179,6 +7324,2861 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected boolean isSelected(LinksListPanel panel) {
             return panel.isReadOnly();
+        }
+    }
+    /**
+     * This is an abstract class that provides the basic framework for working 
+     * with a file, such as saving to a file or loading from a file.
+     */
+    private abstract class FileWorker extends LinkManagerWorker<Void>{
+        /**
+         * The file to process.
+         */
+        protected File file;
+        /**
+         * Whether this was successful at processing the file.
+         */
+        protected boolean success = false;
+        /**
+         * This constructs a FileWorker that will process the given file.
+         * @param file The file to process.
+         */
+        FileWorker(File file){
+            this.file = file;
+        }
+        /**
+         * This returns whether this was successful at processing the file. 
+         * This will be inaccurate up until the file is finished being 
+         * processed.
+         * @return Whether this has successfully processed the file.
+         */
+        public boolean isSuccessful(){
+            return success;
+        }
+        /**
+         * This returns the file being processed by this FileWorker.
+         * @return The file that will be processed.
+         */
+        public File getFile(){
+            return file;
+        }
+        /**
+         * This is used to display a success prompt to the user when the file is 
+         * successfully processed.
+         * @param file The file that was successfully processed.
+         */
+        protected void showSuccessPrompt(File file){}
+        /**
+         * This is used to display a failure prompt to the user when the file 
+         * fails to be processed. If the failure prompt is a retry prompt, then 
+         * this method should return whether to try processing the file again. 
+         * Otherwise, this method should return {@code false}.
+         * @param file The file that failed to be processed.
+         * @return {@code true} if this should attempt to process the file 
+         * again, {@code false} otherwise.
+         */
+        protected boolean showFailurePrompt(File file){
+            return false;
+        }
+        /**
+         * This processes the given file.
+         * @param file The file to be processed.
+         * @return Whether this was successful at processing the file.
+         */
+        protected abstract boolean processFile(File file);
+        @Override
+        protected Void backgroundAction() throws Exception {
+                // Whether the user wants this to try processing the file again 
+            boolean retry = false;  // if unsuccessful
+            do{
+                success = processFile(file);    // Try to process the file
+                if (success)    // If the file was successfully processed
+                    showSuccessPrompt(file);    // Show the success prompt
+                else            // If the file failed to be processed
+                        // Show the failure prompt and get if the user wants to 
+                    retry = showFailurePrompt(file);    // try again
+            }   // While the file failed to be processed and the user wants to 
+            while(!success && retry);   // try again
+            return null;
+        }
+    }
+    
+    private class FileMover extends FileWorker{
+        
+        private final File target;
+        
+        private IOException exc = null;
+
+        FileMover(File source, File target) {
+            super(source);
+            this.target = Objects.requireNonNull(target);
+        }
+        
+        public File getSource(){
+            return getFile();
+        }
+        
+        public File getTarget(){
+            return target;
+        }
+        
+        protected IOException getIOExceptionThrown(){
+            return exc;
+        }
+        @Override
+        protected void showSuccessPrompt(File file){
+            JOptionPane.showMessageDialog(LinkManager.this, 
+                    "The file was successfully renamed\n"
+                            + "Source: \""+file+"\"\n"
+                                    + "Target: \""+target+"\"", 
+                    "File Moved Successfully", 
+                    JOptionPane.INFORMATION_MESSAGE);
+        }
+        @Override
+        protected boolean showFailurePrompt(File file){
+            String msg;
+            boolean canRetry = false;
+            if (exc instanceof FileNotFoundException)
+                msg = exc.getMessage();
+            else if (exc instanceof FileAlreadyExistsException)
+                msg = ((FileAlreadyExistsException)exc).getReason();
+            else if (!file.exists())
+                msg = "The source file \""+file+"\" does not exist";
+            else{
+                msg = "The file failed to move.";
+                canRetry = true;
+            }
+            if (canRetry){
+                    // Ask the user if they would like to try move the file again
+                return JOptionPane.showConfirmDialog(LinkManager.this, 
+                        msg+"\nWould you like to try again?",
+                        "ERROR - Could Not Move File",JOptionPane.YES_NO_OPTION,
+                        JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
+            }
+            else{
+                JOptionPane.showMessageDialog(LinkManager.this, msg,
+                        "ERROR - Could Not Move File", 
+                        JOptionPane.ERROR_MESSAGE);
+            }
+            return false;
+        }
+        @Override
+        protected boolean processFile(File file) {
+            try{
+                return FilesExtended.rename(file, target);
+            } catch(IOException ex){
+                exc = ex;
+                return false;
+            }
+        }
+        @Override
+        public String getProgressString() {
+            return "Moving File";
+        }
+    }
+    /**
+     * This is an abstract class that provides the framework for loading from a 
+     * file.
+     */
+    private abstract class FileLoader extends FileWorker{
+        /**
+         * Whether this is currently loading a file.
+         */
+        protected volatile boolean loading = false;
+        /**
+         * Whether file not found errors should be shown.
+         */
+        protected boolean showFileNotFound;
+        /**
+         * This constructs a FileLoader that will load the data from the given 
+         * file.
+         * @param file The file to load the data from.
+         * @param showFileNotFound Whether a file not found error should result 
+         * in a popup being shown to the user.
+         */
+        FileLoader(File file, boolean showFileNotFound){
+            super(file);
+            this.showFileNotFound = showFileNotFound;
+        }
+        /**
+         * This constructs a FileLoader that will load the data from the given 
+         * file.
+         * @param file The file to load the data from.
+         */
+        FileLoader(File file){
+            this(file,true);
+        }
+        @Override
+        public String getProgressString(){
+            return "Loading";
+        }
+        /**
+         * This returns whether this is currently loading from a file.
+         * @return Whether a file is currently being loaded.
+         */
+        public boolean isLoading(){
+            return loading;
+        }
+        /**
+         * This returns whether this was successful at loading from the file. 
+         * This will be inaccurate up until the file is loaded.
+         * @return Whether this has successfully loaded the file.
+         */
+        @Override
+        public boolean isSuccessful(){
+            return super.isSuccessful();
+        }
+        /**
+         * This returns whether this shows a failure prompt when the file is not 
+         * found.
+         * @return Whether the file not found failure prompt is shown.
+         */
+        public boolean getShowsFileNotFoundPrompts(){
+            return showFileNotFound;
+        }
+        /**
+         * This returns the file being loaded by this FileLoader.
+         * @return The file that will be loaded.
+         */
+        @Override
+        public File getFile(){
+            return super.getFile();
+        }
+        /**
+         * This loads the data from the given file. This is called by {@link 
+         * #processFile(File) processFile} in order to load the file.
+         * @param file The file to load the data from.
+         * @return Whether the file was successfully loaded.
+         * @see #processFile(File) 
+         */
+        protected abstract boolean loadFile(File file);
+        /**
+         * {@inheritDoc } This delegates to {@link #loadFile(File) loadFile}.
+         * @see #loadFile(File) 
+         */
+        @Override
+        protected boolean processFile(File file){
+            loading = true;
+            return loadFile(file);
+        }
+        /**
+         * This is used to display a success prompt to the user when the file is 
+         * successfully loaded.
+         * @param file The file that was successfully loaded.
+         */
+        @Override
+        protected void showSuccessPrompt(File file){}
+        /**
+         * This is used to display a failure prompt to the user when the file 
+         * fails to be loaded. 
+         * @param file The file that failed to load.
+         * @return {@inheritDoc}
+         */
+        @Override
+        protected boolean showFailurePrompt(File file){
+            if (!file.exists()){    // If the file doesn't exist
+                    // If this should show file not found prompts
+                if (showFileNotFound){
+                    JOptionPane.showMessageDialog(LinkManager.this, 
+                            getFileNotFoundMessage(), getFailureTitle(), 
+                            JOptionPane.ERROR_MESSAGE);
+                }
+                return false;
+            }
+            else{   // Ask the user if they would like to try loading the file
+                return JOptionPane.showConfirmDialog(LinkManager.this, // again
+                        getFailureMessage()+"\nWould you like to try again?",
+                        getFailureTitle(),JOptionPane.YES_NO_OPTION,
+                        JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
+            }
+        }
+        /**
+         * This returns the title for the dialog to display if the file fails to 
+         * be saved.
+         * @return The title for the dialog to display if the file fails to
+         * save.
+         */
+        protected String getFailureTitle(){
+            return "ERROR - File Failed To Load";
+        }
+        /**
+         * This returns the message to display if the file fails to load.
+         * @return The message to display if the file fails to load.
+         */
+        protected String getFailureMessage(){
+            return "The file failed to load.";
+        }
+        /**
+         * This returns the message to display if the file does not exist.
+         * @return The message to display if the file does not exist.
+         */
+        protected String getFileNotFoundMessage(){
+            return "The file does not exist.";
+        }
+        @Override
+        protected void done(){
+            loading = false;
+            super.done();
+        }
+    }
+    /**
+     * This is an abstract class that provides the framework for saving to a 
+     * file.
+     */
+    private abstract class FileSaver extends FileWorker{
+        /**
+         * Whether this is currently saving a file.
+         */
+        protected volatile boolean saving = false;
+        /**
+         * This stores whether this should exit the program after saving.
+         */
+        protected volatile boolean exitAfterSaving;
+        /**
+         * This stores the backup of the existing version of the file being 
+         * saved if a backup is to be created.
+         */
+        protected File backupFile = null;
+        /**
+         * This stores whether the file failed to save due to an error occurring 
+         * while creating the backup file.
+         */
+        private boolean backupFailed = false;
+        /**
+         * This constructs a FileSaver that will save data to the given file 
+         * and, if {@code exit} is {@code true}, will exit the program after 
+         * saving the file.
+         * @param file The file to save the data to.
+         * @param exit Whether the program will exit after saving the file.
+         */
+        FileSaver(File file, boolean exit){
+            super(file);
+            exitAfterSaving = exit;
+        }
+        /**
+         * This constructs a FileSaver that will save data to the given file.
+         * @param file The file to save the data to.
+         */
+        FileSaver(File file){
+            this(file,false);
+        }
+        @Override
+        public String getProgressString(){
+            return "Saving";
+        }
+        /**
+         * This returns whether this is currently saving to a file.
+         * @return Whether a file is currently being saved to.
+         */
+        public boolean isSaving(){
+            return saving;
+        }
+        /**
+         * This returns whether this was successful at saving to the file. This 
+         * will be inaccurate up until the file is saved.
+         * @return Whether this has successfully saved the file.
+         */
+        @Override
+        public boolean isSuccessful(){
+            return super.isSuccessful();
+        }
+        /**
+         * This returns whether the program will exit after this finishes saving 
+         * the file.
+         * @return Whether the program will exit once the file is saved.
+         */
+        public boolean getExitAfterSaving(){
+            return exitAfterSaving;
+        }
+        /**
+         * This returns the file being saved to by this FileSaver.
+         * @return The file that will be saved.
+         */
+        @Override
+        public File getFile(){
+            return super.getFile();
+        }
+        /**
+         * This returns whether this should consider the file returned by {@link 
+         * #getFile() getFile} as a directory in which to save files into.
+         * @return Whether the file given to this FileSaver is actually a 
+         * directory.
+         */
+        protected boolean isFileTheDirectory(){
+            return false;
+        }
+        /**
+         * This returns the file containing a backup of the file before being 
+         * saved if it previously existed and a backup was created.
+         * @return The backup of the file, or null if no backup was created.
+         */
+        public File getBackupFile(){
+            return backupFile;
+        }
+        /**
+         * This returns whether this should first try to create a backup of the 
+         * file being saved before saving the file.
+         * @return Whether this should try to backup the file before saving.
+         */
+        protected boolean willCreateBackup(){
+            return false;
+        }
+        /**
+         * This will delete the backup file if the program successfully saved 
+         * the file.
+         */
+        protected void deleteBackupIfSuccessful(){
+                // If the file was successfully saved and there is a backup file
+            if (success && backupFile != null){
+                backupFile.delete();
+            }
+        }
+        /**
+         * This returns whether this tried and failed to create a backup of the 
+         * file before saving it.
+         * @return Whether the backup failed to be created.
+         */
+        protected boolean didBackupFail(){
+            return backupFailed;
+        }
+        /**
+         * This attempts to save to the given file. This is called by {@link 
+         * #processFile(File) processFile} in order to save the file.
+         * @param file The file to save.
+         * @return Whether the file was successfully saved to.
+         * @see #processFile(File) 
+         */
+        protected abstract boolean saveFile(File file);
+        /**
+         * {@inheritDoc } This delegates the saving of the file to {@link 
+         * #saveFile(File) saveFile}.
+         * @see #saveFile(File) 
+         */
+        @Override
+        protected boolean processFile(File file){
+            saving = true;
+                // Try to create the directories and if that fails, then give up 
+                // on saving the file. (If the file is the directory, include it 
+                // as a directory to be created. Otherwise, create the parent 
+                // file of the file to be saved)
+            if (!FilesExtended.createDirectories(LinkManager.this, 
+                    (isFileTheDirectory())?file:file.getParentFile()))
+                return false;
+                // If this is to create a backup of the file
+            if (willCreateBackup()){
+                try {   // Try to create a backup of the file
+                    backupFile = createBackupCopy(file);
+                    backupFailed = false;
+                } catch (IOException ex) {
+                    backupFailed = true;    // The backup failed
+                    return false;
+                }
+            }
+            return saveFile(file);
+        }
+        /**
+         * This returns the title for the dialog to display if the file is 
+         * successfully saved.
+         * @return The title for the dialog to display if the file is 
+         * successfully saved.
+         */
+        protected String getSuccessTitle(){
+            return "File Saved Successfully";
+        }
+        /**
+         * This returns the message to display if the file is successfully 
+         * saved.
+         * @return The message to display if the file is successfully saved.
+         */
+        protected String getSuccessMessage(){
+            return "The file was successfully saved.";
+        }
+        /**
+         * This returns the title for the dialog to display if the file fails to 
+         * be saved.
+         * @return The title for the dialog to display if the file fails to
+         * save.
+         */
+        protected String getFailureTitle(){
+            return "ERROR - File Failed To Save";
+        }
+        /**
+         * This returns the message to display if the file fails to be saved.
+         * @return The message to display if the file fails to save.
+         */
+        protected String getFailureMessage(){
+            if (backupFailed)   // If this failed to create the backup file
+                return "The backup file failed to be created.";
+            return "The file failed to save.";
+        }
+        /**
+         * This is used to display a success prompt to the user when the file is 
+         * successfully saved. The success prompt will display the message 
+         * returned by {@link #getSuccessMessage()}. If the program is to exit 
+         * after saving the file, then this will show nothing.
+         * @param file The file that was successfully saved.
+         */
+        @Override
+        protected void showSuccessPrompt(File file){
+                // If the program is not to exit after saving the file
+            if (!exitAfterSaving)   
+                JOptionPane.showMessageDialog(LinkManager.this, 
+                        getSuccessMessage(), getSuccessTitle(), 
+                        JOptionPane.INFORMATION_MESSAGE);
+        }
+        /**
+         * This is used to display a failure and retry prompt to the user when 
+         * the file fails to be saved.
+         * @param file The file that failed to be saved.
+         * @return {@inheritDoc }
+         */
+        @Override
+        protected boolean showFailurePrompt(File file){
+                // Show a dialog prompt asking the user if they would like to 
+                // try and save the file again and get their input. 
+            int option = JOptionPane.showConfirmDialog(LinkManager.this, 
+                    getFailureMessage()+"\nWould you like to try again?",
+                    getFailureTitle(),
+                        // If the program is to exit after saving the file, show 
+                        // a third "cancel" option to allow the user to cancel 
+                        // exiting the program
+                    (exitAfterSaving)?JOptionPane.YES_NO_CANCEL_OPTION:
+                            JOptionPane.YES_NO_OPTION,
+                    JOptionPane.ERROR_MESSAGE);
+                // If the program was going to exit after saving the file
+            if (exitAfterSaving){   
+                    // If the option selected was the cancel option or the user 
+                    // closed the dialog without selecting anything, then don't 
+                    // exit the program
+                exitAfterSaving = option != JOptionPane.CLOSED_OPTION && 
+                        option != JOptionPane.CANCEL_OPTION;
+            }   // Return whether the user selected yes
+            return option == JOptionPane.YES_OPTION;    
+        }
+        /**
+         * This is used to exit the program after this finishes saving the file.
+         */
+        protected void exitProgram(){
+            System.exit(0);         // Exit the program
+        }
+        @Override
+        protected void done(){
+            if (exitAfterSaving)    // If the program is to exit after saving
+                exitProgram();      // Exit the program
+            saving = false;
+            super.done();
+        }
+    }
+    /**
+     * This is a FileSaver dedicated to creating a backup of a given file.
+     */
+    private class BackupFileSaver extends FileSaver{
+        /**
+         * The progress string to display on the progress bar.
+         */
+        private String progressStr;
+        /**
+         * This constructs a BackupFileSaver that will create a backup of the 
+         * given file.
+         * @param file The file to create a backup of.
+         * @param progressStr The string to display on the progress bar, or null 
+         * to display the default string.
+         */
+        BackupFileSaver(File file, String progressStr) {
+            super(file);
+            this.progressStr = progressStr;
+        }
+        /**
+         * This constructs a BackupFileSaver that will create a backup of the 
+         * given file.
+         * @param file The file to create a backup of.
+         */
+        BackupFileSaver(File file){
+            this(file,null);
+        }
+        @Override
+        public String getProgressString(){
+                // If the progress string is not null
+            if (progressStr != null)
+                return progressStr;
+            return "Creating Backup";
+        }
+        /**
+         * This sets the progress string to the given string.
+         * @param text The string to display on the progress bar, or null 
+         * to display the default string.
+         */
+        public void setProgressString(String text){
+            progressStr = text;
+            if (super.isSaving())   // If this is currently saving a file
+                updateProgressString();
+        }
+        @Override
+        protected boolean willCreateBackup(){
+            return true;
+        }
+        @Override
+        protected String getSuccessMessage(){
+            return "The backup file was successfully created.";
+        }
+        @Override
+        protected String getFailureMessage(){
+                // If the file does not exist
+            if (!file.exists())
+                return "Cannot create backup of a non-existent file.";
+            else
+                return "The backup file failed to be created.";
+        }
+        @Override
+        protected boolean showFailurePrompt(File file){
+            if (!file.exists()){    // If the file doesn't exist
+                JOptionPane.showMessageDialog(LinkManager.this, 
+                        getFailureMessage(), 
+                        "ERROR - File Failed To Save", 
+                        JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            return super.showFailurePrompt(file);
+        }
+        @Override
+        protected boolean saveFile(File file) {
+                // Since we're only interested in creating a backup of the given 
+                // file, a process already covered by FileSaver, just return 
+                // whether the backup was successful and whether the backup file 
+                // is not null
+            return !didBackupFail() && backupFile != null;    
+        }
+    }
+    /**
+     * This loads the data from a file into a List of Strings and, if one is 
+     * provided, will add the list to the model of a SetOfLinksPanel.
+     */
+    private class ListLoader extends FileLoader{
+        /**
+         * The List of Strings to store the data from the file in.
+         */
+        protected List<String> list;
+        /**
+         * The panel to add the loaded list's contents to (optional).
+         */
+        protected LinksListPanel panel;
+        
+        ListLoader(File file, List<String> list, LinksListPanel panel){
+            super(file);
+            this.list = Objects.requireNonNull(list);
+            this.panel = panel;
+        }
+        
+        ListLoader(File file, List<String> list){
+            this(file,list,null);
+        }
+        
+        ListLoader(File file, LinksListPanel panel){
+            this(file,new ArrayList<>(),panel);
+        }
+        
+        ListLoader(File file) {
+            this(file,new ArrayList<>());
+        }
+        /**
+         * This returns the List used to retrieve the data from the file.
+         * @return The List used to retrieve data from the file.
+         */
+        public List<String> getData(){
+            return list;
+        }
+        /**
+         * This returns the panel with the model that the list of Strings will 
+         * be added to.
+         * @return The panel who's model that is being added to, or null.
+         */
+        public LinksListPanel getPanel(){
+            return panel;
+        }
+        @Override
+        public String getProgressString(){
+            return "Loading List";
+        }
+        @Override
+        protected boolean loadFile(File file) {
+            try {
+                readIntoList(file,list);
+                    // If the file was a shortcut file and we're adding to a panel
+                if (panel != null && SHORTCUT_FILE_FILTER.accept(file)){
+                        // Get the URL from the file
+                    String temp = getShortcutURL(list);
+                    list.clear();
+                    if (temp != null)   // If a URL was found in the file
+                        list.add(temp);
+                }   // If we're adding the results to a panel's model
+                if (panel != null)
+                    panel.getModel().addAll(list);
+                return true;
+            } catch (IOException ex) {
+                return false;
+            }
+        }
+    }
+    /**
+     * This is used to save a List of Strings to a file.
+     */
+    private class ListSaver extends FileSaver{
+        /**
+         * The List of Strings to save to the file.
+         */
+        protected List<String> list;
+        
+        ListSaver(File file, List<String> list, boolean exit) {
+            super(file, exit);
+            this.list = Objects.requireNonNull(list);
+        }
+        
+        ListSaver(File file, List<String> list){
+            this(file,list,false);
+        }
+        /**
+         * This returns the List containing the data that will be saved to the 
+         * file.
+         * @return The List of the data to save to the file.
+         */
+        public List<String> getData(){
+            return list;
+        }
+        @Override
+        public String getProgressString(){
+            return "Saving List";
+        }
+        @Override
+        protected boolean saveFile(File file) {
+            setProgressMaximum(list.size());
+            return writeToFile(file,list);
+        }
+    }
+    
+    private class ConfigLoader extends FileLoader{
+        
+//        private Properties loadedConfig = new Properties();
+
+        ConfigLoader(File file) {
+            super(file,fullyLoaded);
+        }
+        @Override
+        public String getProgressString(){
+            return "Loading Configuration";
+        }
+        @Override
+        protected boolean loadFile(File file) {
+            showHiddenListsToggle.setEnabled(false);
+            return loadConfigFile(file,config);
+        }
+        @Override
+        protected void done(){
+//            config.putAll(loadedConfig);
+            configureProgram();
+            super.done();
+            showHiddenListsToggle.setEnabled(true);
+            if (!fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
+                loader = new DatabaseLoader();
+                loader.execute();
+            }
+        }
+    }
+    
+    private class ConfigSaver extends FileSaver{
+        
+//        private Properties savedConfig = new Properties();
+
+        ConfigSaver(File file, boolean exit) {
+            super(file, exit);
+        }
+        
+        ConfigSaver(File file){
+            super(file);
+        }
+        
+        ConfigSaver(boolean exit){
+            this(getConfigFile(),exit);
+        }
+        
+        ConfigSaver(){
+            this(getConfigFile());
+        }
+        @Override
+        protected boolean saveFile(File file) {
+            showHiddenListsToggle.setEnabled(false);
+            setIndeterminate(true);
+            Properties saveConfig = createSaveConfig(config);
+            if (exitAfterSaving && autoHideMenu.getDurationIndex() != 0)
+                    // Make sure hidden lists are hidden
+                setConfigProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,false,saveConfig);
+            return saveConfiguration(file,saveConfig, GENERAL_CONFIG_FLAG);
+        }
+        @Override
+        public String getProgressString(){
+            return "Saving Configuration";
+        }
+        @Override
+        protected void exitProgram(){
+            saver = new PrivateConfigSaver(true);
+            saver.execute();
+        }
+        @Override
+        protected void done(){
+            super.done();
+            showHiddenListsToggle.setEnabled(!exitAfterSaving);
+        }
+    }
+    /**
+     * 
+     */
+    private class PrivateConfigSaver extends FileSaver{
+        /**
+         * 
+         * @param exit 
+         */
+        public PrivateConfigSaver(boolean exit) {
+            super(getPrivateConfigFile(), exit);
+        }
+        /**
+         * 
+         */
+        public PrivateConfigSaver() {
+            super(getPrivateConfigFile());
+        }
+        @Override
+        public String getProgressString(){
+            return "Saving Configuration";
+        }
+        @Override
+        protected void showSuccessPrompt(File file){ }
+        @Override
+        protected boolean saveFile(File file) {
+            return savePrivateConfig();
+        }
+        @Override
+        protected void done(){
+            super.done();
+            loadExternalAccountData();
+        }
+    }
+    /**
+     * This is an abstract class that provides the framework for loading from a 
+     * database file.
+     */
+    private abstract class AbstractDatabaseLoader extends FileLoader{
+        /**
+         * The SQLException thrown while loading from the database if an error 
+         * occurred.
+         */
+        protected SQLException sqlExc = null;
+        /**
+         * This constructs a AbstractDatabaseLoader that will load the data from 
+         * the database stored in the given file.
+         * @param file The database file to load the data from.
+         * @param showFileNotFound Whether a file not found error should result 
+         * in a popup being shown to the user.
+         */
+        AbstractDatabaseLoader(File file, boolean showFileNotFound) {
+            super(file, showFileNotFound);
+        }
+        /**
+         * This constructs a AbstractDatabaseLoader that will load the data from 
+         * the database stored in the given file.
+         * @param file The database file to load the data from.
+         */
+        AbstractDatabaseLoader(File file) {
+            super(file);
+        }
+        /**
+         * This constructs a AbstractDatabaseLoader that will load the data from 
+         * the program's {@link #getDatabaseFile() database file}.
+         * @param showFileNotFound Whether a file not found error should result 
+         * in a popup being shown to the user.
+         */
+        AbstractDatabaseLoader(boolean showFileNotFound){
+            this(getDatabaseFile(), showFileNotFound);
+        }
+        /**
+         * This constructs a AbstractDatabaseLoader that will load the data from 
+         * the program's {@link #getDatabaseFile() database file}.
+         */
+        AbstractDatabaseLoader(){
+            this(true);
+        }
+        /**
+         * This attempts to load from the database using the given database 
+         * connection and provided reusable statement.
+         * @param conn The connection to the database.
+         * @param stmt An SQL statement that can be used to interact with the 
+         * database.
+         * @return Whether this successfully loaded from the database.
+         * @throws SQLException If a database error occurs.
+         * @see #loadFile(File) 
+         */
+        protected abstract boolean loadDatabase(LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException;
+        @Override
+        protected boolean loadFile(File file){
+            sqlExc = null;
+            if (!file.exists())     // If the file doesn't exist
+                return false;
+                // Connect to the database and create an SQL statement
+            try(LinkDatabaseConnection conn = connect(file);
+                    Statement stmt = conn.createStatement()){
+                return loadDatabase(conn,stmt); // Load from the database
+            } catch(SQLException ex){
+                sqlExc = ex;
+                return false;
+            } catch (UncheckedSQLException ex){
+                sqlExc = ex.getCause();
+                return false;
+            }
+        }
+        /**
+         * This returns any SQLExceptions that were thrown while this was 
+         * loading data from the database.
+         * @return The SQLException thrown while loading, or null if no 
+         * SQLException was thrown.
+         */
+        protected SQLException getSQLExceptionThrown(){
+            return sqlExc;
+        }
+        @Override
+        protected String getFailureMessage(){
+                // The message to return
+            String msg = "The database failed to load.";
+            if (sqlExc != null){    // If an SQLException was thrown
+                    // Custom error messages for certain error codes
+                switch(sqlExc.getErrorCode()){
+                        // If the database failed to save because it was busy
+                    case (Codes.SQLITE_BUSY):
+                        msg = "Please wait, the database is currently busy.";
+                        break;
+                        // If the database could not be opened
+                    case(Codes.SQLITE_CANTOPEN):
+                        msg = "The database could not be opened.";
+                        break;
+                        // If the database is corrupted
+                    case(Codes.SQLITE_CORRUPT):
+                        msg = "The database failed to load due to being corrupted.";
+                }   // If the program is either in debug mode or if details are to be shown
+                if (isInDebug() || showDBErrorDetailsToggle.isSelected())    
+                    msg += "\nError: " + sqlExc + 
+                            "\nError Code: " + sqlExc.getErrorCode();
+            }
+            return msg;
+        }
+        @Override
+        protected String getFileNotFoundMessage(){
+            return "The database file does not exist.";
+        }
+    }
+    /**
+     * This is an abstract class that provides the framework for saving to a 
+     * database file.
+     */
+    private abstract class AbstractDatabaseSaver extends FileSaver{
+        /**
+         * The SQLException thrown while saving to the database if an error 
+         * occurred.
+         */
+        protected SQLException sqlExc = null;
+        /**
+         * Whether this is currently verifying the changes to the database.
+         */
+        private boolean verifying = false;
+        /**
+         * This constructs a AbstractDatabaseSaver that will save the data to 
+         * the database stored in the given file.
+         * @param file The database file to save the data to.
+         */
+        AbstractDatabaseSaver(File file) {
+            super(file);
+        }
+        /**
+         * This constructs a AbstractDatabaseSaver that will save the data to 
+         * the program's {@link #getDatabaseFile() database file}.
+         */
+        AbstractDatabaseSaver(){
+            this(getDatabaseFile());
+        }
+        /**
+         * This constructs a AbstractDatabaseSaver that will save the data to 
+         * the database stored in the given file and, if {@code exit} is {@code 
+         * true}, will exit the program afterwards.
+         * @param file The database file to save the data to.
+         * @param exit Whether the program will exit after saving the file.
+         */
+        AbstractDatabaseSaver(File file, boolean exit) {
+            super(file, exit);
+        }
+        /**
+         * This constructs a AbstractDatabaseSaver that will save the data to 
+         * the program's {@link #getDatabaseFile() database file} and, if {@code 
+         * exit} is {@code true}, will exit the program afterwards.
+         * @param exit Whether the program will exit after saving the file.
+         */
+        AbstractDatabaseSaver(boolean exit){
+            this(getDatabaseFile(), exit);
+        }
+        /**
+         * This attempts to save to the database using the given database 
+         * connection and provided reusable statement.
+         * @param conn The connection to the database.
+         * @param stmt An SQL statement that can be used to interact with the 
+         * database.
+         * @return Whether this successfully saved to the database.
+         * @throws SQLException If a database error occurs.
+         * @see #saveFile(File) 
+         */
+        protected abstract boolean saveDatabase(LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException;
+        /**
+         * This returns whether the connection will be in auto-commit mode or 
+         * not. For more information, refer to {@link Connection#setAutoCommit}.
+         * @return Whether the database will be in auto-commit mode.
+         */
+        protected boolean getAutoCommit(){
+            return false;
+        }
+        /**
+         * This sets whether the program will exit after this finishes saving 
+         * the file.
+         * @param value Whether the program will exit once the file is saved.
+         */
+        public void setExitAfterSaving(boolean value){
+            exitAfterSaving = value;
+        }
+        /**
+         * 
+         * @param file
+         * @param conn
+         * @param stmt
+         * @return
+         * @throws SQLException 
+         */
+        protected boolean prepareDatabase(File file, LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException{
+            conn.createTables(stmt);
+            return conn.updateDatabaseDefinitions(stmt,LinkManager.this);
+        }
+        @Override
+        protected boolean willCreateBackup(){
+            return true;
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected boolean isVerifyingDatabase(){
+            return verifying;
+        }
+        /**
+         * 
+         * @param value 
+         */
+        protected void setVerifyingDatabase(boolean value){
+            verifying = value;
+            updateProgressString();
+        }
+        /**
+         * 
+         * @return 
+         */
+        public abstract String getNormalProgressString();
+        /**
+         * 
+         * @return 
+         */
+        public String getVerifyingProgressString(){
+            return "Verifying Changes";
+        }
+        @Override
+        public String getProgressString(){
+                // If this is verifying the changes to the database
+            if (verifying)
+                return getVerifyingProgressString();
+            return getNormalProgressString();
+        }
+        @Override
+        protected boolean saveFile(File file){
+            sqlExc = null;
+                // Connect to the database and create an SQL statement
+            try(LinkDatabaseConnection conn = connect(file);
+                    Statement stmt = conn.createStatement()){
+                conn.setAutoCommit(getAutoCommit());
+                    // Try to prepare the database
+                boolean value = prepareDatabase(file,conn,stmt);
+                    // If the connection is not in auto-commit mode
+                if (!conn.getAutoCommit())
+                    conn.commit();       // Commit the changes to the database
+                if (!value) // If the database failed to be prepared
+                    return false;
+                    // Save to the database and get if we are successful
+                value = saveDatabase(conn,stmt);
+                    // If the connection is not in auto-commit mode
+                if (!conn.getAutoCommit()){
+                    setIndeterminate(true);
+                    conn.commit();       // Commit the changes to the database
+                }
+                return value;
+            } catch(SQLException ex){
+                sqlExc = ex;
+                if (isInDebug())    // If the program is in debug mode
+                    System.out.println(ex);
+                return false;
+            } catch (UncheckedSQLException ex){
+                sqlExc = ex.getCause();
+                if (isInDebug())    // If the program is in debug mode
+                    System.out.println(ex);
+                return false;
+            } catch(Exception ex){
+                if (isInDebug())    // If the program is in debug mode
+                    System.out.println(ex);
+                return false;
+            }
+        }
+        @Override
+        protected String getSuccessMessage(){
+            return "The database was successfully saved.";
+        }
+        /**
+         * This returns any SQLExceptions that were thrown while this was 
+         * saving data to the database.
+         * @return The SQLException thrown while saving, or null if no 
+         * SQLException was thrown.
+         */
+        protected SQLException getSQLExceptionThrown(){
+            return sqlExc;
+        }
+        @Override
+        protected String getFailureMessage(){
+            if (didBackupFail())   // If this failed to create the backup file
+                return "The database backup file failed to be created.";
+                // The message to return
+            String msg = "The database failed to save.";
+            if (sqlExc != null){    // If an SQLException was thrown
+                    // Custom error messages for certain error codes
+                switch(sqlExc.getErrorCode()){
+                        // If the database failed to save because it was busy
+                    case (Codes.SQLITE_BUSY):
+                        msg = "Please wait, the database is currently busy.";
+                        break;
+                        // If the database is read only
+                    case(Codes.SQLITE_READONLY):
+                        msg = "The database could not be saved due to being read only.";
+                        break;
+                        // If the database is full
+                    case(Codes.SQLITE_FULL):
+                        msg = "The database could not be saved due to being full.";
+                        break;
+                        // If the database could not be opened
+                    case(Codes.SQLITE_CANTOPEN):
+                        msg = "The database could not be opened for saving.";
+                        break;
+                        // If the database is corrupted
+                    case(Codes.SQLITE_CORRUPT):
+                        msg = "The database failed to save due to being corrupted.";
+                }   // If the program is either in debug mode or if details are to be shown
+                if (isInDebug() || showDBErrorDetailsToggle.isSelected())    
+                    msg += "\nError: " + sqlExc + 
+                            "\nError Code: " + sqlExc.getErrorCode();
+            }
+            return msg;
+        }
+        /**
+         * 
+         */
+        protected void uploadDatabase(){
+            loader = new DbxUploader("/"+getExternalDatabaseFileName(),file,false,exitAfterSaving);
+            loader.execute();
+        }
+        @Override
+        protected void exitProgram(){
+            if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
+                uploadDatabase();
+            } else {
+                saver = new ConfigSaver(true);
+                saver.execute();
+            }
+        }
+        @Override
+        protected void done(){
+            if (success){   // If this was successful
+                allListsTabsPanel.clearEdited();
+                shownListsTabsPanel.clearEdited();
+            }
+            super.done();
+                // If we are not exiting the program after saving the database
+            if (!exitAfterSaving){   
+                autosaveMenu.startAutosave();
+                if (success && syncDBToggle.isSelected() && isLoggedInToDropbox()){
+                    uploadDatabase();
+                }
+            }
+        }
+    }
+    /**
+     * This loads the lists of links from the database.
+     */
+    private class DatabaseLoader extends AbstractDatabaseLoader{
+        /**
+         * This is a map that maps the tabs panels to the list of models that 
+         * will be displayed by those tabs panels when we finish loading.
+         */
+        private HashMap<LinksListTabsPanel, List<LinksListModel>> tabsModels = 
+                new HashMap<>();
+        /**
+         * This stores whether this will be loading all the lists from the 
+         * database or only the lists that are outdated.
+         */
+        private boolean loadAll;
+        /**
+         * This stores whether this failed to load the database due to the 
+         * database being an incompatible version that cannot be updated 
+         * automatically by the program.
+         */
+        private boolean isDBOutdated = false;
+        /**
+         * This stores the version of the database being loaded.
+         */
+        private String dbVersion = "N/A";
+        
+        DatabaseLoader(boolean loadAll){
+            super(fullyLoaded);
+            this.loadAll = loadAll || !fullyLoaded;
+        }
+        
+        DatabaseLoader(){
+            this(true);
+        }
+        @Override
+        public String getProgressString(){
+            return "Loading Lists";
+        }
+        @Override
+        protected boolean loadDatabase(LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException {
+                // Disable all the lists
+            setTabsPanelListsEnabled(false);
+                // Create any tables in the database that need to be created
+            conn.createTables(stmt);
+                // Get the version of the database
+            dbVersion = conn.getDatabaseVersionStr();
+                // Get whether the database is outdated
+            isDBOutdated = conn.isDatabaseOutdated();
+                // If the database is incompatible with this version of the 
+            if (!conn.isDatabaseCompatible())   // program
+                return false;
+            // TODO: This should be made to backup the database, just in case
+                // If the database was not successfully updated to the latest 
+                // version this program supports
+            if (!conn.updateDatabaseDefinitions(stmt,LinkManager.this))
+                return false;
+                // Get the map containing the list IDs and data
+            ListDataMap listDataMap = conn.getListDataMap();
+                // Get the map of list data that will be loaded. If we are 
+                // loading all the lists, then this will just be the list data 
+            NavigableMap<Integer, ListContents> loadData = listDataMap; // map
+                // This will get a map of list IDs and models to be used
+            HashMap<Integer, LinksListModel> models = new HashMap<>();
+                // This will get the total size of the lists that will be loaded
+            int total = 0;
+                // If we are loading all the lists
+            if (loadAll){
+                    // Get the total size of all the lists in the database
+                total = listDataMap.totalSize();
+            } else {// Get a set of models that currently already exist
+                Set<LinksListModel> existingModels = new HashSet<>(allListsTabsPanel.getModels());
+                    // Make sure this set has ALL the models, even those that 
+                    // are somehow absent from the all lists panel
+                existingModels.addAll(shownListsTabsPanel.getModels());
+                    // Go through the existing models
+                for (LinksListModel model : existingModels){
+                        // If the current model does not have a null listID
+                    if (model.getListID() != null)
+                            // Put the current model into the map of models 
+                        models.put(model.getListID(), model);
+                }
+                    // Copy the list data map, since we don't want to edit the 
+                loadData = new TreeMap<>(listDataMap);  // actual database
+                    // Remove any lists that do not need to be re-loaded
+                    // Remove all the lists that have been removed
+                loadData.keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
+                    // Remove all the lists that are outdated compared to the 
+                    // existing models
+                loadData.values().removeIf((ListContents t) -> {
+                        // Get the model with the listID of the current list if 
+                        // there is one
+                    LinksListModel model = models.get(t.getListID());
+                        // Return whether there is a model with that listID and 
+                        // the list in the database is outdated
+                    return model != null && t.isOutdated(model);
+                });
+                    // Go through the lists that will be loaded
+                for (ListContents temp : loadData.values()){
+                    total += temp.size();
+                }
+            }   // Set the progress maximum to the amount of links that will be 
+            setProgressMaximum(total);  // loaded
+            setIndeterminate(false);
+                // Go through the lists to be loaded
+            for (Map.Entry<Integer,ListContents> listData:loadData.entrySet()){
+                    // Get a model version of the current list and put it in the 
+                    // map containing the loaded models
+                models.put(listData.getKey(), 
+                        listData.getValue().toModel(listContentsObserver));
+            }
+            setIndeterminate(true);
+                // This gets a map mapping the tabs panels to the list of 
+                // listIDs for the lists to be shown by the panels
+            HashMap<LinksListTabsPanel, List<Integer>> tabsListIDs = new HashMap<>();
+                // Get a copy of the list of listIDs for the all lists panel
+            List<Integer> allListIDs = new ArrayList<>(conn.getAllListIDs());
+                // Remove any null listIDs
+            allListIDs.removeIf((Integer t) -> t == null);
+                // Put the copy into the map, mapping it to the all lists panel
+            tabsListIDs.put(allListsTabsPanel, allListIDs);
+                // Get a copy of the list of shown listIDs
+            List<Integer> shownListIDs = new ArrayList<>(conn.getShownListIDs());
+                // Remove any null listIDs
+            shownListIDs.removeIf((Integer t) -> t == null);
+                // Put the copy into the map, mapping it to the shown lists 
+            tabsListIDs.put(shownListsTabsPanel, shownListIDs); // panel
+                // This is a set that will get the listIDs missing from the all 
+                // listIDs list
+            Set<Integer> missingListIDs = new LinkedHashSet<>(shownListIDs);
+                // Remove any listIDs that are already in the all listIDs list
+            missingListIDs.removeAll(allListIDs);
+                // Add any missing listIDs to the all listIDs list
+            allListIDs.addAll(missingListIDs);
+                // Go through the panels and listIDs to get models for
+            for (Map.Entry<LinksListTabsPanel,List<Integer>> entry : tabsListIDs.entrySet()){
+                    // A list to get the models to use for the current tabs panel
+                List<LinksListModel> modelList = new ArrayList<>();
+                    // If we are not loading all the lists, only the outdated ones
+                if (!loadAll){
+                        // Remove all listIDs of lists that were removed by the 
+                        // program
+                    entry.getValue().removeAll(allListsTabsPanel.getRemovedListIDs());
+                        // Remove all listIDs of lists that are already loaded, 
+                        // since we will be replacing them in-situ instead of 
+                        // re-adding them. This is to perserve the order of the 
+                        // existing lists, including those that have not been 
+                        // assigned a listID yet.
+                    entry.getValue().removeAll(entry.getKey().getListIDs());
+                        // Add all the currently existing models from the tabs 
+                        // panel
+                    modelList.addAll(entry.getKey().getModels());
+                        // Replace any outdated models with ones loaded from the 
+                        // database
+                    modelList.replaceAll((LinksListModel t) -> {
+                        // If this model is somehow null or (more realistically) 
+                        // this model's listID is null (i.e. no listID assigned, 
+                        // typical of newly created lists)
+                        if (t == null || t.getListID() == null)
+                            return t;   // Do not replace this model
+                        // Check for any models loaded from the database with 
+                        // the same listID, and if there is one, replace the  
+                        // current model with the loaded model. If not, then use 
+                        // the current model, don't replace it.
+                        LinksListModel temp = models.getOrDefault(t.getListID(), t);
+                        // If the replacement model is the same as this model or 
+                        // if the replacement model is somehow null
+                        if (temp == t || temp == null)
+                            return t;   // Do not replace this model
+                            // Copy the selection from the original model
+                        temp.setSelectionFrom(t);
+                        return temp;
+                    });
+                }
+                // Go through the listIDs for the lists in the database that are 
+                // to be displayed on this tabs panel. If we were only loading 
+                // any outdated lists, this will only be going through lists 
+                // that were added to this tabs panel later and aren't currently 
+                // being displayed.
+                for (Integer listID : entry.getValue()){
+                    // Append the loaded list's model to the models for this 
+                    modelList.add(models.get(listID));  // panel
+                }
+                // Set the list of models for this tabs panel
+                tabsModels.put(entry.getKey(), modelList);
+            }   // If we are only reloading outdated lists
+            if (!loadAll){
+                    // The shown lists tabs panel may be showing lists that have 
+                    // since been hidden. Remove any lists that are now hidden
+                tabsModels.get(shownListsTabsPanel).removeIf((LinksListModel t) 
+                        -> t == null || t.isHidden());
+            }
+            
+            return true;
+        }
+        @Override
+        protected String getFailureMessage(){
+                // If the database is outdated and cannot be updated 
+            if (isDBOutdated){  // automatically by this program
+                return String.format(
+                        "The database is incompatable with this version of the program.%n"
+                        + "Database Version is %s, latest supported major version is %d.x.x", 
+                        dbVersion, DATABASE_MAJOR_VERSION);
+            }
+            return super.getFailureMessage();
+        }
+        @Override
+        protected void done(){
+                // If this should create the default lists during the initial 
+                // load since the lists were not loaded either due to this 
+                // failing to load the database or the database file does not 
+                // exist
+            boolean createLists = !success && !file.exists() && !fullyLoaded;
+                // If this should create the default lists
+            if (createLists){
+                    // Create a list to contain the created models
+                List<LinksListModel> modelList = new ArrayList<>();
+                    // Go through the names for the default lists
+                for (String name : DEFAULT_LIST_NAMES){
+                        // Create the list
+                    LinksListModel model = new LinksListModel(name);
+                        // Set it to edited
+                    model.setEdited(true);
+                    modelList.add(model);
+                }
+                tabsModels.put(allListsTabsPanel, modelList);
+                tabsModels.put(shownListsTabsPanel, modelList);
+            }   // If this successfully loaded the database or this created the 
+            if (success || createLists){    // default lists
+                    // Go through the model lists for each tabs panel
+                for (Map.Entry<LinksListTabsPanel,List<LinksListModel>> entry : 
+                        tabsModels.entrySet()){
+                        // Get the tabs panel
+                    LinksListTabsPanel tabsPanel = entry.getKey();
+                        // Set the models for the tabs panel
+                    tabsPanel.setModels(entry.getValue());
+                        // Go through the lists for the tabs panel
+                    for (LinksListPanel panel : tabsPanel){
+                            // Set the read only toggle for the current list to 
+                            // show whether the list is read only
+                        tabsPanel.getListMenuItem(panel, MAKE_LIST_READ_ONLY_ACTION_KEY)
+                                .setSelected(panel.isReadOnly());
+                            // Get the item used to hide the list if there is one
+                        JMenuItem hideItem = tabsPanel.getListMenuItem(panel, 
+                                HIDE_LIST_ACTION_KEY);
+                            // If there is an item to hide the list
+                        if (hideItem != null)
+                            hideItem.setSelected(panel.isHidden());
+                    }   // If the lists were completely reloaded
+                    if (loadAll)
+                        tabsPanel.setStructureEdited(false);
+                        // If this successfully loaded the lists, none of the 
+                        // lists are edited, and there are no structural changes 
+                        // to the tabs panel
+                    if (success && !tabsPanel.getListsEdited() && 
+                            !tabsPanel.isStructureEdited())
+                        tabsPanel.clearEdited();
+                        // If the program has not fully loaded (this is the 
+                    if (!fullyLoaded){  // initial load)
+                            // Go through the lists in the tabs panel
+                        for (LinksListPanel panel : tabsPanel){
+                                // Ensure the last item is visible
+                            panel.ensureIndexIsVisible(panel.getModel().size()-1);
+                        }
+                    }
+                }
+            }   //If the program has not fully loaded (this is the initial load)
+            if (!fullyLoaded){
+                    // Set the selected items from the configuration
+                setSelectedFromConfig();
+                    // Update the program title
+                updateProgramTitle();
+            }   // Update whether the program has fully loaded
+            fullyLoaded = fullyLoaded || loadAll;
+                // Re-enable all the lists
+            setTabsPanelListsEnabled(true);
+            super.done();
+            autosaveMenu.startAutosave();
+        }
+    }
+//    /**
+//     * This updates the database before loading the database
+//     */
+//    private class DatabaseLoadUpdater extends AbstractDatabaseSaver{
+//
+//        @Override
+//        protected boolean saveDatabase(LinkDatabaseConnection conn, 
+//                Statement stmt) throws SQLException {
+//                // This does nothing. Everything was handled in prepareDatabase
+//            return true;
+//        }
+//        @Override
+//        public String getNormalProgressString() {
+//            return "Updating Database";
+//        }
+//        @Override
+//        protected void done(){
+//            loader = new DatabaseLoader(true);
+//            loader.execute();
+//        }
+//    }
+    /**
+     * This saves the lists of links to the database.
+     */
+    private class DatabaseSaver extends AbstractDatabaseSaver{
+        
+        DatabaseSaver(boolean exit){
+            super(exit);
+        }
+        
+        DatabaseSaver(){
+            super();
+        }
+        @Override
+        public String getNormalProgressString(){
+            return "Saving Lists";
+        }
+        @Override
+        protected boolean saveDatabase(LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException {
+                // Remove the listIDs of any lists that have been removed
+            conn.getAllListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
+                // Remove the listIDs of any lists that have been removed
+            conn.getShownListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
+                // Remove the listIDs of any lists that have been hidden
+            conn.getShownListIDs().removeAll(shownListsTabsPanel.getRemovedListIDs());
+                // Remove any lists that have been removed
+            conn.getListNameMap().keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
+                // Clear the sets of removed ListIDs
+            allListsTabsPanel.clearRemovedListIDs();
+            shownListsTabsPanel.clearRemovedListIDs();
+            conn.commit();       // Commit the changes to the database
+                // This is a set containing all the models in the program
+            Set<LinksListModel> models = new LinkedHashSet<>(allListsTabsPanel.getModels());
+                // Add any models that are in the shown lists panel that are 
+                // missing from the all lists panel
+            models.addAll(shownListsTabsPanel.getModels());
+                // Write the models to the database
+            writeToDatabase(conn, models);
+            
+            return true;
+        }
+        @Override
+        protected void showSuccessPrompt(File file){ }
+        @Override
+        protected void done(){
+            deleteBackupIfSuccessful();
+            super.done();
+        }
+    }
+    /**
+     * This loads the tables in the database and displays them in the database 
+     * viewer.
+     */
+    private class LoadDatabaseViewer extends AbstractDatabaseLoader{
+        /**
+         * This is the table model displaying the configuration for the program 
+         * and the database. If this is null after loading, then the 
+         * configuration data failed to load. 
+         */
+        private CustomTableModel configTableModel = null;
+        /**
+         * This is the table model displaying the prefixes for the links in the 
+         * database. If this is null after loading, then the prefixes failed to 
+         * load.
+         */
+        private CustomTableModel prefixTableModel = null;
+        /**
+         * This is the table model displaying the list metadata for the lists of 
+         * links in the database. If this is null after loading, then the lists 
+         * failed to load.
+         */
+        private CustomTableModel listTableModel = null;
+        /**
+         * This is the table model displaying the structure of the tables, 
+         * views, and indexes in the database. If this is null after loading, 
+         * then the structure data failed to load.
+         */
+        private CustomTableModel tableTableModel = null;
+        /**
+         * This is the combo box model of the combo box 
+         */
+        private ArrayComboBoxModel<Integer> listIDComboModel = null;
+        /**
+         * 
+         */
+        private ArrayComboBoxModel<String> usedPrefixComboModel = null;
+        /**
+         * This is the file size of the file storing the database.
+         */
+        private Long dbFileSize = null;
+        /**
+         * 
+         */
+        private UUID dbUUID = null;
+        /**
+         * 
+         */
+        private String dbVersion = null;
+        /**
+         * 
+         */
+        private Integer prefixThreshold = null;
+        /**
+         * 
+         */
+        private Integer linkCount = null;
+        /**
+         * 
+         */
+        private Integer shownTotalSize = null;
+        /**
+         * 
+         */
+        private Integer allTotalSize = null;
+        /**
+         * 
+         */
+        private String prefixSeparators = null;
+        /**
+         * 
+         */
+        private DefaultMutableTreeNode createPrefixTestNode = null;
+        /**
+         * This constructs a LoadDatabaseViewer.
+         * @param showFileNotFound Whether a file not found error should result 
+         * in a popup being shown to the user.
+         */
+        LoadDatabaseViewer(boolean showFileNotFound){
+            super(showFileNotFound);
+        }
+        @Override
+        public String getProgressString(){
+            return "Loading Tables";
+        }
+        @Override
+        protected boolean loadDatabase(LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException {
+                // Load the table view from the database
+            dbViewer.loadTables(showSchemaToggle.isSelected(), conn, stmt, progressBar);
+            
+            // TODO: Foreign Key Toggle Stuff
+            
+            prefixTableModel = new CustomTableModel("PrefixID","Prefix");
+            prefixTableModel.setColumnClass(0, Integer.class);
+            prefixTableModel.setColumnClass(1, String.class);
+                // This gets the prefix map from the database
+            PrefixMap prefixMap = conn.getPrefixMap();
+                // Make sure the prefix map contains the empty prefix
+            prefixMap.getEmptyPrefixID();
+            usedPrefixComboModel = new ArrayComboBoxModel<>();
+            clearProgressValue();
+            setProgressMaximum(prefixMap.size());
+            setIndeterminate(false);
+                // Go through the prefix map's entries
+            for (Map.Entry<Integer,String> entry : prefixMap.entrySet()){
+                    // Add a row to the prefix table model
+                prefixTableModel.addRow(new Object[]{entry.getKey(), entry.getValue()});
+                    // If the current entry is the entry for the empty prefix
+                if (entry.getValue().isEmpty()){
+                    usedPrefixComboModel.add(entry.getKey() + " - \"\"");
+                    usedPrefixComboModel.setSelectedItem(
+                            usedPrefixComboModel.get(usedPrefixComboModel.size()-1));
+                }
+                else
+                    usedPrefixComboModel.add(entry.getKey() + " - " + entry.getValue());
+                incrementProgressValue();
+            }
+            
+            setIndeterminate(true);
+                // Search for the empty prefix
+            searchUsedPrefixes(conn,prefixMap.getEmptyPrefixID());
+            dbLinkSearchTable.setModel(getListSearchTableModel());
+                // Create the config table model if not already created
+            createConfigModel();
+                // Get the database properties
+            DatabasePropertyMap dbProperty = conn.getDatabaseProperties();
+                // Get a copy of the database property names
+            Set<String> propNames = new TreeSet<>(dbProperty.propertyNameSet());
+            clearProgressValue();
+            setProgressMaximum(propNames.size());
+            setIndeterminate(false);
+                // Go through the database property names
+            for (String property : propNames){
+                addConfigRow(
+                        "Database",
+                        property,
+                        dbProperty.getProperty(property),
+                        dbProperty.containsKey(property),
+                        dbProperty.getDefaults().get(property)
+                );
+                incrementProgressValue();
+            }
+            
+            setIndeterminate(true);
+                // Get the list data map from the database
+            ListDataMap listDataMap = conn.getListDataMap();
+            listTableModel = new CustomTableModel("ListID","List Name",
+                    "List Created","Last Modified","Flags","Size Limit","Size");
+            listTableModel.setColumnClass(0, Integer.class);
+            listTableModel.setColumnClass(1, String.class);
+            listTableModel.setColumnClass(2, java.util.Date.class);
+            listTableModel.setColumnClass(3, java.util.Date.class);
+            listTableModel.setColumnClass(4, Integer.class);
+            listTableModel.setColumnClass(5, Integer.class);
+            listTableModel.setColumnClass(6, Integer.class);
+            listIDComboModel = new ArrayComboBoxModel<>(listDataMap.navigableKeySet());
+            try{    // Get the listID of the currently selected list in the 
+                    // listID combo model
+                Integer listID = (Integer)listIDComboModel.getSelectedItem();
+                    // If there is a listID selected
+                if (listID != null)
+                        // Configure the values shown by the list edit settings
+                    setListEditSettings(conn,listID);
+            } catch (IllegalArgumentException ex){}
+            clearProgressValue();
+            setProgressMaximum(listDataMap.size());
+            setIndeterminate(false);
+                // Go through the list contents objects
+            for (ListContents list : listDataMap.values()){
+                listTableModel.addRow(new Object[]{
+                    list.getListID(),
+                    list.getName(),
+                        // Get the date and time the list was created
+                    new java.util.Date(list.getCreationTime()),
+                        // Get the date and time the list was last modified
+                    new java.util.Date(list.getLastModified()),
+                    list.getFlags(),
+                    list.getSizeLimit(),
+                    list.size()
+                });
+                incrementProgressValue();
+            }
+            
+            setIndeterminate(true);
+                // Get the set of table names in the database
+            Set<String> tableSet = conn.showTables();
+                // Get the set of views names in the database
+            Set<String> viewSet = conn.showViews();
+                // Get the set of indexes names in the database
+            Set<String> indexSet = conn.showIndexes();
+                // Get a copy of the map of the structures in the database
+            Map<String,String> structMap = new HashMap<>(conn.showStructures());
+                // Remove any structures that are null
+            structMap.values().removeIf((String t) -> t == null);
+            clearProgressValue();
+            setProgressMaximum(structMap.size());
+            tableTableModel = new CustomTableModel("Name", "Type", "Structure");
+            tableTableModel.setColumnClass(0, String.class);
+            tableTableModel.setColumnClass(1, String.class);
+            tableTableModel.setColumnClass(2, String.class);
+            setIndeterminate(false);
+                // Load the structures for the tables
+            loadStructure(tableSet,structMap,"Table");
+                // Load the structures for the views
+            loadStructure(viewSet,structMap,"View");
+                // Load the structures for the indexes
+            loadStructure(indexSet,structMap,"Index");
+            
+            setIndeterminate(true);
+            
+            
+            
+            try{
+                prefixThreshold = Integer.valueOf(dbProperty.getProperty(
+                        LinkDatabaseConnection.PREFIX_THRESHOLD_CONFIG_KEY));
+            } catch(NumberFormatException ex){
+                prefixThreshold = null;
+            }
+            prefixSeparators = dbProperty.getProperty(
+                    LinkDatabaseConnection.PREFIX_SEPARATORS_CONFIG_KEY);
+            dbVersion = dbProperty.getProperty(
+                    LinkDatabaseConnection.DATABASE_VERSION_CONFIG_KEY,"N/A");
+            dbUUID = conn.getDatabaseUUID();
+            linkCount = conn.getLinkMap().size();
+            shownTotalSize = conn.getShownListIDs().totalSize();
+            allTotalSize = conn.getAllListIDs().totalSize();
+                // This gets a set of all the links in the program
+            Set<String> linksSet = new LinkedHashSet<>();
+                // This gets a set of the list models
+            Set<LinksListModel> modelSet = new LinkedHashSet<>(allListsTabsPanel.getModels());
+                // Add any shown list models that were somehow not available in 
+                // the all tabs panel
+            modelSet.addAll(shownListsTabsPanel.getModels());
+                // Go through the list modesl
+            for (LinksListModel model : modelSet){
+                linksSet.addAll(model);
+            }   // Remove null if present in the set of links
+            linksSet.remove(null);
+                // Create the prefix tree
+            createPrefixTestNode = prefixMap.createPrefixTree(linksSet);
+                // An iterator to go through the nodes in preorder
+            Iterator<TreeNode> itr = createPrefixTestNode.preorderEnumeration().asIterator();
+                // While there are nodes to go through
+            while (itr.hasNext()){
+                    // Get the next node
+                TreeNode temp = itr.next();
+                    // If the node is a DefaultMutableTreeNode
+                if (temp instanceof DefaultMutableTreeNode){
+                        // Get the node as a DefaultMutableTreeNode
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)temp;
+                        // If the current node is either the root, has a user 
+                        // object of null, or does not allow children
+                    if (node.isRoot() || node.getUserObject() == null || 
+                            !node.getAllowsChildren())
+                            // Skip this node
+                        continue;
+                        // Get the first key for the node's user object if there 
+                        // is one
+                    Integer prefixID = prefixMap.firstKeyFor(node.getUserObject().toString());
+                        // If a prefixID for the user object was found
+                    if (prefixID != null)
+                        node.setUserObject(prefixID + ": \""+node.getUserObject()+"\"");
+                    else
+                        node.setUserObject("\""+node.getUserObject()+"\"");
+                }
+            }
+            return true;
+        }
+        /**
+         * 
+         * @param names
+         * @param structMap
+         * @param type 
+         */
+        private void loadStructure(Set<String>names,Map<String,String>structMap,
+                String type){
+                // Go through the names of the items
+            for (String name : names){
+                    // If the structure map does not contain the item
+                if (!structMap.containsKey(name))
+                        // Skip it
+                    continue;
+                tableTableModel.addRow(new Object[]{
+                    name,type,structMap.get(name)
+                });
+                incrementProgressValue();
+            }
+        }
+        /**
+         * 
+         */
+        private void createConfigModel(){
+                // If the config table model has not been constructed yet
+            if (configTableModel == null){
+                configTableModel = new CustomTableModel(
+                        "Source","Property Name","Property",
+                        "Is Set","Default Value");
+                configTableModel.setColumnClass(0, String.class);
+                configTableModel.setColumnClass(1, String.class);
+                configTableModel.setColumnClass(2, Object.class);
+                configTableModel.setColumnClass(3, String.class);
+                configTableModel.setColumnClass(4, Object.class);
+            }
+        }
+        /**
+         * 
+         * @param source
+         * @param property
+         * @param value
+         * @param isSet
+         * @param defaultValue 
+         */
+        private void addConfigRow(String source, String property, Object value, 
+                Boolean isSet, Object defaultValue){
+            configTableModel.addRow(new Object[]{
+                source,
+                property,
+                value,
+                Objects.toString(isSet, ""),
+                defaultValue
+            });
+        }
+        @Override
+        protected boolean loadFile(File file){
+            if (file.exists())  // If the database file exists
+                dbFileSize = file.length();
+            return super.loadFile(file);
+        }
+        @Override
+        protected Void backgroundAction() throws Exception {
+                // Load the database stuff
+            super.backgroundAction();
+            
+            setIndeterminate(true);
+                // Create the config table model if not already created
+            createConfigModel();
+                // Get the property names for this program
+            Set<String> propNames = new TreeSet<>(config.stringPropertyNames());
+                // Add all the default property names too
+            propNames.addAll(defaultConfig.stringPropertyNames());
+                // Get the SQLite configuration as a properties
+            Properties sqlProp = sqlConfig.toProperties();
+                // Create a new SQLiteConfig object to get the properties of a 
+                // newly created SQLiteConfig object
+            Properties defSQLProp = new SQLiteConfig().toProperties();
+                // Get the property names for the SQLite configuration
+            Set<String> sqlPropNames = new TreeSet<>(sqlProp.stringPropertyNames());
+                // Add all the default SQLite configuration property names too
+            sqlPropNames.addAll(defSQLProp.stringPropertyNames());
+                // Get the property names for this program's private settings
+            Set<String> privatePropNames = new TreeSet<>(privateConfig.stringPropertyNames());
+                // Add all the default private property names too
+            privatePropNames.addAll(defaultPrivateConfig.stringPropertyNames());
+            clearProgressValue();
+            setProgressMaximum(propNames.size()+sqlPropNames.size()+privatePropNames.size());
+            setIndeterminate(false);
+                // Go through the program's property names
+            for (String property : propNames){
+                addConfigRow(
+                        "Properties",
+                        property,
+                        config.getProperty(property),
+                        config.containsKey(property),
+                        defaultConfig.getProperty(property)
+                );
+                incrementProgressValue();
+            }
+                // Go through the program's private property names
+            for (String property : privatePropNames){
+                addConfigRow(
+                        "Private Properties",
+                        property,
+                        privateConfig.getProperty(property),
+                        privateConfig.containsKey(property),
+                        defaultPrivateConfig.getProperty(property)
+                );
+                incrementProgressValue();
+            }
+                // Go through the SQLite configuration property names
+            for (String property : sqlPropNames){
+                    // Get the set property value
+                String propValue = sqlProp.getProperty(property);
+                    // Get the default property value
+                String propDefault = defSQLProp.getProperty(property);
+                addConfigRow(
+                        "SQLiteConfig",
+                        property,
+                        propValue,
+                        !Objects.equals(propValue, propDefault),
+                        propDefault
+                );
+                incrementProgressValue();
+            }
+            
+            return null;
+        }
+        /**
+         * 
+         * @param tab The tab component
+         * @param enabled 
+         */
+        protected void setTabEnabled(JComponent tab, boolean enabled){
+            dbTabbedPane.setEnabledAt(dbTabbedPane.indexOfComponent(tab), enabled);
+        }
+        /**
+         * 
+         * @param table
+         * @param model
+         * @param tab The tab component
+         */
+        protected void setTableModel(JTable table, TableModel model, JComponent tab){
+                // If the tab component is not null
+            if (tab != null)
+                    // Set the tab enabled if the table model is not null
+                setTabEnabled(tab, model != null);
+                // If the table model is not null
+            if (model != null)
+                table.setModel(model);
+        }
+        @Override
+        protected void done(){
+            if (success)    // If this successfully loaded the database
+                    // Populate the tables in the database view
+                dbViewer.populateTables();
+            setTableModel(configTable,configTableModel,configScrollPane);
+            setTableModel(dbPrefixTable,prefixTableModel,null);
+            setTableModel(dbListTable,listTableModel,dbListPanel);
+            setTableModel(dbTableTable,tableTableModel,dbTablePanel);
+            if (dbFileSize == null)
+                dbFileSizeLabel.setText("N/A");
+            else
+                dbFileSizeLabel.setText(String.format("%s (%d Bytes)", 
+                        byteFormatter.format(dbFileSize), dbFileSize));
+            if (dbUUID == null)
+                dbUUIDLabel.setText("N/A");
+            else
+                dbUUIDLabel.setText(dbUUID.toString());
+            dbVersionLabel.setText(Objects.toString(dbVersion,"N/A"));
+            if (prefixThreshold != null)
+                prefixThresholdSpinner.setValue(prefixThreshold);
+            if (prefixSeparators != null)
+                prefixSeparatorField.setText(prefixSeparators);
+            if (listIDComboModel != null)
+                dbListIDCombo.setModel(listIDComboModel);
+            dbListIDCombo.setEnabled(listIDComboModel != null);
+            updateListEditButtons();
+            if (usedPrefixComboModel != null){
+                dbUsedPrefixCombo.setModel(usedPrefixComboModel);
+                dbSearchPrefixCombo.setModel(usedPrefixComboModel);
+            }
+            setTabEnabled(dbUsedPrefixesPanel,usedPrefixComboModel != null);
+            linkCountLabel.setText(Objects.toString(linkCount,"N/A"));
+            shownTotalSizeLabel.setText(Objects.toString(shownTotalSize,"N/A"));
+            allTotalSizeLabel.setText(Objects.toString(allTotalSize,"N/A"));
+            
+            setTabEnabled(dbCreatePrefixScrollPane,createPrefixTestNode != null);
+            if (createPrefixTestNode != null)
+                dbCreatePrefixTree.setModel(new DefaultTreeModel(createPrefixTestNode,true));
+            
+            super.done();
+        }
+    }
+    /**
+     * This resets the IDs in the database.
+     */
+    private class ResetDatabaseIDs extends AbstractDatabaseSaver{
+        @Override
+        public String getNormalProgressString(){
+            return "Resetting IDs";
+        }
+        @Override
+        protected boolean saveDatabase(LinkDatabaseConnection conn, Statement stmt) 
+                throws SQLException {
+                // Remove all existing IDs from the program
+            allListsTabsPanel.removeAllIDs();
+            shownListsTabsPanel.removeAllIDs();
+                // Get the map containing the list data
+            ListDataMap listDataMap = conn.getListDataMap();
+                // Get the map containing the links
+            LinkMap linkMap = conn.getLinkMap();
+                // Get the list of all listIDs
+            ListIDList allListsList = conn.getAllListIDs();
+                // Get the list of shown listIDs
+            ListIDList shownListsList = conn.getShownListIDs();
+                // Get the map containing the list names
+            ListNameMap listNameMap = conn.getListNameMap();
+            
+                // Clear the list data
+            listDataMap.clearAll();
+                // Remove all links
+            linkMap.clear();
+                // Clear the list of all listIDs
+            allListsList.clear();
+                // Clear the list of shown listIDs
+            shownListsList.clear();
+                // Remove all the lists
+            listNameMap.clear();
+            conn.commit();          // Commit the changes to the database
+            System.gc();            // Run the garbage collector
+                // This is a set containing all the models in the program
+            Set<LinksListModel> models = new LinkedHashSet<>(allListsTabsPanel.getModels());
+                // Add any models that are in the shown lists panel that are 
+                // missing from the all lists panel
+            models.addAll(shownListsTabsPanel.getModels());
+                // Write the models to the database
+            writeToDatabase(conn, models);
+            
+            setIndeterminate(true);
+            conn.commit();          // Commit the changes to the database
+            System.gc();            // Run the garbage collector
+            
+                // Verify the database to ensure all the data has been written
+            setVerifyingDatabase(true);
+                // This is a set containing all the links in the models
+            Set<String> linkSet1 = new LinkedHashSet<>();
+                // This is a set containing all the links in the database
+            Set<String> linkSet2 = new LinkedHashSet<>(linkMap.values());
+                // This is a map to get the names of the lists from the models
+            Map<Integer,String> listNames = new HashMap<>();
+                // This is a map that maps the models to their listIDs
+            Map<Integer,LinksListModel> modelMap = new LinkedHashMap<>();
+                // Go through the models that were saved
+            for (LinksListModel model : models){
+                    // Add all the links in the model
+                linkSet1.addAll(model);
+                listNames.put(model.getListID(), model.getListName());
+                modelMap.put(model.getListID(), model);
+            }
+            
+            clearProgressValue();
+            setProgressMaximum(listDataMap.size()+4);
+            setIndeterminate(false);
+                // Check to make sure the database contains all the links in the 
+            if (!linkSet2.containsAll(linkSet1))    // program
+                return false;
+            incrementProgressValue();
+                // Check to make sure the database contains all the lists and 
+                // their names in the program
+            if (!listNames.equals(listNameMap))
+                return false;
+            incrementProgressValue();
+                // Check to make sure the all listIDs list contains all the 
+                // listIDs of the lists shown by the all lists panel
+            if (!allListsTabsPanel.getListIDs().equals(allListsList))
+                return false;
+            incrementProgressValue();
+                // Check to make sure the shown listIDs list contains all the 
+                // listIDs of the shown lists
+            if (!shownListsTabsPanel.getListIDs().equals(shownListsList))
+                return false;
+            incrementProgressValue();
+                // Go through the listIDs of the lists in the database
+            for (Integer listID : listDataMap.navigableKeySet()){
+                    // Check to make sure the list in the database matches its 
+                    // corresponding model
+                if (!listDataMap.get(listID).equalsModel(modelMap.get(listID)))
+                    return false;
+                incrementProgressValue();
+            }
+            return true;
+        }
+        @Override
+        protected void done(){
+            deleteBackupIfSuccessful();
+            super.done();
+                // Reload the database view data
+            loader = new LoadDatabaseViewer(true);
+            loader.execute();
+        }
+    }
+    
+    private class LinkPrefixUpdater extends AbstractDatabaseSaver{
+        @Override
+        public String getNormalProgressString(){
+            return "Updating Prefixes";
+        }
+        @Override
+        protected boolean saveDatabase(LinkDatabaseConnection conn, Statement stmt) 
+                throws SQLException {
+                // Get the map of prefixes and their prefixIDs
+            PrefixMap prefixes = conn.getPrefixMap();
+                // Get the map of links and their linkIDs
+            LinkMap links = conn.getLinkMap();
+                // Make sure that we have the longest possible prefixes for all 
+                // the links in the database
+            prefixes.createPrefixesFrom(links.values());
+            conn.commit();       // Commit the changes to the database
+                // Get a copy of the links map to compare with after the 
+                // prefixes have been updated
+            Map<Long,String> storedLinks = new LinkedHashMap<>(links);
+            
+            setProgressMaximum(links.size());
+            setIndeterminate(false);
+                // Update the prefixes for the links in the database
+            updatePrefixesInDatabase(conn, links, links.navigableKeySet());
+            conn.commit();       // Commit the changes to the database
+            
+            setIndeterminate(true);
+//            prefixes.removeUnusedRows();
+            
+                // Check to make sure everything is effectively the same, just 
+                // updated
+            setVerifyingDatabase(true);
+            return storedLinks.equals(links);
+        }
+        @Override
+        protected void done(){
+            deleteBackupIfSuccessful();
+            super.done();
+                // Reload the database view data
+            loader = new LoadDatabaseViewer(true);
+            loader.execute();
+        }
+    }
+    
+    private class UpdateDatabase extends AbstractDatabaseSaver{
+        
+        private int mode;
+        
+        UpdateDatabase(File file, int updateType){
+            super(file);
+            this.mode = updateType;
+        }
+        @Override
+        public String getNormalProgressString(){
+            return "Updating Database";
+        }
+        @Override
+        protected boolean prepareDatabase(File file, LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException{ 
+            return true;
+        }
+        @Override
+        protected boolean saveDatabase(LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException {
+            boolean updateSuccess = true;
+            if (mode != 0)
+                conn.setForeignKeysEnabled(false, stmt);
+            switch(mode){
+                case(0):
+                    updateSuccess = conn.updateDatabaseDefinitions(stmt, LinkManager.this);
+                    break;
+                case(1):
+                    updateSuccess = conn.updateAddConfigTable(stmt, LinkManager.this);
+                    break;
+                case(2):
+                    updateSuccess = conn.updateToVersion1_0_0(stmt, LinkManager.this);
+                    break;
+                case(3):
+                    updateSuccess = conn.updateAddListSizeLimitColumn(stmt, LinkManager.this);
+                    break;
+                case(4):
+                    updateSuccess = conn.updateToVersion0_5_0(stmt, LinkManager.this);
+                    break;
+                case(5):
+                    updateSuccess = conn.updateAddPrefixTable(stmt, LinkManager.this);
+                    break;
+                case(6):
+                    updateSuccess = conn.updateAddListFlagsColumn(stmt, LinkManager.this);
+                    break;
+                case(7):
+                    updateSuccess = conn.updateRenameInitialColumns(stmt, LinkManager.this);
+                    break;
+                case(8):
+                    updateSuccess = conn.updateRenameLinkColumns(stmt, LinkManager.this);
+            }
+            if (mode != 0)
+                conn.setForeignKeysEnabled(true, stmt);
+            return updateSuccess;
+        }
+    }
+    
+    private class ExportDatabase extends FileSaver{
+
+        ExportDatabase(File file) {
+            super(file);
+        }
+        
+        @Override
+        protected boolean isFileTheDirectory(){
+            return true;
+        }
+        @Override
+        public String getProgressString(){
+            return "Exporting Lists";
+        }
+        @Override
+        protected String getSuccessMessage(){
+            return "The files were successfully created.";
+        }
+        @Override
+        protected String getFailureMessage(){
+            return "The files failed to be created.";
+        }
+        @Override
+        protected boolean saveFile(File file) {
+            int max = 0;
+            for (LinksListPanel panel : allListsTabsPanel)
+                max += panel.getModel().size();
+            setProgressMaximum(max);
+            /*
+            try{
+                path = newFile.toPath();
+            }
+            catch (java.nio.file.InvalidPathException exc){
+                String message = null;  // The error message to print
+                    // If it's an illegal character, and the index is within the string
+                if (exc.getReason().startsWith("Illegal char") && 
+                        exc.getIndex() >= 0 && exc.getIndex() < newFileName.length()){
+            */
+            for (LinksListPanel panel : allListsTabsPanel){
+//                File listFile = null;
+//                String fileName = panel.getListName()+".txt";
+//                do{
+//                    listFile = new File(file,fileName);
+//                    try{
+//                        listFile.toPath();
+//                    }catch (InvalidPathException exc){
+//                        int index = exc.
+//                    }
+//                }
+//                while (listFile == null);
+                
+                if (!writeToFile(new File(file,panel.getListName()+".txt"),panel.getModel()))
+                    return false;
+            }
+            return true;
+        }
+    }
+    /**
+     * 
+     */
+    private class DatabaseFileChanger extends FileSaver{
+        
+        private int mode;
+        
+        private File source;
+        
+        private String target;
+        
+        private Exception exc = null;
+
+        DatabaseFileChanger(int mode, File source, String target) {
+            super(getDatabaseFile(target));
+            this.mode = mode;
+            this.source = source;
+            this.target = target;
+        }
+        @Override
+        public String getProgressString() {
+            switch(mode){
+                case(1):
+                    return "Copying Database File";
+                case(2):
+                    return "Moving Database File";
+                default:
+                    return "Changing Database File";
+            }
+        }
+        @Override
+        protected boolean saveFile(File file) {
+            try{
+                Path path = file.toPath();
+                switch(mode){
+                    case(0):
+                        return true;
+                    case(1):
+                        Files.copy(source.toPath(), path, 
+                                StandardCopyOption.COPY_ATTRIBUTES, 
+                                StandardCopyOption.REPLACE_EXISTING);
+                        return true;
+                    case(2):
+                        Files.move(source.toPath(), path, 
+                                StandardCopyOption.REPLACE_EXISTING);
+                        return true;
+                    default:
+                        return false;
+                }
+            } catch(InvalidPathException | IOException ex){ 
+                exc = ex;
+            }
+            return false;
+        }
+        @Override
+        protected String getSuccessMessage(){
+            switch (mode){
+                case(1):
+                    return "The database file was successfully copied.";
+                case(2):
+                    return "The database file was successfully moved.";
+                default:
+                    return "The database file was successfully changed.";
+            }
+        }
+        @Override
+        protected String getFailureMessage(){
+            String msg;
+            if (didBackupFail())   // If this failed to create the backup file
+                msg = "The backup file failed to be created.";
+            else{
+                switch (mode){
+                    case(1):
+                        msg = "The database file failed to be copied.";
+                        break;
+                    case(2):
+                        msg = "The database file failed to be moved.";
+                        break;
+                    default:
+                        msg = "The database file failed to be changed.";
+                }
+            }
+            if (exc != null)
+                msg += "\n\nError: " + exc;
+            return msg;
+        }
+        @Override
+        protected void done(){
+            if (success){
+                setDatabaseFileProperty(DATABASE_FILE_PATH_KEY,target);
+            }
+            super.done();
+            setLocationDialog.setVisible(false);
+        }
+    }
+    /**
+     * 
+     */
+    private class DbxDownloader extends FileSaver{
+        /**
+         * The path for the file on Dropbox.
+         */
+        private String dbxPath;
+        /**
+         * Whether file not found errors should be shown.
+         */
+        protected boolean showFileNotFound;
+        /**
+         * Whether the file was found on Dropbox.
+         */
+        private boolean fileFound = true;
+        /**
+         * This gets any Dropbox exceptions that get thrown while downloading 
+         * the file.
+         */
+        private DbxException dbxEx = null;
+        /**
+         * This gets any IOExceptions that get thrown while downloading the 
+         * file.
+         */
+        private IOException ioEx = null;
+        /**
+         * Whether this should load all the lists. If this is null, then the 
+         * database will not be loaded after this.
+         */
+        private Boolean loadAll = null;
+        /**
+         * 
+         * @param dbxPath
+         * @param file
+         * @param showFileNotFound 
+         */
+        public DbxDownloader(String dbxPath,File file,boolean showFileNotFound){
+            super(file);
+            this.dbxPath = Objects.requireNonNull(dbxPath);
+            this.showFileNotFound = showFileNotFound;
+        }
+        /**
+         * 
+         * @param dbxPath
+         * @param file 
+         */
+        public DbxDownloader(String dbxPath, File file){
+            this(dbxPath,file,true);
+        }
+        
+        public Boolean getLoadsAll(){
+            return loadAll;
+        }
+        
+        public void setLoadsAll(Boolean loadAll){
+            this.loadAll = loadAll;
+        }
+        
+        public boolean willLoadDatabase(){
+            return loadAll != null;
+        }
+        
+        @Override
+        protected void showSuccessPrompt(File file){
+            if (!willLoadDatabase())
+                showSuccessPrompt(file);
+        }
+        @Override
+        public String getProgressString(){
+            return "Downloading File";
+        }
+        @Override
+        protected String getSuccessTitle(){
+            return "File Downloaded Successfully";
+        }
+        @Override
+        protected String getSuccessMessage(){
+            return "The file was successfully downloaded.";
+        }
+        @Override
+        protected String getFailureTitle(){
+            return "ERROR - File Failed To Download";
+        }
+        @Override
+        protected String getFailureMessage(){
+            if (!fileFound)
+                return "The file was not found on Dropbox.";
+            if (didBackupFail())   // If this failed to create the backup file
+                return "The backup file failed to be created.";
+                // The message to return
+            String msg = "The file failed to download.";
+                // If the program is either in debug mode or if details are to 
+                // be shown
+            if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
+                Exception exc = (dbxEx != null) ? dbxEx : ioEx;
+                if (exc != null)
+                    msg += "\nError: " + exc;
+            }
+            return msg;
+        }
+        @Override
+        protected boolean showFailurePrompt(File file){
+            if (!fileFound){
+                    // If this should show file not found prompts
+                if (showFileNotFound){
+                    JOptionPane.showMessageDialog(LinkManager.this, 
+                            getFailureMessage(), getFailureTitle(), 
+                            JOptionPane.ERROR_MESSAGE);
+                }
+                return false;
+            }
+            return super.showFailurePrompt(file);
+        }
+        @Override
+        protected boolean saveFile(File file) {
+                // Reset the exceptions to null
+            dbxEx = null;
+            ioEx = null;
+            try{    // Create the Dropbox client
+                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
+                    // Get the Dropbox credentials
+                DbxCredential cred = dbxUtils.getCredentials();
+                    // Get a client to communicate with Dropbox
+                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
+                    // Refresh the Dropbox credentials if necessary
+                refreshDbxCredentials(cred,client);
+                    // Get the file namespace for Dropbox
+                DbxUserFilesRequests dbxFiles = client.files();
+                    // If the file doesn't exist on dropbox
+                if (!dbxFileExists(dbxPath,dbxFiles)){
+                    fileFound = false;
+                    return false;
+                }
+                
+                    // TODO: Handle files larger than 150MB
+                
+                    // Create an output stream to save the file 
+                try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file))){
+                        // Download the file from Dropbox
+                    dbxFiles.downloadBuilder(dbxPath).download(out);
+                }
+                return true;
+            } catch(DbxException ex){
+                dbxEx = ex;
+            } catch(IOException ex){
+                ioEx = ex;
+            }
+            return false;
+        }
+        @Override
+        protected void done(){
+            super.done();
+            if (willLoadDatabase()){
+                loader = new DatabaseLoader(loadAll);
+                loader.execute();
+            }
+        }
+    }
+    /**
+     * 
+     */
+    private class DbxUploader extends FileLoader{
+        /**
+         * The path for the file on Dropbox.
+         */
+        private String dbxPath;
+        /**
+         * Whether the success prompt should be shown.
+         */
+        protected boolean showSuccess;
+        /**
+         * This stores whether this should exit the program after saving.
+         */
+        protected volatile boolean exitAfterSaving;
+        /**
+         * This gets any Dropbox exceptions that get thrown while downloading 
+         * the file.
+         */
+        private DbxException dbxEx = null;
+        /**
+         * This gets any IOExceptions that get thrown while downloading the 
+         * file.
+         */
+        private IOException ioEx = null;
+        /**
+         * 
+         * @param dbxPath
+         * @param file
+         * @param showSuccess
+         * @param exit 
+         */
+        public DbxUploader(String dbxPath, File file, boolean showSuccess, 
+                boolean exit) {
+            super(file,true);
+            this.dbxPath = Objects.requireNonNull(dbxPath);
+            this.showSuccess = showSuccess;
+            exitAfterSaving = exit;
+        }
+        /**
+         * 
+         * @param dbxPath
+         * @param file
+         * @param showSuccess 
+         */
+        public DbxUploader(String dbxPath, File file, boolean showSuccess){
+            this(dbxPath,file,showSuccess,false);
+        }
+        /**
+         * 
+         * @param dbxPath
+         * @param file 
+         */
+        public DbxUploader(String dbxPath, File file){
+            this(dbxPath,file,false);
+        }
+        @Override
+        public String getProgressString(){
+            return "Uploading File";
+        }
+        
+        public boolean getExitAfterSaving(){
+            return exitAfterSaving;
+        }
+        /**
+         * This sets whether the program will exit after this finishes saving 
+         * the file.
+         * @param value Whether the program will exit once the file is saved.
+         */
+        public void setExitAfterSaving(boolean value){
+            exitAfterSaving = value;
+        }
+        @Override
+        protected void showSuccessPrompt(File file){
+                // If this should show the success prompt and the program is not 
+                // to exit after saving the file
+            if (showSuccess && !exitAfterSaving){
+                JOptionPane.showMessageDialog(LinkManager.this, 
+                        "The file was successfully uploaded.", 
+                        "File Uploaded Successfully", 
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+        }
+        @Override
+        protected String getFailureTitle(){
+            return "ERROR - File Failed To Upload";
+        }
+        @Override
+        protected String getFailureMessage(){
+                // The message to return
+            String msg = "The file failed to upload.";
+                // If the program is either in debug mode or if details are to 
+                // be shown
+            if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
+                Exception exc = (dbxEx != null) ? dbxEx : ioEx;
+                if (exc != null)
+                    msg += "\nError: " + exc;
+            }
+            return msg;
+        }
+        @Override
+        protected boolean loadFile(File file) {
+                // Reset the exceptions to null
+            dbxEx = null;
+            ioEx = null;
+            try{    // Create the Dropbox client
+                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
+                    // Get the Dropbox credentials
+                DbxCredential cred = dbxUtils.getCredentials();
+                    // Get a client to communicate with Dropbox
+                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
+                    // Refresh the Dropbox credentials if necessary
+                refreshDbxCredentials(cred,client);
+                    // Get the file namespace for Dropbox
+                DbxUserFilesRequests dbxFiles = client.files();
+                    // If the file already exists
+                if (dbxFileExists(dbxPath,dbxFiles))
+                        // Delete the file so that it can be replaced
+                    dbxFiles.deleteV2(dbxPath);
+                    // Set the progress to be zero
+                setProgressValue(0);
+                    // Get the value needed to divide the file length to get it 
+                    // back into the range of integers
+                int divider = 1;
+                    // While the divided file length is larger than the integer 
+                    // maximum
+                while (Math.ceil(file.length() / ((double)divider)) > Integer.MAX_VALUE)
+                    divider++;
+                    // Create a copy of divisor to get around it needing to 
+                    // be effectively final
+                double div = divider;
+                    // Set the progress maximum to the file length divided by 
+                    // the divisor
+                setProgressMaximum((int)Math.ceil(file.length() / div));
+                    // Set the progress bar to not be indeterminate
+                setIndeterminate(false);
+                
+                    // TODO: Handle files larger than 150MB
+                
+                    // Create an input stream to load the file 
+                try (InputStream in = new BufferedInputStream(new FileInputStream(file))){
+                        // Upload the file to Dropbox
+                    dbxFiles.uploadBuilder(dbxPath).uploadAndFinish(in, (long bytesWritten) -> {
+                            // Update the progress with the amount of bytes 
+                            // written
+                        setProgressValue((int)Math.ceil(bytesWritten / div));
+                    });
+                }
+                return true;
+            } catch(DbxException ex){
+                dbxEx = ex;
+            } catch(IOException ex){
+                ioEx = ex;
+            }
+            return false;
+        }
+        @Override
+        protected void done(){
+            super.done();
+                // If we are exiting the program after saving the database
+            if (exitAfterSaving){   
+                saver = new ConfigSaver(true);
+                saver.execute();
+            }
+        }
+    }
+    /**
+     * 
+     */
+    private class DbxAccountLoader extends LinkManagerWorker<Void>{
+        /**
+         * This gets any Dropbox exceptions that get thrown while loading the 
+         * Dropbox account.
+         */
+        private DbxException dbxEx = null;
+        /**
+         * Whether this successfully loaded the account information.
+         */
+        private boolean success = false;
+        /**
+         * Whether the account is a valid Dropbox account.
+         */
+        private boolean validAccount = true;
+        /**
+         * The Dropbox account's user name.
+         */
+        private String accountName = null;
+        /**
+         * The Dropbox account's profile picture.
+         */
+        private Icon pfpIcon = null;
+        /**
+         * The amount of space that the user has used in their Dropbox account.
+         */
+        private long used = 0;
+        /**
+         * The amount of space allocated to the user's Dropbox account.
+         */
+        private long allocated = 0;
+        @Override
+        public String getProgressString() {
+            return "Loading Dropbox Account";
+        }
+        /**
+         * This is used to display a failure prompt to the user when the dropbox 
+         * account fails to load. If the failure prompt is a retry prompt, then 
+         * this method should return whether to try load the account again. 
+         * Otherwise, this method should return {@code false}.
+         * @return {@code true} if this should attempt to load the account 
+         * again, {@code false} otherwise.
+         */
+        protected boolean showFailurePrompt(){
+            if (!validAccount){
+                JOptionPane.showMessageDialog(setLocationDialog, 
+                        "Dropbox failed to load due to the account being invalid.",
+                        "ERROR - Dropbox Account Load Failed",
+                        JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+                // The message to return
+            String msg = "An error occurred loading the information for your "
+                    + "Dropbox account.";
+                // If the program is either in debug mode or if details are to 
+                // be shown
+            if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
+                if (dbxEx != null)
+                    msg += "\nError: " + dbxEx;
+            }
+               // Ask the user if they would like to try loading the account
+            return JOptionPane.showConfirmDialog(LinkManager.this, // again
+                    msg+"\nWould you like to try again?",
+                    "ERROR - Dropbox Account Load Failed",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
+        }
+        /**
+         * 
+         * @throws DbxException 
+         * @return 
+         */
+        protected boolean loadDropboxAccount(){
+                // Reset the exceptions
+            dbxEx = null;
+            try{    // Create the Dropbox client
+                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
+                    // Get the Dropbox credentials
+                DbxCredential cred = dbxUtils.getCredentials();
+                    // Get a client to communicate with Dropbox
+                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
+                    // Refresh the Dropbox credentials if necessary
+                refreshDbxCredentials(cred,client);
+                    // Get the request for the user
+                DbxUserUsersRequests users = client.users();
+                    // Get the account details for the user
+                FullAccount account = users.getCurrentAccount();
+                    // Get the user's account name
+                accountName = account.getName().getDisplayName();
+                    // Get the URL for the user's profile picture
+                String pfpUrl = account.getProfilePhotoUrl();
+                    // If the user has a profile picture set.
+                if (pfpUrl != null){
+                    try{    // Load the profile picture
+                        pfpIcon = new ImageIcon(new URL(pfpUrl), 
+                                accountName+"'s Profile Picture");
+                    } catch (MalformedURLException ex){ }
+                }   // If the user did not have a profile picture set or the 
+                    // profile picture failed to load
+                if (pfpIcon == null || (((ImageIcon)pfpIcon).getImageLoadStatus() 
+                        & (java.awt.MediaTracker.ABORTED | java.awt.MediaTracker.ERRORED)) != 0)
+                        // Set the profile picture to a default profile picture 
+                        // with a background color dependent on the hash code of 
+                        // their unique user ID.
+                    pfpIcon = new DefaultPfpIcon(new Color(account.getAccountId().hashCode()));
+                    // Get the space usage for the user
+                SpaceUsage spaceUsage = users.getSpaceUsage();
+                    // Get the allocation of the space for the user
+                SpaceAllocation spaceAllocation = spaceUsage.getAllocation();
+                    // Get the amount of space used by the user
+                used = spaceUsage.getUsed();
+                    // If the user's account is part of a team
+                if (spaceAllocation.isTeam())
+                        // Get the amount of space allocated to the team
+                    allocated = spaceAllocation.getTeamValue().getAllocated();
+                else    // Get the amount of space allocated to the user alone
+                    allocated = spaceAllocation.getIndividualValue().getAllocated();
+                return true;
+            } catch (InvalidAccessTokenException ex){
+                validAccount = false;
+            } catch(DbxException ex){
+                dbxEx = ex;
+            }
+            return false;
+        }
+        @Override
+        protected Void backgroundAction() throws Exception {
+                // Whether the user wants this to try loading the account again 
+            boolean retry = false;  // if unsuccessful
+            do{
+                success = loadDropboxAccount();    // Try to load the account
+                if (!success)    // If the acount failed to load
+                        // Show the failure prompt and get if the user wants to 
+                    retry = showFailurePrompt();    // try again
+            }   // While the account failed to load and the user wants to try 
+            while(!success && retry);   // again
+            return null;
+        }
+        @Override
+        protected void done(){
+            if (success){
+                dbxAccountLabel.setText(accountName);
+                dbxPfpLabel.setIcon(pfpIcon);
+                dbxSpaceUsedLabel.setText(String.format("%s (%,d Bytes)", 
+                        byteFormatter.format(used),used));
+                    // Get the space the user has free
+                long free = allocated - used;
+                dbxSpaceFreeLabel.setText(String.format("%s (%,d Bytes)", 
+                        byteFormatter.format(free),free));
+                setCard(setLocationPanel,setDropboxCard);
+            } else if (!validAccount){
+                dbxUtils.clearCredentials();
+                saver = new PrivateConfigSaver();
+                saver.execute();
+            } else {
+                setCard(setLocationPanel,setExternalCard);
+            }
+            super.done();
         }
     }
 }
