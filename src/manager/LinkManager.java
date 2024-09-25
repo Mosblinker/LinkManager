@@ -7494,7 +7494,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // If we are exiting the program after saving the database
             if (exitAfterSaving){   
                 if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-                    super.done();
+                    saving = false;
                     loader = new DbxUploader("/"+getExternalDatabaseFileName(),file,false,true);
                     loader.execute();
                 } else {
