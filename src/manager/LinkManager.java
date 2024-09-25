@@ -4012,6 +4012,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButtonActionPerformed
             // If the program is currently saving a file
         if (isSavingFiles()){
+            // TODO: The program should probably not be able close while a file is saving
                 // If the file saver is set to exit the program after it 
                 // finishes saving the file
             if (saver.getExitAfterSaving()){
