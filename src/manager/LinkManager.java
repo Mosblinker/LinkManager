@@ -5998,9 +5998,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private Dimension getSizeFromConfig(String key){
         return getSizeFromConfig(key,config);
     }
-    
-    
-//    private void set
     /**
      * 
      * @param key
@@ -9840,30 +9837,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     /**
-     * 
-     */
-    private abstract class LinksListTabEditAction extends LinksListTabAction{
-        /**
-         * 
-         * @param actionCommand
-         * @param tabsPanel
-         * @param panel 
-         */
-        LinksListTabEditAction(String actionCommand, 
-                LinksListTabsPanel tabsPanel, LinksListPanel panel){
-            super(actionCommand,tabsPanel,panel);
-        }
-        @Override
-        public int getActionControlFlags(){
-            return super.getActionControlFlags() | 
-                    LinksListAction.LIST_MUST_NOT_BE_FULL_FLAG;
-        }
-        @Override
-        public int getRequiredFlags(){
-            return super.getRequiredFlags() | LinksListModel.READ_ONLY_FLAG;
-        }
-    }
-    /**
      * This is a LinksListTabAction that saves the links from a list to a 
      * file.
      */
@@ -9896,7 +9869,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is a LinksListTabAction that adds links from a text file to a 
      * list.
      */
-    private class AddFromFileAction extends LinksListTabEditAction{
+    private class AddFromFileAction extends LinksListTabAction.LinksListTabEditAction{
         /**
          * This constructs an AddFromFileAction that will add links to the given
          * list panel.
@@ -9925,7 +9898,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is a LinksListTabAction that adds links from a text area to a 
      * list.
      */
-    private class AddFromTextAreaAction extends LinksListTabEditAction{
+    private class AddFromTextAreaAction extends LinksListTabAction.LinksListTabEditAction{
         /**
          * This constructs an AddFromTextAreaAction that will add links to the 
          * given list panel.
@@ -9960,7 +9933,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is a LinksListTabAction that copies or moves links from the 
      * selected list to another list.
      */
-    private class CopyOrMoveToListAction extends LinksListTabEditAction{
+    private class CopyOrMoveToListAction extends LinksListTabAction.LinksListTabEditAction{
         /**
          * This stores whether this moves or copies links.
          */
@@ -10044,7 +10017,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private class RemoveFromListAction extends LinksListTabEditAction{
+    private class RemoveFromListAction extends LinksListTabAction.LinksListTabEditAction{
         /**
          * 
          * @param tabsPanel
@@ -10075,7 +10048,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private class RemoveFromListsAction extends LinksListTabEditAction{
+    private class RemoveFromListsAction extends LinksListTabAction.LinksListTabEditAction{
         /**
          * Whether this action will remove the current list from the other 
          * lists. {@code true} if this will remove the current list from the 
@@ -10177,60 +10150,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private abstract class LinksListTabCheckAction extends LinksListTabAction{
-        /**
-         * 
-         * @param actionCmd
-         * @param tabsPanel
-         * @param panel 
-         */
-        LinksListTabCheckAction(String actionCmd, LinksListTabsPanel tabsPanel, 
-            LinksListPanel panel){
-            super(actionCmd,tabsPanel,panel);
-        }
-        @Override
-        public int getActionControlFlags(){
-            return super.getActionControlFlags() | 
-                    LinksListAction.CHECK_BOX_FLAG;
-        }
-        /**
-         * Invoked when an action occurs.
-         * @param evt The event to be processed.
-         * @param panel The LinksListPanel to use for the event.
-         * @param tabsPanel The LinksListTabsPanel to use for the event.
-         * @param button The button that generated the event.
-         * @param isSelected Whether the button is selected.
-         */
-        protected abstract void actionPerformed(ActionEvent evt, 
-                LinksListPanel panel, LinksListTabsPanel tabsPanel, 
-                AbstractButton button, boolean isSelected);
-        @Override
-        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
-                LinksListTabsPanel tabsPanel) {
-                // If the source for the event is a button
-            if (evt.getSource() instanceof AbstractButton){
-                    // Get the button that generated the event
-                AbstractButton button = (AbstractButton)evt.getSource();
-                actionPerformed(evt,panel,tabsPanel,button,button.isSelected());
-            }
-        }
-        /**
-         * This returns whether the item should be selected for the given panel
-         * @param panel
-         * @return 
-         */
-        protected abstract boolean isSelected(LinksListPanel panel);
-        @Override
-        protected void updateButton(LinksListPanel panel,AbstractButton button){
-                // If the button is not null
-            if (button != null)
-                button.setSelected(isSelected(panel));
-        }
-    }
-    /**
-     * 
-     */
-    private class HideListAction extends LinksListTabCheckAction{
+    private class HideListAction extends LinksListTabAction.LinksListTabCheckAction{
         /**
          * 
          * @param tabsPanel
@@ -10265,7 +10185,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private class MakeListReadOnlyAction extends LinksListTabCheckAction{
+    private class MakeListReadOnlyAction extends LinksListTabAction.LinksListTabCheckAction{
         /**
          * 
          * @param tabsPanel
