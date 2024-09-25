@@ -857,7 +857,7 @@ public class LinksListTabsManipulator extends JListManipulator<LinksListModel>{
         }
         @Override
         public void stateChanged(ChangeEvent evt) {
-//            setListSizeLimit();
+            
         }
     }
     /**

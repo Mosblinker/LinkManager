@@ -862,11 +862,6 @@ public class LinksListModel extends ArrayListModel<String> implements
         if (!canAddDuplicates()){
                 // Create a set version of the given collection
             c = new LinkedHashSet<>(c);
-//            List<String> temp = new ArrayList<>(c);
-//            TreeSet<String> addC = new TreeSet<>((String o1, String o2) -> 
-//                    Integer.compare(temp.lastIndexOf(o1), temp.lastIndexOf(o2)));
-//            addC.addAll(c);
-//            c = addC;
         }   // Go through the elements in the given collection to check them
             // TODO: Allow up to the invalid elements to be added before 
             // throwing the exception
