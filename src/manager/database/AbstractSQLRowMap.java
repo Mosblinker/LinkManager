@@ -4,7 +4,6 @@
  */
 package manager.database;
 
-import manager.database.SQLRowMap;
 import java.sql.*;
 import java.util.*;
 import sql.UncheckedSQLException;
