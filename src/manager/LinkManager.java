@@ -9776,7 +9776,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file
          * @param showFileNotFound 
          */
-        public DbxDownloader(String dbxPath,File file,boolean showFileNotFound){
+        DbxDownloader(String dbxPath,File file,boolean showFileNotFound){
             super(file);
             this.dbxPath = Objects.requireNonNull(dbxPath);
             this.showFileNotFound = showFileNotFound;
@@ -9786,7 +9786,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param dbxPath
          * @param file 
          */
-        public DbxDownloader(String dbxPath, File file){
+        DbxDownloader(String dbxPath, File file){
             this(dbxPath,file,true);
         }
         
@@ -9929,7 +9929,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param showSuccess
          * @param exit 
          */
-        public DbxUploader(String dbxPath, File file, boolean showSuccess, 
+        DbxUploader(String dbxPath, File file, boolean showSuccess, 
                 boolean exit) {
             super(file,true);
             this.dbxPath = Objects.requireNonNull(dbxPath);
@@ -9942,7 +9942,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file
          * @param showSuccess 
          */
-        public DbxUploader(String dbxPath, File file, boolean showSuccess){
+        DbxUploader(String dbxPath, File file, boolean showSuccess){
             this(dbxPath,file,showSuccess,false);
         }
         /**
@@ -9950,7 +9950,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param dbxPath
          * @param file 
          */
-        public DbxUploader(String dbxPath, File file){
+        DbxUploader(String dbxPath, File file){
             this(dbxPath,file,false);
         }
         @Override
