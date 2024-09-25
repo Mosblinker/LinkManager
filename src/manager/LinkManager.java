@@ -609,7 +609,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param config The Properties to set the property in.
      * @return 
      */
-    private boolean setDatabaseFileProperty(String propName, String value, Properties config){
+    private boolean setDatabaseFileProperty(String propName, String value,
+            Properties config){
         if (config != null){
             String oldValue = config.getProperty(propName);
             value = (value!=null&&!value.isBlank())?value.trim():null;
@@ -3649,10 +3650,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_setDBFileNameButtonActionPerformed
 
     private void resetDBFilePathButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetDBFilePathButtonActionPerformed
-//        File oldDBFile = getDatabaseFile();
         setDatabaseFileProperty(DATABASE_FILE_PATH_KEY,null);
         updateDatabaseFileFields();
-//        moveDatabaseFile(oldDBFile,getDatabaseFile());
     }//GEN-LAST:event_resetDBFilePathButtonActionPerformed
 
     private void backupDBButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backupDBButtonActionPerformed
