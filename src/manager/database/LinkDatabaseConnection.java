@@ -4166,7 +4166,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @return
      * @throws SQLException 
      */
-    private boolean containsCountResult(ResultSet results)throws SQLException{
+    protected static boolean containsCountResult(ResultSet results)throws SQLException{
             // If the results contain a value
         if (results.next())
             return results.getInt(COUNT_COLUMN_NAME) > 0;
