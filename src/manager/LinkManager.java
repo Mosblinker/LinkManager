@@ -3984,7 +3984,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The WindowEvent.
      */
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        exitButton.doClick();
+        if (exitButton.isEnabled())
+            exitButton.doClick();
     }//GEN-LAST:event_formWindowClosing
     /**
      * This saves the link files and exits the program.
@@ -3995,22 +3996,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (isSavingFiles()){
                 // If the file saver is set to exit the program after it 
                 // finishes saving the file
-            if (saver.getExitAfterSaving())
+            if (saver.getExitAfterSaving()){
+                exitButton.setEnabled(false);
                 return;
+            }
                 // If the file saver is being used to save the database
             else if (saver instanceof AbstractDatabaseSaver){
                     // Make it so that once it finishes saving the database, it 
                     // will close the program
                 ((AbstractDatabaseSaver)saver).setExitAfterSaving(true);
+                exitButton.setEnabled(false);
                 return;
             }
         } else if (isLoadingFiles() && loader instanceof DbxUploader){
             if (((DbxUploader)loader).getExitAfterSaving()){
+                exitButton.setEnabled(false);
                 return;
             }
         }   // If the program fully loaded initially and it is to save after the 
             // initial load
         if (fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
+            exitButton.setEnabled(false);
                 // Save the database and close the program
             saver = new DatabaseSaver(true);
             saver.execute();
