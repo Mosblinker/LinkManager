@@ -114,29 +114,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private static final String PRIVATE_CONFIG_FLAG = 
             "[LinkManager Private Config]";
     /**
-     * This is the configuration key for the progress display setting.
-     */
-    private static final String PROGRESS_DISPLAY_KEY = "DisplayProgress";
-    /**
-     * This is the configuration key for the always on top setting.
-     */
-    private static final String ALWAYS_ON_TOP_KEY = "AlwaysOnTop";
-    /**
-     * This is the configuration key for the blank lines setting.
-     */
-    private static final String BLANK_LINES_KEY = "AddBlankLines";
-    /**
-     * This is the configuration key for the setting that enables link 
-     * operations.
-     */
-    private static final String ENABLE_LINK_OPS_KEY = "EnableLinkOperations";
-    /**
-     * This is the configuration key for the setting that enables link 
-     * operations for hidden lists.
-     */
-    private static final String ENABLE_HIDDEN_LINK_OPS_KEY = 
-            "EnableHiddenLinkOperations";
-    /**
      * This is the configuration key for the database folder setting. This key 
      * has been deprecated in favor of storing the database file name in a 
      * single String.
@@ -150,45 +127,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     @Deprecated
     private static final String DATABASE_FILE_KEY = "DatabaseFile";
-    /**
-     * This is the configuration key for the database file path.
-     */
-    private static final String DATABASE_FILE_PATH_KEY = "DatabaseFilePath";
-    /**
-     * This is the configuration key for how to handle changing where the 
-     * database file is located.
-     */
-    private static final String DATABASE_FILE_CHANGE_OPERATION_KEY = 
-            "DatabaseFileChangeOperation";
-    /**
-     * This is the configuration key for the autosave frequency setting.
-     */
-    private static final String AUTOSAVE_FREQUENCY_KEY = 
-            "AutosaveFrequencyIndex";
-    /**
-     * This is the configuration key for the auto-hide wait duration setting.
-     */
-    private static final String AUTO_HIDE_WAIT_DURATION_KEY = 
-            "AutoHideWaitDurationIndex";
-    /**
-     * This is the configuration key for the setting that determines if the 
-     * search factors in capitalization.
-     */
-    private static final String SEARCH_MATCH_CASE_KEY = "MatchCase";
-    /**
-     * This is the configuration key for the setting that determines if the 
-     * search factors in white spaces.
-     */
-    private static final String SEARCH_MATCH_SPACES_KEY = "MatchWhiteSpaces";
-    /**
-     * This is the configuration key for the setting that determines if the 
-     * search wraps around when it reaches the end of the list.
-     */
-    private static final String SEARCH_WRAP_AROUND_KEY = "SearchWrapAround";
-    /**
-     * This is the configuration key for the text to search for.
-     */
-    private static final String SEARCH_TEXT_KEY = "SearchText";
     /**
      * This is the configuration key for the listID of the currently selected 
      * list if a list with a listID is selected. This is for the 
@@ -229,6 +167,68 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     @Deprecated
     private static final String SHOWN_CURRENT_TAB_INDEX_KEY = 
             "ShownCurrentTabIndex";
+    /**
+     * This is the configuration key for the progress display setting.
+     */
+    private static final String PROGRESS_DISPLAY_KEY = "DisplayProgress";
+    /**
+     * This is the configuration key for the always on top setting.
+     */
+    private static final String ALWAYS_ON_TOP_KEY = "AlwaysOnTop";
+    /**
+     * This is the configuration key for the blank lines setting.
+     */
+    private static final String BLANK_LINES_KEY = "AddBlankLines";
+    /**
+     * This is the configuration key for the setting that enables link 
+     * operations.
+     */
+    private static final String ENABLE_LINK_OPS_KEY = "EnableLinkOperations";
+    /**
+     * This is the configuration key for the setting that enables link 
+     * operations for hidden lists.
+     */
+    private static final String ENABLE_HIDDEN_LINK_OPS_KEY = 
+            "EnableHiddenLinkOperations";
+    /**
+     * This is the configuration key for the database file path.
+     */
+    private static final String DATABASE_FILE_PATH_KEY = "DatabaseFilePath";
+    /**
+     * This is the configuration key for how to handle changing where the 
+     * database file is located.
+     */
+    private static final String DATABASE_FILE_CHANGE_OPERATION_KEY = 
+            "DatabaseFileChangeOperation";
+    /**
+     * This is the configuration key for the autosave frequency setting.
+     */
+    private static final String AUTOSAVE_FREQUENCY_KEY = 
+            "AutosaveFrequencyIndex";
+    /**
+     * This is the configuration key for the auto-hide wait duration setting.
+     */
+    private static final String AUTO_HIDE_WAIT_DURATION_KEY = 
+            "AutoHideWaitDurationIndex";
+    /**
+     * This is the configuration key for the setting that determines if the 
+     * search factors in capitalization.
+     */
+    private static final String SEARCH_MATCH_CASE_KEY = "MatchCase";
+    /**
+     * This is the configuration key for the setting that determines if the 
+     * search factors in white spaces.
+     */
+    private static final String SEARCH_MATCH_SPACES_KEY = "MatchWhiteSpaces";
+    /**
+     * This is the configuration key for the setting that determines if the 
+     * search wraps around when it reaches the end of the list.
+     */
+    private static final String SEARCH_WRAP_AROUND_KEY = "SearchWrapAround";
+    /**
+     * This is the configuration key for the text to search for.
+     */
+    private static final String SEARCH_TEXT_KEY = "SearchText";
     /**
      * This is the configuration key for the listID of the currently selected 
      * list if a list with a listID is selected. This is for the 
