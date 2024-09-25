@@ -6981,11 +6981,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }   // Return whether the user selected yes
             return option == JOptionPane.YES_OPTION;    
         }
+        /**
+         * This is used to exit the program after this finishes saving the file.
+         */
+        protected void exitProgram(){
+            System.exit(0);         // Exit the program
+        }
         @Override
         protected void done(){
-            saving = false;
             if (exitAfterSaving)    // If the program is to exit after saving
-                System.exit(0);     // Exit the program
+                exitProgram();      // Exit the program
+            saving = false;
             super.done();
         }
     }
@@ -7489,29 +7495,34 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             return msg;
         }
+        /**
+         * 
+         */
+        protected void uploadDatabase(){
+            loader = new DbxUploader("/"+getExternalDatabaseFileName(),file,false,exitAfterSaving);
+            loader.execute();
+        }
+        @Override
+        protected void exitProgram(){
+            if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
+                uploadDatabase();
+            } else {
+                saver = new ConfigSaver(true);
+                saver.execute();
+            }
+        }
         @Override
         protected void done(){
-                // If we are exiting the program after saving the database
-            if (exitAfterSaving){   
-                if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-                    saving = false;
-                    loader = new DbxUploader("/"+getExternalDatabaseFileName(),file,false,true);
-                    loader.execute();
-                } else {
-                    saver = new ConfigSaver(true);
-                    saver.execute();
-                }
+            if (success){   // If this was successful
+                allListsTabsPanel.clearEdited();
+                shownListsTabsPanel.clearEdited();
             }
-            else{
-                if (success){   // If this was successful
-                    allListsTabsPanel.clearEdited();
-                    shownListsTabsPanel.clearEdited();
-                }
-                super.done();
+            super.done();
+                // If we are not exiting the program after saving the database
+            if (!exitAfterSaving){   
                 autosaveMenu.startAutosave();
                 if (success && syncDBToggle.isSelected() && isLoggedInToDropbox()){
-                    loader = new DbxUploader("/"+getExternalDatabaseFileName(),file,false);
-                    loader.execute();
+                    uploadDatabase();
                 }
             }
         }
@@ -8765,14 +8776,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return "Saving Configuration";
         }
         @Override
+        protected void exitProgram(){
+            saver = new PrivateConfigSaver(true);
+            saver.execute();
+        }
+        @Override
         protected void done(){
-            if (exitAfterSaving){
-                saver = new PrivateConfigSaver(true);
-                saver.execute();
-            } else {
-                super.done();
-                showHiddenListsToggle.setEnabled(true);
-            }
+            super.done();
+            showHiddenListsToggle.setEnabled(!exitAfterSaving);
         }
     }
     
@@ -9069,6 +9080,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public String getProgressString(){
             return "Uploading File";
         }
+        
+        public boolean getExitAfterSaving(){
+            return exitAfterSaving;
+        }
         /**
          * This sets whether the program will exit after this finishes saving 
          * the file.
@@ -9163,13 +9178,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
+            super.done();
                 // If we are exiting the program after saving the database
             if (exitAfterSaving){   
                 saver = new ConfigSaver(true);
                 saver.execute();
-            }
-            else{
-                super.done();
             }
         }
     }
