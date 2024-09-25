@@ -2317,7 +2317,7 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="syncDBToggleActionPerformed"/>
               </Events>
             </MenuItem>
-            <Menu class="manager.AutosaveMenu" name="autosaveMenu">
+            <Menu class="manager.timermenu.AutosaveMenu" name="autosaveMenu">
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="autosaveMenuActionPerformed"/>
                 <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="autosaveMenuPropertyChange"/>
@@ -2334,7 +2334,7 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="showHiddenListsToggleActionPerformed"/>
               </Events>
             </MenuItem>
-            <Menu class="manager.AutoHideMenu" name="autoHideMenu">
+            <Menu class="manager.timermenu.AutoHideMenu" name="autoHideMenu">
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="autoHideMenuActionPerformed"/>
                 <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="autoHideMenuPropertyChange"/>

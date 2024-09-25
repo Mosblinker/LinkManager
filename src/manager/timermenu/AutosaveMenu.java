@@ -2,14 +2,14 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package manager;
+package manager.timermenu;
 
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
-import static manager.AutoTimerMenu.getDurationText;
+import static manager.timermenu.AutoTimerMenu.getDurationText;
 
 /**
  * This is a menu that controls the autosave feature, along with providing the 
