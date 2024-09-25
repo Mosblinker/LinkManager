@@ -100,11 +100,6 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
      * A list containing the tab components for the panels.
      */
     private List<Component> tabComponents = null;
-//    /**
-//     * This stores the index of the currently selected tab. This is used to 
-//     * detect when the selected tab changes.
-//     */
-//    private int currSelTab = -1;
     /**
      * This is a map used to store the menus for the list actions.
      */
