@@ -3534,7 +3534,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void dbRefreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbRefreshButtonActionPerformed
-//        databaseDialog.setLocationRelativeTo(this);
         loader = new LoadDatabaseViewer(true);
         loader.execute();
     }//GEN-LAST:event_dbRefreshButtonActionPerformed
@@ -4592,7 +4591,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         // TODO: Implement setting the location for the dropbox file
         String extFileName = dbxDbFileField.getText();
-        System.out.println(extFileName);
         
         File file = new File(fileName.trim());
         fileName = file.toString();
