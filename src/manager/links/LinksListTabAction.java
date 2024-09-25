@@ -28,30 +28,53 @@ public abstract class LinksListTabAction extends LinksListAction{
         putValue(TABS_PANEL_KEY,tabsPanel);
         LinksListTabAction.this.updateActionEnabled();
     }
-    
+    /**
+     * 
+     * @param name
+     * @param actionCmd
+     * @param tabsPanel 
+     */
     public LinksListTabAction(String name, String actionCmd, 
             LinksListTabsPanel tabsPanel){
         this(name,actionCmd,tabsPanel,null);
     }
-    
+    /**
+     * 
+     * @param actionCmd
+     * @param tabsPanel
+     * @param panel 
+     */
     public LinksListTabAction(String actionCmd, LinksListTabsPanel tabsPanel, 
             LinksListPanel panel){
         this(actionCmd,actionCmd,tabsPanel,panel);
         LinksListTabAction.this.updateActionName();
     }
-    
+    /**
+     * 
+     * @param actionCmd
+     * @param tabsPanel 
+     */
     public LinksListTabAction(String actionCmd, LinksListTabsPanel tabsPanel){
         this(actionCmd,tabsPanel,null);
     }
-    
-    public LinksListTabAction(LinksListTabsPanel tabsPanel, LinksListPanel panel){
+    /**
+     * 
+     * @param tabsPanel
+     * @param panel 
+     */
+    public LinksListTabAction(LinksListTabsPanel tabsPanel,LinksListPanel panel){
         this(null,tabsPanel,panel);
     }
-    
+    /**
+     * 
+     * @param tabsPanel 
+     */
     public LinksListTabAction(LinksListTabsPanel tabsPanel){
         this(tabsPanel,null);
     }
-    
+    /**
+     * 
+     */
     public LinksListTabAction(){
         this(null,null,null,null);
     }
@@ -82,13 +105,19 @@ public abstract class LinksListTabAction extends LinksListAction{
         return (tabsPanel != null) ? tabsPanel.getListName(panel) : 
                 super.getListName(panel);
     }
-    
+    /**
+     * 
+     * @return 
+     */
     public LinksListTabsPanel getTabsPanel(){
         Object value = getValue(TABS_PANEL_KEY);
         return (value instanceof LinksListTabsPanel) ? 
                 (LinksListTabsPanel) value : null;
     }
-    
+    /**
+     * 
+     * @param panel 
+     */
     public void setTabsPanel(LinksListTabsPanel panel){
         putValue(TABS_PANEL_KEY,panel);
         updateActionName();
@@ -135,4 +164,80 @@ public abstract class LinksListTabAction extends LinksListAction{
 //                setEnabled(!isListSelected);
 //        }
 //    }
+    /**
+     * 
+     */
+    public static abstract class LinksListTabEditAction extends LinksListTabAction{
+        /**
+         * 
+         * @param name
+         * @param actionCmd
+         * @param tabsPanel
+         * @param panel 
+         */
+        public LinksListTabEditAction(String name, String actionCmd, 
+            LinksListTabsPanel tabsPanel, LinksListPanel panel){
+            super(name,actionCmd,tabsPanel,panel);
+        }
+        /**
+         * 
+         * @param name
+         * @param actionCmd
+         * @param tabsPanel 
+         */
+        public LinksListTabEditAction(String name, String actionCmd, 
+            LinksListTabsPanel tabsPanel){
+            super(name,actionCmd,tabsPanel);
+        }
+        /**
+         * 
+         * @param actionCmd
+         * @param tabsPanel
+         * @param panel 
+         */
+        public LinksListTabEditAction(String actionCmd, 
+                LinksListTabsPanel tabsPanel, LinksListPanel panel){
+            super(actionCmd,tabsPanel,panel);
+        }
+        /**
+         * 
+         * @param actionCmd
+         * @param tabsPanel 
+         */
+        public LinksListTabEditAction(String actionCmd, 
+                LinksListTabsPanel tabsPanel){
+            super(actionCmd,tabsPanel);
+        }
+        /**
+         * 
+         * @param tabsPanel
+         * @param panel 
+         */
+        public LinksListTabEditAction(LinksListTabsPanel tabsPanel,
+                LinksListPanel panel){
+            super(tabsPanel,panel);
+        }
+        /**
+         * 
+         * @param tabsPanel 
+         */
+        public LinksListTabEditAction(LinksListTabsPanel tabsPanel){
+            super(tabsPanel);
+        }
+        /**
+         * 
+         */
+        public LinksListTabEditAction(){
+            super();
+        }
+        @Override
+        public int getActionControlFlags(){
+            return super.getActionControlFlags() | 
+                    LIST_MUST_NOT_BE_FULL_FLAG;
+        }
+        @Override
+        public int getRequiredFlags(){
+            return super.getRequiredFlags() | LinksListModel.READ_ONLY_FLAG;
+        }
+    }
 }
