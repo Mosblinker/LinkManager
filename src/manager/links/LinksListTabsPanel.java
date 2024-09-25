@@ -4,7 +4,6 @@
  */
 package manager.links;
 
-import components.ComboBoxModelList;
 import components.debug.DebugCapable;
 import event.DisabledComponentMouseListener;
 import java.awt.BorderLayout;
@@ -802,31 +801,6 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
             menu.setVisible(visible);
         }
     }
-    @Deprecated
-    public ComboBoxModelList<Integer> getIndexComboBoxModel(
-            boolean includeCurrent, ComboBoxModelList<Integer> model){
-        if (model != null)
-            model.clear();
-        else
-            model = new ComboBoxModelList<>();
-        for (int i = 0; i < getLists().size(); i++)
-            model.add(i);
-        if (includeCurrent)
-            model.add(-1);
-        return model;
-    }
-    @Deprecated
-    public ComboBoxModelList<Integer> getIndexComboBoxModel(boolean includeCurrent){
-        return getIndexComboBoxModel(includeCurrent,null);
-    }
-    @Deprecated
-    public ComboBoxModelList<Integer> getIndexComboBoxModel(ComboBoxModelList<Integer> model){
-        return getIndexComboBoxModel(false,model);
-    }
-    @Deprecated
-    public ComboBoxModelList<Integer> getIndexComboBoxModel(){
-        return getIndexComboBoxModel(null);
-    }
     
     public void addChangeListener(ChangeListener l){
         if (l != null)
@@ -1139,22 +1113,6 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
                         l.valueChanged(evt);
                 }
             }
-        }
-    }
-    @Deprecated
-    public class LinksListIndexCellRenderer extends LinksListCellRenderer {
-        @Override
-        public Component getListCellRendererComponent(JList list, Object value, 
-                int index, boolean isSelected, boolean cellHasFocus){
-            if (value instanceof Integer){
-                int pos = (Integer) value;
-                if (pos < 0 || pos >= getLists().size())
-                    value = null;
-                else
-                    value = getLists().get(pos);
-            }
-            return super.getListCellRendererComponent(list, value, index, 
-                    isSelected, cellHasFocus);
         }
     }
     
