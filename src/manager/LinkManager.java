@@ -6511,6 +6511,379 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     /**
+     * This is a LinksListTabAction that saves the links from a list to a 
+     * file.
+     */
+    private class SaveToFileAction extends LinksListTabAction{
+        /**
+         * This constructs an SaveToFileAction that will save the links from the 
+         * given list panel to a file.
+         * @param panel The list panel to save the links from.
+         */
+        SaveToFileAction(LinksListTabsPanel tabsPanel, LinksListPanel panel) {
+            super(SAVE_TO_FILE_ACTION_KEY, tabsPanel, panel);
+        }
+        @Override
+        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
+                LinksListTabsPanel tabsPanel) {
+                // Get the file to save to
+            File file = showSaveFileChooser(saveFC,
+                    "Save "+panel.getListName()+" To File...");
+            if (file != null){  // If the user selected a file
+                saver = new ListSaver(file,panel.getModel());
+                saver.execute();
+            }
+        }
+        @Override
+        protected String getNewActionName(LinksListPanel panel){
+            return "Save "+getListName(panel);
+        }
+    }
+    /**
+     * This is a LinksListTabAction that adds links from a text file to a 
+     * list.
+     */
+    private class AddFromFileAction extends LinksListTabAction.LinksListTabEditAction{
+        /**
+         * This constructs an AddFromFileAction that will add links to the given
+         * list panel.
+         * @param panel The panel to add the links to.
+         */
+        AddFromFileAction(LinksListTabsPanel tabsPanel, LinksListPanel panel){
+            super(ADD_FROM_FILE_ACTION_KEY,tabsPanel,panel);
+        }
+        @Override
+        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
+                LinksListTabsPanel tabsPanel) {
+                // Get the file to load from
+            File file = showOpenFileChooser(openFC,
+                    "Load "+panel.getListName()+" From File...");
+            if (file != null){  // If the user selected a file
+                loader = new ListLoader(file,panel);
+                loader.execute();
+            }
+        }
+        @Override
+        protected String getNewActionName(LinksListPanel panel){
+            return "Add To "+getListName(panel);
+        }
+    }
+    /**
+     * This is a LinksListTabAction that adds links from a text area to a 
+     * list.
+     */
+    private class AddFromTextAreaAction extends LinksListTabAction.LinksListTabEditAction{
+        /**
+         * This constructs an AddFromTextAreaAction that will add links to the 
+         * given list panel.
+         * @param panel The list panel to add the links to.
+         */
+        AddFromTextAreaAction(LinksListTabsPanel tabsPanel,LinksListPanel panel){
+            super(ADD_FROM_TEXT_AREA_ACTION_KEY,tabsPanel, panel);
+        }
+        @Override
+        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
+                LinksListTabsPanel tabsPanel) {
+            if (beepWhenDisabled()) // If input is disabled
+                return;
+                // Set the dialog title
+            addLinksPanel.setDialogTitle("Add To "+panel.getListName()+"...");
+                // Show the add links dialog and if the user selected the accept 
+            if (addLinksPanel.showDialog(LinkManager.this) == // option
+                    AddLinksFromListPanel.ACCEPT_OPTION){
+                linksWorker = new AddFromTextWorker(panel,addLinksPanel.getText());
+                linksWorker.execute();
+            }
+            addLinksPanel.setPreferredSize(addLinksPanel.getSize());
+                // Set the add list panel's size in the config
+            setConfigSizeProperty(addLinksPanel);
+        }
+        @Override
+        protected String getNewActionName(LinksListPanel panel){
+            return "Add To "+getListName(panel);
+        }
+    }
+    /**
+     * This is a LinksListTabAction that copies or moves links from the 
+     * selected list to another list.
+     */
+    private class CopyOrMoveToListAction extends LinksListTabAction.LinksListTabEditAction{
+        /**
+         * This stores whether this moves or copies links.
+         */
+        private final boolean move;
+        /**
+         * This constructs an CopyOrMoveToListAction that will copy or move 
+         * links to the given list panel, depending on the {@code move} value.
+         * @param panel The list panel to copy or move the links to.
+         * @param move Whether this will copy or move links to the panel.
+         */
+        CopyOrMoveToListAction(LinksListTabsPanel tabsPanel, 
+                LinksListPanel panel, boolean move) {
+                // If this moves links, use the move to list action key. 
+                // Otherwise, use the copy to list action key
+            super((move)?MOVE_TO_LIST_ACTION_KEY:COPY_TO_LIST_ACTION_KEY,
+                    tabsPanel,panel);
+            this.move = move;
+                // Update the action name
+            updateActionName();
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean getMovesLinks(){
+            return move;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean getCopiesLinks(){
+            return !move;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public String getActionText(){
+                // If this moves links, return the word "Move". Otherwise, 
+                // return the word "Copy"
+            return (move)?"Move":"Copy";
+        }
+        @Override
+        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
+                LinksListTabsPanel tabsPanel) {
+                // If the given panel is selected or no panels are selected
+            if (tabsPanel.isSelected(panel) || tabsPanel.isNonListSelected())
+                return;
+            copyOrMoveListSelector.setModel(tabsPanel.getSelectedModel());
+                // Get the currently selected panel
+            LinksListPanel selPanel = tabsPanel.getSelectedList();
+            copyOrMoveListSelector.setSelectedValue(selPanel.getSelectedValue(), true);
+            copyOrMoveListSelector.setAcceptButtonText(getActionText());
+            copyOrMoveListSelector.setListTitle("Select from "+selPanel.getListName()+"...");
+            copyOrMoveListSelector.setDialogTitle(getActionText()+" To "+panel.getListName()+"...");
+            copyOrMoveSelCountPanel.setMaximumValue(panel.getModel().getSpaceRemaining());
+                // Show the list selector dialog and if the user pressed the 
+                // accept option
+            if (copyOrMoveListSelector.showDialog(LinkManager.this) == 
+                    JListSelector.ACCEPT_OPTION){
+                linksWorker = new CopyOrMoveLinks(selPanel,panel,
+                        copyOrMoveListSelector.getSelectedValuesList(),move);
+                linksWorker.execute();
+            }
+            copyOrMoveListSelector.setPreferredSize(
+                    copyOrMoveListSelector.getSize());
+                // Set the copy or move selector panel's size in the config
+            setConfigSizeProperty(copyOrMoveListSelector);
+        }
+        @Override
+        protected String getNewActionName(LinksListPanel panel){
+            return getActionText()+" To "+getListName(panel);
+        }
+        @Override
+        public int getActionControlFlags(){
+            return super.getActionControlFlags() | 
+                    LinksListAction.LIST_MUST_NOT_BE_SELECTED_FLAG;
+        }
+    }
+    /**
+     * 
+     */
+    private class RemoveFromListAction extends LinksListTabAction.LinksListTabEditAction{
+        /**
+         * 
+         * @param tabsPanel
+         * @param panel 
+         */
+        RemoveFromListAction(LinksListTabsPanel tabsPanel, LinksListPanel panel){
+            super(REMOVE_FROM_LIST_ACTION_KEY,tabsPanel,panel);
+        }
+        @Override
+        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
+                LinksListTabsPanel tabsPanel) {
+                // If the given panel is not selected and a list is selected
+            if (!tabsPanel.isSelected(panel) && !tabsPanel.isNonListSelected()){
+                linksWorker = new RemoveLinksWorker(tabsPanel.getSelectedList(),panel);
+                linksWorker.execute();
+            }
+        }
+        @Override
+        protected String getNewActionName(LinksListPanel panel){
+            return "Remove From "+getListName(panel);
+        }
+        @Override
+        public int getActionControlFlags(){
+            return LinksListAction.LIST_MUST_BE_ENABLED_FLAG | 
+                    LinksListAction.LIST_MUST_NOT_BE_SELECTED_FLAG;
+        }
+    }
+    /**
+     * 
+     */
+    private class RemoveFromListsAction extends LinksListTabAction.LinksListTabEditAction{
+        /**
+         * Whether this action will remove the current list from the other 
+         * lists. {@code true} if this will remove the current list from the 
+         * other lists, {@code false} if this removes the other lists from the 
+         * current list.
+         */
+        private final boolean removeFromOtherLists;
+        /**
+         * Whether this action affects only hidden lists.
+         */
+        private final boolean hiddenOnly;
+        /**
+         * 
+         * @param tabsPanel
+         * @param panel
+         * @param removeFromOtherLists Whether this action will remove the 
+         * currently selected list from the other lists ({@code true} if this 
+         * will remove the currently selected list from the other lists, {@code 
+         * false} if this removes the other lists from the currently selected 
+         * list).
+         * @param hiddenOnly Whether this action only removes from hidden lists.
+         */
+        RemoveFromListsAction(LinksListTabsPanel tabsPanel, LinksListPanel panel, 
+                boolean removeFromOtherLists, boolean hiddenOnly) {
+            super(REMOVE_FROM_LIST_ACTION_KEY, tabsPanel, panel);
+            this.removeFromOtherLists = removeFromOtherLists;
+            this.hiddenOnly = hiddenOnly;
+            updateActionName();
+        }
+        /**
+         * 
+         * @param tabsPanel
+         * @param panel
+         * @param removeFromOtherLists Whether this action will remove the 
+         * currently selected list from the other lists ({@code true} if this 
+         * will remove the currently selected list from the other lists, {@code 
+         * false} if this removes the other lists from the currently selected 
+         * list).
+         */
+        RemoveFromListsAction(LinksListTabsPanel tabsPanel, LinksListPanel panel, 
+                boolean removeFromOtherLists) {
+            this(tabsPanel,panel,removeFromOtherLists,false);
+        }
+        /**
+         * 
+         * @param tabsPanel
+         * @param panel 
+         */
+        RemoveFromListsAction(LinksListTabsPanel tabsPanel, LinksListPanel panel){
+            this(tabsPanel,panel,true);
+        }
+        /**
+         * This returns whether this action will will remove the currently 
+         * selected list from the other lists.
+         * @return {@code true} if this will remove the currently selected list 
+         * from the other lists, {@code false} if this removes the other lists 
+         * from the currently selected list.
+         */
+        public boolean getRemovesFromOtherLists(){
+            return removeFromOtherLists;
+        }
+        /**
+         * This returns whether this action will only remove from hidden lists.
+         * @return Whether this action will only remove from hidden lists.
+         */
+        public boolean getHiddenListsOnly(){
+            return hiddenOnly;
+        }
+        @Override
+        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
+                LinksListTabsPanel tabsPanel) {
+            linksWorker = new RemoveLinksWorker2(panel,tabsPanel,
+                    removeFromOtherLists,hiddenOnly);
+            linksWorker.execute();
+        }
+        @Override
+        protected String getNewActionName(LinksListPanel panel){
+                // If this only affects hidden lists, specifiy that only hidden 
+                // lists are to be affected
+            String otherLists = (hiddenOnly)?"Other Hidden Lists":"Other Lists";
+                // If this action removes the current list from the other lists
+            if (removeFromOtherLists)
+                return String.format("Remove From All %s",otherLists);
+            else
+                return String.format("Remove %s From Current List",otherLists);
+        }
+        @Override
+        public int getActionControlFlags(){
+            return LinksListAction.LIST_MUST_BE_ENABLED_FLAG;
+        }
+        @Override
+        public int getRequiredFlags(){
+                // If this action removes the current list from the other lists
+            if (removeFromOtherLists)
+                return 0;
+            return super.getRequiredFlags();
+        }
+    }
+    /**
+     * 
+     */
+    private class HideListAction extends LinksListTabAction.LinksListTabCheckAction{
+        /**
+         * 
+         * @param tabsPanel
+         * @param panel 
+         */
+        HideListAction(LinksListTabsPanel tabsPanel, LinksListPanel panel){
+            super(HIDE_LIST_ACTION_KEY,tabsPanel,panel);
+        }
+        @Override
+        protected String getNewActionName(LinksListPanel panel){
+            return "Hide " + getListName(panel);
+        }
+        @Override
+        protected void actionPerformed(ActionEvent evt, LinksListPanel panel, 
+                LinksListTabsPanel tabsPanel, AbstractButton button, 
+                boolean isSelected) {
+                // If there would be no change as to whether the panel would be 
+            if (panel.isHidden() == isSelected) // hidden
+                return;
+            panel.setHidden(isSelected);
+                // If this item is selected
+            if (isSelected)
+                shownListsTabsPanel.getModels().remove(panel.getModel());
+            else
+                shownListsTabsPanel.getModels().add(panel.getModel());
+        }
+        @Override
+        protected boolean isSelected(LinksListPanel panel) {
+            return panel.isHidden();
+        }
+    }
+    /**
+     * 
+     */
+    private class MakeListReadOnlyAction extends LinksListTabAction.LinksListTabCheckAction{
+        /**
+         * 
+         * @param tabsPanel
+         * @param panel 
+         */
+        MakeListReadOnlyAction(LinksListTabsPanel tabsPanel, LinksListPanel panel){
+            super(MAKE_LIST_READ_ONLY_ACTION_KEY,tabsPanel,panel);
+        }
+        @Override
+        protected String getNewActionName(LinksListPanel panel){
+            return getListName(panel) + " is Read Only";
+        }
+        @Override
+        protected void actionPerformed(ActionEvent evt, LinksListPanel panel, 
+                LinksListTabsPanel tabsPanel, AbstractButton button, 
+                boolean isSelected) {
+            panel.setReadOnly(isSelected);
+        }
+        @Override
+        protected boolean isSelected(LinksListPanel panel) {
+            return panel.isReadOnly();
+        }
+    }
+    /**
      * This is an abstract class that provides the basic framework for doing 
      * something in a background thread for the LinkManager program. This 
      * primarily handles setting up the program before and after performing the 
@@ -6970,379 +7343,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Re-enable the lists
             setTabsPanelListsEnabled(true);
             super.done();
-        }
-    }
-    /**
-     * This is a LinksListTabAction that saves the links from a list to a 
-     * file.
-     */
-    private class SaveToFileAction extends LinksListTabAction{
-        /**
-         * This constructs an SaveToFileAction that will save the links from the 
-         * given list panel to a file.
-         * @param panel The list panel to save the links from.
-         */
-        SaveToFileAction(LinksListTabsPanel tabsPanel, LinksListPanel panel) {
-            super(SAVE_TO_FILE_ACTION_KEY, tabsPanel, panel);
-        }
-        @Override
-        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
-                LinksListTabsPanel tabsPanel) {
-                // Get the file to save to
-            File file = showSaveFileChooser(saveFC,
-                    "Save "+panel.getListName()+" To File...");
-            if (file != null){  // If the user selected a file
-                saver = new ListSaver(file,panel.getModel());
-                saver.execute();
-            }
-        }
-        @Override
-        protected String getNewActionName(LinksListPanel panel){
-            return "Save "+getListName(panel);
-        }
-    }
-    /**
-     * This is a LinksListTabAction that adds links from a text file to a 
-     * list.
-     */
-    private class AddFromFileAction extends LinksListTabAction.LinksListTabEditAction{
-        /**
-         * This constructs an AddFromFileAction that will add links to the given
-         * list panel.
-         * @param panel The panel to add the links to.
-         */
-        AddFromFileAction(LinksListTabsPanel tabsPanel, LinksListPanel panel){
-            super(ADD_FROM_FILE_ACTION_KEY,tabsPanel,panel);
-        }
-        @Override
-        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
-                LinksListTabsPanel tabsPanel) {
-                // Get the file to load from
-            File file = showOpenFileChooser(openFC,
-                    "Load "+panel.getListName()+" From File...");
-            if (file != null){  // If the user selected a file
-                loader = new ListLoader(file,panel);
-                loader.execute();
-            }
-        }
-        @Override
-        protected String getNewActionName(LinksListPanel panel){
-            return "Add To "+getListName(panel);
-        }
-    }
-    /**
-     * This is a LinksListTabAction that adds links from a text area to a 
-     * list.
-     */
-    private class AddFromTextAreaAction extends LinksListTabAction.LinksListTabEditAction{
-        /**
-         * This constructs an AddFromTextAreaAction that will add links to the 
-         * given list panel.
-         * @param panel The list panel to add the links to.
-         */
-        AddFromTextAreaAction(LinksListTabsPanel tabsPanel,LinksListPanel panel){
-            super(ADD_FROM_TEXT_AREA_ACTION_KEY,tabsPanel, panel);
-        }
-        @Override
-        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
-                LinksListTabsPanel tabsPanel) {
-            if (beepWhenDisabled()) // If input is disabled
-                return;
-                // Set the dialog title
-            addLinksPanel.setDialogTitle("Add To "+panel.getListName()+"...");
-                // Show the add links dialog and if the user selected the accept 
-            if (addLinksPanel.showDialog(LinkManager.this) == // option
-                    AddLinksFromListPanel.ACCEPT_OPTION){
-                linksWorker = new AddFromTextWorker(panel,addLinksPanel.getText());
-                linksWorker.execute();
-            }
-            addLinksPanel.setPreferredSize(addLinksPanel.getSize());
-                // Set the add list panel's size in the config
-            setConfigSizeProperty(addLinksPanel);
-        }
-        @Override
-        protected String getNewActionName(LinksListPanel panel){
-            return "Add To "+getListName(panel);
-        }
-    }
-    /**
-     * This is a LinksListTabAction that copies or moves links from the 
-     * selected list to another list.
-     */
-    private class CopyOrMoveToListAction extends LinksListTabAction.LinksListTabEditAction{
-        /**
-         * This stores whether this moves or copies links.
-         */
-        private final boolean move;
-        /**
-         * This constructs an CopyOrMoveToListAction that will copy or move 
-         * links to the given list panel, depending on the {@code move} value.
-         * @param panel The list panel to copy or move the links to.
-         * @param move Whether this will copy or move links to the panel.
-         */
-        CopyOrMoveToListAction(LinksListTabsPanel tabsPanel, 
-                LinksListPanel panel, boolean move) {
-                // If this moves links, use the move to list action key. 
-                // Otherwise, use the copy to list action key
-            super((move)?MOVE_TO_LIST_ACTION_KEY:COPY_TO_LIST_ACTION_KEY,
-                    tabsPanel,panel);
-            this.move = move;
-                // Update the action name
-            updateActionName();
-        }
-        /**
-         * 
-         * @return 
-         */
-        public boolean getMovesLinks(){
-            return move;
-        }
-        /**
-         * 
-         * @return 
-         */
-        public boolean getCopiesLinks(){
-            return !move;
-        }
-        /**
-         * 
-         * @return 
-         */
-        public String getActionText(){
-                // If this moves links, return the word "Move". Otherwise, 
-                // return the word "Copy"
-            return (move)?"Move":"Copy";
-        }
-        @Override
-        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
-                LinksListTabsPanel tabsPanel) {
-                // If the given panel is selected or no panels are selected
-            if (tabsPanel.isSelected(panel) || tabsPanel.isNonListSelected())
-                return;
-            copyOrMoveListSelector.setModel(tabsPanel.getSelectedModel());
-                // Get the currently selected panel
-            LinksListPanel selPanel = tabsPanel.getSelectedList();
-            copyOrMoveListSelector.setSelectedValue(selPanel.getSelectedValue(), true);
-            copyOrMoveListSelector.setAcceptButtonText(getActionText());
-            copyOrMoveListSelector.setListTitle("Select from "+selPanel.getListName()+"...");
-            copyOrMoveListSelector.setDialogTitle(getActionText()+" To "+panel.getListName()+"...");
-            copyOrMoveSelCountPanel.setMaximumValue(panel.getModel().getSpaceRemaining());
-                // Show the list selector dialog and if the user pressed the 
-                // accept option
-            if (copyOrMoveListSelector.showDialog(LinkManager.this) == 
-                    JListSelector.ACCEPT_OPTION){
-                linksWorker = new CopyOrMoveLinks(selPanel,panel,
-                        copyOrMoveListSelector.getSelectedValuesList(),move);
-                linksWorker.execute();
-            }
-            copyOrMoveListSelector.setPreferredSize(
-                    copyOrMoveListSelector.getSize());
-                // Set the copy or move selector panel's size in the config
-            setConfigSizeProperty(copyOrMoveListSelector);
-        }
-        @Override
-        protected String getNewActionName(LinksListPanel panel){
-            return getActionText()+" To "+getListName(panel);
-        }
-        @Override
-        public int getActionControlFlags(){
-            return super.getActionControlFlags() | 
-                    LinksListAction.LIST_MUST_NOT_BE_SELECTED_FLAG;
-        }
-    }
-    /**
-     * 
-     */
-    private class RemoveFromListAction extends LinksListTabAction.LinksListTabEditAction{
-        /**
-         * 
-         * @param tabsPanel
-         * @param panel 
-         */
-        RemoveFromListAction(LinksListTabsPanel tabsPanel, LinksListPanel panel){
-            super(REMOVE_FROM_LIST_ACTION_KEY,tabsPanel,panel);
-        }
-        @Override
-        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
-                LinksListTabsPanel tabsPanel) {
-                // If the given panel is not selected and a list is selected
-            if (!tabsPanel.isSelected(panel) && !tabsPanel.isNonListSelected()){
-                linksWorker = new RemoveLinksWorker(tabsPanel.getSelectedList(),panel);
-                linksWorker.execute();
-            }
-        }
-        @Override
-        protected String getNewActionName(LinksListPanel panel){
-            return "Remove From "+getListName(panel);
-        }
-        @Override
-        public int getActionControlFlags(){
-            return LinksListAction.LIST_MUST_BE_ENABLED_FLAG | 
-                    LinksListAction.LIST_MUST_NOT_BE_SELECTED_FLAG;
-        }
-    }
-    /**
-     * 
-     */
-    private class RemoveFromListsAction extends LinksListTabAction.LinksListTabEditAction{
-        /**
-         * Whether this action will remove the current list from the other 
-         * lists. {@code true} if this will remove the current list from the 
-         * other lists, {@code false} if this removes the other lists from the 
-         * current list.
-         */
-        private final boolean removeFromOtherLists;
-        /**
-         * Whether this action affects only hidden lists.
-         */
-        private final boolean hiddenOnly;
-        /**
-         * 
-         * @param tabsPanel
-         * @param panel
-         * @param removeFromOtherLists Whether this action will remove the 
-         * currently selected list from the other lists ({@code true} if this 
-         * will remove the currently selected list from the other lists, {@code 
-         * false} if this removes the other lists from the currently selected 
-         * list).
-         * @param hiddenOnly Whether this action only removes from hidden lists.
-         */
-        RemoveFromListsAction(LinksListTabsPanel tabsPanel, LinksListPanel panel, 
-                boolean removeFromOtherLists, boolean hiddenOnly) {
-            super(REMOVE_FROM_LIST_ACTION_KEY, tabsPanel, panel);
-            this.removeFromOtherLists = removeFromOtherLists;
-            this.hiddenOnly = hiddenOnly;
-            updateActionName();
-        }
-        /**
-         * 
-         * @param tabsPanel
-         * @param panel
-         * @param removeFromOtherLists Whether this action will remove the 
-         * currently selected list from the other lists ({@code true} if this 
-         * will remove the currently selected list from the other lists, {@code 
-         * false} if this removes the other lists from the currently selected 
-         * list).
-         */
-        RemoveFromListsAction(LinksListTabsPanel tabsPanel, LinksListPanel panel, 
-                boolean removeFromOtherLists) {
-            this(tabsPanel,panel,removeFromOtherLists,false);
-        }
-        /**
-         * 
-         * @param tabsPanel
-         * @param panel 
-         */
-        RemoveFromListsAction(LinksListTabsPanel tabsPanel, LinksListPanel panel){
-            this(tabsPanel,panel,true);
-        }
-        /**
-         * This returns whether this action will will remove the currently 
-         * selected list from the other lists.
-         * @return {@code true} if this will remove the currently selected list 
-         * from the other lists, {@code false} if this removes the other lists 
-         * from the currently selected list.
-         */
-        public boolean getRemovesFromOtherLists(){
-            return removeFromOtherLists;
-        }
-        /**
-         * This returns whether this action will only remove from hidden lists.
-         * @return Whether this action will only remove from hidden lists.
-         */
-        public boolean getHiddenListsOnly(){
-            return hiddenOnly;
-        }
-        @Override
-        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
-                LinksListTabsPanel tabsPanel) {
-            linksWorker = new RemoveLinksWorker2(panel,tabsPanel,
-                    removeFromOtherLists,hiddenOnly);
-            linksWorker.execute();
-        }
-        @Override
-        protected String getNewActionName(LinksListPanel panel){
-                // If this only affects hidden lists, specifiy that only hidden 
-                // lists are to be affected
-            String otherLists = (hiddenOnly)?"Other Hidden Lists":"Other Lists";
-                // If this action removes the current list from the other lists
-            if (removeFromOtherLists)
-                return String.format("Remove From All %s",otherLists);
-            else
-                return String.format("Remove %s From Current List",otherLists);
-        }
-        @Override
-        public int getActionControlFlags(){
-            return LinksListAction.LIST_MUST_BE_ENABLED_FLAG;
-        }
-        @Override
-        public int getRequiredFlags(){
-                // If this action removes the current list from the other lists
-            if (removeFromOtherLists)
-                return 0;
-            return super.getRequiredFlags();
-        }
-    }
-    /**
-     * 
-     */
-    private class HideListAction extends LinksListTabAction.LinksListTabCheckAction{
-        /**
-         * 
-         * @param tabsPanel
-         * @param panel 
-         */
-        HideListAction(LinksListTabsPanel tabsPanel, LinksListPanel panel){
-            super(HIDE_LIST_ACTION_KEY,tabsPanel,panel);
-        }
-        @Override
-        protected String getNewActionName(LinksListPanel panel){
-            return "Hide " + getListName(panel);
-        }
-        @Override
-        protected void actionPerformed(ActionEvent evt, LinksListPanel panel, 
-                LinksListTabsPanel tabsPanel, AbstractButton button, 
-                boolean isSelected) {
-                // If there would be no change as to whether the panel would be 
-            if (panel.isHidden() == isSelected) // hidden
-                return;
-            panel.setHidden(isSelected);
-                // If this item is selected
-            if (isSelected)
-                shownListsTabsPanel.getModels().remove(panel.getModel());
-            else
-                shownListsTabsPanel.getModels().add(panel.getModel());
-        }
-        @Override
-        protected boolean isSelected(LinksListPanel panel) {
-            return panel.isHidden();
-        }
-    }
-    /**
-     * 
-     */
-    private class MakeListReadOnlyAction extends LinksListTabAction.LinksListTabCheckAction{
-        /**
-         * 
-         * @param tabsPanel
-         * @param panel 
-         */
-        MakeListReadOnlyAction(LinksListTabsPanel tabsPanel, LinksListPanel panel){
-            super(MAKE_LIST_READ_ONLY_ACTION_KEY,tabsPanel,panel);
-        }
-        @Override
-        protected String getNewActionName(LinksListPanel panel){
-            return getListName(panel) + " is Read Only";
-        }
-        @Override
-        protected void actionPerformed(ActionEvent evt, LinksListPanel panel, 
-                LinksListTabsPanel tabsPanel, AbstractButton button, 
-                boolean isSelected) {
-            panel.setReadOnly(isSelected);
-        }
-        @Override
-        protected boolean isSelected(LinksListPanel panel) {
-            return panel.isReadOnly();
         }
     }
     /**
