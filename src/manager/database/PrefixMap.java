@@ -6,7 +6,6 @@ package manager.database;
 
 import java.util.*;
 import sql.UncheckedSQLException;
-import sql.util.*;
 
 /**
  * This is a map view of the prefix table in the database storing the links. 
@@ -258,6 +257,23 @@ public interface PrefixMap extends SQLRowMap<Integer, String>{
      */
     public default String getLongestPrefixFor(String value){
         return getLongestPrefixEntryFor(value).getValue();
+    }
+    /**
+     * 
+     * @param values
+     * @return 
+     */
+    public default Map<String, Map.Entry<Integer, String>>getLongestPrefixesFor(
+            Collection<? extends String> values){
+        LinkedHashMap<String, Map.Entry<Integer, String>> prefixes = new LinkedHashMap<>();
+        if (values.isEmpty())
+            return prefixes;
+        if (!(values instanceof Set))
+            values = new LinkedHashSet<>(values);
+        for (String value : values){
+            prefixes.put(value, getLongestPrefixEntryFor(value));
+        }
+        return prefixes;
     }
     /**
      * This returns the suffix for the given String when using the prefix mapped 
