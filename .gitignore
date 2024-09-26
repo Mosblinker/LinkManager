@@ -32,6 +32,12 @@ replay_pid*
 # Ignore the generated files by the program
 /LinkManager*.db
 
+# Ignore backup files of the database
+/LinkManager*.db*.bak
+
+# Ignore any database journal files from the program
+/LinkManager*.db-journal
+
 # The private config file for the project
 /nbproject/private/*
 
