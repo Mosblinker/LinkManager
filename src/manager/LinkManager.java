@@ -10185,6 +10185,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return uploadFile(file,path);
         }
         @Override
+        protected boolean processFile(File file){
+                // If the file does not exist
+            if (!file.exists()){
+                fileFound = false;
+                return false;
+            }
+            return super.processFile(file);
+        }
+        @Override
         protected void exitProgram(){
             saver = new ConfigSaver(true);
             saver.execute();
