@@ -7102,6 +7102,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          */
         @Override
         protected boolean removeDuplicateRowsSQL() throws SQLException{
+                // TODO: Can the speed of this be improved?
                 // This is a map to contain the first linkID and link of all the 
                 // links with two or more entries in this map
             Map<Long, String> duplicateLinks = new TreeMap<>();
@@ -7172,6 +7173,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          */
         @Override
         protected boolean removeUnusedRowsSQL() throws SQLException{
+                // TODO: Can the speed of this be improved?
             return getConnection().removeUnusedRows(
                     LINK_TABLE_NAME,
                     LIST_DATA_TABLE_NAME,
