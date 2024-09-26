@@ -10088,6 +10088,111 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
+    private abstract class FileUploader extends FilePathSaver{
+        /**
+         * Whether the success prompt should be shown.
+         */
+        protected boolean showSuccess;
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param showSuccess
+         * @param exit 
+         */
+        FileUploader(File file, String path, boolean showSuccess, boolean exit){
+            super(file, path, exit);
+            this.showSuccess = showSuccess;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param showSuccess 
+         */
+        FileUploader(File file, String path, boolean showSuccess){
+            this(file,path,showSuccess,false);
+        }
+        /**
+         * 
+         * @param file
+         * @param path 
+         */
+        FileUploader(File file, String path){
+            this(file,path,true);
+        }
+        /**
+         * This sets whether the program will exit after this finishes saving 
+         * the file.
+         * @param value Whether the program will exit once the file is saved.
+         * @return This FileUploader.
+         */
+        public FileUploader setExitAfterSaving(boolean value){
+            exitAfterSaving = value;
+            return this;
+        }
+        @Override
+        public String getProgressString(){
+            return "Uploading File";
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean getShowSuccessPrompt(){
+            return showSuccess;
+        }
+        /**
+         * 
+         * @param value
+         * @return This FileUploader.
+         */
+        public FileUploader setShowSuccessPrompt(boolean value){
+            showSuccess = value;
+            return this;
+        }
+        @Override
+        protected boolean getShowSuccessPrompt(File file, String path){
+            return showSuccess && !exitAfterSaving;
+        }
+        @Override
+        protected String getSuccessTitle(File file, String path){
+            return "File Uploaded Successfully";
+        }
+        @Override
+        protected String getSuccessMessage(File file, String path){
+            return "The file was successfully uploaded.";
+        }
+        @Override
+        protected String getFailureTitle(File file, String path){
+            return "ERROR - File Failed To Upload";
+        }
+        @Override
+        protected String getFailureMessage(File file, String path){
+            return "The file failed to upload.";
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @return
+         * @throws IOException 
+         */
+        protected abstract boolean uploadFile(File file, String path) 
+                throws IOException;
+        @Override
+        protected boolean saveFile(File file, String path) throws IOException{
+            return uploadFile(file,path);
+        }
+        @Override
+        protected void exitProgram(){
+            saver = new ConfigSaver(true);
+            saver.execute();
+        }
+    }
+    /**
+     * 
+     */
     private class DbxDownloader extends FileSaver{
         /**
          * The path for the file on Dropbox.
