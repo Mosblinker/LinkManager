@@ -4027,11 +4027,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 exitButton.setEnabled(false);
                 return;
             }
-        } else if (isLoadingFiles() && loader instanceof DbxUploader){
-            if (((DbxUploader)loader).getExitAfterSaving()){
-                exitButton.setEnabled(false);
-                return;
-            }
         }   // If the program fully loaded initially and it is to save after the 
             // initial load
         if (fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
@@ -4875,8 +4870,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
         if (isLoggedInToDropbox()){
-            loader = new DbxUploader("/"+getExternalDatabaseFileName(),getDatabaseFile(),true);
-            loader.execute();
+            saver = new DbxUploader(getDatabaseFile(),"/"+getExternalDatabaseFileName());
+            saver.execute();
         }
     }//GEN-LAST:event_uploadDBItemActionPerformed
 
@@ -8534,8 +8529,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          */
         protected void uploadDatabase(){
-            loader = new DbxUploader("/"+getExternalDatabaseFileName(),file,false,exitAfterSaving);
-            loader.execute();
+            saver = new DbxUploader(file,"/"+getExternalDatabaseFileName(),false,exitAfterSaving);
+            saver.execute();
         }
         @Override
         protected void exitProgram(){
@@ -10275,109 +10270,50 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private class DbxUploader extends FileLoader{
+    private class DbxUploader extends FileUploader{
         /**
-         * The path for the file on Dropbox.
-         */
-        private String dbxPath;
-        /**
-         * Whether the success prompt should be shown.
-         */
-        protected boolean showSuccess;
-        /**
-         * This stores whether this should exit the program after saving.
-         */
-        protected volatile boolean exitAfterSaving;
-        /**
-         * This gets any Dropbox exceptions that get thrown while downloading 
-         * the file.
+         * This gets any Dropbox exceptions that get thrown while uploading the 
+         * file.
          */
         private DbxException dbxEx = null;
         /**
-         * This gets any IOExceptions that get thrown while downloading the 
-         * file.
-         */
-        private IOException ioEx = null;
-        /**
          * 
-         * @param dbxPath
          * @param file
+         * @param dbxPath
          * @param showSuccess
          * @param exit 
          */
-        DbxUploader(String dbxPath, File file, boolean showSuccess, 
-                boolean exit) {
-            super(file,true);
-            this.dbxPath = Objects.requireNonNull(dbxPath);
-            this.showSuccess = showSuccess;
-            exitAfterSaving = exit;
+        DbxUploader(File file,String dbxPath,boolean showSuccess,boolean exit) {
+            super(file,dbxPath,showSuccess,exit);
         }
         /**
          * 
-         * @param dbxPath
          * @param file
+         * @param dbxPath
          * @param showSuccess 
          */
-        DbxUploader(String dbxPath, File file, boolean showSuccess){
-            this(dbxPath,file,showSuccess,false);
+        DbxUploader(File file, String dbxPath, boolean showSuccess){
+            super(file,dbxPath,showSuccess);
         }
         /**
          * 
          * @param dbxPath
          * @param file 
          */
-        DbxUploader(String dbxPath, File file){
-            this(dbxPath,file,false);
+        DbxUploader(File file,String dbxPath){
+            super(file,dbxPath);
         }
         @Override
-        public String getProgressString(){
-            return "Uploading File";
-        }
-        
-        public boolean getExitAfterSaving(){
-            return exitAfterSaving;
-        }
-        /**
-         * This sets whether the program will exit after this finishes saving 
-         * the file.
-         * @param value Whether the program will exit once the file is saved.
-         */
-        public void setExitAfterSaving(boolean value){
-            exitAfterSaving = value;
+        protected String getExceptionMessage(File file, String path){
+                // If a dropbox exception occurred
+            if (dbxEx != null)
+                return dbxEx.toString();
+            return super.getExceptionMessage(file, path);
         }
         @Override
-        protected void showSuccessPrompt(File file){
-                // If this should show the success prompt and the program is not 
-                // to exit after saving the file
-            if (showSuccess && !exitAfterSaving){
-                JOptionPane.showMessageDialog(LinkManager.this, 
-                        "The file was successfully uploaded.", 
-                        "File Uploaded Successfully", 
-                        JOptionPane.INFORMATION_MESSAGE);
-            }
-        }
-        @Override
-        protected String getFailureTitle(File file){
-            return "ERROR - File Failed To Upload";
-        }
-        @Override
-        protected String getFailureMessage(File file){
-                // The message to return
-            String msg = "The file failed to upload.";
-                // If the program is either in debug mode or if details are to 
-                // be shown
-            if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
-                Exception exc = (dbxEx != null) ? dbxEx : ioEx;
-                if (exc != null)
-                    msg += "\nError: " + exc;
-            }
-            return msg;
-        }
-        @Override
-        protected boolean loadFile(File file) {
-                // Reset the exceptions to null
+        protected boolean uploadFile(File file, String path) throws IOException {
+                // Reset the dropbox exception to null
             dbxEx = null;
-            ioEx = null;
             try{    // Create the Dropbox client
                 DbxRequestConfig dbxConfig = dbxUtils.createRequest();
                     // Get the Dropbox credentials
@@ -10389,9 +10325,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Get the file namespace for Dropbox
                 DbxUserFilesRequests dbxFiles = client.files();
                     // If the file already exists
-                if (dbxFileExists(dbxPath,dbxFiles))
+                if (dbxFileExists(path,dbxFiles))
                         // Delete the file so that it can be replaced
-                    dbxFiles.deleteV2(dbxPath);
+                    dbxFiles.deleteV2(path);
                     // Set the progress to be zero
                 setProgressValue(0);
                     // Get the value needed to divide the file length to get it 
@@ -10415,7 +10351,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Create an input stream to load the file 
                 try (InputStream in = new BufferedInputStream(new FileInputStream(file))){
                         // Upload the file to Dropbox
-                    dbxFiles.uploadBuilder(dbxPath).uploadAndFinish(in, (long bytesWritten) -> {
+                    dbxFiles.uploadBuilder(path).uploadAndFinish(in, (long bytesWritten) -> {
                             // Update the progress with the amount of bytes 
                             // written
                         setProgressValue((int)Math.ceil(bytesWritten / div));
@@ -10424,8 +10360,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return true;
             } catch(DbxException ex){
                 dbxEx = ex;
-            } catch(IOException ex){
-                ioEx = ex;
+                if (isInDebug())    // If the program is in debug mode
+                    System.out.println(ex);
             }
             return false;
         }
