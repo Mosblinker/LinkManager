@@ -6027,11 +6027,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         conn.commit();          // Commit the changes to the database
         System.gc();            // Run the garbage collector
         setIndeterminate(false);
-            // Go through the new links
-        for (String link : linksSet){
-            linkMap.add(link);
-            incrementProgressValue();
-        }
+            // Add the new links to the database.
+        linkMap.addAll(linksSet, listContentsObserver);
         
         setIndeterminate(true);
         conn.commit();          // Commit the changes to the database
