@@ -4870,7 +4870,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
         if (isLoggedInToDropbox()){
-            saver = new DbxUploader(getDatabaseFile(),"/"+getExternalDatabaseFileName());
+            if (!getDatabaseFile().exists()){
+                saver = new DatabaseSaver(){
+                    @Override
+                    protected void uploadDatabase(){
+                        if (getExitAfterSaving())
+                            super.uploadDatabase();
+                    }
+                    @Override
+                    protected void done(){
+                        super.done();
+                        if (!getExitAfterSaving()){
+                            saver = new DbxUploader(getDatabaseFile(),"/"+getExternalDatabaseFileName());
+                            saver.execute();
+                        }
+                    }
+                };
+            } else {
+                saver = new DbxUploader(getDatabaseFile(),"/"+getExternalDatabaseFileName());
+            }
             saver.execute();
         }
     }//GEN-LAST:event_uploadDBItemActionPerformed
