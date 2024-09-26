@@ -5,6 +5,7 @@
 package manager.database;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import sql.UncheckedSQLException;
 
 /**
@@ -173,4 +174,64 @@ public interface LinkMap extends SQLRowMap<Long, String>{
         });
         return map;
     }
+    /**
+     * This maps the elements in the given collection to new, unique keys for 
+     * each element, and returns whether this map was altered as a result of 
+     * calling this method. More formally, this generates a key currently not 
+     * found in this map for each element in the given collection, and maps the 
+     * generated keys to each element.
+     * @param c The collection of values to put in this map.
+     * @param observer An observer to use to observe the progress of this 
+     * method, or null. The first parameter provided to it will be the progress 
+     * value, and the second parameter will be the progress maximum. A null 
+     * value for the second parameter indicates that this is to switch whether 
+     * the progress is indeterminate, with a non-zero first parameter indicating 
+     * that the progress is currently indeterminate.
+     * @return Whether this map was altered as a result of calling this method. 
+     * @throws UnsupportedOperationException If the {@code add} operation is not 
+     * supported by this map.
+     * @throws ClassCastException If any of the elements in the collection are 
+     * of an inappropriate type for this map.
+     * @throws NullPointerException If the given collection is null or if the 
+     * given collection contains a null element and this map does not permit 
+     * null values.
+     * @throws IllegalArgumentException If some property of any of the elements 
+     * in the given collection prevents it from being stored in this map.
+     * @throws sql.UncheckedSQLException Implementations may, but 
+     * are not required to, throw this if a database error occurs.
+     */
+    public boolean addAll(Collection<? extends String> c, 
+            BiConsumer<Integer,Integer> observer);
+    /**
+     * This maps any elements in the given collection that are not currently 
+     * associated with a key to a new, unique key for that element, and returns 
+     * whether this map was altered as a result of calling this method. More 
+     * formally, this generates a key currently not found in this map for each 
+     * element in the given collection that is not currently mapped to a key in 
+     * this map, and maps the generated keys to those elements. Any element in 
+     * the collection that is already associated with a key in this map will be 
+     * ignored. 
+     * 
+     * @param c The collection of values to put in this map.
+     * @param observer An observer to use to observe the progress of this 
+     * method, or null. The first parameter provided to it will be the progress 
+     * value, and the second parameter will be the progress maximum. A null 
+     * value for the second parameter indicates that this is to switch whether 
+     * the progress is indeterminate, with a non-zero first parameter indicating 
+     * that the progress is currently indeterminate.
+     * @return Whether this map was altered as a result of calling this method. 
+     * @throws UnsupportedOperationException If the {@code add} operation is not 
+     * supported by this map.
+     * @throws ClassCastException If any of the elements in the collection are 
+     * of an inappropriate type for this map.
+     * @throws NullPointerException If the given collection is null or if the 
+     * given collection contains a null element and this map does not permit 
+     * null values.
+     * @throws IllegalArgumentException If some property of any of the elements 
+     * in the given collection prevents it from being stored in this map.
+     * @throws sql.UncheckedSQLException Implementations may, but 
+     * are not required to, throw this if a database error occurs.
+     */
+    public boolean addAllIfAbsent(Collection<? extends String> c, 
+            BiConsumer<Integer,Integer> observer);
 }

@@ -6660,6 +6660,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
+    protected static final int LINK_ADDING_AUTO_COMMIT = 10000;
+    /**
+     * 
+     */
     private class LinkMapImpl extends AbstractDatabaseRowMap<Long,String> 
             implements LinkMap {
         /**
@@ -6774,6 +6778,123 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // If the linkID of the added link was found, return it. 
                 // Otherwise, find it and return the linkID for the added link
             return (linkID != null) ? linkID:getGeneratedKey(value,existingIDs);
+        }
+        /**
+         * {@inheritDoc }
+         */
+        @Override
+        protected boolean addAllSQL(Collection<? extends String> c)throws SQLException{
+            return addAllSQL(c,null);
+        }
+        /**
+         * 
+         * @param c
+         * @param observer
+         * @return
+         * @throws SQLException 
+         */
+        protected boolean addAllSQL(Collection<? extends String> c, 
+                BiConsumer<Integer,Integer> observer) throws SQLException{
+            if (c.isEmpty())
+                return false;
+                // Get the current state of the auto-commit
+            boolean autoCommit = getAutoCommit();
+                // Turn off the auto-commit in order to group the following 
+                // database transactions to improve performance
+            setAutoCommit(false);
+                // If an observer has been provided
+            if (observer != null)
+                    // Set the progress to not be indeterminate
+                observer.accept(0, null);
+            int size = size();      // Get the current size of the map
+                // If the given collection is not a set
+            if (!(c instanceof Set))
+                c = new LinkedHashSet<>(c);
+            int index = 0;
+            for (String value : c){ // Go through the elements in the collection
+                    // Add the value to the map
+                addSQL(value);
+                index++;
+                    // If an observer has been provided
+                if (observer != null)
+                    observer.accept(index, c.size());
+                if (index % LINK_ADDING_AUTO_COMMIT == 0){
+                        // If an observer has been provided
+                    if (observer != null)
+                            // Set the progress to be indeterminate
+                        observer.accept(1, null);
+                        // Commit the changes to the database
+                    commit();
+                        // If an observer has been provided
+                    if (observer != null)
+                            // Set the progress to not be indeterminate
+                        observer.accept(0, null);
+                }
+            }   // If an observer has been provided
+            if (observer != null)
+                    // Set the progress to be indeterminate
+                observer.accept(1, null);
+                // Commit the changes to the database
+            commit();
+                // Restore the auto-commit back to what it was set to before
+            setAutoCommit(autoCommit);
+            return size != size();
+        }
+        /**
+         * {@inheritDoc }
+         */
+        @Override
+        public boolean addAll(Collection<? extends String> c, 
+                BiConsumer<Integer,Integer> observer){
+            try{
+                return addAllSQL(c,observer);
+            } catch (SQLException ex) {
+                ConnectionBased.throwConstraintException(ex);
+                appendWarning(ex);
+                throw new UncheckedSQLException(ex);
+            }
+        }
+        /**
+         * 
+         * @param c
+         * @param observer
+         * @return
+         * @throws SQLException 
+         */
+        protected boolean addAllIfAbsentSQL(Collection<? extends String> c, 
+                BiConsumer<Integer,Integer> observer) throws SQLException{
+                // Turn the collection into a LinkedHashSet, so as to remove any 
+                // duplicates (since every element will only be added once if at 
+                // all) while also maintaining the order of the given collection. 
+                // This also allows changes to be made to the collection without 
+                // altering the original collection.
+            c = new LinkedHashSet<>(c);
+                // Create a set copy of the values in this map, so as to reduce 
+                // calls to the underlying database while preparing the collection 
+            Set<String> values = new HashSet<>(values());    // to add
+                // Remove any elements shared between the given collection and this 
+                // map's value set (since these elements would otherwise have been 
+            c.removeAll(values);    // skipped)
+                // If there are no elements remaining in the set to be added (the 
+                // given collection was empty or only contained values already 
+            if (c.isEmpty())    // present in this map)
+                return false;
+                // Try to add all the remaining elements to this map
+            return addAll(c, observer);
+        }
+        /**
+         * {@inheritDoc }
+         */
+        @Override
+        public boolean addAllIfAbsent(Collection<? extends String> c, 
+                BiConsumer<Integer,Integer> observer){
+            try{
+                return addAllIfAbsentSQL(c,observer);
+            } catch (SQLException ex) {
+                ConnectionBased.throwConstraintException(ex);
+                appendWarning(ex);
+                throw new UncheckedSQLException(ex);
+            }
         }
         /**
          * {@inheritDoc }
