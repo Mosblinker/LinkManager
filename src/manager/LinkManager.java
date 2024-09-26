@@ -9937,7 +9937,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void showSuccessPrompt(File file){
-            if (!getShowSuccessPrompt(file,filePath))
+            if (getShowSuccessPrompt(file,filePath))
                 super.showSuccessPrompt(file);
         }
         @Override
