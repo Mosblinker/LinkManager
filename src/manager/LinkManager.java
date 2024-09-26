@@ -9040,26 +9040,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Search for the empty prefix
             searchUsedPrefixes(conn,prefixMap.getEmptyPrefixID());
             dbLinkSearchTable.setModel(getListSearchTableModel());
-                // Create the config table model if not already created
-            createConfigModel();
+            
                 // Get the database properties
             DatabasePropertyMap dbProperty = conn.getDatabaseProperties();
-                // Get a copy of the database property names
-            Set<String> propNames = new TreeSet<>(dbProperty.propertyNameSet());
-            clearProgressValue();
-            setProgressMaximum(propNames.size());
-            setIndeterminate(false);
-                // Go through the database property names
-            for (String property : propNames){
-                addConfigRow(
-                        "Database",
-                        property,
-                        dbProperty.getProperty(property),
-                        dbProperty.containsKey(property),
-                        dbProperty.getDefaults().get(property)
-                );
-                incrementProgressValue();
-            }
+                // Add the database properies to the config table
+            addConfigRows("Database",dbProperty.toProperties(),
+                    dbProperty.getDefaults().toProperties());
             
             setIndeterminate(true);
                 // Get the list data map from the database
@@ -9240,6 +9226,55 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 defaultValue
             });
         }
+        /**
+         * 
+         * @param source
+         * @param config
+         * @param defaultConfig 
+         * @param setIfNotEqual
+         */
+        private void addConfigRows(String source, Properties config, 
+                Properties defaultConfig, boolean setIfNotEqual){
+            setIndeterminate(true);
+                // Create the config table model if not already created
+            createConfigModel();
+                // Get the property names for the config
+            Set<String> propNames = new TreeSet<>(config.stringPropertyNames());
+                // If a default config was provided
+            if (defaultConfig != null)
+                    // Add all the default property names too
+                propNames.addAll(defaultConfig.stringPropertyNames());
+            clearProgressValue();
+            setProgressMaximum(propNames.size());
+            setIndeterminate(false);
+                // Go through the program's property names
+            for (String property : propNames){
+                    // Get the set property value
+                String propValue = config.getProperty(property);
+                    // Get the default property value
+                String propDefault = (defaultConfig != null) ? 
+                        defaultConfig.getProperty(property) : null;
+                addConfigRow(
+                        source,
+                        property,
+                        propValue,
+                        config.containsKey(property) && 
+                                (!setIfNotEqual || !Objects.equals(propValue, propDefault)),
+                        propDefault
+                );
+                incrementProgressValue();
+            }
+        }
+        /**
+         * 
+         * @param source
+         * @param config
+         * @param defaultConfig 
+         */
+        private void addConfigRows(String source, Properties config, 
+                Properties defaultConfig){
+            addConfigRows(source,config,defaultConfig,false);
+        }
         @Override
         protected boolean loadFile(File file){
             if (file.exists())  // If the database file exists
@@ -9251,66 +9286,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Load the database stuff
             super.backgroundAction();
             
-            setIndeterminate(true);
-                // Create the config table model if not already created
-            createConfigModel();
-                // Get the property names for this program
-            Set<String> propNames = new TreeSet<>(config.stringPropertyNames());
-                // Add all the default property names too
-            propNames.addAll(defaultConfig.stringPropertyNames());
-                // Get the SQLite configuration as a properties
-            Properties sqlProp = sqlConfig.toProperties();
-                // Create a new SQLiteConfig object to get the properties of a 
-                // newly created SQLiteConfig object
-            Properties defSQLProp = new SQLiteConfig().toProperties();
-                // Get the property names for the SQLite configuration
-            Set<String> sqlPropNames = new TreeSet<>(sqlProp.stringPropertyNames());
-                // Add all the default SQLite configuration property names too
-            sqlPropNames.addAll(defSQLProp.stringPropertyNames());
-                // Get the property names for this program's private settings
-            Set<String> privatePropNames = new TreeSet<>(privateConfig.stringPropertyNames());
-                // Add all the default private property names too
-            privatePropNames.addAll(defaultPrivateConfig.stringPropertyNames());
-            clearProgressValue();
-            setProgressMaximum(propNames.size()+sqlPropNames.size()+privatePropNames.size());
-            setIndeterminate(false);
-                // Go through the program's property names
-            for (String property : propNames){
-                addConfigRow(
-                        "Properties",
-                        property,
-                        config.getProperty(property),
-                        config.containsKey(property),
-                        defaultConfig.getProperty(property)
-                );
-                incrementProgressValue();
-            }
-                // Go through the program's private property names
-            for (String property : privatePropNames){
-                addConfigRow(
-                        "Private Properties",
-                        property,
-                        privateConfig.getProperty(property),
-                        privateConfig.containsKey(property),
-                        defaultPrivateConfig.getProperty(property)
-                );
-                incrementProgressValue();
-            }
-                // Go through the SQLite configuration property names
-            for (String property : sqlPropNames){
-                    // Get the set property value
-                String propValue = sqlProp.getProperty(property);
-                    // Get the default property value
-                String propDefault = defSQLProp.getProperty(property);
-                addConfigRow(
-                        "SQLiteConfig",
-                        property,
-                        propValue,
-                        !Objects.equals(propValue, propDefault),
-                        propDefault
-                );
-                incrementProgressValue();
-            }
+                // Add the configuration for SQLite
+            addConfigRows("SQLiteConfig",sqlConfig.toProperties(),new SQLiteConfig().toProperties(),true);
+                // Add all the properties for this program
+            addConfigRows("Properties",config,defaultConfig);
+                // Add all the private properties for this program
+            addConfigRows("Private Properties",privateConfig,defaultPrivateConfig);
             
             return null;
         }
