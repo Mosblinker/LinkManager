@@ -6809,22 +6809,26 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             if (observer != null)
                     // Set the progress to be indeterminate
                 observer.accept(1, null);
-            Map<String,Map.Entry<Integer,String>> prefixes = getPrefixMap().getLongestPrefixesFor(c);
+                // Get the prefixes for the new links
+            Map<String,Map.Entry<Integer,String>> prefixes = 
+                    getPrefixMap().getLongestPrefixesFor(c);
                 // If an observer has been provided
             if (observer != null)
                     // Set the progress to not be indeterminate
                 observer.accept(0, null);
             int size = size();      // Get the current size of the map
-            int index = 0;
+            int index = 0;          // The index for the current link
             for (String value : c){ // Go through the elements in the collection
                     // Ensure that the value is not null
                 Objects.requireNonNull(value);
-                    // Add the value to the map
+                    // Insert the value to the map
                 insertSQL(value,prefixes.get(value));
                 index++;
                     // If an observer has been provided
                 if (observer != null)
                     observer.accept(index, c.size());
+                    // If we should commit the changes (prevents too many 
+                    // changes from being done all at once)
                 if (index % LINK_ADDING_AUTO_COMMIT == 0){
                         // Commit the changes to the database
                     commit();
