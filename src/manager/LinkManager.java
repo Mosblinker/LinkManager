@@ -4062,9 +4062,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void autosaveMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_autosaveMenuActionPerformed
         if (isInDebug() && printAutosaveEventsToggle.isSelected()){
             System.out.println("Autosave Menu Action: " + evt);
-        }   // If this is to autosave the lists and the lists have been edited
+        }   // If this is to autosave the lists, the lists have been edited, and 
+            // the program is not currently saving files.
         if (AutosaveMenu.AUTOSAVE_COMMAND.equals(evt.getActionCommand()) && 
-                isEdited()){
+                isEdited() && !isSavingFiles()){
             saver = new DatabaseSaver();
             saver.execute();
         }

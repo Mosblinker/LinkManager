@@ -323,7 +323,7 @@ public class AutosaveMenu extends JMenu{
     @Override
     public void setEnabled(boolean enabled){
         super.setEnabled(enabled);
-        autosaveTimerMenu.setTimerEnabled(enabled);
+        autosaveTimerMenu.setEnabled(enabled);
     }
     
     public boolean isRunning(){

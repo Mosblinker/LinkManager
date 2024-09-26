@@ -442,10 +442,6 @@ public abstract class AutoTimerMenu extends JMenu{
     @Override
     public void setEnabled(boolean enabled){
         super.setEnabled(enabled);
-        setTimerEnabled(enabled);
-    }
-    
-    protected void setTimerEnabled(boolean enabled){
         if (enabled && running)
             resumeTimer();
         else
