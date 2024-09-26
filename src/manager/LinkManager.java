@@ -5857,6 +5857,90 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         return false;
     }
+    /**
+     * 
+     * @param file
+     * @param config
+     * @throws IOException 
+     */
+    private void loadProperties(File file, Properties config) throws IOException{
+            // Try to create a FileReader to read from the file
+        try(FileReader reader = new FileReader(file)){
+            config.clear();
+            config.load(reader);
+        }
+    }
+    /**
+     * This attempts to read the contents of the given file and store it in the 
+     * given properties map. This will first clear the given properties map and 
+     * then load the properties into the map.
+     * @param file The file to read from.
+     * @param config The properties map to load into.
+     * @return Whether the configuration was successfully loaded.
+     * @throws IOException If an error occurs while reading the file.
+     */
+    private boolean loadConfiguration(File file, Properties config) throws IOException{
+        if (!file.exists())
+            return false;
+        loadProperties(file,config);
+        
+        // TODO: These configuration keys are deprecated and are here for legacy 
+        // reasons
+        
+            // If the config does not have the database file key
+        if (!config.containsKey(DATABASE_FILE_PATH_KEY)){
+                // Check if the config is still using the old separate folder 
+                // and file name structure
+            if (config.containsKey(DATABASE_FOLDER_KEY) || 
+                    config.containsKey(DATABASE_FILE_KEY)){
+                    // Get the folder from the config
+                String folder = config.getProperty(DATABASE_FOLDER_KEY, ".");
+                    // If the folder is null or blank
+                if (folder == null || folder.isBlank())
+                        // File is relative to program
+                    folder = "";
+                else
+                    folder = folder.trim() + File.separator;
+                    // Get the file name from the config, defaulting to the 
+                    // default name if there isn't one
+                String fileName = config.getProperty(DATABASE_FILE_KEY, 
+                        LINK_DATABASE_FILE);
+                    // If the file name is null or blank
+                if (fileName == null || fileName.isBlank())
+                        // Use the default file name
+                    fileName = LINK_DATABASE_FILE;
+                    // Combine the folder and file name to get the full file path
+                fileName = folder + fileName.trim();
+                    // If the database file is not the default path
+                if (!LINK_DATABASE_FILE.equals(fileName))
+                        // Set the updated database file path value
+                    config.setProperty(DATABASE_FILE_PATH_KEY, fileName);
+            }
+        }
+        // These configuration keys are deprecated and should be removed
+            // Remove the old file name key
+        config.remove(DATABASE_FILE_KEY);
+            // Remove the old folder key
+        config.remove(DATABASE_FOLDER_KEY);
+        return true;
+    }
+    /**
+     * 
+     * @param file
+     * @param config
+     * @return 
+     */
+    private boolean loadConfigFile(File file, Properties config){
+        showHiddenListsToggle.setEnabled(false);
+        try {
+            return loadConfiguration(file, config);
+        } catch (IOException ex) {
+            if (isInDebug())
+                System.out.println(ex);
+            return false;
+        }
+    }
+    
     
     
     
@@ -6157,89 +6241,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (!file.exists() && privateConfig.isEmpty())
             return true;
         return saveConfiguration(file,privateConfig, PRIVATE_CONFIG_FLAG);
-    }
-    /**
-     * 
-     * @param file
-     * @param config
-     * @throws IOException 
-     */
-    private void loadProperties(File file, Properties config) throws IOException{
-            // Try to create a FileReader to read from the file
-        try(FileReader reader = new FileReader(file)){
-            config.clear();
-            config.load(reader);
-        }
-    }
-    /**
-     * This attempts to read the contents of the given file and store it in the 
-     * given properties map. This will first clear the given properties map and 
-     * then load the properties into the map.
-     * @param file The file to read from.
-     * @param config The properties map to load into.
-     * @return Whether the configuration was successfully loaded.
-     * @throws IOException If an error occurs while reading the file.
-     */
-    private boolean loadConfiguration(File file, Properties config) throws IOException{
-        if (!file.exists())
-            return false;
-        loadProperties(file,config);
-        
-        // TODO: These configuration keys are deprecated and are here for legacy 
-        // reasons
-        
-            // If the config does not have the database file key
-        if (!config.containsKey(DATABASE_FILE_PATH_KEY)){
-                // Check if the config is still using the old separate folder 
-                // and file name structure
-            if (config.containsKey(DATABASE_FOLDER_KEY) || 
-                    config.containsKey(DATABASE_FILE_KEY)){
-                    // Get the folder from the config
-                String folder = config.getProperty(DATABASE_FOLDER_KEY, ".");
-                    // If the folder is null or blank
-                if (folder == null || folder.isBlank())
-                        // File is relative to program
-                    folder = "";
-                else
-                    folder = folder.trim() + File.separator;
-                    // Get the file name from the config, defaulting to the 
-                    // default name if there isn't one
-                String fileName = config.getProperty(DATABASE_FILE_KEY, 
-                        LINK_DATABASE_FILE);
-                    // If the file name is null or blank
-                if (fileName == null || fileName.isBlank())
-                        // Use the default file name
-                    fileName = LINK_DATABASE_FILE;
-                    // Combine the folder and file name to get the full file path
-                fileName = folder + fileName.trim();
-                    // If the database file is not the default path
-                if (!LINK_DATABASE_FILE.equals(fileName))
-                        // Set the updated database file path value
-                    config.setProperty(DATABASE_FILE_PATH_KEY, fileName);
-            }
-        }
-        // These configuration keys are deprecated and should be removed
-            // Remove the old file name key
-        config.remove(DATABASE_FILE_KEY);
-            // Remove the old folder key
-        config.remove(DATABASE_FOLDER_KEY);
-        return true;
-    }
-    /**
-     * 
-     * @param file
-     * @param config
-     * @return 
-     */
-    private boolean loadConfigFile(File file, Properties config){
-        showHiddenListsToggle.setEnabled(false);
-        try {
-            return loadConfiguration(file, config);
-        } catch (IOException ex) {
-            if (isInDebug())
-                System.out.println(ex);
-            return false;
-        }
     }
     /**
      * 
@@ -8133,8 +8134,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private class ConfigSaver extends FileSaver{
-        
-//        private Properties savedConfig = new Properties();
 
         ConfigSaver(File file, boolean exit) {
             super(file, exit);
