@@ -6429,6 +6429,46 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
         }
         /**
+         * {@inheritDoc }
+         */
+        @Override
+        public Map<String, Map.Entry<Integer, String>>getLongestPrefixesFor(
+                Collection<? extends String> values){
+                // If the given collection is empty
+            if (values.isEmpty())
+                return new LinkedHashMap<>();
+                // If the given collection is not a set
+            if (!(values instanceof Set))
+                    // Turn it into a set
+                values = new LinkedHashSet<>(values);
+                // This will get the entries for the longest matching prefixes 
+                // for the values
+            LinkedHashMap<String, Map.Entry<Integer, String>> prefixes = 
+                    new LinkedHashMap<>();
+                // Create a copy of this prefix map
+            TreeMap<Integer,String> prefixMap = new TreeMap<>(this);
+                // Go through the values in the collection
+            for (String value : values){
+                    // This will get the longest matching prefix
+                Map.Entry<Integer, String> prefix = null;
+                    // Go through the prefixes
+                for (Map.Entry<Integer, String> entry : prefixMap.entrySet()){
+                        // If the current value starts with the current prefix
+                    if (value.startsWith(entry.getValue())){
+                            // If the longest prefix is null or shorter than 
+                            // the current prefix
+                        if (prefix == null || 
+                                prefix.getValue().length() < entry.getValue().length())
+                            prefix = entry;
+                    }
+                }   // If there was no longest matchin prefix
+                if (prefix == null)
+                    prefix = getEmptyPrefixEntry();
+                prefixes.put(value, prefix);
+            }
+            return prefixes;
+        }
+        /**
          * 
          */
         private class SuffixMap extends AbstractMap<Integer,String> implements 
