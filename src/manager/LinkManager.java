@@ -26,9 +26,12 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.datatransfer.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.io.*;
 import java.net.*;
@@ -50,6 +53,7 @@ import manager.dropbox.*;
 import manager.links.*;
 import manager.timermenu.*;
 import measure.format.binary.ByteUnitFormat;
+import net.coobird.thumbnailator.Thumbnailator;
 import org.sqlite.*;
 import org.sqlite.core.*;
 import sql.*;
@@ -67,6 +71,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is the version of the program.
      */
     public static final String PROGRAM_VERSION = "0.1.0";
+    /**
+     * This is an array containing the widths and heights for the icon images 
+     * for this program. 
+     */
+    private static final int[] ICON_SIZES = {16, 24, 32, 48, 64, 96, 128, 256, 512};
     /**
      * This is the client identifier to pass to Dropbox for this program. This 
      * contains the name of this program (without any spaces) and the version.
@@ -828,14 +837,39 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return dbxUtils;
     }
     /**
+     * 
+     * @param image
+     * @return 
+     */
+    private java.util.List<BufferedImage> generateIconImages(Image image){
+        if (image == null)
+            return null;
+        BufferedImage img;
+        if (image instanceof BufferedImage)
+            img = (BufferedImage) image;
+        else{
+            img = new BufferedImage(image.getWidth(null),image.getHeight(null),
+                    BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = img.createGraphics();
+            g.drawImage(image, 0, 0, null);
+            g.dispose();
+        }    // Create a list to get the images
+        ArrayList<BufferedImage> iconImages = new ArrayList<>();
+            // Go through the sizes for the images
+        for (int size : ICON_SIZES){
+            iconImages.add(Thumbnailator.createThumbnail(img, size, size));
+        }
+        return iconImages;
+    }
+    /**
      * This constructs a new LinkManager with the given value determining if it 
      * is in debug mode.
      * @param debugMode Whether the program is in debug mode.
      */
     public LinkManager(boolean debugMode) {
         this.debugMode = debugMode;
-        super.setIconImage(new ImageIcon(this.getClass().getResource(ICON_FILE))
-                .getImage());
+        setIconImages(generateIconImages(
+                new ImageIcon(this.getClass().getResource(ICON_FILE)).getImage()));
         editCommands = new HashMap<>();
         undoCommands = new HashMap<>();
         textPopupMenus = new HashMap<>();
