@@ -5735,6 +5735,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     /**
+     * This gets the String representing the URL from a shortcut file.
+     * @param lines A List of Strings extracted from the shortcut file.
+     * @return The URL, as a String, or null if not found.
+     */
+    private String getShortcutURL(List<String> lines){
+            // Starts from the shortcut flag and searches for the URL
+        for (int pos = lines.indexOf(SHORTCUT_FLAG); pos < lines.size(); pos++){
+            String temp = lines.get(pos).trim();  // The string being checked
+                // If the current string starts with the URL flag
+            if (temp.startsWith(URL_FLAG)){
+                return temp.substring(URL_FLAG.length());
+            }
+        }
+        return null;
+    }
+    /**
      * This reads in the remaining lines from the given Scanner and stores them 
      * into the given List of Strings.
      * @param scanner The Scanner to read the lines from (cannot be null).
@@ -5753,22 +5769,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             slowTestToggle.runSlowTest();
         }
         return count;
-    }
-    /**
-     * This gets the String representing the URL from a shortcut file.
-     * @param lines A List of Strings extracted from the shortcut file.
-     * @return The URL, as a String, or null if not found.
-     */
-    private String getShortcutURL(List<String> lines){
-            // Starts from the shortcut flag and searches for the URL
-        for (int pos = lines.indexOf(SHORTCUT_FLAG); pos < lines.size(); pos++){
-            String temp = lines.get(pos).trim();  // The string being checked
-                // If the current string starts with the URL flag
-            if (temp.startsWith(URL_FLAG)){
-                return temp.substring(URL_FLAG.length());
-            }
-        }
-        return null;
     }
     /**
      * This attempts to write the List of Strings to the given file.
@@ -5794,6 +5794,62 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         return true;
     }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    private Integer getIntegerFromConfig(String key, Properties config){
+        try{
+            return Integer.valueOf(config.getProperty(key));
+        } catch(NumberFormatException ex){ 
+            return null;
+        }
+    }
+    /**
+     * 
+     * @param widthKey
+     * @param heightKey
+     * @return 
+     */
+    private Dimension getSizeFromConfig(String widthKey, String heightKey, 
+            Properties config){
+            // Get the width from the config
+        Integer width = getIntegerFromConfig(widthKey, config);
+            // Get the height from the config
+        Integer height = getIntegerFromConfig(heightKey, config);
+            // If either the width or height are null
+        if (width == null || height == null)
+            return null;
+        return new Dimension(width,height);
+    }
+    /**
+     * 
+     * @param key
+     * @param config
+     * @return 
+     */
+    private Dimension getSizeFromConfig(String key, Properties config){
+        return getSizeFromConfig(key+WIDTH_KEY_SUFFIX,key+HEIGHT_KEY_SUFFIX,
+                config);
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    private boolean isPrefixedConfigKey(String key){
+        return key.startsWith(SELECTED_LINK_FOR_LIST_KEY_PREFIX) || 
+                key.startsWith(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX) ||
+                key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX) ||
+                key.startsWith(LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX) || 
+                key.startsWith(CURRENT_TAB_LIST_ID_KEY_PREFIX) || 
+                key.startsWith(CURRENT_TAB_INDEX_KEY_PREFIX);
+    }
+    
+    
+    
+    
     /**
      * 
      * @param conn
@@ -5960,58 +6016,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbListIDs.removeIf((Integer t) -> t == null);
             // Add any that are missing from the tabs panel
         dbListIDs.addAll(missingIDs);
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    private Integer getIntegerFromConfig(String key, Properties config){
-        try{
-            return Integer.valueOf(config.getProperty(key));
-        } catch(NumberFormatException ex){ 
-            return null;
-        }
-    }
-    /**
-     * 
-     * @param widthKey
-     * @param heightKey
-     * @return 
-     */
-    private Dimension getSizeFromConfig(String widthKey, String heightKey, 
-            Properties config){
-            // Get the width from the config
-        Integer width = getIntegerFromConfig(widthKey, config);
-            // Get the height from the config
-        Integer height = getIntegerFromConfig(heightKey, config);
-            // If either the width or height are null
-        if (width == null || height == null)
-            return null;
-        return new Dimension(width,height);
-    }
-    /**
-     * 
-     * @param key
-     * @param config
-     * @return 
-     */
-    private Dimension getSizeFromConfig(String key, Properties config){
-        return getSizeFromConfig(key+WIDTH_KEY_SUFFIX,key+HEIGHT_KEY_SUFFIX,
-                config);
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    private boolean isPrefixedConfigKey(String key){
-        return key.startsWith(SELECTED_LINK_FOR_LIST_KEY_PREFIX) || 
-                key.startsWith(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX) ||
-                key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX) ||
-                key.startsWith(LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX) || 
-                key.startsWith(CURRENT_TAB_LIST_ID_KEY_PREFIX) || 
-                key.startsWith(CURRENT_TAB_INDEX_KEY_PREFIX);
     }
     /**
      * 
