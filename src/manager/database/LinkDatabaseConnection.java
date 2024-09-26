@@ -6797,6 +6797,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 BiConsumer<Integer,Integer> observer) throws SQLException{
             if (c.isEmpty())
                 return false;
+                // If the given collection is not a set
+            if (!(c instanceof Set))
+                c = new LinkedHashSet<>(c);
                 // Get the current state of the auto-commit
             boolean autoCommit = getAutoCommit();
                 // Turn off the auto-commit in order to group the following 
@@ -6804,31 +6807,27 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             setAutoCommit(false);
                 // If an observer has been provided
             if (observer != null)
+                    // Set the progress to be indeterminate
+                observer.accept(1, null);
+            Map<String,Map.Entry<Integer,String>> prefixes = getPrefixMap().getLongestPrefixesFor(c);
+                // If an observer has been provided
+            if (observer != null)
                     // Set the progress to not be indeterminate
                 observer.accept(0, null);
             int size = size();      // Get the current size of the map
-                // If the given collection is not a set
-            if (!(c instanceof Set))
-                c = new LinkedHashSet<>(c);
             int index = 0;
             for (String value : c){ // Go through the elements in the collection
+                    // Ensure that the value is not null
+                Objects.requireNonNull(value);
                     // Add the value to the map
-                addSQL(value);
+                insertSQL(value,prefixes.get(value));
                 index++;
                     // If an observer has been provided
                 if (observer != null)
                     observer.accept(index, c.size());
                 if (index % LINK_ADDING_AUTO_COMMIT == 0){
-                        // If an observer has been provided
-                    if (observer != null)
-                            // Set the progress to be indeterminate
-                        observer.accept(1, null);
                         // Commit the changes to the database
                     commit();
-                        // If an observer has been provided
-                    if (observer != null)
-                            // Set the progress to not be indeterminate
-                        observer.accept(0, null);
                 }
             }   // If an observer has been provided
             if (observer != null)

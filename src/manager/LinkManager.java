@@ -6026,12 +6026,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setIndeterminate(true);
         conn.commit();          // Commit the changes to the database
         System.gc();            // Run the garbage collector
-        setIndeterminate(false);
             // Add the new links to the database.
         linkMap.addAll(linksSet, listContentsObserver);
-        
-        setIndeterminate(true);
-        conn.commit();          // Commit the changes to the database
         setIndeterminate(false);
             // This gets a cached copy of the inverse link map
         Map<String,Long> linkIDMap = new HashMap<>(conn.getLinkMap().inverse());
