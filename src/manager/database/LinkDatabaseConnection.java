@@ -6719,6 +6719,44 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             return value;
         }
         /**
+         * 
+         * @param prefixID
+         * @param suffix
+         * @return 
+         * @throws SQLException
+         */
+        private Long insertSQL(int prefixID, String suffix) throws SQLException {
+                // This is the listID of the link that just was added
+            Long linkID;
+                // Prepare a statement to insert the link into the link table
+            try (PreparedStatement pstmt = prepareStatement(String.format(
+                    "INSERT INTO %s(%s, %s) VALUES (?, ?)", 
+                            LINK_TABLE_NAME,
+                            PREFIX_ID_COLUMN_NAME,
+                            LINK_URL_COLUMN_NAME))) {
+                    // Set the prefixID for the link's prefix
+                pstmt.setInt(1, prefixID);
+                    // Set the link's suffix
+                pstmt.setString(2, suffix);
+                    // Update the database
+                pstmt.executeUpdate();
+                    // Get the key that was generated
+                linkID = getGeneratedLongKey(pstmt);
+            }
+            return linkID;
+        }
+        /**
+         * 
+         * @param value
+         * @param prefix
+         * @return
+         * @throws SQLException 
+         */
+        private Long insertSQL(String value, Map.Entry<Integer, String> prefix) 
+                throws SQLException {
+            return insertSQL(prefix.getKey(),value.substring(prefix.getValue().length()));
+        }
+        /**
          * {@inheritDoc }
          */
         @Override
@@ -6731,25 +6769,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // This gets a set of linkIDs currently in this map for the 
                 // given value
             Set<Long> existingIDs = new TreeSet<>(keySetFor(value));
-                // This is the listID of the link that just was added
-            Long linkID;
-                // Remove the prefix from the link
-            value = value.substring(prefixEntry.getValue().length());
-                // Prepare a statement to insert the link into the link table
-            try (PreparedStatement pstmt = prepareStatement(String.format(
-                    "INSERT INTO %s(%s, %s) VALUES (?, ?)", 
-                            LINK_TABLE_NAME,
-                            PREFIX_ID_COLUMN_NAME,
-                            LINK_URL_COLUMN_NAME))) {
-                    // Set the prefixID for the link's prefix
-                pstmt.setInt(1, prefixEntry.getKey());
-                    // Set the link's suffix
-                pstmt.setString(2, value);
-                    // Update the database
-                pstmt.executeUpdate();
-                    // Get the key that was generated
-                linkID = getGeneratedLongKey(pstmt);
-            }   // If the linkID of the added link was found, return it. 
+                // Insert the link and get the linkID that was just added
+            Long linkID = insertSQL(value,prefixEntry);
+                // If the linkID of the added link was found, return it. 
                 // Otherwise, find it and return the linkID for the added link
             return (linkID != null) ? linkID:getGeneratedKey(value,existingIDs);
         }
