@@ -265,11 +265,17 @@ public interface PrefixMap extends SQLRowMap<Integer, String>{
      */
     public default Map<String, Map.Entry<Integer, String>>getLongestPrefixesFor(
             Collection<? extends String> values){
+            // This will get the entries for the longest matching prefixes 
+            // for the values
         LinkedHashMap<String, Map.Entry<Integer, String>> prefixes = new LinkedHashMap<>();
+            // If the given collection is empty
         if (values.isEmpty())
             return prefixes;
+            // If the given collection is not a set
         if (!(values instanceof Set))
+                // Turn it into a set
             values = new LinkedHashSet<>(values);
+            // Go through the values in the collection
         for (String value : values){
             prefixes.put(value, getLongestPrefixEntryFor(value));
         }
