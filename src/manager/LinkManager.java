@@ -5980,14 +5980,33 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         ListDataMap listDataMap = conn.getListDataMap();
             // This gets the map of links from the database
         LinkMap linkMap = conn.getLinkMap();
+            // A set to use to sort the list models that have a listID
+        TreeSet<LinksListModel> sortedModels = new TreeSet<>();
+            // A set to store the listIDs encounted while sorting the models
+        HashSet<Integer> usedListIDs = new HashSet<>();
+            // This will get a set of unsorted models that do not have a listID
+        LinkedHashSet<LinksListModel> unsortedModels = new LinkedHashSet<>(models);
+            // Go through the models to be sorted
+        for (LinksListModel model : unsortedModels){
+                // If the model has a listID set for it
+            if (model.getListID() != null){
+                    // If some other list is already using that listID
+                if (usedListIDs.contains(model.getListID()))
+                        // Remove the listID from the model
+                    model.setListID(null);
+                else{
+                    sortedModels.add(model);
+                    usedListIDs.add(model.getListID());
+                }
+            }
+        }   // Turn the collection of models to be saved into a set containing 
+            // the sorted models
+        models = new LinkedHashSet<>(sortedModels);
+        models.addAll(unsortedModels);
             // This is the total size of the models that had their contents 
         int total = 0;  // modified
             // This is a set containing the links from the models
         Set<String> linksSet = new LinkedHashSet<>();
-            // If the models collection is not a set
-        if (!(models instanceof Set))
-                // Turn the collection of models into a set
-            models = new LinkedHashSet<>(models);
             // Go through the models to be saved
         for (LinksListModel model : models){
                 // Add the list to the list map if not absent
