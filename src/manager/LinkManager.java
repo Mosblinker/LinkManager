@@ -4234,8 +4234,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     protected void loadDatabase(boolean loadAll){
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            saver = new DbxDownloader("/"+getExternalDatabaseFileName(),getDatabaseFile());
-            ((DbxDownloader)saver).setLoadsAll(loadAll);
+            saver = new DbxDownloader(getDatabaseFile(),"/"+getExternalDatabaseFileName(),loadAll);
             saver.execute();
         } else {
             loader = new DatabaseLoader(loadAll);
@@ -4883,7 +4882,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void downloadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadDBItemActionPerformed
         if (isLoggedInToDropbox()){
-            saver = new DbxDownloader("/"+getExternalDatabaseFileName(),getDatabaseFile());
+            saver = new DbxDownloader(getDatabaseFile(),"/"+getExternalDatabaseFileName());
             saver.execute();
         }
     }//GEN-LAST:event_downloadDBItemActionPerformed
@@ -10202,120 +10201,45 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private class DbxDownloader extends FileSaver{
-        /**
-         * The path for the file on Dropbox.
-         */
-        private String dbxPath;
-        /**
-         * Whether file not found errors should be shown.
-         */
-        protected boolean showFileNotFound;
-        /**
-         * Whether the file was found on Dropbox.
-         */
-        private boolean fileFound = true;
+    private class DbxDownloader extends FileDownloader{
         /**
          * This gets any Dropbox exceptions that get thrown while downloading 
          * the file.
          */
         private DbxException dbxEx = null;
         /**
-         * This gets any IOExceptions that get thrown while downloading the 
-         * file.
-         */
-        private IOException ioEx = null;
-        /**
-         * Whether this should load all the lists. If this is null, then the 
-         * database will not be loaded after this.
-         */
-        private Boolean loadAll = null;
-        /**
          * 
-         * @param dbxPath
          * @param file
+         * @param dbxPath
+         * @param loadAll
          * @param showFileNotFound 
          */
-        DbxDownloader(String dbxPath,File file,boolean showFileNotFound){
-            super(file);
-            this.dbxPath = Objects.requireNonNull(dbxPath);
-            this.showFileNotFound = showFileNotFound;
+        DbxDownloader(File file,String dbxPath,Boolean loadAll){
+            super(file,dbxPath,loadAll);
         }
         /**
          * 
-         * @param dbxPath
          * @param file 
+         * @param dbxPath
          */
-        DbxDownloader(String dbxPath, File file){
-            this(dbxPath,file,true);
-        }
-        
-        public Boolean getLoadsAll(){
-            return loadAll;
-        }
-        
-        public void setLoadsAll(Boolean loadAll){
-            this.loadAll = loadAll;
-        }
-        
-        public boolean willLoadDatabase(){
-            return loadAll != null;
-        }
-        
-        @Override
-        protected void showSuccessPrompt(File file){
-            if (!willLoadDatabase())
-                showSuccessPrompt(file);
+        DbxDownloader(File file,String dbxPath){
+            super(file,dbxPath);
         }
         @Override
-        public String getProgressString(){
-            return "Downloading File";
+        protected String getFileNotFoundMessage(File file, String path){
+            return "The file was not found on Dropbox.";
         }
         @Override
-        protected String getSuccessTitle(File file){
-            return "File Downloaded Successfully";
+        protected String getExceptionMessage(File file, String path){
+                // If a dropbox exception occurred
+            if (dbxEx != null)
+                return dbxEx.toString();
+            return super.getExceptionMessage(file, path);
         }
         @Override
-        protected String getSuccessMessage(File file){
-            return "The file was successfully downloaded.";
-        }
-        @Override
-        protected String getFailureTitle(File file){
-            return "ERROR - File Failed To Download";
-        }
-        @Override
-        protected String getFailureMessage(File file){
-            if (!fileFound)
-                return "The file was not found on Dropbox.";
-                // The message to return
-            String msg = "The file failed to download.";
-                // If the program is either in debug mode or if details are to 
-                // be shown
-            if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
-                Exception exc = (dbxEx != null) ? dbxEx : ioEx;
-                if (exc != null)
-                    msg += "\nError: " + exc;
-            }
-            return msg;
-        }
-        @Override
-        protected boolean showFailurePrompt(File file){
-            if (!fileFound){
-                    // If this should show file not found prompts
-                if (showFileNotFound){
-                    JOptionPane.showMessageDialog(LinkManager.this, 
-                            getFailureMessage(file), getFailureTitle(file), 
-                            JOptionPane.ERROR_MESSAGE);
-                }
-                return false;
-            }
-            return super.showFailurePrompt(file);
-        }
-        @Override
-        protected boolean saveFile(File file) {
-                // Reset the exceptions to null
+        protected boolean downloadFile(File file,String path) throws IOException{
+                // Reset the dropbox exception to null
             dbxEx = null;
-            ioEx = null;
             try{    // Create the Dropbox client
                 DbxRequestConfig dbxConfig = dbxUtils.createRequest();
                     // Get the Dropbox credentials
@@ -10327,7 +10251,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Get the file namespace for Dropbox
                 DbxUserFilesRequests dbxFiles = client.files();
                     // If the file doesn't exist on dropbox
-                if (!dbxFileExists(dbxPath,dbxFiles)){
+                if (!dbxFileExists(path,dbxFiles)){
                     fileFound = false;
                     return false;
                 }
@@ -10337,23 +10261,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Create an output stream to save the file 
                 try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file))){
                         // Download the file from Dropbox
-                    dbxFiles.downloadBuilder(dbxPath).download(out);
+                    dbxFiles.downloadBuilder(path).download(out);
                 }
                 return true;
             } catch(DbxException ex){
                 dbxEx = ex;
-            } catch(IOException ex){
-                ioEx = ex;
+                if (isInDebug())    // If the program is in debug mode
+                    System.out.println(ex);
             }
             return false;
-        }
-        @Override
-        protected void done(){
-            super.done();
-            if (willLoadDatabase()){
-                loader = new DatabaseLoader(loadAll);
-                loader.execute();
-            }
         }
     }
     /**
