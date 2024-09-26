@@ -9742,6 +9742,244 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
+    private abstract class FilePathSaver extends FileSaver{
+        /**
+         * The path for the file to be downloaded.
+         */
+        protected String filePath;
+        /**
+         * This gets any IOExceptions that get thrown while downloading the 
+         * file.
+         */
+        protected IOException ioEx = null;
+        /**
+         * Whether the file was found.
+         */
+        protected boolean fileFound = true;
+        /**
+         * Whether file not found errors should be shown.
+         */
+        protected boolean showFileNotFound = true;
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param exit 
+         */
+        public FilePathSaver(File file, String path, boolean exit) {
+            super(file, exit);
+            filePath = Objects.requireNonNull(path);
+        }
+        /**
+         * 
+         * @param file
+         * @param path 
+         */
+        public FilePathSaver(File file, String path){
+            this(file,path,false);
+        }
+        /**
+         * 
+         * @return 
+         */
+        public String getFilePath(){
+            return filePath;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean getFileNotFound(){
+            return !fileFound;
+        }
+        /**
+         * This returns whether this shows a failure prompt when the file is not 
+         * found.
+         * @return Whether the file not found failure prompt is shown.
+         */
+        public boolean getShowsFileNotFoundPrompt(){
+            return showFileNotFound;
+        }
+        /**
+         * This sets whether this shows a failure prompt when the file is not 
+         * found.
+         * @param showFileNotFound Whether the file not found failure prompt is 
+         * shown.
+         * @return This FilePathSaver.
+         */
+        public FilePathSaver setShowsFileNotFoundPrompt(boolean showFileNotFound){
+            this.showFileNotFound = showFileNotFound;
+            return this;
+        }
+        /**
+         * This returns whether this will show the success prompt if the file 
+         * was successfully saved.
+         * @param file The file that was successfully saved.
+         * @param path The path of the file that was successfully saved.
+         * @return Whether the success prompt will be shown.
+         */
+        protected boolean getShowSuccessPrompt(File file, String path){
+            return true;
+        }
+        /**
+         * This returns the title for the dialog to display if the file is 
+         * successfully downloaded.
+         * @param file The file that was successfully downloaded to.
+         * @param path The path of the file that was successfully downloaded.
+         * @return The title for the dialog to display if the file is 
+         * successfully downloaded.
+         */
+        protected String getSuccessTitle(File file, String path){
+            return super.getSuccessTitle(file);
+        }
+        @Override
+        protected String getSuccessTitle(File file){
+            return getSuccessTitle(file,filePath);
+        }
+        /**
+         * This returns the message to display if the file is successfully 
+         * downloaded.
+         * @param file The file that was successfully downloaded to.
+         * @param path The path of the file that was successfully downloaded.
+         * @return The message to display if the file is successfully 
+         * downloaded.
+         */
+        protected String getSuccessMessage(File file, String path){
+            return super.getSuccessMessage(file);
+        }
+        @Override
+        protected String getSuccessMessage(File file){
+            return getSuccessMessage(file,filePath);
+        }
+        /**
+         * This returns the title for the dialog to display if the file fails to 
+         * download.
+         * @param file The file that failed to be downloaded to.
+         * @param path The path of the file that failed to download.
+         * @return The title for the dialog to display if the file fails to
+         * download.
+         */
+        protected String getFailureTitle(File file, String path){
+            return super.getFailureTitle(file);
+        }
+        @Override
+        protected String getFailureTitle(File file){
+            return getFailureTitle(file,filePath);
+        }
+        /**
+         * This returns the message to display if the backup of the file failed 
+         * to be created.
+         * @param file The file that failed to be backed up.
+         * @param path The path of the file that failed to be backed up.
+         * @return The message to display if a backup of the file failed to be 
+         * created.
+         */
+        protected String getBackupFailedMessage(File file, String path){
+            return super.getBackupFailedMessage(file);
+        }
+        /**
+         * This returns the message to display if the backup of the file failed 
+         * to be created.
+         * @param file The file that failed to be backed up.
+         * @return The message to display if a backup of the file failed to be 
+         * created.
+         */
+        @Override
+        protected String getBackupFailedMessage(File file){
+            return getBackupFailedMessage(file,filePath);
+        }
+        /**
+         * This returns the message to display if the file fails to download.
+         * @param file The file that failed to be downloaded to.
+         * @param path The path of the file that failed to download.
+         * @return The message to display if the file fails to download.
+         */
+        protected String getFailureMessage(File file, String path){
+            return super.getFailureMessage(file);
+        }
+        /**
+         * This returns the message to display for any exceptions that were 
+         * thrown while attempting to download the file.
+         * @param file The file that failed to be downloaded to.
+         * @param path The path of the file that failed to download.
+         * @return The message to display for any exceptions that occurred, or 
+         * null.
+         */
+        protected String getExceptionMessage(File file, String path){
+                // If an IOException occurred, say so. Otherwise, return null.
+            return (ioEx == null) ? null : ioEx.toString();
+        }
+        /**
+         * This returns the message to display if the file was not found.
+         * @param file The file that failed to be downloaded to.
+         * @param path The path for the file that was not found.
+         * @return The message to display if the file was not found.
+         */
+        protected String getFileNotFoundMessage(File file, String path){
+            return "The file does not exist.";
+        }
+        /**
+         * This returns the message to display if the file fails to be 
+         * downloaded.
+         * @return The message to display if the file fails to download.
+         */
+        @Override
+        protected String getFailureMessage(File file){
+                // The message to return
+            String msg = getFailureMessage(file,filePath);
+                // If the program is either in debug mode or if details are to 
+                // be shown
+            if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
+                String errorMsg = getExceptionMessage(file,filePath);
+                if (errorMsg != null)
+                    msg += "\nError: " + errorMsg;
+            }
+            return msg;
+        }
+        @Override
+        protected void showSuccessPrompt(File file){
+            if (!getShowSuccessPrompt(file,filePath))
+                super.showSuccessPrompt(file);
+        }
+        @Override
+        protected boolean showFailurePrompt(File file){
+            if (getFileNotFound()){
+                    // If this should show file not found prompts
+                if (showFileNotFound){
+                    JOptionPane.showMessageDialog(LinkManager.this, 
+                            getFailureMessage(file,filePath), 
+                            getFailureTitle(file,filePath), 
+                            JOptionPane.ERROR_MESSAGE);
+                }
+                return false;
+            }
+            return super.showFailurePrompt(file);
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @return
+         * @throws IOException 
+         */
+        protected abstract boolean saveFile(File file, String path) throws IOException;
+        @Override
+        protected boolean saveFile(File file) {
+                // Reset the exception to null
+            ioEx = null;
+            try{    // Try to download the file from the path
+                return saveFile(file,filePath);
+            } catch (IOException ex){
+                ioEx = ex;
+                if (isInDebug())    // If the program is in debug mode
+                    System.out.println(ex);
+            }
+            return false;
+        }
+    }
+    /**
+     * 
+     */
     private class DbxDownloader extends FileSaver{
         /**
          * The path for the file on Dropbox.
