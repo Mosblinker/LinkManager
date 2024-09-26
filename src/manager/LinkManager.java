@@ -5755,21 +5755,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return count;
     }
     /**
-     * This attempts to read the contents of the given file and store it in the 
-     * given List of Strings.
-     * @param file The file to read from.
-     * @param list The List of Strings to store the lines in (cannot be null).
-     * @return The amount of lines that were read.
-     * @throws IOException If an error occurs while reading the file.
-     */
-    private int readIntoList(File file, List<String> list) throws IOException{
-            // Try to create a scanner to read from a FileReader used to read 
-        try(FileReader reader = new FileReader(file);   // from the file
-                Scanner scanner = new Scanner(reader)){
-            return readIntoList(scanner,list);
-        }
-    }
-    /**
      * This gets the String representing the URL from a shortcut file.
      * @param lines A List of Strings extracted from the shortcut file.
      * @return The URL, as a String, or null if not found.
@@ -8056,8 +8041,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean loadFile(File file) {
-            try {
-                readIntoList(file,list);
+                // Try to create a scanner to read from a FileReader used to 
+                // read from the file
+            try(FileReader reader = new FileReader(file);
+                    Scanner scanner = new Scanner(reader)){
+                readIntoList(scanner,list);
                     // If the file was a shortcut file and we're adding to a panel
                 if (panel != null && SHORTCUT_FILE_FILTER.accept(file)){
                         // Get the URL from the file
@@ -8070,6 +8058,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     panel.getModel().addAll(list);
                 return true;
             } catch (IOException ex) {
+                    // If we are in debug mode
+                if (isInDebug())
+                    System.out.println(ex);
                 return false;
             }
         }
