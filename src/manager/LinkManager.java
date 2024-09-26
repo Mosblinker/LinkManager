@@ -5975,14 +5975,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
-     * @param key
-     * @return 
-     */
-    private Integer getIntegerFromConfig(String key){
-        return getIntegerFromConfig(key, config);
-    }
-    /**
-     * 
      * @param widthKey
      * @param heightKey
      * @return 
@@ -6007,14 +5999,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private Dimension getSizeFromConfig(String key, Properties config){
         return getSizeFromConfig(key+WIDTH_KEY_SUFFIX,key+HEIGHT_KEY_SUFFIX,
                 config);
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    private Dimension getSizeFromConfig(String key){
-        return getSizeFromConfig(key,config);
     }
     /**
      * 
@@ -6263,7 +6247,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void configureProgram(){
             // Get the progress display value from the config
-        Integer temp = getIntegerFromConfig(PROGRESS_DISPLAY_KEY);
+        Integer temp = getIntegerFromConfig(PROGRESS_DISPLAY_KEY,config);
             // If the progress display value is not null and not zero
         if (temp != null && temp != 0)
                 // Set the progress display value
@@ -6307,7 +6291,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 config.getProperty(SYNC_DATABASE_KEY)));
             // Get the operation to use when changing the location of the 
             // database file
-        temp = getIntegerFromConfig(DATABASE_FILE_CHANGE_OPERATION_KEY);
+        temp = getIntegerFromConfig(DATABASE_FILE_CHANGE_OPERATION_KEY,config);
             // If the operation to use is not null
         if (temp != null)
                 // Set the operation to use
@@ -6315,13 +6299,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         updateDatabaseFileFields();
             // Get the autosave frequency index from the config
-        temp = getIntegerFromConfig(AUTOSAVE_FREQUENCY_KEY);
+        temp = getIntegerFromConfig(AUTOSAVE_FREQUENCY_KEY,config);
             // If the autosave frequency index is not null
         if (temp != null)
                 // Set the autosave frequency index
             autosaveMenu.setFrequencyIndex(temp);
             // Get the auto-hide wait duration index from the config
-        temp = getIntegerFromConfig(AUTO_HIDE_WAIT_DURATION_KEY);
+        temp = getIntegerFromConfig(AUTO_HIDE_WAIT_DURATION_KEY,config);
             // If the auto-hide wait duration is not null
         if (temp != null)
                 // Set the auto-hide wait duration index
@@ -6338,7 +6322,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Get the component to set the size of
                 Component comp = entry.getKey();
                     // Get the size from the config for the component
-                Dimension dim = getSizeFromConfig(entry.getValue());
+                Dimension dim = getSizeFromConfig(entry.getValue(),config);
                     // Get the minimum size for the component
                 Dimension min = comp.getMinimumSize();
                     // Make sure the width and height are within range
