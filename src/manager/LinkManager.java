@@ -271,6 +271,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private static final String LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX = 
             "LastVisibleIndexForList";
     /**
+     * This is an array that contains the prefixes for configuration keys that 
+     * use a prefix instead of a defined value.
+     */
+    private static final String[] PREFIXED_CONFIG_KEYS = {
+        SELECTED_LINK_FOR_LIST_KEY_PREFIX,
+        SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX,
+        FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX,
+        LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX,
+        CURRENT_TAB_LIST_ID_KEY_PREFIX,
+        CURRENT_TAB_INDEX_KEY_PREFIX
+    };
+    /**
      * This is the configuration key for the text in the link text field. This 
      * is only loaded when the program first starts, and does not get set when 
      * the user loads a configuration file.
@@ -5839,12 +5851,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private boolean isPrefixedConfigKey(String key){
-        return key.startsWith(SELECTED_LINK_FOR_LIST_KEY_PREFIX) || 
-                key.startsWith(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX) ||
-                key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX) ||
-                key.startsWith(LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX) || 
-                key.startsWith(CURRENT_TAB_LIST_ID_KEY_PREFIX) || 
-                key.startsWith(CURRENT_TAB_INDEX_KEY_PREFIX);
+        for (String prefix : PREFIXED_CONFIG_KEYS){
+            if (key.startsWith(prefix))
+                return true;
+        }
+        return false;
     }
     
     
