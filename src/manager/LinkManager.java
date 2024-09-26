@@ -9980,6 +9980,114 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
+    private abstract class FileDownloader extends FilePathSaver{
+        /**
+         * Whether this should load all the lists. If this is null, then the 
+         * database will not be loaded after this.
+         */
+        protected Boolean loadAll = null;
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param loadAll
+         * @param exit
+         */
+        FileDownloader(File file, String path, Boolean loadAll, boolean exit) {
+            super(file,path,exit);
+            this.loadAll = loadAll;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param loadAll 
+         */
+        FileDownloader(File file, String path, Boolean loadAll){
+            this(file,path,loadAll,false);
+        }
+        /**
+         * 
+         * @param file
+         * @param path 
+         */
+        FileDownloader(File file, String path){
+            this(file,path,null);
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean willLoadDatabase(){
+            return loadAll != null;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean getFullyLoadDatabase(){
+            return loadAll != null && loadAll;
+        }
+        @Override
+        public String getProgressString() {
+            return "Downloading File";
+        }
+        @Override
+        protected boolean getShowSuccessPrompt(File file, String path){
+            return !willLoadDatabase();
+        }
+        @Override
+        protected String getSuccessTitle(File file, String path){
+            return "File Downloaded Successfully";
+        }
+        @Override
+        protected String getSuccessMessage(File file, String path){
+            return "The file was successfully downloaded.";
+        }
+        @Override
+        protected String getFailureTitle(File file, String path){
+            return "ERROR - File Failed To Download";
+        }
+        @Override
+        protected String getFailureMessage(File file, String path){
+            return "The file failed to download.";
+        }
+        @Override
+        protected String getFileNotFoundMessage(File file, String path){
+            return "The file was not found at the path\n\""+path+"\"";
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @return
+         * @throws IOException 
+         */
+        protected abstract boolean downloadFile(File file, String path) 
+                throws IOException;
+        @Override
+        protected boolean saveFile(File file, String path) throws IOException{
+            return downloadFile(file,path);
+        }
+        /**
+         * 
+         * @param loadAll 
+         */
+        protected void loadDatabase(boolean loadAll){
+            loader = new DatabaseLoader(loadAll);
+            loader.execute();
+        }
+        @Override
+        protected void done(){
+            super.done();
+            if (willLoadDatabase()){
+                loadDatabase(getFullyLoadDatabase());
+            }
+        }
+    }
+    /**
+     * 
+     */
     private class DbxDownloader extends FileSaver{
         /**
          * The path for the file on Dropbox.
