@@ -6178,9 +6178,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * then load the properties into the map.
      * @param file The file to read from.
      * @param config The properties map to load into.
+     * @return Whether the configuration was successfully loaded.
      * @throws IOException If an error occurs while reading the file.
      */
-    private void loadConfiguration(File file, Properties config) throws IOException{
+    private boolean loadConfiguration(File file, Properties config) throws IOException{
+        if (!file.exists())
+            return false;
         loadProperties(file,config);
         
         // TODO: These configuration keys are deprecated and are here for legacy 
@@ -6221,6 +6224,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config.remove(DATABASE_FILE_KEY);
             // Remove the old folder key
         config.remove(DATABASE_FOLDER_KEY);
+        return true;
     }
     /**
      * 
@@ -6229,12 +6233,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private boolean loadConfigFile(File file, Properties config){
-        if (!file.exists())
-            return false;
+        showHiddenListsToggle.setEnabled(false);
         try {
-            loadConfiguration(file, config);
-            return true;
+            return loadConfiguration(file, config);
         } catch (IOException ex) {
+            if (isInDebug())
+                System.out.println(ex);
             return false;
         }
     }
@@ -8114,7 +8118,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean loadFile(File file) {
-            showHiddenListsToggle.setEnabled(false);
             return loadConfigFile(file,config);
         }
         @Override
