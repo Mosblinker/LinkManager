@@ -9947,7 +9947,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // If this should show file not found prompts
                 if (showFileNotFound){
                     JOptionPane.showMessageDialog(LinkManager.this, 
-                            getFailureMessage(file,filePath), 
+                            getFileNotFoundMessage(file,filePath), 
                             getFailureTitle(file,filePath), 
                             JOptionPane.ERROR_MESSAGE);
                 }
