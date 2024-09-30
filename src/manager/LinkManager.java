@@ -1545,6 +1545,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbQueryUpdatePanel = new javax.swing.JPanel();
         javax.swing.JLabel jLabel3 = new javax.swing.JLabel();
         dbQueryUpdateLabel = new javax.swing.JLabel();
+        dbQueryErrorPanel = new javax.swing.JPanel();
+        jLabel6 = new javax.swing.JLabel();
+        dbQueryErrorLabel = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        dbQueryErrorCodeLabel = new javax.swing.JLabel();
         dbFilePanel = new javax.swing.JPanel();
         javax.swing.JLabel dbFileNameLabel = new javax.swing.JLabel();
         dbFileNameField = new javax.swing.JTextField();
@@ -2101,6 +2106,44 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         );
 
         dbQueryResultsPanel.add(dbQueryUpdatePanel, "update");
+
+        dbQueryErrorPanel.setName("error"); // NOI18N
+
+        jLabel6.setText("Error:");
+
+        dbQueryErrorLabel.setText("N/A");
+
+        jLabel10.setText("Error Code:");
+
+        dbQueryErrorCodeLabel.setText("-1");
+
+        javax.swing.GroupLayout dbQueryErrorPanelLayout = new javax.swing.GroupLayout(dbQueryErrorPanel);
+        dbQueryErrorPanel.setLayout(dbQueryErrorPanelLayout);
+        dbQueryErrorPanelLayout.setHorizontalGroup(
+            dbQueryErrorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(dbQueryErrorPanelLayout.createSequentialGroup()
+                .addComponent(jLabel6)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(dbQueryErrorLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(dbQueryErrorPanelLayout.createSequentialGroup()
+                .addComponent(jLabel10)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(dbQueryErrorCodeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 456, Short.MAX_VALUE))
+        );
+        dbQueryErrorPanelLayout.setVerticalGroup(
+            dbQueryErrorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(dbQueryErrorPanelLayout.createSequentialGroup()
+                .addGroup(dbQueryErrorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6)
+                    .addComponent(dbQueryErrorLabel))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(dbQueryErrorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel10)
+                    .addComponent(dbQueryErrorCodeLabel))
+                .addGap(0, 115, Short.MAX_VALUE))
+        );
+
+        dbQueryResultsPanel.add(dbQueryErrorPanel, "error");
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -5559,6 +5602,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JTable dbPrefixTable;
     private javax.swing.JPanel dbPrefixesPanel;
     private javax.swing.JLabel dbQueryBlankCard;
+    private javax.swing.JLabel dbQueryErrorCodeLabel;
+    private javax.swing.JLabel dbQueryErrorLabel;
+    private javax.swing.JPanel dbQueryErrorPanel;
     private javax.swing.JTextField dbQueryField;
     private javax.swing.JPanel dbQueryPanel;
     private javax.swing.JPanel dbQueryResultsPanel;
@@ -5618,9 +5664,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem hideAllListsItem;
     private javax.swing.JMenu hideListsMenu;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
