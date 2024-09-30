@@ -4525,8 +4525,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void dbRemoveDuplDataButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbRemoveDuplDataButtonActionPerformed
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             conn.getLinkMap().removeDuplicateRows();
-//            conn.getPrefixMap().removeDuplicateRows();
-//            conn.getListNameMap().removeDuplicateRows();
         } catch (SQLException ex) {
             System.out.println("Error: "+ex);
         }
@@ -5111,7 +5109,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         doubleNewLinesToggle.setEnabled(enabled);
         linkOperationToggle.setEnabled(enabled);
         hiddenLinkOperationToggle.setEnabled(enabled);
-//        showHiddenListsToggle.setEnabled(enabled);
         autosaveMenu.setEnabled(enabled);
         autoHideMenu.setEnabled(enabled);
         manageListsItem.setEnabled(enabled);
@@ -9544,7 +9541,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             conn.commit();       // Commit the changes to the database
             
             setIndeterminate(true);
-//            prefixes.removeUnusedRows();
             
                 // Check to make sure everything is effectively the same, just 
                 // updated
