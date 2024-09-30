@@ -3746,11 +3746,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         String cardName = dbQueryBlankCard.getName();
             // This gets if we need to update the tables
         boolean updated = false;
+            // Get the current time
+            long time = System.currentTimeMillis();
             // Try to connect to the database and create an SQL statement for it
         try(LinkDatabaseConnection conn = connect(getDatabaseFile());
             Statement stmt = conn.createStatement()){
                 // Execute the query and get if the query returns a ResultSet
             boolean hasResults = stmt.execute(dbQueryField.getText());
+                // Get the time it took to execute the query
+            time = System.currentTimeMillis() - time;
                 // This gets the number of updated rows.
             int updateCount = stmt.getUpdateCount();
             if (hasResults){    // If the query returned a ResultSet
@@ -3774,7 +3778,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             System.out.println("Error: "+errorCode + " "+ex);
             JOptionPane.showMessageDialog(this, "Database Error: " + ex,
                 "Database Error", JOptionPane.ERROR_MESSAGE);
+            dbQueryErrorLabel.setText(""+ex);
+            dbQueryErrorCodeLabel.setText(""+errorCode);
+            cardName = dbQueryErrorPanel.getName();
+            time = 0;
         }
+            // Set the label to display the time
+        dbQueryTimeLabel.setText(time + " ms");
         System.gc();
         setCard(dbQueryResultsPanel, cardName);
         if (updated){   // Update the database view if there were changes
