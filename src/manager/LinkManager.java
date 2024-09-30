@@ -9468,7 +9468,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (dbFileSize == null)
                 dbFileSizeLabel.setText("N/A");
             else
-                dbFileSizeLabel.setText(String.format("%s (%d Bytes)", 
+                dbFileSizeLabel.setText(String.format("%s (%,d Bytes)", 
                         byteFormatter.format(dbFileSize), dbFileSize));
             if (dbUUID == null)
                 dbUUIDLabel.setText("N/A");
