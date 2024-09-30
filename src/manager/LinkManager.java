@@ -6192,6 +6192,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Remove if no model has that listID or the model is hidden
             return model == null || model.isHidden();
         });
+        conn.commit();       // Commit the changes to the database
+        System.gc();         // Run the garbage collector
             // Remove any duplicate links
         linkMap.removeDuplicateRows();
             // Remove any unused links
