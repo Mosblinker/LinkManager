@@ -6704,6 +6704,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
+    protected static final int LINK_REMOVE_UNUSED_SPLIT = 1000;
+    /**
+     * 
+     */
     private class LinkMapImpl extends AbstractDatabaseRowMap<Long,String> 
             implements LinkMap {
         /**
@@ -7173,16 +7177,76 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             setAutoCommit(autoCommit);
             return true;
         }
+        
+        private void deleteListSQL(List<Long> linkIDs) throws SQLException{
+            if (linkIDs.isEmpty())
+                return;
+            if (linkIDs.size() == 1){
+                deleteSQL(linkIDs.get(0));
+                return;
+            }
+            String idStr = "?, ".repeat(linkIDs.size());
+            idStr = idStr.substring(0, idStr.length()-2);
+//            String idStr = "";
+//            for (Long temp : linkIDs)
+//                idStr += temp + ", ";
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    "DELETE FROM %s WHERE %s IN (%s)",
+                        LINK_TABLE_NAME,
+                        LINK_ID_COLUMN_NAME,
+                        idStr
+                    ))){
+                for (int i = 0; i < linkIDs.size(); i++){
+                    setPreparedKey(pstmt,i+1,linkIDs.get(i));
+                }
+                pstmt.executeUpdate();
+            }
+        }
         /**
          * {@inheritDoc }
          */
         @Override
         protected boolean removeUnusedRowsSQL() throws SQLException{
-                // TODO: Can the speed of this be improved?
-            return getConnection().removeUnusedRows(
+            String condition = String.format("%s WHERE %s NOT IN (SELECT %s FROM %s)",
                     LINK_TABLE_NAME,
-                    LIST_DATA_TABLE_NAME,
-                    LINK_ID_COLUMN_NAME) > 0;
+                    LINK_ID_COLUMN_NAME,
+                    LINK_ID_COLUMN_NAME,
+                    LIST_DATA_TABLE_NAME);
+            ArrayList<Long> linkIDs = new ArrayList<>();
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    "SELECT %s FROM %s",
+                    LINK_ID_COLUMN_NAME,
+                    condition))){
+                    // Get the results of the query
+                ResultSet rs = pstmt.executeQuery();
+                while (rs.next())
+                    linkIDs.add(rs.getLong(LINK_ID_COLUMN_NAME));
+            }
+            if (linkIDs.size() >= LINK_REMOVE_UNUSED_SPLIT){
+                int size = size();
+                    // Get the current state of the auto-commit
+                boolean autoCommit = getAutoCommit();
+                    // Turn off the auto-commit in order to group the following 
+                    // database transactions to improve performance
+                setAutoCommit(false);
+                int index;
+                for (index = 0; index < linkIDs.size(); index += LINK_REMOVE_UNUSED_SPLIT){
+                    deleteListSQL(linkIDs.subList(index, Math.min(linkIDs.size(),index+LINK_REMOVE_UNUSED_SPLIT)));
+                }
+//                for (Long linkID : linkIDs){
+//                    deleteSQL(linkID);
+//                }
+                    // Commit the changes to the database
+                commit();
+                    // Restore the auto-commit back to what it was set to before
+                setAutoCommit(autoCommit);
+                return size != size();
+            } else {
+                return getConnection().removeUnusedRows(
+                        LINK_TABLE_NAME,
+                        LIST_DATA_TABLE_NAME,
+                        LINK_ID_COLUMN_NAME) > 0;
+            }
         }
         /**
          * {@inheritDoc }
