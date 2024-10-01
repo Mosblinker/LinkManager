@@ -6737,6 +6737,19 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return containsCountResult(pstmt.executeQuery());
             }
         }
+        
+        private void deleteSQL(Long linkID) throws SQLException {
+                // Prepare a statement to remove the entry from the links table
+            try (PreparedStatement pstmt = prepareStatement(
+                    String.format("DELETE FROM %s WHERE %s = ?", 
+                            LINK_TABLE_NAME,
+                            LINK_ID_COLUMN_NAME))) {
+                    // Set the key to remove
+                pstmt.setLong(1, linkID);
+                    // Update the database
+                pstmt.executeUpdate();
+            }
+        }
         /**
          * {@inheritDoc }
          */
@@ -6750,16 +6763,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // Get the old value
             String value = getSQL(linkID);
             // TODO: Remove value from the list data table and shift the indexes accordingly?
-                // Prepare a statement to remove the entry from the links table
-            try (PreparedStatement pstmt = prepareStatement(
-                    String.format("DELETE FROM %s WHERE %s = ?", 
-                            LINK_TABLE_NAME,
-                            LINK_ID_COLUMN_NAME))) {
-                    // Set the key to remove
-                pstmt.setLong(1, linkID);
-                    // Update the database
-                pstmt.executeUpdate();
-            }
+                // Remove the value from the table
+            deleteSQL(linkID);
             return value;
         }
         /**
