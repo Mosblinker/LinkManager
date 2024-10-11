@@ -184,7 +184,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * </ol>
      * @see PATTERN_CHARACTERS
      */
-    private static final String TEXT_SEARCH_TEMPLATE="%s LIKE %s ESCAPE \"\\\"";
+    protected static final String TEXT_SEARCH_TEMPLATE="%s LIKE %s ESCAPE \"\\\"";
     /**
      * This formats a given String to replace any of the {@link 
      * #PATTERN_CHARACTERS pattern characters} with their escaped counterparts, 
