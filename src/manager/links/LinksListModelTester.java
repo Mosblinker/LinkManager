@@ -37,6 +37,8 @@ public class LinksListModelTester extends javax.swing.JFrame {
         editedToggle.setSelected(model.isEdited());
         String[] defaultValues = {"Hello","Test","Hi"};
         model.addAll(Arrays.asList(defaultValues));
+        for (int i = 0; i < 20; i++)
+            model.add("Test " + i);
 //        model.setLinkID("Hi", null);
         tabbedPane.setTabComponentAt(tabbedPane.indexOfComponent(jPanel2), jLabel3);
         modLimitToggle.setSelected(model.isModificationLimitEnabled());
@@ -55,6 +57,8 @@ public class LinksListModelTester extends javax.swing.JFrame {
 
         listManipulator = new components.JListManipulator<>();
         jLabel3 = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
+        jButton1 = new javax.swing.JButton();
         tabbedPane = new javax.swing.JTabbedPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         list = new javax.swing.JList<>();
@@ -109,9 +113,20 @@ public class LinksListModelTester extends javax.swing.JFrame {
         addFileItem = new javax.swing.JMenuItem();
 
         listManipulator.setResetButtonIsShown(false);
+        listManipulator.setSideAccessory(jPanel1);
 
         jLabel3.setText("jLabel3");
         jLabel3.setToolTipText("Hello");
+
+        jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.Y_AXIS));
+
+        jButton1.setText("Randomize");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        jPanel1.add(jButton1);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -549,11 +564,13 @@ public class LinksListModelTester extends javax.swing.JFrame {
         listManipulator.setListData(model);
         if (listManipulator.showDialog(this) == JListManipulator.ACCEPT_OPTION){
             List<String> values = listManipulator.getListData();
+            long time = System.currentTimeMillis();
             try{
                 model.setContents(values);
             }catch(Exception ex){
                 System.out.println("Error: " + ex);
             }
+            System.out.println("Time Taken: " + (System.currentTimeMillis()-time));
         }
     }//GEN-LAST:event_manageButtonActionPerformed
 
@@ -732,6 +749,10 @@ public class LinksListModelTester extends javax.swing.JFrame {
     private void addFileItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addFileItemActionPerformed
         addFromFile(false);
     }//GEN-LAST:event_addFileItemActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        Collections.shuffle(listManipulator.getModelList());
+    }//GEN-LAST:event_jButton1ActionPerformed
     
     private void findActionPerformed(Position.Bias dir){
         int sel = Math.max(list.getSelectedIndex(), 0);
@@ -799,6 +820,7 @@ public class LinksListModelTester extends javax.swing.JFrame {
     private javax.swing.JCheckBoxMenuItem flag20Toggle;
     private javax.swing.JCheckBoxMenuItem flag40Toggle;
     private javax.swing.JCheckBoxMenuItem flag80Toggle;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -808,6 +830,7 @@ public class LinksListModelTester extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSpinner lastModSpinner;
