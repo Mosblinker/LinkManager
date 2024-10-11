@@ -18,6 +18,22 @@ import sql.util.ConnectionBased;
  */
 class ListContentsImpl extends AbstractQueryList<String> implements ListContents{
     /**
+     * This is a template for the SQL query for getting the metadata for a list 
+     * with a given listID.
+     */
+    private static final String GET_LIST_METADATA_QUERY_TEMPLATE = 
+            String.format("SELECT %%s FROM %s WHERE %s = ?", 
+                    LIST_TABLE_NAME,
+                    LIST_ID_COLUMN_NAME);
+    /**
+     * This is a template for the SQL query for setting the metadata for a list 
+     * with a given listID.
+     */
+    private static final String SET_LIST_METADATA_QUERY_TEMPLATE = 
+            String.format("UPDATE %s SET %%s = ? WHERE %s = ?", 
+                    LIST_TABLE_NAME,
+                    LIST_ID_COLUMN_NAME);
+    /**
      * The listID of the list
      */
     private final int listID;
@@ -111,10 +127,8 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
             requireListExists();    // Requre the list to exist
                 // Prepare a statement to get the list's last modified time
             try (PreparedStatement pstmt = getConnection().prepareStatement(
-                    String.format("SELECT %s FROM %s WHERE %s = ?", 
-                            LIST_LAST_MODIFIED_COLUMN_NAME,
-                            LIST_TABLE_NAME,
-                            LIST_ID_COLUMN_NAME))) {
+                    String.format(GET_LIST_METADATA_QUERY_TEMPLATE, 
+                            LIST_LAST_MODIFIED_COLUMN_NAME))) {
                     // Set the listID of the list to get the last modified time 
                 pstmt.setInt(1, listID);    // for
                     // Query the database
@@ -138,10 +152,8 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
             requireListExists();    // Requre the list to exist
                 // Prepare a statement to set the last modified time of the list
             try (PreparedStatement pstmt = getConnection().prepareStatement(
-                    String.format("UPDATE %s SET %s = ? WHERE %s = ?", 
-                            LIST_TABLE_NAME,
-                            LIST_LAST_MODIFIED_COLUMN_NAME,
-                            LIST_ID_COLUMN_NAME))) {
+                    String.format(SET_LIST_METADATA_QUERY_TEMPLATE, 
+                            LIST_LAST_MODIFIED_COLUMN_NAME))) {
                     // Set the new last modified time
                 pstmt.setLong(1, lastMod);
                     // Set the listID of the list to alter
@@ -164,10 +176,8 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
             requireListExists();    // Requre the list to exist
                 // Prepare a statement to get the list's creation time
             try (PreparedStatement pstmt = getConnection().prepareStatement(
-                    String.format("SELECT %s FROM %s WHERE %s = ?", 
-                            LIST_CREATED_COLUMN_NAME,
-                            LIST_TABLE_NAME,
-                            LIST_ID_COLUMN_NAME))) {
+                    String.format(GET_LIST_METADATA_QUERY_TEMPLATE, 
+                            LIST_CREATED_COLUMN_NAME))) {
                     // Set the listID of the list to use
                 pstmt.setInt(1, listID);
                     // Query the database
@@ -191,10 +201,8 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
             requireListExists();    // Requre the list to exist
                 // Prepare a statement to set the list's creation time
             try (PreparedStatement pstmt = getConnection().prepareStatement(
-                    String.format("UPDATE %s SET %s = ? WHERE %s = ?", 
-                            LIST_TABLE_NAME,
-                            LIST_CREATED_COLUMN_NAME,
-                            LIST_ID_COLUMN_NAME))) {
+                    String.format(SET_LIST_METADATA_QUERY_TEMPLATE, 
+                            LIST_CREATED_COLUMN_NAME))) {
                     // Set the new creation time for the list
                 pstmt.setLong(1, time);
                     // Set the listID of the list to alter
@@ -217,10 +225,8 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
             requireListExists();    // Requre the list to exist
                 // Prepare a statement to get the list's flags
             try (PreparedStatement pstmt = getConnection().prepareStatement(
-                    String.format("SELECT %s FROM %s WHERE %s = ?", 
-                            LIST_FLAGS_COLUMN_NAME,
-                            LIST_TABLE_NAME,
-                            LIST_ID_COLUMN_NAME))) {
+                    String.format(GET_LIST_METADATA_QUERY_TEMPLATE, 
+                            LIST_FLAGS_COLUMN_NAME))) {
                     // Set the listID of the list to use
                 pstmt.setInt(1, listID);
                     // Query the database
@@ -244,10 +250,8 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
             requireListExists();    // Requre the list to exist
                 // Prepare a statement to set the list's flags
             try (PreparedStatement pstmt = getConnection().prepareStatement(
-                    String.format("UPDATE %s SET %s = ? WHERE %s = ?", 
-                            LIST_TABLE_NAME,
-                            LIST_FLAGS_COLUMN_NAME,
-                            LIST_ID_COLUMN_NAME))) {
+                    String.format(SET_LIST_METADATA_QUERY_TEMPLATE, 
+                            LIST_FLAGS_COLUMN_NAME))) {
                     // Set the list's new flags
                 pstmt.setInt(1, flags);
                     // Set the listID of the list to alter
@@ -270,10 +274,8 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
             requireListExists();    // Requre the list to exist
                 // Prepare a statement to get the list's size limit
             try (PreparedStatement pstmt = getConnection().prepareStatement(
-                    String.format("SELECT %s FROM %s WHERE %s = ?", 
-                            LIST_SIZE_LIMIT_COLUMN_NAME,
-                            LIST_TABLE_NAME,
-                            LIST_ID_COLUMN_NAME))) {
+                    String.format(GET_LIST_METADATA_QUERY_TEMPLATE, 
+                            LIST_SIZE_LIMIT_COLUMN_NAME))) {
                     // Set the listID of the list to use
                 pstmt.setInt(1, listID);
                     // Query the database
@@ -302,10 +304,8 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
             requireListExists();    // Requre the list to exist
                 // Prepare a statement to set the list's size limit
             try (PreparedStatement pstmt = getConnection().prepareStatement(
-                    String.format("UPDATE %s SET %s = ? WHERE %s = ?", 
-                            LIST_TABLE_NAME,
-                            LIST_SIZE_LIMIT_COLUMN_NAME,
-                            LIST_ID_COLUMN_NAME))) {
+                    String.format(SET_LIST_METADATA_QUERY_TEMPLATE, 
+                            LIST_SIZE_LIMIT_COLUMN_NAME))) {
                     // Set the new size limit for the list
                 setParameter(pstmt,1,sizeLimit);
                     // Set the listID of the list to alter
