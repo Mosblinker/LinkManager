@@ -1611,30 +1611,6 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     protected static final String TABLE_CONTAINS_QUERY_TEMPLATE = 
             TABLE_SIZE_QUERY_TEMPLATE+" WHERE %s = ?";
     /**
-     * This is the query used to search for prefixes that match a given String. 
-     * This searches through the {@link #PREFIX_PATTERN_VIEW_NAME prefix pattern 
-     * view} and returns the matching prefixID and prefixes in order of longest 
-     * to shortest. It is worth noting that the search is case insensitive, so 
-     * the matches returned by this query may not match exactly. The parameters 
-     * for a prepared statement are as follows: 
-     * 
-     * <ol>
-     *  <li>(String) The text to get the matching prefixes for.</li>
-     * </ol>
-     */
-    protected static final String PREFIX_SEARCH_QUERY = String.format(
-            "SELECT %s, %s FROM %s WHERE "+TEXT_SEARCH_TEMPLATE, 
-                    // Get the prefixID
-                PREFIX_ID_COLUMN_NAME,
-                    // Get the prefix
-                PREFIX_COLUMN_NAME,
-                    // Search the prefix pattern view
-                PREFIX_PATTERN_VIEW_NAME,
-                    // Look for prefixes like the given string
-                "?",
-                    // Look through the prefix pattern column
-                PREFIX_PATTERN_COLUMN_NAME);
-    /**
      * These are the conditions to use to get all the linkIDs that have the same 
      * link, excluding the one that will be used in the end. This is used when 
      * removing the duplicate links and is appended to the filter for the update 

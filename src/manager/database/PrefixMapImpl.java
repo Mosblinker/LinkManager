@@ -30,6 +30,30 @@ class PrefixMapImpl extends AbstractQueryRowMap<Integer,String> implements Prefi
         return Integer.compare(o2.length(), o1.length());
     };
     /**
+     * This is the query used to search for prefixes that match a given String. 
+     * This searches through the {@link #PREFIX_PATTERN_VIEW_NAME prefix pattern 
+     * view} and returns the matching prefixID and prefixes in order of longest 
+     * to shortest. It is worth noting that the search is case insensitive, so 
+     * the matches returned by this query may not match exactly. The parameters 
+     * for a prepared statement are as follows: 
+     * 
+     * <ol>
+     *  <li>(String) The text to get the matching prefixes for.</li>
+     * </ol>
+     */
+    private static final String PREFIX_SEARCH_QUERY = String.format(
+            "SELECT %s, %s FROM %s WHERE "+TEXT_SEARCH_TEMPLATE, 
+                    // Get the prefixID
+                PREFIX_ID_COLUMN_NAME,
+                    // Get the prefix
+                PREFIX_COLUMN_NAME,
+                    // Search the prefix pattern view
+                PREFIX_PATTERN_VIEW_NAME,
+                    // Look for prefixes like the given string
+                "?",
+                    // Look through the prefix pattern column
+                PREFIX_PATTERN_COLUMN_NAME);
+    /**
      * This constructs a PrefixMapImpl with the given connection to the database
      * @param conn The connection to the database (cannot be null).
      */
