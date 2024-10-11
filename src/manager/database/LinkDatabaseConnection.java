@@ -4853,9 +4853,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @param <E> The type of elements stored in this list.
      */
     private abstract class AbstractDatabaseList<E> extends AbstractQueryList<E>{
-        @Override
-        public LinkDatabaseConnection getConnection() throws SQLException {
-            return LinkDatabaseConnection.this;
+        public AbstractDatabaseList(){
+            super(LinkDatabaseConnection.this);
         }
     }
     /**

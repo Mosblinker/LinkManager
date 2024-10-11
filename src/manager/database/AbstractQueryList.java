@@ -16,10 +16,24 @@ import sql.util.*;
  */
 abstract class AbstractQueryList <E> extends AbstractSQLList<E>{
     /**
+     * The connection to the database.
+     */
+    private final LinkDatabaseConnection conn;
+    /**
+     * This constructs an AbstractQueryList with the given connection to the 
+     * database
+     * @param conn The connection to the database (cannot be null).
+     */
+    protected AbstractQueryList(LinkDatabaseConnection conn){
+        this.conn = Objects.requireNonNull(conn);
+    }
+    /**
      * {@inheritDoc }
      */
     @Override
-    public abstract LinkDatabaseConnection getConnection() throws SQLException;
+    public LinkDatabaseConnection getConnection() throws SQLException{
+        return conn;
+    }
     /**
      * {@inheritDoc }
      */
