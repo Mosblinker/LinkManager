@@ -948,6 +948,26 @@ abstract class AbstractQueryRowMap <K,V> extends AbstractSQLRowMap<K,V> {
         return (key != null) ? key : firstKeyFor(value);
     }
     /**
+     * This returns the name of the table in the database that references the 
+     * data in this map.
+     * @return The name of the table in the database that references this map.
+     */
+    protected abstract String getUsedTableName();
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    protected boolean removeUnusedRowsSQL() throws SQLException{
+            // If the data in this table isn't used by another table
+        if (getUsedTableName() == null)
+            return false;
+            // Clear the cache if there is one
+        clearCache();
+            // Remove the unused rows
+        return getConnection().removeUnusedRows(getTableName(), 
+                getUsedTableName(), getKeyColumn()) > 0;
+    }
+    /**
      * {@inheritDoc }
      */
     @Override

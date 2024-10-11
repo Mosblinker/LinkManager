@@ -5780,6 +5780,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * {@inheritDoc }
          */
         @Override
+        protected String getUsedTableName() {
+            return LINK_TABLE_NAME;
+        }
+        /**
+         * {@inheritDoc }
+         */
+        @Override
         protected void setPreparedKey(PreparedStatement pstmt, 
                 int parameterIndex, Integer key) throws SQLException {
             setParameter(pstmt,parameterIndex,key);
@@ -5970,18 +5977,6 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         @Override
         public NavigableMap<Integer, String> getSuffixes(String value) {
             return new SuffixMap(getPrefixes(value),value);
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected boolean removeUnusedRowsSQL()throws SQLException{
-                // Clear the cache
-            clearCache();
-            return getConnection().removeUnusedRows(
-                    PREFIX_TABLE_NAME,
-                    LINK_TABLE_NAME,
-                    PREFIX_ID_COLUMN_NAME) > 0;
         }
         /**
          * {@inheritDoc }
@@ -7044,6 +7039,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * {@inheritDoc }
          */
         @Override
+        protected String getUsedTableName() {
+            return LIST_DATA_TABLE_NAME;
+        }
+        /**
+         * {@inheritDoc }
+         */
+        @Override
         protected void setPreparedKey(PreparedStatement pstmt, 
                 int parameterIndex, Long key) throws SQLException {
             setParameter(pstmt,parameterIndex,key);
@@ -7242,10 +7244,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 setAutoCommit(autoCommit);
                 return size != size();
             } else {
-                return getConnection().removeUnusedRows(
-                        LINK_TABLE_NAME,
-                        LIST_DATA_TABLE_NAME,
-                        LINK_ID_COLUMN_NAME) > 0;
+                return super.removeUnusedRowsSQL();
             }
         }
         /**
@@ -7713,6 +7712,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * {@inheritDoc }
          */
         @Override
+        protected String getUsedTableName() {
+            return LIST_OF_LISTS_TABLE_NAME;
+        }
+        /**
+         * {@inheritDoc }
+         */
+        @Override
         protected void setPreparedKey(PreparedStatement pstmt, 
                 int parameterIndex, Integer key) throws SQLException {
             setParameter(pstmt,parameterIndex,key);
@@ -7791,16 +7797,6 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }   // If the listID of the created list was found, return it. 
                 // Otherwise, find it and return the listID for the list name
             return (listID != null) ? listID:getGeneratedKey(value,existingIDs);
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected boolean removeUnusedRowsSQL()throws SQLException{
-            return getConnection().removeUnusedRows(
-                    LIST_TABLE_NAME,
-                    LIST_OF_LISTS_TABLE_NAME,
-                    LIST_ID_COLUMN_NAME) > 0;
         }
         /**
          * {@inheritDoc }
