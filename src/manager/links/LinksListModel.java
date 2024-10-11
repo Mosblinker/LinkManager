@@ -1068,32 +1068,12 @@ public class LinksListModel extends ArrayListModel<String> implements
      * @param values 
      */
     public void setContents(List<String> values){
-            // If the given list is empty
-        if (values.isEmpty())
-                // Clear this list
-            clear();
-        else{   // Retain only the values shared between this list and the given 
-            retainAll(values);  // list
-                // Create a copy of the given list
-            ArrayList<String> temp = new ArrayList<>(values);
-                // Remove the values shared between the copy of the list and 
-            temp.removeAll(this);   // this list
-                // Add the values in the given list that are not in this list
-            addAll(temp);
-                // Create a hash map to map values to their indexes in the given 
-            HashMap<String,Integer> indexes = new HashMap<>();  // list
-                // Go through the given list
-            for (int i = 0; i < values.size(); i++){
-                    // Get the current value in the given list
-                String value = values.get(i);
-                    // If the map does not contain the current value
-                if (!indexes.containsKey(value))
-                    indexes.put(value, i);
-            }   // Sort this list based off the indexes at which the values 
-            sort((String o1, String o2) -> {    // occur in the given list
-                return Integer.compare(indexes.getOrDefault(o1, -1), 
-                        indexes.getOrDefault(o2, -1));
-            });
+            // Clear this list in preparation for the new values
+        clear();
+            // If the given list is not empty
+        if (!values.isEmpty()){
+                // Add all the elements of the given list
+            addAll(values);
         }
     }
     /**
