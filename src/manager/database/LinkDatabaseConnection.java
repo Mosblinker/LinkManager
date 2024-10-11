@@ -4234,8 +4234,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @see PreparedStatement#setInt(int, int) 
      * @see PreparedStatement#setNull(int, int) 
      */
-    protected void setParameter(PreparedStatement pstmt, int parameterIndex, 
-            Integer value) throws SQLException{
+    protected static void setParameter(PreparedStatement pstmt, 
+            int parameterIndex, Integer value) throws SQLException{
         if (value == null)  // If the given value is null
             pstmt.setNull(parameterIndex, Types.INTEGER);
         else
@@ -4256,8 +4256,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @see PreparedStatement#setLong(int, long) 
      * @see PreparedStatement#setNull(int, int) 
      */
-    protected void setParameter(PreparedStatement pstmt, int parameterIndex, 
-            Long value) throws SQLException{
+    protected static void setParameter(PreparedStatement pstmt, 
+            int parameterIndex, Long value) throws SQLException{
         if (value == null)  // If the given value is null
             pstmt.setNull(parameterIndex, Types.BIGINT);
         else
