@@ -14,8 +14,7 @@ import sql.*;
  *
  * @author Milo Steier
  */
-class PrefixMapImpl extends AbstractQueryRowMap<Integer,String> 
-        implements PrefixMap {
+class PrefixMapImpl extends AbstractQueryRowMap<Integer,String> implements PrefixMap {
     /**
      * This is a comparator that compares Strings based off length, with longer 
      * Strings coming before short Strings. This is primarily used by the prefix 
