@@ -4850,17 +4850,6 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
-     * @param <K> The type of keys maintained by the map.
-     * @param <V> The type of mapped values.
-     */
-    private abstract class AbstractDatabaseRowMap<K,V> extends 
-            AbstractQueryRowMap<K,V> {
-        public AbstractDatabaseRowMap() {
-            super(LinkDatabaseConnection.this);
-        }
-    }
-    /**
-     * 
      * @param <E> The type of elements stored in this list.
      */
     private abstract class AbstractDatabaseList<E> extends AbstractQueryList<E>{
@@ -5450,8 +5439,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    private class ListNameMapImpl extends AbstractDatabaseRowMap<Integer, String> 
+    private class ListNameMapImpl extends AbstractQueryRowMap<Integer, String> 
             implements ListNameMap{
+        ListNameMapImpl() {
+            super(LinkDatabaseConnection.this);
+        }
         /**
          * {@inheritDoc }
          */
