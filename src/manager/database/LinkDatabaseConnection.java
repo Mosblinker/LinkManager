@@ -4899,9 +4899,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     private abstract class AbstractDatabaseRowMap<K,V> extends 
             AbstractQueryRowMap<K,V> {
-        @Override
-        public LinkDatabaseConnection getConnection() throws SQLException {
-            return LinkDatabaseConnection.this;
+        public AbstractDatabaseRowMap() {
+            super(LinkDatabaseConnection.this);
         }
     }
     /**

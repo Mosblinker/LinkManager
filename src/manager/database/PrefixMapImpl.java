@@ -31,22 +31,11 @@ class PrefixMapImpl extends AbstractQueryRowMap<Integer,String>
         return Integer.compare(o2.length(), o1.length());
     };
     /**
-     * The connection to the database.
-     */
-    private final LinkDatabaseConnection conn;
-    /**
      * This constructs a PrefixMapImpl with the given connection to the database
      * @param conn The connection to the database (cannot be null).
      */
     public PrefixMapImpl(LinkDatabaseConnection conn){
-        this.conn = Objects.requireNonNull(conn);
-    }
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public LinkDatabaseConnection getConnection() throws SQLException {
-        return conn;
+        super(conn);
     }
         // TODO: Implement caching
 //    /**

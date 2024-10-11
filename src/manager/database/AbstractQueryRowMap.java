@@ -16,10 +16,24 @@ import static manager.database.LinkDatabaseConnection.*;
  */
 abstract class AbstractQueryRowMap <K,V> extends AbstractSQLRowMap<K,V> {
     /**
+     * The connection to the database.
+     */
+    private final LinkDatabaseConnection conn;
+    /**
+     * This constructs an AbstractQueryRowMap with the given connection to the 
+     * database
+     * @param conn The connection to the database (cannot be null).
+     */
+    protected AbstractQueryRowMap(LinkDatabaseConnection conn){
+        this.conn = Objects.requireNonNull(conn);
+    }
+    /**
      * {@inheritDoc }
      */
     @Override
-    public abstract LinkDatabaseConnection getConnection() throws SQLException;
+    public LinkDatabaseConnection getConnection() throws SQLException{
+        return conn;
+    }
     /**
      * {@inheritDoc }
      */
