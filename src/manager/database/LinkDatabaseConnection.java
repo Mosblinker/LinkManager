@@ -4268,7 +4268,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @param stmt
      * @return 
      */
-    private Integer getGeneratedIntegerKey(Statement stmt){
+    protected static Integer getGeneratedIntegerKey(Statement stmt){
             // This gets the the key that was generated
         Integer key = null;
         try{    // Query the statement for the generated keys
@@ -4290,7 +4290,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @param stmt
      * @return 
      */
-    private Long getGeneratedLongKey(Statement stmt){
+    protected static Long getGeneratedLongKey(Statement stmt){
             // This gets the the key that was generated
         Long key = null;
         try{    // Query the statement for the generated keys
