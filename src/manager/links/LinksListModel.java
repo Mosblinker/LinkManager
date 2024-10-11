@@ -1065,16 +1065,17 @@ public class LinksListModel extends ArrayListModel<String> implements
     }
     /**
      * 
-     * @param values 
+     * @param c 
      */
-    public void setContents(List<String> values){
+    public void setContents(List<String> c){
+            // Check if the list is read only
+        checkIfReadOnly();
+            // Check if the collection is null
+        Objects.requireNonNull(c);
             // Clear this list in preparation for the new values
         clear();
-            // If the given list is not empty
-        if (!values.isEmpty()){
-                // Add all the elements of the given list
-            addAll(values);
-        }
+           // Add all the elements of the given list
+        addAll(c);
     }
     /**
      * 
