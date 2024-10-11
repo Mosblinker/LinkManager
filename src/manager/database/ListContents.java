@@ -399,6 +399,6 @@ public interface ListContents extends SQLList<String>{
         return model.getFlags() == getFlags() && 
                 model.getCreationTime() == getCreationTime() &&
                 Objects.equals(model.getSizeLimit(), getSizeLimit()) &&
-                model.listEquals(this);
+                model.listEquals(new ArrayList<>(this));
     }
 }
