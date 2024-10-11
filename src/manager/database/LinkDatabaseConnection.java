@@ -1624,7 +1624,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      *  <li>(String) The text to get the matching prefixes for.</li>
      * </ol>
      */
-    private static final String PREFIX_SEARCH_QUERY = String.format(
+    protected static final String PREFIX_SEARCH_QUERY = String.format(
             "SELECT %s, %s FROM %s WHERE "+TEXT_SEARCH_TEMPLATE, 
                     // Get the prefixID
                 PREFIX_ID_COLUMN_NAME,
