@@ -49,3 +49,4 @@ replay_pid*
 
 # Ignore the dropbox credentials file
 dropbox_key.json
+LinkManagerDropboxKey.json
