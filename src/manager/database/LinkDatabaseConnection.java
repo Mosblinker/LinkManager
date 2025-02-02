@@ -3781,8 +3781,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * 
      * @throws SQLException 
      */
-    public void setDatabaseLastModified() throws SQLException{
-        setDatabaseLastModified(System.currentTimeMillis());
+    public long setDatabaseLastModified() throws SQLException{
+            // Get the current time
+        long time = System.currentTimeMillis();
+        setDatabaseLastModified(time);
+        return time;
     }
     /**
      * 
