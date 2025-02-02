@@ -9309,6 +9309,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private Long dbFileSize = null;
         /**
+         * This is the last time the database was updated.
+         */
+        private Long dbLastMod = null;
+        /**
          * 
          */
         private UUID dbUUID = null;
@@ -9477,6 +9481,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             dbVersion = dbProperty.getProperty(
                     LinkDatabaseConnection.DATABASE_VERSION_CONFIG_KEY,"N/A");
             dbUUID = conn.getDatabaseUUID();
+            dbLastMod = conn.getDatabaseLastModified();
             linkCount = conn.getLinkMap().size();
             shownTotalSize = conn.getShownListIDs().totalSize();
             allTotalSize = conn.getAllListIDs().totalSize();
@@ -9687,6 +9692,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             else
                 dbUUIDLabel.setText(dbUUID.toString());
             dbVersionLabel.setText(Objects.toString(dbVersion,"N/A"));
+                // If the last modified is null
+            if (dbLastMod == null)
+                dbLastModLabel.setText("N/A");
+            else
+                dbLastModLabel.setText(DEBUG_DATE_FORMAT.format(new java.util.Date(dbLastMod)));
             if (prefixThreshold != null)
                 prefixThresholdSpinner.setValue(prefixThreshold);
             if (prefixSeparators != null)
