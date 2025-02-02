@@ -497,6 +497,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * lists instead of just the lists that have been updated.
      */
     private static final int DATABASE_LOADER_LOAD_ALL_FLAG = 0x01;
+    /**
+     * This is the flag telling the database loader that it should check to see 
+     * if the local version of the database has any lists that are more 
+     * up-to-date than the downloaded version.
+     */
+    private static final int DATABASE_LOADER_CHECK_LOCAL_FLAG = 0x02;
     
     protected static final SimpleDateFormat DEBUG_DATE_FORMAT = 
             new SimpleDateFormat("M/d/yyyy h:mm:ss a");
@@ -1281,7 +1287,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.gc();        // Run the garbage collector
         configureProgram();
         if (ENABLE_INITIAL_LOAD_AND_SAVE){
-            loadDatabase(true);
+            loadDatabase(DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG);
         }
 //        loader = new ConfigLoader(configFile);
 //        loader.execute();
@@ -4424,11 +4430,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param loadFlags 
      */
     private void loadDatabase(int loadFlags){
+        File file = getDatabaseFile();
+            // If the local file should be checked for more up-to-date lists
+        if (getFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG)){
+            try {   // Create a temporary file for the downloaded database
+                file = createTempFile();
+                    // Make sure the file is deleted on exit
+                file.deleteOnExit();
+            } catch (IOException ex) {
+                    // If the program is in debug mode
+                if (isInDebug())
+                    System.out.print("Temp File Error: " + ex);
+            }
+        }   // If this will sync the database to the cloud and the user is 
+            // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            saver = new DbxDownloader(getDatabaseFile(),"/"+getExternalDatabaseFileName(),loadFlags);
+            saver = new DbxDownloader(file,"/"+getExternalDatabaseFileName(),loadFlags);
             saver.execute();
         } else {
-            loader = new DatabaseLoader(loadFlags);
+            loader = new DatabaseLoader(setFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG,false));
             loader.execute();
         }
     }
@@ -8804,19 +8824,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private String dbVersion = "N/A";
         
-        DatabaseLoader(int loadFlags){
-            super(fullyLoaded);
+        DatabaseLoader(File file, int loadFlags){
+            super(file,fullyLoaded);
             this.loadFlags = loadFlags;
             if (!fullyLoaded)
                 this.loadFlags |= DATABASE_LOADER_LOAD_ALL_FLAG;
         }
         
+        DatabaseLoader(File file, boolean loadAll){
+            this(file,(loadAll) ? DATABASE_LOADER_LOAD_ALL_FLAG : 0);
+        }
+        
+        DatabaseLoader(File file){
+            this(DATABASE_LOADER_LOAD_ALL_FLAG);
+        }
+        
+        DatabaseLoader(int loadFlags){
+            this(getDatabaseFile(),loadFlags);
+        }
+        
         DatabaseLoader(boolean loadAll){
-            this((loadAll) ? DATABASE_LOADER_LOAD_ALL_FLAG : 0);
+            this(getDatabaseFile(),loadAll);
         }
         
         DatabaseLoader(){
-            this(true);
+            this(DATABASE_LOADER_LOAD_ALL_FLAG);
         }
         /**
          * This returns if all the lists will be loaded from the database of 
@@ -9058,8 +9090,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         }
                     }
                 }
-            }
-                //If the program has not fully loaded (this is the initial load)
+            }   //If the program has not fully loaded (this is the initial load)
             if (!fullyLoaded){
                     // Set the selected items from the configuration
                 setSelectedFromConfig();
@@ -9070,6 +9101,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Re-enable all the lists
             setTabsPanelListsEnabled(true);
             super.done();
+                // If this should check the local file for any more up-to-date 
+                // lists and the file that was loaded is not the local file
+            if (getFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG) && 
+                    !file.equals(getDatabaseFile())){
+                loader = new DatabaseLoader(setFlag(loadFlags,
+                        DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG, false));
+                fullyLoaded = false;
+                loader.execute();
+                return;
+            }
             autosaveMenu.startAutosave();
         }
     }
@@ -10291,7 +10332,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param loadAll 
          */
         protected void loadDatabase(int loadFlags){
-            loader = new DatabaseLoader(loadFlags);
+            loader = new DatabaseLoader(file,loadFlags);
             loader.execute();
         }
         @Override
