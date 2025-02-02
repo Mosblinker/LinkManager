@@ -1630,22 +1630,26 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         foreignKeysToggle = new javax.swing.JCheckBox();
         updateDBFileCombo = new javax.swing.JComboBox<>();
         updateDBFileButton = new javax.swing.JButton();
-        javax.swing.JLabel dbFileSizeTextLabel = new javax.swing.JLabel();
-        dbFileSizeLabel = new javax.swing.JLabel();
         dbRemoveUnusedDataButton = new javax.swing.JButton();
-        javax.swing.JLabel dbVersionTextLabel = new javax.swing.JLabel();
-        dbVersionLabel = new javax.swing.JLabel();
         dbUpdateUsedPrefixesButton = new javax.swing.JButton();
         dbRemoveDuplDataButton = new javax.swing.JButton();
+        dbResetIDsButton = new javax.swing.JButton();
+        dbPropPanel = new javax.swing.JPanel();
+        javax.swing.JLabel dbVersionTextLabel = new javax.swing.JLabel();
+        dbVersionLabel = new javax.swing.JLabel();
+        javax.swing.JLabel dbFileSizeTextLabel = new javax.swing.JLabel();
+        dbFileSizeLabel = new javax.swing.JLabel();
+        javax.swing.JLabel dbUUIDTextLabel = new javax.swing.JLabel();
+        dbUUIDLabel = new javax.swing.JLabel();
+        dbLastModTextLabel = new javax.swing.JLabel();
+        dbLastModLabel = new javax.swing.JLabel();
         javax.swing.JLabel linkCountTextLabel = new javax.swing.JLabel();
         linkCountLabel = new javax.swing.JLabel();
         javax.swing.JLabel shownTotalSizeTextLabel = new javax.swing.JLabel();
         shownTotalSizeLabel = new javax.swing.JLabel();
         javax.swing.JLabel allTotalSizeTextLabel = new javax.swing.JLabel();
         allTotalSizeLabel = new javax.swing.JLabel();
-        dbResetIDsButton = new javax.swing.JButton();
-        javax.swing.JLabel dbUUIDTextLabel = new javax.swing.JLabel();
-        dbUUIDLabel = new javax.swing.JLabel();
+        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
         dbPrefixesPanel = new javax.swing.JPanel();
         dbPrefixScrollPane = new javax.swing.JScrollPane();
         dbPrefixTable = new javax.swing.JTable();
@@ -2173,7 +2177,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addGroup(dbQueryUpdatePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
                     .addComponent(dbQueryUpdateLabel))
-                .addGap(0, 138, Short.MAX_VALUE))
+                .addGap(0, 208, Short.MAX_VALUE))
         );
 
         dbQueryResultsPanel.add(dbQueryUpdatePanel, "update");
@@ -2211,7 +2215,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addGroup(dbQueryErrorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel10)
                     .addComponent(dbQueryErrorCodeLabel))
-                .addGap(0, 115, Short.MAX_VALUE))
+                .addGap(0, 185, Short.MAX_VALUE))
         );
 
         dbQueryResultsPanel.add(dbQueryErrorPanel, "error");
@@ -2252,7 +2256,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     .addComponent(dbQueryField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(dbQueryLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 227, Short.MAX_VALUE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -2300,22 +2304,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
 
-        dbFileSizeTextLabel.setLabelFor(dbFileSizeLabel);
-        dbFileSizeTextLabel.setText("Database File Size:");
-
-        dbFileSizeLabel.setText("N/A");
-
         dbRemoveUnusedDataButton.setText("Remove Unused Data");
         dbRemoveUnusedDataButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 dbRemoveUnusedDataButtonActionPerformed(evt);
             }
         });
-
-        dbVersionTextLabel.setLabelFor(dbVersionLabel);
-        dbVersionTextLabel.setText("Database Version:");
-
-        dbVersionLabel.setText("0.0.0");
 
         dbUpdateUsedPrefixesButton.setText("Update Link Prefixes");
         dbUpdateUsedPrefixesButton.addActionListener(new java.awt.event.ActionListener() {
@@ -2331,21 +2325,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
 
-        linkCountTextLabel.setLabelFor(linkCountLabel);
-        linkCountTextLabel.setText("Link Count:");
-
-        linkCountLabel.setText("0");
-
-        shownTotalSizeTextLabel.setLabelFor(shownTotalSizeLabel);
-        shownTotalSizeTextLabel.setText("Shown Lists Total Size:");
-
-        shownTotalSizeLabel.setText("0");
-
-        allTotalSizeTextLabel.setLabelFor(allTotalSizeLabel);
-        allTotalSizeTextLabel.setText("All Lists Total Size:");
-
-        allTotalSizeLabel.setText("0");
-
         dbResetIDsButton.setText("Reset IDs");
         dbResetIDsButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -2353,10 +2332,149 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
 
+        dbPropPanel.setLayout(new java.awt.GridBagLayout());
+
+        dbVersionTextLabel.setLabelFor(dbVersionLabel);
+        dbVersionTextLabel.setText("Database Version:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        dbPropPanel.add(dbVersionTextLabel, gridBagConstraints);
+
+        dbVersionLabel.setText("0.0.0");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.weightx = 0.9;
+        gridBagConstraints.insets = new java.awt.Insets(0, 6, 6, 0);
+        dbPropPanel.add(dbVersionLabel, gridBagConstraints);
+
+        dbFileSizeTextLabel.setLabelFor(dbFileSizeLabel);
+        dbFileSizeTextLabel.setText("Database File Size:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        dbPropPanel.add(dbFileSizeTextLabel, gridBagConstraints);
+
+        dbFileSizeLabel.setText("N/A");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.weightx = 0.9;
+        gridBagConstraints.insets = new java.awt.Insets(0, 6, 6, 0);
+        dbPropPanel.add(dbFileSizeLabel, gridBagConstraints);
+
         dbUUIDTextLabel.setLabelFor(dbUUIDLabel);
         dbUUIDTextLabel.setText("Database UUID:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        dbPropPanel.add(dbUUIDTextLabel, gridBagConstraints);
 
         dbUUIDLabel.setText("N/A");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 6, 6, 0);
+        dbPropPanel.add(dbUUIDLabel, gridBagConstraints);
+
+        dbLastModTextLabel.setLabelFor(dbLastModLabel);
+        dbLastModTextLabel.setText("Database Last Mod:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        dbPropPanel.add(dbLastModTextLabel, gridBagConstraints);
+
+        dbLastModLabel.setText("N/A");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 6, 6, 0);
+        dbPropPanel.add(dbLastModLabel, gridBagConstraints);
+
+        linkCountTextLabel.setLabelFor(linkCountLabel);
+        linkCountTextLabel.setText("Link Count:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        dbPropPanel.add(linkCountTextLabel, gridBagConstraints);
+
+        linkCountLabel.setText("0");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 6, 6, 0);
+        dbPropPanel.add(linkCountLabel, gridBagConstraints);
+
+        shownTotalSizeTextLabel.setLabelFor(shownTotalSizeLabel);
+        shownTotalSizeTextLabel.setText("Shown Lists Total Size:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        dbPropPanel.add(shownTotalSizeTextLabel, gridBagConstraints);
+
+        shownTotalSizeLabel.setText("0");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 6, 6, 0);
+        dbPropPanel.add(shownTotalSizeLabel, gridBagConstraints);
+
+        allTotalSizeTextLabel.setLabelFor(allTotalSizeLabel);
+        allTotalSizeTextLabel.setText("All Lists Total Size:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        dbPropPanel.add(allTotalSizeTextLabel, gridBagConstraints);
+
+        allTotalSizeLabel.setText("0");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 6, 6, 0);
+        dbPropPanel.add(allTotalSizeLabel, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        gridBagConstraints.weighty = 0.9;
+        dbPropPanel.add(filler2, gridBagConstraints);
 
         javax.swing.GroupLayout dbFilePanelLayout = new javax.swing.GroupLayout(dbFilePanel);
         dbFilePanel.setLayout(dbFilePanelLayout);
@@ -2365,6 +2483,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             .addGroup(dbFilePanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(dbPropPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(dbFilePanelLayout.createSequentialGroup()
                         .addComponent(updateDBFileCombo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -2377,30 +2496,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         .addComponent(setDBFileNameButton, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(dbFilePanelLayout.createSequentialGroup()
                         .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(shownTotalSizeTextLabel)
-                            .addComponent(allTotalSizeTextLabel)
-                            .addComponent(linkCountTextLabel)
-                            .addComponent(dbFileSizeTextLabel)
-                            .addComponent(dbUUIDTextLabel))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(dbFileSizeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(linkCountLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(allTotalSizeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(shownTotalSizeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(dbUUIDLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addGroup(dbFilePanelLayout.createSequentialGroup()
-                        .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(dbFilePanelLayout.createSequentialGroup()
                                 .addComponent(resetDBFilePathButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(dbCreateTablesButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(dbUpdateUsedPrefixesButton))
-                            .addGroup(dbFilePanelLayout.createSequentialGroup()
-                                .addComponent(dbVersionTextLabel)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(dbVersionLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 438, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(dbFilePanelLayout.createSequentialGroup()
                                 .addComponent(foreignKeysToggle)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -2409,7 +2510,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                                 .addComponent(dbRemoveDuplDataButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(dbResetIDsButton)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 33, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         dbFilePanelLayout.setVerticalGroup(
@@ -2433,33 +2534,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     .addComponent(dbResetIDsButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(dbVersionTextLabel)
-                    .addComponent(dbVersionLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(updateDBFileButton)
                     .addComponent(updateDBFileCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(dbFileSizeTextLabel)
-                    .addComponent(dbFileSizeLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(dbUUIDTextLabel)
-                    .addComponent(dbUUIDLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(linkCountTextLabel)
-                    .addComponent(linkCountLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(shownTotalSizeTextLabel)
-                    .addComponent(shownTotalSizeLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(allTotalSizeTextLabel)
-                    .addComponent(allTotalSizeLabel))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(dbPropPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 212, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         dbTabbedPane.addTab("Database File", dbFilePanel);
@@ -2560,7 +2639,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             dbPrefixesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(dbPrefixesPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(dbPrefixScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE)
+                .addComponent(dbPrefixScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(dbPrefixesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9)
@@ -2622,7 +2701,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             dbUsedPrefixesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(dbUsedPrefixesPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(dbUsedPrefixScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)
+                .addComponent(dbUsedPrefixScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(dbUsedPrefixesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel20)
@@ -2695,7 +2774,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     .addComponent(dbSearchPrefixCheckBox)
                     .addComponent(dbSearchPrefixCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(dbLinkSearchScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
+                .addComponent(dbLinkSearchScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 264, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -2774,7 +2853,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             dbListPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(dbListPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(dbListScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 227, Short.MAX_VALUE)
+                .addComponent(dbListScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(dbListPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel17)
@@ -2823,7 +2902,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             dbTablePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(dbTablePanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(dbTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 132, Short.MAX_VALUE)
+                .addComponent(dbTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -2887,7 +2966,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             databaseDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(databaseDialogLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(dbTabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 333, Short.MAX_VALUE)
+                .addComponent(dbTabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 405, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(databaseDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(dbRefreshButton)
@@ -5688,6 +5767,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JPopupMenu dbFilePopupMenu;
     private javax.swing.JButton dbFileRelativeButton;
     private javax.swing.JLabel dbFileSizeLabel;
+    private javax.swing.JLabel dbLastModLabel;
+    private javax.swing.JLabel dbLastModTextLabel;
     private javax.swing.JPanel dbLinkSearchPanel;
     private javax.swing.JScrollPane dbLinkSearchScrollPane;
     private javax.swing.JTable dbLinkSearchTable;
@@ -5703,6 +5784,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JScrollPane dbPrefixScrollPane;
     private javax.swing.JTable dbPrefixTable;
     private javax.swing.JPanel dbPrefixesPanel;
+    private javax.swing.JPanel dbPropPanel;
     private javax.swing.JLabel dbQueryBlankCard;
     private javax.swing.JLabel dbQueryErrorCodeLabel;
     private javax.swing.JLabel dbQueryErrorLabel;
@@ -5761,6 +5843,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem exportListsItem;
     private javax.swing.JMenu fileMenu;
     private javax.swing.Box.Filler filler1;
+    private javax.swing.Box.Filler filler2;
     private javax.swing.JCheckBox foreignKeysToggle;
     private javax.swing.JCheckBoxMenuItem hiddenLinkOperationToggle;
     private javax.swing.JMenuItem hideAllListsItem;

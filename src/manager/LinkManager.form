@@ -514,7 +514,7 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="dbTabbedPane" pref="333" max="32767" attributes="0"/>
+                  <Component id="dbTabbedPane" pref="405" max="32767" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="dbRefreshButton" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -581,7 +581,7 @@
                               <Component id="dbQueryLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="jPanel1" pref="227" max="32767" attributes="0"/>
+                          <Component id="jPanel1" pref="299" max="32767" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
                   </Group>
@@ -727,7 +727,7 @@
                                           <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
                                           <Component id="dbQueryUpdateLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                                       </Group>
-                                      <EmptySpace min="0" pref="138" max="32767" attributes="0"/>
+                                      <EmptySpace min="0" pref="208" max="32767" attributes="0"/>
                                   </Group>
                               </Group>
                             </DimensionLayout>
@@ -786,7 +786,7 @@
                                           <Component id="jLabel10" alignment="3" min="-2" max="-2" attributes="0"/>
                                           <Component id="dbQueryErrorCodeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                                       </Group>
-                                      <EmptySpace min="0" pref="115" max="32767" attributes="0"/>
+                                      <EmptySpace min="0" pref="185" max="32767" attributes="0"/>
                                   </Group>
                               </Group>
                             </DimensionLayout>
@@ -832,9 +832,10 @@
               <Layout>
                 <DimensionLayout dim="0">
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" attributes="0">
+                      <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="dbPropPanel" max="32767" attributes="0"/>
                               <Group type="102" alignment="0" attributes="0">
                                   <Component id="updateDBFileCombo" max="32767" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
@@ -847,23 +848,6 @@
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="setDBFileNameButton" min="-2" pref="85" max="-2" attributes="0"/>
                               </Group>
-                              <Group type="102" alignment="0" attributes="0">
-                                  <Group type="103" groupAlignment="0" attributes="0">
-                                      <Component id="shownTotalSizeTextLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="allTotalSizeTextLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="linkCountTextLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="dbFileSizeTextLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="dbUUIDTextLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                                  </Group>
-                                  <EmptySpace max="-2" attributes="0"/>
-                                  <Group type="103" groupAlignment="0" attributes="0">
-                                      <Component id="dbFileSizeLabel" max="32767" attributes="0"/>
-                                      <Component id="linkCountLabel" max="32767" attributes="0"/>
-                                      <Component id="allTotalSizeLabel" max="32767" attributes="0"/>
-                                      <Component id="shownTotalSizeLabel" max="32767" attributes="0"/>
-                                      <Component id="dbUUIDLabel" alignment="0" max="32767" attributes="0"/>
-                                  </Group>
-                              </Group>
                               <Group type="102" attributes="0">
                                   <Group type="103" groupAlignment="0" attributes="0">
                                       <Group type="102" alignment="0" attributes="0">
@@ -872,11 +856,6 @@
                                           <Component id="dbCreateTablesButton" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace max="-2" attributes="0"/>
                                           <Component id="dbUpdateUsedPrefixesButton" min="-2" max="-2" attributes="0"/>
-                                      </Group>
-                                      <Group type="102" alignment="0" attributes="0">
-                                          <Component id="dbVersionTextLabel" min="-2" max="-2" attributes="0"/>
-                                          <EmptySpace max="-2" attributes="0"/>
-                                          <Component id="dbVersionLabel" min="-2" pref="438" max="-2" attributes="0"/>
                                       </Group>
                                       <Group type="102" alignment="0" attributes="0">
                                           <Component id="foreignKeysToggle" min="-2" max="-2" attributes="0"/>
@@ -888,7 +867,7 @@
                                           <Component id="dbResetIDsButton" min="-2" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
-                                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                                  <EmptySpace min="0" pref="33" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
@@ -917,42 +896,14 @@
                               <Component id="dbRemoveDuplDataButton" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="dbResetIDsButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="dbVersionTextLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="dbVersionLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          </Group>
                           <EmptySpace min="-2" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="updateDBFileButton" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="updateDBFileCombo" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="dbFileSizeTextLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="dbFileSizeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          </Group>
+                          <Component id="dbPropPanel" pref="212" max="32767" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="dbUUIDTextLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="dbUUIDLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <EmptySpace min="-2" max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="linkCountTextLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="linkCountLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="shownTotalSizeTextLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="shownTotalSizeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="allTotalSizeTextLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="allTotalSizeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <EmptySpace max="32767" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -1034,23 +985,6 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="updateDBFileButtonActionPerformed"/>
                   </Events>
                 </Component>
-                <Component class="javax.swing.JLabel" name="dbFileSizeTextLabel">
-                  <Properties>
-                    <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
-                      <ComponentRef name="dbFileSizeLabel"/>
-                    </Property>
-                    <Property name="text" type="java.lang.String" value="Database File Size:"/>
-                  </Properties>
-                  <AuxValues>
-                    <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
-                    <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
-                  </AuxValues>
-                </Component>
-                <Component class="javax.swing.JLabel" name="dbFileSizeLabel">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="N/A"/>
-                  </Properties>
-                </Component>
                 <Component class="javax.swing.JButton" name="dbRemoveUnusedDataButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Remove Unused Data"/>
@@ -1058,23 +992,6 @@
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dbRemoveUnusedDataButtonActionPerformed"/>
                   </Events>
-                </Component>
-                <Component class="javax.swing.JLabel" name="dbVersionTextLabel">
-                  <Properties>
-                    <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
-                      <ComponentRef name="dbVersionLabel"/>
-                    </Property>
-                    <Property name="text" type="java.lang.String" value="Database Version:"/>
-                  </Properties>
-                  <AuxValues>
-                    <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
-                    <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
-                  </AuxValues>
-                </Component>
-                <Component class="javax.swing.JLabel" name="dbVersionLabel">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="0.0.0"/>
-                  </Properties>
                 </Component>
                 <Component class="javax.swing.JButton" name="dbUpdateUsedPrefixesButton">
                   <Properties>
@@ -1092,57 +1009,6 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dbRemoveDuplDataButtonActionPerformed"/>
                   </Events>
                 </Component>
-                <Component class="javax.swing.JLabel" name="linkCountTextLabel">
-                  <Properties>
-                    <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
-                      <ComponentRef name="linkCountLabel"/>
-                    </Property>
-                    <Property name="text" type="java.lang.String" value="Link Count:"/>
-                  </Properties>
-                  <AuxValues>
-                    <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
-                    <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
-                  </AuxValues>
-                </Component>
-                <Component class="javax.swing.JLabel" name="linkCountLabel">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="0"/>
-                  </Properties>
-                </Component>
-                <Component class="javax.swing.JLabel" name="shownTotalSizeTextLabel">
-                  <Properties>
-                    <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
-                      <ComponentRef name="shownTotalSizeLabel"/>
-                    </Property>
-                    <Property name="text" type="java.lang.String" value="Shown Lists Total Size:"/>
-                  </Properties>
-                  <AuxValues>
-                    <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
-                    <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
-                  </AuxValues>
-                </Component>
-                <Component class="javax.swing.JLabel" name="shownTotalSizeLabel">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="0"/>
-                  </Properties>
-                </Component>
-                <Component class="javax.swing.JLabel" name="allTotalSizeTextLabel">
-                  <Properties>
-                    <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
-                      <ComponentRef name="allTotalSizeLabel"/>
-                    </Property>
-                    <Property name="text" type="java.lang.String" value="All Lists Total Size:"/>
-                  </Properties>
-                  <AuxValues>
-                    <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
-                    <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
-                  </AuxValues>
-                </Component>
-                <Component class="javax.swing.JLabel" name="allTotalSizeLabel">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="0"/>
-                  </Properties>
-                </Component>
                 <Component class="javax.swing.JButton" name="dbResetIDsButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Reset IDs"/>
@@ -1151,23 +1017,212 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dbResetIDsButtonActionPerformed"/>
                   </Events>
                 </Component>
-                <Component class="javax.swing.JLabel" name="dbUUIDTextLabel">
-                  <Properties>
-                    <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
-                      <ComponentRef name="dbUUIDLabel"/>
-                    </Property>
-                    <Property name="text" type="java.lang.String" value="Database UUID:"/>
-                  </Properties>
-                  <AuxValues>
-                    <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
-                    <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
-                  </AuxValues>
-                </Component>
-                <Component class="javax.swing.JLabel" name="dbUUIDLabel">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="N/A"/>
-                  </Properties>
-                </Component>
+                <Container class="javax.swing.JPanel" name="dbPropPanel">
+
+                  <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout"/>
+                  <SubComponents>
+                    <Component class="javax.swing.JLabel" name="dbVersionTextLabel">
+                      <Properties>
+                        <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
+                          <ComponentRef name="dbVersionLabel"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="Database Version:"/>
+                      </Properties>
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
+                        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+                      </AuxValues>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="0" gridY="0" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="6" insetsRight="0" anchor="12" weightX="0.0" weightY="0.0"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="dbVersionLabel">
+                      <Properties>
+                        <Property name="text" type="java.lang.String" value="0.0.0"/>
+                      </Properties>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="1" gridY="0" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="6" insetsBottom="6" insetsRight="0" anchor="12" weightX="0.9" weightY="0.0"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="dbFileSizeTextLabel">
+                      <Properties>
+                        <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
+                          <ComponentRef name="dbFileSizeLabel"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="Database File Size:"/>
+                      </Properties>
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
+                        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+                      </AuxValues>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="0" gridY="1" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="6" insetsRight="0" anchor="12" weightX="0.0" weightY="0.0"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="dbFileSizeLabel">
+                      <Properties>
+                        <Property name="text" type="java.lang.String" value="N/A"/>
+                      </Properties>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="1" gridY="1" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="6" insetsBottom="6" insetsRight="0" anchor="12" weightX="0.9" weightY="0.0"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="dbUUIDTextLabel">
+                      <Properties>
+                        <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
+                          <ComponentRef name="dbUUIDLabel"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="Database UUID:"/>
+                      </Properties>
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
+                        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+                      </AuxValues>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="0" gridY="2" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="6" insetsRight="0" anchor="12" weightX="0.0" weightY="0.0"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="dbUUIDLabel">
+                      <Properties>
+                        <Property name="text" type="java.lang.String" value="N/A"/>
+                      </Properties>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="1" gridY="2" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="6" insetsBottom="6" insetsRight="0" anchor="12" weightX="0.0" weightY="0.0"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="dbLastModTextLabel">
+                      <Properties>
+                        <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
+                          <ComponentRef name="dbLastModLabel"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="Database Last Mod:"/>
+                      </Properties>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="0" gridY="3" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="6" insetsRight="0" anchor="12" weightX="0.0" weightY="0.0"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="dbLastModLabel">
+                      <Properties>
+                        <Property name="text" type="java.lang.String" value="N/A"/>
+                      </Properties>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="1" gridY="3" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="6" insetsBottom="6" insetsRight="0" anchor="12" weightX="0.0" weightY="0.0"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="linkCountTextLabel">
+                      <Properties>
+                        <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
+                          <ComponentRef name="linkCountLabel"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="Link Count:"/>
+                      </Properties>
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
+                        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+                      </AuxValues>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="0" gridY="4" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="6" insetsRight="0" anchor="12" weightX="0.0" weightY="0.0"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="linkCountLabel">
+                      <Properties>
+                        <Property name="text" type="java.lang.String" value="0"/>
+                      </Properties>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="1" gridY="4" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="6" insetsBottom="6" insetsRight="0" anchor="12" weightX="0.0" weightY="0.0"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="shownTotalSizeTextLabel">
+                      <Properties>
+                        <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
+                          <ComponentRef name="shownTotalSizeLabel"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="Shown Lists Total Size:"/>
+                      </Properties>
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
+                        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+                      </AuxValues>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="0" gridY="5" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="6" insetsRight="0" anchor="12" weightX="0.0" weightY="0.0"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="shownTotalSizeLabel">
+                      <Properties>
+                        <Property name="text" type="java.lang.String" value="0"/>
+                      </Properties>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="1" gridY="5" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="6" insetsBottom="6" insetsRight="0" anchor="12" weightX="0.0" weightY="0.0"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="allTotalSizeTextLabel">
+                      <Properties>
+                        <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
+                          <ComponentRef name="allTotalSizeLabel"/>
+                        </Property>
+                        <Property name="text" type="java.lang.String" value="All Lists Total Size:"/>
+                      </Properties>
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
+                        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+                      </AuxValues>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="0" gridY="6" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="6" insetsRight="0" anchor="12" weightX="0.0" weightY="0.0"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                    <Component class="javax.swing.JLabel" name="allTotalSizeLabel">
+                      <Properties>
+                        <Property name="text" type="java.lang.String" value="0"/>
+                      </Properties>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="1" gridY="6" gridWidth="1" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="6" insetsBottom="6" insetsRight="0" anchor="12" weightX="0.0" weightY="0.0"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                    <Component class="javax.swing.Box$Filler" name="filler2">
+                      <Properties>
+                        <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                          <Dimension value="[0, 32767]"/>
+                        </Property>
+                      </Properties>
+                      <AuxValues>
+                        <AuxValue name="classDetails" type="java.lang.String" value="Box.Filler.VerticalGlue"/>
+                      </AuxValues>
+                      <Constraints>
+                        <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                          <GridBagConstraints gridX="0" gridY="7" gridWidth="2" gridHeight="1" fill="3" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="0" insetsRight="0" anchor="10" weightX="0.0" weightY="0.9"/>
+                        </Constraint>
+                      </Constraints>
+                    </Component>
+                  </SubComponents>
+                </Container>
               </SubComponents>
             </Container>
             <Container class="javax.swing.JPanel" name="dbPrefixesPanel">
@@ -1217,7 +1272,7 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="dbPrefixScrollPane" pref="201" max="32767" attributes="0"/>
+                          <Component id="dbPrefixScrollPane" pref="269" max="32767" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="jLabel9" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -1391,7 +1446,7 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="dbUsedPrefixScrollPane" pref="228" max="32767" attributes="0"/>
+                          <Component id="dbUsedPrefixScrollPane" pref="299" max="32767" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="jLabel20" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -1514,7 +1569,7 @@
                               <Component id="dbSearchPrefixCombo" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                          <Component id="dbLinkSearchScrollPane" pref="190" max="32767" attributes="0"/>
+                          <Component id="dbLinkSearchScrollPane" pref="264" max="32767" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
                   </Group>
@@ -1625,7 +1680,7 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="dbListScrollPane" pref="227" max="32767" attributes="0"/>
+                          <Component id="dbListScrollPane" pref="299" max="32767" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="jLabel17" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -1790,7 +1845,7 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="dbTableScrollPane" pref="132" max="32767" attributes="0"/>
+                          <Component id="dbTableScrollPane" pref="202" max="32767" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="jScrollPane2" min="-2" pref="120" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
