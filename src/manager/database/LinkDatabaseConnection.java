@@ -1574,14 +1574,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     
     protected static final String DEFAULT_DATABASE_VERSION = "0.5.0";
     
-    // TODO: Is there going to be a last modified variable in the config?
-//    public static final String DATABASE_LAST_MODIFIED_CONFIG_KEY = "lastModified";
-//    
-//    private static final String DATABASE_LAST_MODIFIED_CONFIG_DEFAULT = "0";
-    
     public static final int DATABASE_MAJOR_VERSION = 3;
     
-    public static final int DATABASE_MINOR_VERSION = 1;
+    public static final int DATABASE_MINOR_VERSION = 2;
     
     public static final int DATABASE_PATCH_VERSION = 0;
     
@@ -1593,6 +1588,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * This is the key for the UUID of this database file. This uses UUIDv4.
      */
     public static final String DATABASE_UUID = "DatabaseID";
+    
+    public static final String DATABASE_LAST_MODIFIED_CONFIG_KEY = "lastModified";
+    
+    private static final String DATABASE_LAST_MODIFIED_CONFIG_DEFAULT = "0";
     /**
      * 0: Property name <br>
      * 1: Property default value <br>
@@ -1601,7 +1600,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     private static final String[][] CONFIG_DEFAULT_VALUES = {
         {PREFIX_THRESHOLD_CONFIG_KEY, Integer.toString(PREFIX_THRESHOLD_CONFIG_DEFAULT), null},
         {PREFIX_SEPARATORS_CONFIG_KEY, PREFIX_DEFAULT_SEPARATORS, null},
-        {DATABASE_VERSION_CONFIG_KEY,DEFAULT_DATABASE_VERSION, DATABASE_VERSION}
+        {DATABASE_VERSION_CONFIG_KEY,DEFAULT_DATABASE_VERSION, DATABASE_VERSION},
+        {DATABASE_LAST_MODIFIED_CONFIG_KEY, DATABASE_LAST_MODIFIED_CONFIG_DEFAULT, null}
     };
     
     protected static final String TABLE_SIZE_QUERY_TEMPLATE = 
@@ -3531,7 +3531,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     break;
             case("3.0.0"):      // If version 3.0.0
                 setDatabaseUUIDIfAbsent();
-//            case("3.1.0"):      // If version 3.1.0
+            case("3.1.0"):      // If version 3.1.0
+                    // Ensure that the default is set properly
+                getDatabaseProperties().getDefaults().setProperty(
+                        DATABASE_LAST_MODIFIED_CONFIG_KEY, DATABASE_LAST_MODIFIED_CONFIG_DEFAULT);
+                setDatabaseLastModified();
+//            case("3.2.0"):      // If version 3.2.0
         }
             // If foreign keys are supported
         if (foreignKeys != null)
@@ -3749,6 +3754,38 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
+     * @return
+     * @throws SQLException 
+     */
+    public long getDatabaseLastModified() throws SQLException{
+            // This gets the last modified time from the database
+        String lastMod = getDatabaseProperties().getProperty(DATABASE_LAST_MODIFIED_CONFIG_KEY);
+            // If the last modified time is not null
+        if (lastMod != null){
+            try{
+                return Long.parseLong(lastMod);
+            } catch(NumberFormatException ex){}
+        }
+        return 0;
+    }
+    /**
+     * 
+     * @param lastMod
+     * @throws SQLException 
+     */
+    public void setDatabaseLastModified(long lastMod) throws SQLException{
+        getDatabaseProperties().setProperty(DATABASE_LAST_MODIFIED_CONFIG_KEY, 
+                Objects.toString(lastMod));
+    }
+    /**
+     * 
+     * @throws SQLException 
+     */
+    public void setDatabaseLastModified() throws SQLException{
+        setDatabaseLastModified(System.currentTimeMillis());
+    }
+    /**
+     * 
      * @param stmt
      * @throws SQLException 
      */
@@ -3787,8 +3824,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         getPrefixMap().addAllIfAbsent(Arrays.asList(INITIAL_LINK_PREFIXES));
             // Go through the default values for the database config properties
         for (String[] defaultValues : CONFIG_DEFAULT_VALUES){
+                // The value to use for the property
+            String value = defaultValues[2];
+                // If the current property being set is the database last modified key
+            if (DATABASE_LAST_MODIFIED_CONFIG_KEY.equals(defaultValues[0]))
+                value = Objects.toString(System.currentTimeMillis());
             getDatabaseProperties().setPropertyIfAbsent(defaultValues[0], 
-                    defaultValues[2], defaultValues[1]);
+                    value, defaultValues[1]);
         }   // Set the database's UUID if not present
         setDatabaseUUIDIfAbsent();
     }
