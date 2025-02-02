@@ -592,10 +592,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         URL url = LinkManager.class.getProtectionDomain().getCodeSource().getLocation();
             // If a URL was found
         if (url != null)
-                // Get the parent of this program
-            return new File(url.getFile()).getParent();
-        else
-            return getWorkingDirectory();
+            try {
+                    // Get the parent of this program
+                return new File(url.toURI()).getParent();
+            } catch (URISyntaxException ex) {
+                    // If this is in debug mode
+                if (isInDebug())
+                    System.out.println("Error: " + ex);
+            }
+        return getWorkingDirectory();
     }
     /**
      * This returns the file used to store the configuration of the program.
