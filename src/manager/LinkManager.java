@@ -9232,7 +9232,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     !file.equals(getDatabaseFile())){
                 loader = new DatabaseLoader(setFlag(loadFlags,
                         DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG, false));
-                fullyLoaded = false;
                 loader.execute();
                 return;
             }
