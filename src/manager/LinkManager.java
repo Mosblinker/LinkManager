@@ -3843,6 +3843,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 conn.updateLinkData(linkID);
 //                progressBar.setValue(progressBar.getValue()+1);
             }
+               // Ensure that the database last modified time is updated
+            conn.setDatabaseLastModified();
             conn.commit();       // Commit the changes to the database
 //            conn.setAutoCommit(true);
 //            searchUsedPrefixes(conn,key);
@@ -3869,6 +3871,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             String prefix = conn.getPrefixMap().remove((Integer)
                     dbPrefixTable.getValueAt(selRow, 0));
+               // Ensure that the database last modified time is updated
+            conn.setDatabaseLastModified();
             System.out.println("Removed Prefix: \""+prefix+"\"");
             ((DefaultTableModel)dbPrefixTable.getModel()).removeRow(selRow);
         }
@@ -4599,6 +4603,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             conn.getLinkMap().removeUnusedRows();
             conn.getListNameMap().removeUnusedRows();
             conn.getPrefixMap().removeUnusedRows();
+               // Ensure that the database last modified time is updated
+            conn.setDatabaseLastModified();
         } catch (SQLException ex) {
             System.out.println("Error: "+ex);
         }
@@ -4649,6 +4655,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         !arr[1].equals(properties.getDefaults().get(arr[0])))
                     properties.setProperty(arr[0], arr[1]);
             }
+               // Ensure that the database last modified time is updated
+            setDBLastModLabelText(conn.setDatabaseLastModified());
         }catch (SQLException | IllegalArgumentException ex) {
             System.out.println("Error: "+ex);
         }
@@ -4743,6 +4751,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     model.setValueAt(flags, row, 4);
                     model.setValueAt(sizeLimit, row, 5);
                 }
+                   // Ensure that the database last modified time is updated
+                setDBLastModLabelText(conn.setDatabaseLastModified());
             } catch (SQLException | IllegalArgumentException ex) {
                 System.out.println("Error: "+ex);
             }
@@ -4780,6 +4790,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void dbRemoveDuplDataButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbRemoveDuplDataButtonActionPerformed
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             conn.getLinkMap().removeDuplicateRows();
+               // Ensure that the database last modified time is updated
+            conn.setDatabaseLastModified();
         } catch (SQLException ex) {
             System.out.println("Error: "+ex);
         }
@@ -5295,6 +5307,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             setCard(setLocationPanel,setExternalCard);
             updateExternalDBButtons();
         }
+    }
+    
+    private void setDBLastModLabelText(Long lastMod){
+            // If the last modified is null
+        if (lastMod == null)
+            dbLastModLabel.setText("N/A");
+        else
+            dbLastModLabel.setText(DEBUG_DATE_FORMAT.format(new java.util.Date(lastMod)));
     }
     /**
      * @param args the command line arguments
@@ -8776,6 +8796,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     return false;
                     // Save to the database and get if we are successful
                 value = saveDatabase(conn,stmt);
+                   // Ensure that the database last modified time is updated
+                conn.setDatabaseLastModified();
                     // If the connection is not in auto-commit mode
                 if (!conn.getAutoCommit()){
                     setIndeterminate(true);
@@ -9692,11 +9714,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             else
                 dbUUIDLabel.setText(dbUUID.toString());
             dbVersionLabel.setText(Objects.toString(dbVersion,"N/A"));
-                // If the last modified is null
-            if (dbLastMod == null)
-                dbLastModLabel.setText("N/A");
-            else
-                dbLastModLabel.setText(DEBUG_DATE_FORMAT.format(new java.util.Date(dbLastMod)));
+            setDBLastModLabelText(dbLastMod);
             if (prefixThreshold != null)
                 prefixThresholdSpinner.setValue(prefixThreshold);
             if (prefixSeparators != null)
