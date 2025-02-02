@@ -1215,8 +1215,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.gc();        // Run the garbage collector
         configureProgram();
         if (ENABLE_INITIAL_LOAD_AND_SAVE){
-            loader = new DatabaseLoader();
-            loader.execute();
+            loadDatabase(true);
         }
 //        loader = new ConfigLoader(configFile);
 //        loader.execute();
@@ -3747,7 +3746,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // This gets if we need to update the tables
         boolean updated = false;
             // Get the current time
-            long time = System.currentTimeMillis();
+        long time = System.currentTimeMillis();
             // Try to connect to the database and create an SQL statement for it
         try(LinkDatabaseConnection conn = connect(getDatabaseFile());
             Statement stmt = conn.createStatement()){
@@ -4358,7 +4357,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      * @param loadAll 
      */
-    protected void loadDatabase(boolean loadAll){
+    protected final void loadDatabase(boolean loadAll){
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
             saver = new DbxDownloader(getDatabaseFile(),"/"+getExternalDatabaseFileName(),loadAll);
             saver.execute();
@@ -10089,6 +10088,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected boolean saveFile(File file) {
                 // Reset the exception to null
             ioEx = null;
+                // Set the progress to be zero
+            setProgressValue(0);
+                // Set the progress to be indeterminate
+            setIndeterminate(true);
             try{    // Try to download the file from the path
                 return saveFile(file,filePath);
             } catch (IOException ex){
