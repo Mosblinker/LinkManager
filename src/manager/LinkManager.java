@@ -492,6 +492,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * saving the database when the program closes.
      */
     private static final boolean ENABLE_INITIAL_LOAD_AND_SAVE = true;
+    /**
+     * This is the flag telling the database loader that it should load all the 
+     * lists instead of just the lists that have been updated.
+     */
+    private static final int DATABASE_LOADER_LOAD_ALL_FLAG = 0x01;
     
     protected static final SimpleDateFormat DEBUG_DATE_FORMAT = 
             new SimpleDateFormat("M/d/yyyy h:mm:ss a");
@@ -4411,16 +4416,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_updateDatabaseItemActionPerformed
     /**
      * 
-     * @param loadAll 
+     * @param loadFlags 
      */
-    protected final void loadDatabase(boolean loadAll){
+    private void loadDatabase(int loadFlags){
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            saver = new DbxDownloader(getDatabaseFile(),"/"+getExternalDatabaseFileName(),loadAll);
+            saver = new DbxDownloader(getDatabaseFile(),"/"+getExternalDatabaseFileName(),loadFlags);
             saver.execute();
         } else {
-            loader = new DatabaseLoader(loadAll);
+            loader = new DatabaseLoader(loadFlags);
             loader.execute();
         }
+    }
+    /**
+     * 
+     * @param loadAll 
+     */
+    private void loadDatabase(boolean loadAll){
+        loadDatabase((loadAll)?DATABASE_LOADER_LOAD_ALL_FLAG:0);
     }
     /**
      * This reloads the unedited lists from the database.
@@ -8771,10 +8783,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         private HashMap<LinksListTabsPanel, List<LinksListModel>> tabsModels = 
                 new HashMap<>();
         /**
-         * This stores whether this will be loading all the lists from the 
-         * database or only the lists that are outdated.
+         * This stores the flags for this DatabaseLoader, which indicate things 
+         * such as whether this will be loading all the lists from the database 
+         * or only the lists that are outdated.
          */
-        private boolean loadAll;
+        private int loadFlags;
         /**
          * This stores whether this failed to load the database due to the 
          * database being an incompatible version that cannot be updated 
@@ -8786,13 +8799,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private String dbVersion = "N/A";
         
-        DatabaseLoader(boolean loadAll){
+        DatabaseLoader(int loadFlags){
             super(fullyLoaded);
-            this.loadAll = loadAll || !fullyLoaded;
+            this.loadFlags = loadFlags;
+            if (!fullyLoaded)
+                this.loadFlags |= DATABASE_LOADER_LOAD_ALL_FLAG;
+        }
+        
+        DatabaseLoader(boolean loadAll){
+            this((loadAll) ? DATABASE_LOADER_LOAD_ALL_FLAG : 0);
         }
         
         DatabaseLoader(){
             this(true);
+        }
+        /**
+         * This returns if all the lists will be loaded from the database of 
+         * if only or only the lists that are outdated.
+         * @return Whether all the lists will be loaded.
+         */
+        private boolean getLoadsAll(){
+            return getFlag(loadFlags,DATABASE_LOADER_LOAD_ALL_FLAG);
         }
         @Override
         public String getProgressString(){
@@ -8827,7 +8854,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // This will get the total size of the lists that will be loaded
             int total = 0;
                 // If we are loading all the lists
-            if (loadAll){
+            if (getLoadsAll()){
                     // Get the total size of all the lists in the database
                 total = listDataMap.totalSize();
             } else {// Get a set of models that currently already exist
@@ -8899,7 +8926,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // A list to get the models to use for the current tabs panel
                 List<LinksListModel> modelList = new ArrayList<>();
                     // If we are not loading all the lists, only the outdated ones
-                if (!loadAll){
+                if (!getLoadsAll()){
                         // Remove all listIDs of lists that were removed by the 
                         // program
                     entry.getValue().removeAll(allListsTabsPanel.getRemovedListIDs());
@@ -8946,7 +8973,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Set the list of models for this tabs panel
                 tabsModels.put(entry.getKey(), modelList);
             }   // If we are only reloading outdated lists
-            if (!loadAll){
+            if (!getLoadsAll()){
                     // The shown lists tabs panel may be showing lists that have 
                     // since been hidden. Remove any lists that are now hidden
                 tabsModels.get(shownListsTabsPanel).removeIf((LinksListModel t) 
@@ -9009,7 +9036,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         if (hideItem != null)
                             hideItem.setSelected(panel.isHidden());
                     }   // If the lists were completely reloaded
-                    if (loadAll)
+                    if (getLoadsAll())
                         tabsPanel.setStructureEdited(false);
                         // If this successfully loaded the lists, none of the 
                         // lists are edited, and there are no structural changes 
@@ -9026,14 +9053,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         }
                     }
                 }
-            }   //If the program has not fully loaded (this is the initial load)
+            }
+                //If the program has not fully loaded (this is the initial load)
             if (!fullyLoaded){
                     // Set the selected items from the configuration
                 setSelectedFromConfig();
                     // Update the program title
                 updateProgramTitle();
             }   // Update whether the program has fully loaded
-            fullyLoaded = fullyLoaded || loadAll;
+            fullyLoaded = fullyLoaded || getLoadsAll();
                 // Re-enable all the lists
             setTabsPanelListsEnabled(true);
             super.done();
@@ -10163,29 +10191,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private abstract class FileDownloader extends FilePathSaver{
         /**
-         * Whether this should load all the lists. If this is null, then the 
+         * The flags to use for loading the lists. If this is null, then the 
          * database will not be loaded after this.
          */
-        protected Boolean loadAll = null;
+        protected Integer loadFlags = null;
         /**
          * 
          * @param file
          * @param path
-         * @param loadAll
-         * @param exit
+         * @param loadFlags
+         * @param exit 
          */
-        FileDownloader(File file, String path, Boolean loadAll, boolean exit) {
+        FileDownloader(File file, String path, Integer loadFlags, boolean exit){
             super(file,path,exit);
-            this.loadAll = loadAll;
+            this.loadFlags = loadFlags;
         }
         /**
          * 
          * @param file
          * @param path
-         * @param loadAll 
+         * @param loadFlags 
          */
-        FileDownloader(File file, String path, Boolean loadAll){
-            this(file,path,loadAll,false);
+        FileDownloader(File file, String path, Integer loadFlags){
+            this(file,path,loadFlags,false);
         }
         /**
          * 
@@ -10200,14 +10228,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return 
          */
         public boolean willLoadDatabase(){
-            return loadAll != null;
+            return loadFlags != null;
         }
         /**
          * 
          * @return 
          */
-        public boolean getFullyLoadDatabase(){
-            return loadAll != null && loadAll;
+        public int getDatabaseLoaderFlags(){
+                // If the database loader flags are not null
+            if (loadFlags != null)
+                return loadFlags;
+            return 0;
         }
         @Override
         public String getProgressString() {
@@ -10254,15 +10285,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @param loadAll 
          */
-        protected void loadDatabase(boolean loadAll){
-            loader = new DatabaseLoader(loadAll);
+        protected void loadDatabase(int loadFlags){
+            loader = new DatabaseLoader(loadFlags);
             loader.execute();
         }
         @Override
         protected void done(){
             super.done();
             if (willLoadDatabase()){
-                loadDatabase(getFullyLoadDatabase());
+                loadDatabase(getDatabaseLoaderFlags());
             }
         }
     }
@@ -10393,11 +10424,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @param file
          * @param dbxPath
-         * @param loadAll
-         * @param showFileNotFound 
+         * @param loadFlags 
          */
-        DbxDownloader(File file,String dbxPath,Boolean loadAll){
-            super(file,dbxPath,loadAll);
+        DbxDownloader(File file,String dbxPath,Integer loadFlags){
+            super(file,dbxPath,loadFlags);
         }
         /**
          * 
