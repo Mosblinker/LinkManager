@@ -856,6 +856,43 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return dbxUtils;
     }
     /**
+     * This returns whether the given flag has been set on the given value. 
+     * @param flags The value to check whether the flag is set for.
+     * @param flag The flag to check for.
+     * @return Whether the given flag is set.
+     * @see #setFlag
+     * @see #toggleFlag
+     */
+    public static boolean getFlag(int flags, int flag){
+        return (flags & flag) == flag;
+    }
+    /**
+     * This sets whether the given flag is set based off the given {@code 
+     * value}.
+     * @param flags The value to set the flag on.
+     * @param flag The flag to be set or cleared based off {@code value}.
+     * @param value Whether the flag should be set or cleared.
+     * @return The value with the given flag either set or cleared.
+     * @see #getFlag
+     * @see #toggleFlag
+     */
+    public static int setFlag(int flags, int flag, boolean value){
+            // If the flag is to be set, OR the flags with the flag. Otherwise, 
+            // AND the flags with the inverse of the flag.
+        return (value) ? flags | flag : flags & ~flag;
+    }
+    /**
+     * This toggles whether the given flag is set.
+     * @param flags The value to toggle the flag on.
+     * @param flag The flag to be toggled.
+     * @return The value with the given flag toggled.
+     * @see #getFlag
+     * @see #setFlag
+     */
+    public static int toggleFlag(int flags, int flag){
+        return flags ^ flag;
+    }
+    /**
      * 
      * @param image
      * @return 
