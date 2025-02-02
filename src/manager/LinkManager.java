@@ -110,7 +110,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This is the name of the file used to store the dropbox API keys.
      */
-    public static final String DROPBOX_API_KEY_FILE = "dropbox_key.json";
+    public static final String DROPBOX_API_KEY_FILE = "LinkManagerDropboxKey.json";
     /**
      * This is the header flag for the general settings in the configuration 
      * file.
@@ -579,6 +579,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return new File(getWorkingDirectory(),fileName);
     }
     /**
+     * This returns the directory of this program.
+     * @return The directory containing this program.
+     */
+    private String getProgramDirectory(){
+            // Get the location of this program, as a URL
+        URL url = LinkManager.class.getProtectionDomain().getCodeSource().getLocation();
+            // If a URL was found
+        if (url != null)
+                // Get the parent of this program
+            return new File(url.getFile()).getParent();
+        else
+            return getWorkingDirectory();
+    }
+    /**
      * This returns the file used to store the configuration of the program.
      * @return The configuration file.
      */
@@ -598,7 +612,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return The dropbox API key file.
      */
     private File getDropboxAPIFile(){
-        return getRelativeFile(DROPBOX_API_KEY_FILE);
+        return new File(getProgramDirectory(),DROPBOX_API_KEY_FILE);
     }
     /**
      * This returns a property to use to get the database file. This is 
@@ -768,13 +782,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private DropboxLinkUtils loadDbxUtils(){
+            // Get the file containing the API keys
+        File dbxKey = getDropboxAPIFile();
+            // If the file is null or doesn't exist
+        if (dbxKey == null || !dbxKey.exists())
+            return null;
         if (dbxUtils == null){
             DbxAppInfo appInfo;
             try{
-                appInfo = DbxAppInfo.Reader.readFromFile(getDropboxAPIFile());
+                appInfo = DbxAppInfo.Reader.readFromFile(dbxKey);
             } catch (JsonReader.FileLoadException ex){
                 if (isInDebug())
-                    System.out.println("Error Reading File");
+                    System.out.println("Error Reading File: " + ex);
                 return null;
             }
             dbxUtils = new DropboxLinkUtils(){
