@@ -1650,6 +1650,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         javax.swing.JLabel allTotalSizeTextLabel = new javax.swing.JLabel();
         allTotalSizeLabel = new javax.swing.JLabel();
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
+        dbUpdateLastModButton = new javax.swing.JButton();
         dbPrefixesPanel = new javax.swing.JPanel();
         dbPrefixScrollPane = new javax.swing.JScrollPane();
         dbPrefixTable = new javax.swing.JTable();
@@ -2476,6 +2477,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         gridBagConstraints.weighty = 0.9;
         dbPropPanel.add(filler2, gridBagConstraints);
 
+        dbUpdateLastModButton.setText("Update Last Mod");
+        dbUpdateLastModButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbUpdateLastModButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout dbFilePanelLayout = new javax.swing.GroupLayout(dbFilePanel);
         dbFilePanel.setLayout(dbFilePanelLayout);
         dbFilePanelLayout.setHorizontalGroup(
@@ -2501,7 +2509,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(dbCreateTablesButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(dbUpdateUsedPrefixesButton))
+                                .addComponent(dbUpdateUsedPrefixesButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(dbUpdateLastModButton))
                             .addGroup(dbFilePanelLayout.createSequentialGroup()
                                 .addComponent(foreignKeysToggle)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -2525,7 +2535,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(resetDBFilePathButton)
                     .addComponent(dbCreateTablesButton)
-                    .addComponent(dbUpdateUsedPrefixesButton))
+                    .addComponent(dbUpdateUsedPrefixesButton)
+                    .addComponent(dbUpdateLastModButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(dbFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(foreignKeysToggle)
@@ -5215,6 +5226,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void syncDBToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_syncDBToggleActionPerformed
         setConfigProperty(SYNC_DATABASE_KEY,syncDBToggle.isSelected());
     }//GEN-LAST:event_syncDBToggleActionPerformed
+
+    private void dbUpdateLastModButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbUpdateLastModButtonActionPerformed
+        try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
+            setDBLastModLabelText(conn.setDatabaseLastModified());
+        }catch (SQLException | UncheckedSQLException ex) {
+            System.out.println("Error: "+ex);
+        }
+    }//GEN-LAST:event_dbUpdateLastModButtonActionPerformed
     
     private CustomTableModel getListSearchTableModel(){
         CustomTableModel model = new CustomTableModel("ListID", "List Name", 
@@ -5832,6 +5851,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JTextArea dbTableStructText;
     private javax.swing.JTable dbTableTable;
     private javax.swing.JLabel dbUUIDLabel;
+    private javax.swing.JButton dbUpdateLastModButton;
     private javax.swing.JButton dbUpdateUsedPrefixesButton;
     private javax.swing.JComboBox<String> dbUsedPrefixCombo;
     private javax.swing.JScrollPane dbUsedPrefixScrollPane;
