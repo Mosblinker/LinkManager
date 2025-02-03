@@ -632,71 +632,35 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return new File(getProgramDirectory(),DROPBOX_API_KEY_FILE);
     }
     /**
-     * This returns a property to use to get the database file. This is 
-     * primarily used to get the file path for the folder and the file name of 
-     * the database file.
-     * @param propName The name of the property to get.
-     * @param defaultValue The default value for the property if not set or if 
-     * set to null or a blank String.
-     * @param config The Properties to get the property from.
-     * @return The value of the property to use to get the database file.
-     */
-    private String getDatabaseFileProperty(String propName,String defaultValue, 
-            Properties config){
-        if (config == null) // If the config map is not initialized yet
-            return defaultValue;
-            // This will get the value of the property from the config map
-        String value = config.getProperty(propName, defaultValue);
-            // If the value is not null and not blank, then return it. 
-            // Otherwise, return the default value.
-        return (value != null && !value.isBlank()) ? value.trim():defaultValue;
-    }
-    /**
-     * 
-     * @param propName The name of the property to set.
-     * @param value
-     * @param config The Properties to set the property in.
-     * @return 
-     */
-    private boolean setDatabaseFileProperty(String propName, String value,
-            Properties config){
-        if (config != null){
-            String oldValue = config.getProperty(propName);
-            value = (value!=null&&!value.isBlank())?value.trim():null;
-            if (config == this.config.getPrivateProperties())
-                this.config.setPrivateProperty(propName,value);
-            else
-                this.config.setConfigProperty(propName,value,config,this.config.getDefaultProperties());
-            return !Objects.equals(oldValue, value);
-        }
-        return false;
-    }
-    /**
-     * 
-     * @param propName The name of the property to set.
-     * @param value
-     * @return 
-     */
-    private boolean setDatabaseFileProperty(String propName, String value){
-        return setDatabaseFileProperty(propName,value,config.getProperties());
-    }
-    /**
      * This returns the name for the file that stores the database for the 
      * program.
      * @return The name of the file containing the database.
      */
     private String getDatabaseFileName(){
-        return getDatabaseFileProperty(DATABASE_FILE_PATH_KEY,
-                LINK_DATABASE_FILE,config.getProperties());
+        return config.getFilePathProperty(DATABASE_FILE_PATH_KEY);
+    }
+    /**
+     * 
+     * @param fileName
+     * @return 
+     */
+    private String setDatabaseFileName(String fileName){
+        return config.setFilePathProperty(DATABASE_FILE_PATH_KEY, fileName);
     }
     /**
      * 
      * @return 
      */
     private String getExternalDatabaseFileName(){
-        return getDatabaseFileProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, 
-                config.getPrivateDefault(EXTERNAL_DATABASE_FILE_PATH_KEY), 
-                config.getPrivateProperties());
+        return config.getPrivateFilePathProperty(EXTERNAL_DATABASE_FILE_PATH_KEY);
+    }
+    /**
+     * 
+     * @param fileName
+     * @return 
+     */
+    private String setExternalDatabaseFileName(String fileName){
+        return config.setPrivateFilePathProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, fileName);
     }
     /**
      * 
@@ -3842,12 +3806,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_executeQueryActionPerformed
     
     private void setDBFileNameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBFileNameButtonActionPerformed
-        setDatabaseFileProperty(DATABASE_FILE_PATH_KEY,dbFileNameField.getText());
+        setDatabaseFileName(dbFileNameField.getText());
         updateDatabaseFileFields();
     }//GEN-LAST:event_setDBFileNameButtonActionPerformed
 
     private void resetDBFilePathButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetDBFilePathButtonActionPerformed
-        setDatabaseFileProperty(DATABASE_FILE_PATH_KEY,null);
+        setDatabaseFileName(null);
         updateDatabaseFileFields();
     }//GEN-LAST:event_resetDBFilePathButtonActionPerformed
 
@@ -4851,7 +4815,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 try {    // If the new file is the same as the old file
                     if (Files.isSameFile(newPath, oldFile.toPath())){
                             // Set the path in the config
-                        setDatabaseFileProperty(DATABASE_FILE_PATH_KEY,fileName);
+                        setDatabaseFileName(fileName);
                             // No change will occur to the file itself
                         setLocationDialog.setVisible(false);
                         return;
@@ -4903,7 +4867,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             saver = new DatabaseFileChanger(op,oldFile,fileName);
             saver.execute();
         } else {
-            setDatabaseFileProperty(DATABASE_FILE_PATH_KEY,fileName);
+            setDatabaseFileName(fileName);
             setLocationDialog.setVisible(false);
         }
     }//GEN-LAST:event_setDBAcceptButtonActionPerformed
@@ -9925,7 +9889,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             if (success){
-                setDatabaseFileProperty(DATABASE_FILE_PATH_KEY,target);
+                setDatabaseFileName(target);
             }
             super.done();
             setLocationDialog.setVisible(false);

@@ -815,4 +815,74 @@ public class LinkManagerConfig {
     public void setDefaultPrivateSizeProperty(Component comp){
         setDefaultPrivateSizeProperty(comp,comp.getPreferredSize());
     }
+    /**
+     * 
+     * @param value
+     * @return 
+     */
+    protected String formatFilePath(String value){
+            // If the value is not null and not blank
+        if (value != null && !value.isBlank())
+            return value.trim();
+        return null;
+    }
+    /**
+     * 
+     * @param key
+     * @param config
+     * @param defaultConfig
+     * @return 
+     */
+    protected String getConfigFilePathProperty(String key, Properties config, 
+            Properties defaultConfig){
+            // Get the value of the property from the config map and format it
+        String value = formatFilePath(config.getProperty(key));
+            // If the value is not null
+        if (value != null)
+            return value;
+            // If there was default config map provided
+        if (defaultConfig != null){
+                // Get the value from the default config map and format it
+            value = formatFilePath(defaultConfig.getProperty(key));
+                // If the value is not null
+            if (value != null)
+                return value;
+        }
+        return null;
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    public String getFilePathProperty(String key){
+        return getConfigFilePathProperty(key,getProperties(),getDefaultProperties());
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    public String getPrivateFilePathProperty(String key){
+        return getConfigFilePathProperty(key,getPrivateProperties(),
+                getDefaultPrivateProperties());
+    }
+    /**
+     * 
+     * @param key
+     * @param value
+     * @return 
+     */
+    public String setFilePathProperty(String key, String value){
+        return setProperty(key,formatFilePath(value));
+    }
+    /**
+     * 
+     * @param key
+     * @param value
+     * @return 
+     */
+    public String setPrivateFilePathProperty(String key, String value){
+        return setPrivateProperty(key,formatFilePath(value));
+    }
 }
