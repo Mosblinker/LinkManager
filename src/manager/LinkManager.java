@@ -323,10 +323,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private static final String SYNC_DATABASE_KEY = "SyncDatabase";
     
-    private static final String WIDTH_KEY_SUFFIX = "Width";
-    
-    private static final String HEIGHT_KEY_SUFFIX = "Height";
-    
     private static final String LIST_MANAGER_KEY_PREFIX = "ListManager";
     
     private static final String LIST_TABS_MANAGER_KEY_PREFIX = 
@@ -1214,19 +1210,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config.setPropertyDefault(SYNC_DATABASE_KEY, syncDBToggle.isSelected());
         config.getSQLiteConfig().enforceForeignKeys(foreignKeysToggle.isSelected());
         
-            // Go through the components and their key prefixes
-        for (Map.Entry<Component,String> entry : config.getComponentPrefixMap().entrySet()){
-                // Get the key prefix for the current component
-            String key = entry.getValue();
-                // Get the preferred size for the current component
-            Dimension dim = entry.getKey().getPreferredSize();
-                // If the current component has a preferred size
-            if (dim != null){
-                    // Use the preferred size of the component as its default 
-                    // size
-                config.setPropertyDefault(key+WIDTH_KEY_SUFFIX, dim.width);
-                config.setPropertyDefault(key+HEIGHT_KEY_SUFFIX, dim.height);
-            }
+            // Go through the components to store their preferred sizes
+        for (Component comp : config.getComponentPrefixMap().keySet()){
+                // Use the preferred size of the current component as its 
+                // default size
+            config.setDefaultSizeProperty(comp,comp.getPreferredSize());
         }
         
         listContentsObserver = (Integer index, Integer size) -> {
@@ -1445,24 +1433,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         for (LinksListTabsPanel panel : listsTabPanels){
             panel.setListsEnabled(enabled);
         }
-    }
-    /**
-     * 
-     * @param key
-     * @param dim 
-     */
-    private void setConfigSizeProperty(String key, Dimension dim){
-        config.setProperty(key+WIDTH_KEY_SUFFIX,(dim!=null)?dim.width:null);
-        config.setProperty(key+HEIGHT_KEY_SUFFIX,(dim!=null)?dim.height:null);
-    }
-    /**
-     * 
-     * @param comp 
-     */
-    private void setConfigSizeProperty(Component comp){
-        String key = config.getComponentPrefixMap().get(comp);
-        if (key != null)
-            setConfigSizeProperty(key,comp.getSize());
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -4151,7 +4121,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             beep();
         listManipulator.setPreferredSize(listManipulator.getSize());
             // Set the list manipulator panel's size in the config
-        setConfigSizeProperty(listManipulator);
+        config.setSizeProperty(listManipulator);
         linkTextField.grabFocus();
     }//GEN-LAST:event_manageLinksButtonActionPerformed
     /**
@@ -4420,7 +4390,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         listTabsManipulator.setPreferredSize(listTabsManipulator.getSize());
             // Set the list tabs manipulator panel's size in the config
-        setConfigSizeProperty(listTabsManipulator);
+        config.setSizeProperty(listTabsManipulator);
         System.gc();
     }//GEN-LAST:event_manageListsItemActionPerformed
     /**
@@ -4727,7 +4697,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // If the window is not maximized
         if (!isMaximized())
                 // Set the windows's size in the config
-            setConfigSizeProperty(this);
+            config.setSizeProperty(this);
     }//GEN-LAST:event_formComponentResized
 
     private void formWindowStateChanged(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowStateChanged
@@ -5011,7 +4981,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void setLocationDialogComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_setLocationDialogComponentResized
             // Set the dialog's size in the config if it's saved
-        setConfigSizeProperty(setLocationDialog);
+        config.setSizeProperty(setLocationDialog);
     }//GEN-LAST:event_setLocationDialogComponentResized
 
     private void dbxPrintButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxPrintButtonActionPerformed
@@ -5536,7 +5506,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 option = fc.showOpenDialog(this);
             fc.setPreferredSize(fc.getSize());
                 // Set the file chooser's size in the config if it's saved
-            setConfigSizeProperty(fc);
+            config.setSizeProperty(fc);
             if (option == JFileChooser.APPROVE_OPTION){
                 file = fc.getSelectedFile();
                 if (!file.exists()){
@@ -5570,7 +5540,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             option = fc.showSaveDialog(this);
         fc.setPreferredSize(fc.getSize());
             // Set the file chooser's size in the config if it's saved
-        setConfigSizeProperty(fc);
+        config.setSizeProperty(fc);
             // If the user wants to save the file
         if (option == JFileChooser.APPROVE_OPTION)
             return fc.getSelectedFile();
@@ -6031,45 +6001,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return false;
         }
         return true;
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    private Integer getIntegerFromConfig(String key, Properties config){
-        try{
-            return Integer.valueOf(config.getProperty(key));
-        } catch(NumberFormatException ex){ 
-            return null;
-        }
-    }
-    /**
-     * 
-     * @param widthKey
-     * @param heightKey
-     * @return 
-     */
-    private Dimension getSizeFromConfig(String widthKey, String heightKey, 
-            Properties config){
-            // Get the width from the config
-        Integer width = getIntegerFromConfig(widthKey, config);
-            // Get the height from the config
-        Integer height = getIntegerFromConfig(heightKey, config);
-            // If either the width or height are null
-        if (width == null || height == null)
-            return null;
-        return new Dimension(width,height);
-    }
-    /**
-     * 
-     * @param key
-     * @param config
-     * @return 
-     */
-    private Dimension getSizeFromConfig(String key, Properties config){
-        return getSizeFromConfig(key+WIDTH_KEY_SUFFIX,key+HEIGHT_KEY_SUFFIX,
-                config);
     }
     /**
      * 
@@ -6567,11 +6498,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Set the entered link from the config
             linkTextField.setText(config.getProperty(ENTERED_LINK_TEXT_KEY));
                 // Go through the components with sizes saved to config
-            for (Map.Entry<Component,String> entry : config.getComponentPrefixMap().entrySet()){
-                    // Get the component to set the size of
-                Component comp = entry.getKey();
+            for (Component comp : config.getComponentPrefixMap().keySet()){
                     // Get the size from the config for the component
-                Dimension dim = getSizeFromConfig(entry.getValue(),config.getProperties());
+                Dimension dim = config.getSizeProperty(comp);
+                    // If the size for the component is null
+                if (dim == null)
+                    continue;
                     // Get the minimum size for the component
                 Dimension min = comp.getMinimumSize();
                     // Make sure the width and height are within range
@@ -6829,7 +6761,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             addLinksPanel.setPreferredSize(addLinksPanel.getSize());
                 // Set the add list panel's size in the config
-            setConfigSizeProperty(addLinksPanel);
+            config.setSizeProperty(addLinksPanel);
         }
         @Override
         protected String getNewActionName(LinksListPanel panel){
@@ -6909,7 +6841,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             copyOrMoveListSelector.setPreferredSize(
                     copyOrMoveListSelector.getSize());
                 // Set the copy or move selector panel's size in the config
-            setConfigSizeProperty(copyOrMoveListSelector);
+            config.setSizeProperty(copyOrMoveListSelector);
         }
         @Override
         protected String getNewActionName(LinksListPanel panel){
@@ -9561,7 +9493,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             super.backgroundAction();
             
                 // Add the configuration for SQLite
-            addConfigRows("SQLiteConfig",config.getSQLiteConfig().toProperties(),new SQLiteConfig().toProperties(),true);
+            addConfigRows("SQLiteConfig",config.getSQLiteConfig().toProperties(),
+                    new SQLiteConfig().toProperties(),true);
                 // Add all the properties for this program
             addConfigRows("Properties",config.getProperties(),config.getDefaultProperties());
                 // Add all the private properties for this program

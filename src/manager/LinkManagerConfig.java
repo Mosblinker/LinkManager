@@ -5,6 +5,7 @@
 package manager;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.util.*;
 import org.sqlite.SQLiteConfig;
 
@@ -15,6 +16,11 @@ import org.sqlite.SQLiteConfig;
  * @author Milo Steier
  */
 public class LinkManagerConfig {
+    
+    protected static final String WIDTH_KEY_SUFFIX = "Width";
+    
+    protected static final String HEIGHT_KEY_SUFFIX = "Height";
+    
     /**
      * This is a properties map that stores the configuration for LinkManager.
      */
@@ -532,5 +538,281 @@ public class LinkManagerConfig {
             // If it's not null, return it. Otherwise, return the given double 
         return (value != null) ? value : defaultValue;  // value
     }
-    
+    /**
+     * 
+     * @param key
+     * @param config
+     * @return 
+     */
+    protected Dimension getConfigSizeProperty(String key, Properties config){
+            // Get the width, as a String
+        String widthStr = config.getProperty(key+WIDTH_KEY_SUFFIX);
+            // Get the height as a String
+        String heightStr = config.getProperty(key+HEIGHT_KEY_SUFFIX);
+            // If either the width or height are null
+        if (widthStr == null || heightStr == null)
+            return null;
+        try{    // Parse the width and height and return them as a Dimension.
+            return new Dimension(Integer.parseInt(widthStr),
+                    Integer.parseInt(heightStr));
+        } catch (NumberFormatException ex){
+            return null;
+        }
+    }
+    /**
+     * 
+     * @param key
+     * @param dim
+     * @param config 
+     * @param defaultConfig 
+     */
+    protected void setConfigSizeProperty(String key, Dimension dim, 
+            Properties config, Properties defaultConfig){
+            // Set the width value if it is not null. Otherwise, use null
+        setConfigProperty(key+WIDTH_KEY_SUFFIX,(dim!=null)?dim.width:null
+                ,config,defaultConfig);
+            // Set the height value if it is not null. Otherwise, use null
+        setConfigProperty(key+HEIGHT_KEY_SUFFIX,(dim!=null)?dim.height:null
+                ,config,defaultConfig);
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    public Dimension getSizeProperty(String key){
+        return getConfigSizeProperty(key, getProperties());
+    }
+    /**
+     * 
+     * @param key
+     * @param dim
+     * @return 
+     */
+    public Dimension getSizeProperty(String key, Dimension dim){
+            // Get the dimension from the property
+        Dimension temp = getSizeProperty(key);
+            // If the property is not null, return it. Otherwise, return the 
+        return (temp != null) ? temp : dim;     // given dimension
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Dimension getSizeProperty(Component comp){
+        return getSizeProperty(getComponentPrefixMap().get(comp));
+    }
+    /**
+     * 
+     * @param comp
+     * @param dim
+     * @return 
+     */
+    public Dimension getSizeProperty(Component comp, Dimension dim){
+        return getSizeProperty(getComponentPrefixMap().get(comp),dim);
+    }
+    /**
+     * 
+     * @param key
+     * @param dim 
+     */
+    public void setSizeProperty(String key, Dimension dim){
+        setConfigSizeProperty(key,dim,getProperties(),getDefaultProperties());
+    }
+    /**
+     * 
+     * @param comp
+     * @param dim 
+     */
+    public void setSizeProperty(Component comp, Dimension dim){
+        setSizeProperty(getComponentPrefixMap().get(comp),dim);
+    }
+    /**
+     * 
+     * @param comp 
+     */
+    public void setSizeProperty(Component comp){
+        setSizeProperty(comp,comp.getSize());
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    public Dimension getDefaultSizeProperty(String key){
+        return getConfigSizeProperty(key, getDefaultProperties());
+    }
+    /**
+     * 
+     * @param key
+     * @param dim
+     * @return 
+     */
+    public Dimension getDefaultSizeProperty(String key, Dimension dim){
+            // Get the dimension from the property
+        Dimension temp = getDefaultSizeProperty(key);
+            // If the property is not null, return it. Otherwise, return the 
+        return (temp != null) ? temp : dim;     // given dimension
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Dimension getDefaultSizeProperty(Component comp){
+        return getDefaultSizeProperty(getComponentPrefixMap().get(comp));
+    }
+    /**
+     * 
+     * @param comp
+     * @param dim
+     * @return 
+     */
+    public Dimension getDefaultSizeProperty(Component comp, Dimension dim){
+        return getDefaultSizeProperty(getComponentPrefixMap().get(comp),dim);
+    }
+    /**
+     * 
+     * @param key
+     * @param dim 
+     */
+    public void setDefaultSizeProperty(String key, Dimension dim){
+        setConfigSizeProperty(key,dim,getDefaultProperties(),null);
+    }
+    /**
+     * 
+     * @param comp
+     * @param dim 
+     */
+    public void setDefaultSizeProperty(Component comp, Dimension dim){
+        setDefaultSizeProperty(getComponentPrefixMap().get(comp),dim);
+    }
+    /**
+     * 
+     * @param comp 
+     */
+    public void setDefaultSizeProperty(Component comp){
+        setDefaultSizeProperty(comp,comp.getPreferredSize());
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    public Dimension getPrivateSizeProperty(String key){
+        return getConfigSizeProperty(key, getPrivateProperties());
+    }
+    /**
+     * 
+     * @param key
+     * @param dim
+     * @return 
+     */
+    public Dimension getPrivateSizeProperty(String key, Dimension dim){
+            // Get the dimension from the property
+        Dimension temp = getPrivateSizeProperty(key);
+            // If the property is not null, return it. Otherwise, return the 
+        return (temp != null) ? temp : dim;     // given dimension
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Dimension getPrivateSizeProperty(Component comp){
+        return getPrivateSizeProperty(getComponentPrefixMap().get(comp));
+    }
+    /**
+     * 
+     * @param comp
+     * @param dim
+     * @return 
+     */
+    public Dimension getPrivateSizeProperty(Component comp, Dimension dim){
+        return getPrivateSizeProperty(getComponentPrefixMap().get(comp),dim);
+    }
+    /**
+     * 
+     * @param key
+     * @param dim 
+     */
+    public void setPrivateSizeProperty(String key, Dimension dim){
+        setConfigSizeProperty(key,dim,getPrivateProperties(),getDefaultPrivateProperties());
+    }
+    /**
+     * 
+     * @param comp
+     * @param dim 
+     */
+    public void setPrivateSizeProperty(Component comp, Dimension dim){
+        setPrivateSizeProperty(getComponentPrefixMap().get(comp),dim);
+    }
+    /**
+     * 
+     * @param comp 
+     */
+    public void setPrivateSizeProperty(Component comp){
+        setPrivateSizeProperty(comp,comp.getSize());
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    public Dimension getDefaultPrivateSizeProperty(String key){
+        return getConfigSizeProperty(key, getDefaultPrivateProperties());
+    }
+    /**
+     * 
+     * @param key
+     * @param dim
+     * @return 
+     */
+    public Dimension getDefaultPrivateSizeProperty(String key, Dimension dim){
+            // Get the dimension from the property
+        Dimension temp = getDefaultPrivateSizeProperty(key);
+            // If the property is not null, return it. Otherwise, return the 
+        return (temp != null) ? temp : dim;     // given dimension
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Dimension getDefaultPrivateSizeProperty(Component comp){
+        return getDefaultPrivateSizeProperty(getComponentPrefixMap().get(comp));
+    }
+    /**
+     * 
+     * @param comp
+     * @param dim
+     * @return 
+     */
+    public Dimension getDefaultPrivateSizeProperty(Component comp, Dimension dim){
+        return getDefaultPrivateSizeProperty(getComponentPrefixMap().get(comp),dim);
+    }
+    /**
+     * 
+     * @param key
+     * @param dim 
+     */
+    public void setDefaultPrivateSizeProperty(String key, Dimension dim){
+        setConfigSizeProperty(key,dim,getDefaultPrivateProperties(),null);
+    }
+    /**
+     * 
+     * @param comp
+     * @param dim 
+     */
+    public void setDefaultPrivateSizeProperty(Component comp, Dimension dim){
+        setDefaultPrivateSizeProperty(getComponentPrefixMap().get(comp),dim);
+    }
+    /**
+     * 
+     * @param comp 
+     */
+    public void setDefaultPrivateSizeProperty(Component comp){
+        setDefaultPrivateSizeProperty(comp,comp.getPreferredSize());
+    }
 }
