@@ -3775,10 +3775,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     public void setDatabaseLastModified(long lastMod) throws SQLException{
         getDatabaseProperties().setProperty(DATABASE_LAST_MODIFIED_CONFIG_KEY, 
-                Objects.toString(lastMod));
+                Long.toString(lastMod));
     }
     /**
      * 
+     * @return The new last modified time.
      * @throws SQLException 
      */
     public long setDatabaseLastModified() throws SQLException{
@@ -3831,7 +3832,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             String value = defaultValues[2];
                 // If the current property being set is the database last modified key
             if (DATABASE_LAST_MODIFIED_CONFIG_KEY.equals(defaultValues[0]))
-                value = Objects.toString(System.currentTimeMillis());
+                value = Long.toString(System.currentTimeMillis());
             getDatabaseProperties().setPropertyIfAbsent(defaultValues[0], 
                     value, defaultValues[1]);
         }   // Set the database's UUID if not present
