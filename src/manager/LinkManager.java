@@ -929,7 +929,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         undoCommands = new HashMap<>();
         textPopupMenus = new HashMap<>();
         
-        config = new LinkManagerConfiguration();
+        config = new LinkManagerConfig();
             // Initialize the defaults that are not dependent on the UI
         config.getDefaultProperties().setProperty(DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
         config.getDefaultPrivateProperties().setProperty(DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
@@ -5703,7 +5703,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This is used to store and manage the configuration for this program.
      */
-    private LinkManagerConfiguration config;
+    private LinkManagerConfig config;
     /**
      * 
      */
