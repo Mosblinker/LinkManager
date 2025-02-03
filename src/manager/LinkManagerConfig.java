@@ -145,7 +145,7 @@ public class LinkManagerConfig {
      * @throws NullPointerException If either {@code key} or {@code config} are 
      * null.
      */
-    protected String setConfigProperty(String key, Object value,
+    protected synchronized String setConfigProperty(String key, Object value,
             Properties config, Properties defaultConfig){
             // Check if the key is null
         Objects.requireNonNull(key, "The key for the property cannot be null");
@@ -183,7 +183,7 @@ public class LinkManagerConfig {
      * @param value
      * @return 
      */
-    public String setProperty(String key, Object value){
+    public synchronized String setProperty(String key, Object value){
         return setConfigProperty(key,value,getProperties(),getDefaultProperties());
     }
     /**
@@ -192,7 +192,7 @@ public class LinkManagerConfig {
      * @param value
      * @return 
      */
-    public String setPropertyDefault(String key, Object value){
+    public synchronized String setPropertyDefault(String key, Object value){
         return setConfigProperty(key,value,getDefaultProperties(),null);
     }
     /**
@@ -201,7 +201,7 @@ public class LinkManagerConfig {
      * @param value
      * @return 
      */
-    public String setPrivateProperty(String key, Object value){
+    public synchronized String setPrivateProperty(String key, Object value){
         return setConfigProperty(key,value,getPrivateProperties(),
                 getDefaultPrivateProperties());
     }
@@ -211,7 +211,7 @@ public class LinkManagerConfig {
      * @param value
      * @return 
      */
-    public String setPrivateDefault(String key, Object value){
+    public synchronized String setPrivateDefault(String key, Object value){
         return setConfigProperty(key,value,getDefaultPrivateProperties(),null);
     }
     /**
