@@ -640,7 +640,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param config The Properties to get the property from.
      * @return The value of the property to use to get the database file.
      */
-    private String getDatabaseFileProperty(String propName,String defaultValue,
+    private String getDatabaseFileProperty(String propName,String defaultValue, 
             Properties config){
         if (config == null) // If the config map is not initialized yet
             return defaultValue;
@@ -649,18 +649,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // If the value is not null and not blank, then return it. 
             // Otherwise, return the default value.
         return (value != null && !value.isBlank()) ? value.trim():defaultValue;
-    }
-    /**
-     * This returns a property to use to get the database file. This is 
-     * primarily used to get the file path for the folder and the file name of 
-     * the database file.
-     * @param propName The name of the property to get.
-     * @param defaultValue The default value for the property if not set or if 
-     * set to null or a blank String.
-     * @return The value of the property to use to get the database file.
-     */
-    private String getDatabaseFileProperty(String propName,String defaultValue){
-        return getDatabaseFileProperty(propName,defaultValue,config);
     }
     /**
      * 
@@ -674,7 +662,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (config != null){
             String oldValue = config.getProperty(propName);
             value = (value!=null&&!value.isBlank())?value.trim():null;
-            if (config == privateConfig)
+            if (config == this.config.getPrivateProperties())
                 setPrivateProperty(propName,value);
             else
                 setConfigProperty(propName,value,config);
@@ -689,7 +677,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private boolean setDatabaseFileProperty(String propName, String value){
-        return setDatabaseFileProperty(propName,value,config);
+        return setDatabaseFileProperty(propName,value,config.getProperties());
     }
     /**
      * This returns the name for the file that stores the database for the 
@@ -697,7 +685,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return The name of the file containing the database.
      */
     private String getDatabaseFileName(){
-        return getDatabaseFileProperty(DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
+        return getDatabaseFileProperty(DATABASE_FILE_PATH_KEY,
+                LINK_DATABASE_FILE,config.getProperties());
     }
     /**
      * 
@@ -705,8 +694,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private String getExternalDatabaseFileName(){
         return getDatabaseFileProperty(DATABASE_FILE_PATH_KEY, 
-                defaultPrivateConfig.getProperty(DATABASE_FILE_PATH_KEY), 
-                privateConfig);
+                config.getDefaultPrivateProperties().getProperty(DATABASE_FILE_PATH_KEY), 
+                config.getPrivateProperties());
     }
     /**
      * 
@@ -766,10 +755,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private String getDropboxToken(String key){
-        if (privateConfig == null)
-            return null;
-        String token = privateConfig.getProperty(key);
-        return token;
+        return config.getPrivateProperties().getProperty(key);
     }
     /**
      * 
@@ -848,9 +834,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
                 @Override
                 public Long getTokenExpiresAt() {
-                    if (privateConfig == null)
-                        return null;
-                    String value = privateConfig.getProperty(DROPBOX_TOKEN_EXPIRATION_KEY);
+                    String value = config.getPrivateProperties().getProperty(DROPBOX_TOKEN_EXPIRATION_KEY);
                     if (value == null)
                         return null;
                     try{
@@ -945,6 +929,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         editCommands = new HashMap<>();
         undoCommands = new HashMap<>();
         textPopupMenus = new HashMap<>();
+        
+        config = new LinkManagerConfiguration();
+        config.getDefaultProperties().setProperty(DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
+        config.getDefaultPrivateProperties().setProperty(DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
         
         // TODO: Uncomment this when Dropbox token encryption is implemented
 //        obfuscator = Obfuscator.getInstance();
@@ -1205,60 +1193,52 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         configCompKeyMap.put(setLocationDialog, 
                 DATABASE_LOCATION_DIALOG_KEY_PREFIX);
         
-        defaultConfig = new Properties();
-        defaultConfig.setProperty(PROGRESS_DISPLAY_KEY, 
+        config.getDefaultProperties().setProperty(PROGRESS_DISPLAY_KEY, 
                 Integer.toString(progressDisplay.getDisplaySettings()));
-        defaultConfig.setProperty(ALWAYS_ON_TOP_KEY, 
+        config.getDefaultProperties().setProperty(ALWAYS_ON_TOP_KEY, 
                 Boolean.toString(alwaysOnTopToggle.isSelected()));
-        defaultConfig.setProperty(BLANK_LINES_KEY, 
+        config.getDefaultProperties().setProperty(BLANK_LINES_KEY, 
                 Boolean.toString(doubleNewLinesToggle.isSelected()));
-        defaultConfig.setProperty(ENABLE_LINK_OPS_KEY, 
+        config.getDefaultProperties().setProperty(ENABLE_LINK_OPS_KEY, 
                 Boolean.toString(linkOperationToggle.isSelected()));
-        defaultConfig.setProperty(ENABLE_HIDDEN_LINK_OPS_KEY, 
+        config.getDefaultProperties().setProperty(ENABLE_HIDDEN_LINK_OPS_KEY, 
                 Boolean.toString(hiddenLinkOperationToggle.isSelected()));
-        defaultConfig.setProperty(DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
-        defaultConfig.setProperty(AUTOSAVE_FREQUENCY_KEY, 
+        config.getDefaultProperties().setProperty(AUTOSAVE_FREQUENCY_KEY, 
                 Integer.toString(autosaveMenu.getFrequencyIndex()));
-        defaultConfig.setProperty(AUTO_HIDE_WAIT_DURATION_KEY, 
+        config.getDefaultProperties().setProperty(AUTO_HIDE_WAIT_DURATION_KEY, 
                 Integer.toString(autoHideMenu.getDurationIndex()));
-        defaultConfig.setProperty(SEARCH_MATCH_CASE_KEY, 
+        config.getDefaultProperties().setProperty(SEARCH_MATCH_CASE_KEY, 
                 Boolean.toString(searchPanel.getMatchCase()));
-        defaultConfig.setProperty(SEARCH_MATCH_SPACES_KEY, 
+        config.getDefaultProperties().setProperty(SEARCH_MATCH_SPACES_KEY, 
                 Boolean.toString(searchPanel.getMatchSpaces()));
-        defaultConfig.setProperty(SEARCH_WRAP_AROUND_KEY, 
+        config.getDefaultProperties().setProperty(SEARCH_WRAP_AROUND_KEY, 
                 Boolean.toString(searchPanel.getWrapAround()));
-        defaultConfig.setProperty(HIDDEN_LISTS_ARE_SHOWN_KEY, 
+        config.getDefaultProperties().setProperty(HIDDEN_LISTS_ARE_SHOWN_KEY, 
                 Boolean.toString(showHiddenListsToggle.isSelected()));
-        defaultConfig.setProperty(REPLACE_OUTDATED_LISTS_KEY, 
+        config.getDefaultProperties().setProperty(REPLACE_OUTDATED_LISTS_KEY, 
                 Integer.toString(2));
-        defaultConfig.setProperty(SHOW_DETAILED_DATABASE_ERRORS, 
+        config.getDefaultProperties().setProperty(SHOW_DETAILED_DATABASE_ERRORS, 
                 Boolean.toString(showDBErrorDetailsToggle.isSelected()));
-        defaultConfig.setProperty(LINK_MANAGER_X_KEY, Integer.toString(0));
-        defaultConfig.setProperty(LINK_MANAGER_Y_KEY, Integer.toString(0));
+        config.getDefaultProperties().setProperty(LINK_MANAGER_X_KEY, Integer.toString(0));
+        config.getDefaultProperties().setProperty(LINK_MANAGER_Y_KEY, Integer.toString(0));
             // TODO: Implement the window state key
-//        defaultConfig.setProperty(LINK_MANAGER_WINDOW_STATE_KEY, 
+//        config.getDefaultProperties().setProperty(LINK_MANAGER_WINDOW_STATE_KEY, 
 //                Integer.toString(JFrame.NORMAL));
-        defaultConfig.setProperty(DATABASE_FILE_CHANGE_OPERATION_KEY, 
+        config.getDefaultProperties().setProperty(DATABASE_FILE_CHANGE_OPERATION_KEY, 
                 Integer.toString(dbFileChangeCombo.getSelectedIndex()));
-        defaultConfig.setProperty(SYNC_DATABASE_KEY, 
+        config.getDefaultProperties().setProperty(SYNC_DATABASE_KEY, 
                 Boolean.toString(syncDBToggle.isSelected()));
         
         for (Map.Entry<Component,String> entry : configCompKeyMap.entrySet()){
             String key = entry.getValue();
             Dimension dim = entry.getKey().getPreferredSize();
             if (dim != null){
-                defaultConfig.setProperty(key+WIDTH_KEY_SUFFIX, 
+                config.getDefaultProperties().setProperty(key+WIDTH_KEY_SUFFIX, 
                         Integer.toString(dim.width));
-                defaultConfig.setProperty(key+HEIGHT_KEY_SUFFIX, 
+                config.getDefaultProperties().setProperty(key+HEIGHT_KEY_SUFFIX, 
                         Integer.toString(dim.height));
             }
         }
-        config = new Properties(defaultConfig);
-        
-        defaultPrivateConfig = new Properties();
-        defaultPrivateConfig.setProperty(DATABASE_FILE_PATH_KEY, 
-                LINK_DATABASE_FILE);
-        privateConfig = new Properties(defaultPrivateConfig);
         
         sqlConfig = new SQLiteConfig();
         sqlConfig.enforceForeignKeys(foreignKeysToggle.isSelected());
@@ -1277,13 +1257,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         File configFile = getConfigFile();
         if (configFile.exists()){
             try{
-                loadConfiguration(configFile,config);
+                loadConfiguration(configFile,config.getProperties());
             } catch (IOException ex){
                 System.out.println("Config Load Error: " + ex);
                 // TODO: Error message window
             }
         }
-        loadPrivateConfig(privateConfig);
+        loadPrivateConfig(config.getPrivateProperties());
         System.gc();        // Run the garbage collector
         configureProgram();
         if (ENABLE_INITIAL_LOAD_AND_SAVE){
@@ -1512,7 +1492,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private Object setConfigProperty(String key,Object value,Properties config){
-        return setConfigProperty(key,value,config,defaultConfig);
+        return setConfigProperty(key,value,config,this.config.getDefaultProperties());
     }
     /**
      * 
@@ -1521,7 +1501,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return
      */
     private Object setConfigProperty(String key, Object value){
-        return setConfigProperty(key,value,config);
+        return setConfigProperty(key,value,config.getProperties());
     }
     /**
      * 
@@ -1530,7 +1510,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private Object setPrivateProperty(String key, Object value){
-        return setConfigProperty(key,value,privateConfig,defaultPrivateConfig);
+        return setConfigProperty(key,value,config.getPrivateProperties(),config.getDefaultPrivateProperties());
     }
     /**
      * 
@@ -1538,8 +1518,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param dim 
      */
     private void setConfigSizeProperty(String key, Dimension dim){
-        if (config == null)
-            return;
         setConfigProperty(key+WIDTH_KEY_SUFFIX,(dim!=null)?dim.width:null);
         setConfigProperty(key+HEIGHT_KEY_SUFFIX,(dim!=null)?dim.height:null);
     }
@@ -3769,12 +3747,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         System.out.println();
         
-        System.out.println("Configuration: " + config.size() + " " + config.stringPropertyNames().size());
-        config.list(System.out);
+        System.out.println("Configuration: " + config.getProperties().size() + " " + config.getProperties().stringPropertyNames().size());
+        config.getProperties().list(System.out);
         System.out.println();
         System.out.println("Stored Configuration:");
         try {
-            config.store(System.out, GENERAL_CONFIG_FLAG);
+            config.getProperties().store(System.out, GENERAL_CONFIG_FLAG);
         } catch (IOException ex) {
             System.out.println("Error: " + ex);
         }
@@ -4822,7 +4800,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         // TODO: Implement saving the window state
 //        System.out.println(evt);
 //        setConfigProperty(LINK_MANAGER_WINDOW_STATE_KEY)
-//        defaultConfig.setProperty(LINK_MANAGER_WINDOW_STATE_KEY, Integer.toString(JFrame.NORMAL));
+//        config.getDefaultProperties().setProperty(LINK_MANAGER_WINDOW_STATE_KEY, Integer.toString(JFrame.NORMAL));
     }//GEN-LAST:event_formWindowStateChanged
     
     private void updateDBSearchPrefixCombo(){
@@ -5027,8 +5005,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_setDBAcceptButtonActionPerformed
 
     private void setDBResetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBResetButtonActionPerformed
-        setDatabaseFileLocationFields(defaultConfig.getProperty(DATABASE_FILE_PATH_KEY));
-        setExternalDatabaseFileLocationFields(defaultPrivateConfig.getProperty(DATABASE_FILE_PATH_KEY));
+        setDatabaseFileLocationFields(config.getDefaultProperties().getProperty(DATABASE_FILE_PATH_KEY));
+        setExternalDatabaseFileLocationFields(config.getDefaultPrivateProperties().getProperty(DATABASE_FILE_PATH_KEY));
     }//GEN-LAST:event_setDBResetButtonActionPerformed
     
     private void dbFileBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileBrowseButtonActionPerformed
@@ -5716,26 +5694,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
 //    private ArrayList<LinksListModel> listModels = new ArrayList<>();
     /**
-     * This is a properties map that stores the configuration for this program.
+     * This is used to store and manage the configuration for this program.
      */
-    private Properties config = null;
-    /**
-     * This is a properties map that stores the default configuration for this
-     * program, and which serves as the default properties map for {@code 
-     * config}.
-     */
-    private Properties defaultConfig = null;
-    /**
-     * This is a properties map that stores the default configuration for 
-     * private configuration for this program, and which serves as the default 
-     * properties map for {@code privateConfig}.
-     */
-    private Properties defaultPrivateConfig = null;
-    /**
-     * This is a properties map that stores the private configuration data for 
-     * this program. This is used to store things like passwords and such.
-     */
-    private Properties privateConfig = null;
+    private LinkManagerConfiguration config;
     /**
      * 
      */
@@ -6476,7 +6437,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private Properties createSaveConfig(Properties config){
-        Properties saveConfig = new Properties(defaultConfig);
+        Properties saveConfig = new Properties(this.config.getDefaultProperties());
         saveConfig.putAll(config);
         return prepareSaveConfig(saveConfig);
     }
@@ -6596,9 +6557,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private boolean savePrivateConfig(){
         File file = getPrivateConfigFile();
-        if (!file.exists() && privateConfig.isEmpty())
+        if (!file.exists() && config.getPrivateProperties().isEmpty())
             return true;
-        return saveConfiguration(file,privateConfig, PRIVATE_CONFIG_FLAG);
+        return saveConfiguration(file,config.getPrivateProperties(), PRIVATE_CONFIG_FLAG);
     }
     /**
      * 
@@ -6621,35 +6582,28 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void configureProgram(){
             // Get the progress display value from the config
-        Integer temp = getIntegerFromConfig(PROGRESS_DISPLAY_KEY,config);
+        Integer temp = getIntegerFromConfig(PROGRESS_DISPLAY_KEY,config.getProperties());
             // If the progress display value is not null and not zero
         if (temp != null && temp != 0)
                 // Set the progress display value
             progressDisplay.setDisplaySettings(temp);
             // Set the always on top from the config
-        alwaysOnTopToggle.setSelected(Boolean.parseBoolean(
-                config.getProperty(ALWAYS_ON_TOP_KEY)));
+        alwaysOnTopToggle.setSelected(Boolean.parseBoolean(config.getProperties().getProperty(ALWAYS_ON_TOP_KEY)));
         super.setAlwaysOnTop(alwaysOnTopToggle.isSelected());
             // Set the double new lines property from the config
-        doubleNewLinesToggle.setSelected(Boolean.parseBoolean(
-                config.getProperty(BLANK_LINES_KEY)));
+        doubleNewLinesToggle.setSelected(Boolean.parseBoolean(config.getProperties().getProperty(BLANK_LINES_KEY)));
             // Set the link operations enabled property from the config
-        linkOperationToggle.setSelected(Boolean.parseBoolean(
-                config.getProperty(ENABLE_LINK_OPS_KEY)));
+        linkOperationToggle.setSelected(Boolean.parseBoolean(config.getProperties().getProperty(ENABLE_LINK_OPS_KEY)));
             // Set the search matches spaces property from the config
-        searchPanel.setMatchSpaces(Boolean.parseBoolean(
-                config.getProperty(SEARCH_MATCH_SPACES_KEY)));
+        searchPanel.setMatchSpaces(Boolean.parseBoolean(config.getProperties().getProperty(SEARCH_MATCH_SPACES_KEY)));
             // Set the search matches case property from the config
-        searchPanel.setMatchCase(Boolean.parseBoolean(
-                config.getProperty(SEARCH_MATCH_CASE_KEY)));
+        searchPanel.setMatchCase(Boolean.parseBoolean(config.getProperties().getProperty(SEARCH_MATCH_CASE_KEY)));
             // Set the search matches wrap around property from the config
-        searchPanel.setWrapAround(Boolean.parseBoolean(
-                config.getProperty(SEARCH_WRAP_AROUND_KEY)));
+        searchPanel.setWrapAround(Boolean.parseBoolean(config.getProperties().getProperty(SEARCH_WRAP_AROUND_KEY)));
             // Set the search text from the config
-        searchPanel.setSearchText(config.getProperty(SEARCH_TEXT_KEY));
+        searchPanel.setSearchText(config.getProperties().getProperty(SEARCH_TEXT_KEY));
             // Set the show hidden lists property from the config
-        showHiddenListsToggle.setSelected(Boolean.parseBoolean(
-                config.getProperty(HIDDEN_LISTS_ARE_SHOWN_KEY)));
+        showHiddenListsToggle.setSelected(Boolean.parseBoolean(config.getProperties().getProperty(HIDDEN_LISTS_ARE_SHOWN_KEY)));
             // Update the visible lists
         updateVisibleTabsPanel();
             // Enable the hidden lists link operation if link operations are 
@@ -6657,15 +6611,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         hiddenLinkOperationToggle.setEnabled(linkOperationToggle.isSelected());
             // Set whether hidden lists link operations enabled property from 
             // the config
-        hiddenLinkOperationToggle.setSelected(Boolean.parseBoolean(
-                config.getProperty(ENABLE_HIDDEN_LINK_OPS_KEY)));
+        hiddenLinkOperationToggle.setSelected(Boolean.parseBoolean(config.getProperties().getProperty(ENABLE_HIDDEN_LINK_OPS_KEY)));
             // Set whether the program syncs the database to an external source 
             // upon saving or loading
-        syncDBToggle.setSelected(Boolean.parseBoolean(
-                config.getProperty(SYNC_DATABASE_KEY)));
+        syncDBToggle.setSelected(Boolean.parseBoolean(config.getProperties().getProperty(SYNC_DATABASE_KEY)));
             // Get the operation to use when changing the location of the 
             // database file
-        temp = getIntegerFromConfig(DATABASE_FILE_CHANGE_OPERATION_KEY,config);
+        temp = getIntegerFromConfig(DATABASE_FILE_CHANGE_OPERATION_KEY,config.getProperties());
             // If the operation to use is not null
         if (temp != null)
                 // Set the operation to use
@@ -6673,13 +6625,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         updateDatabaseFileFields();
             // Get the autosave frequency index from the config
-        temp = getIntegerFromConfig(AUTOSAVE_FREQUENCY_KEY,config);
+        temp = getIntegerFromConfig(AUTOSAVE_FREQUENCY_KEY,config.getProperties());
             // If the autosave frequency index is not null
         if (temp != null)
                 // Set the autosave frequency index
             autosaveMenu.setFrequencyIndex(temp);
             // Get the auto-hide wait duration index from the config
-        temp = getIntegerFromConfig(AUTO_HIDE_WAIT_DURATION_KEY,config);
+        temp = getIntegerFromConfig(AUTO_HIDE_WAIT_DURATION_KEY,config.getProperties());
             // If the auto-hide wait duration is not null
         if (temp != null)
                 // Set the auto-hide wait duration index
@@ -6690,13 +6642,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             setSelectedFromConfig();
         } else {    // Only load these settings when the program first starts up
                 // Set the entered link from the config
-            linkTextField.setText(config.getProperty(ENTERED_LINK_TEXT_KEY));
+            linkTextField.setText(config.getProperties().getProperty(ENTERED_LINK_TEXT_KEY));
                 // Go through the components with sizes saved to config
             for (Map.Entry<Component,String> entry : configCompKeyMap.entrySet()){
                     // Get the component to set the size of
                 Component comp = entry.getKey();
                     // Get the size from the config for the component
-                Dimension dim = getSizeFromConfig(entry.getValue(),config);
+                Dimension dim = getSizeFromConfig(entry.getValue(),config.getProperties());
                     // Get the minimum size for the component
                 Dimension min = comp.getMinimumSize();
                     // Make sure the width and height are within range
@@ -6712,9 +6664,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
             }
                 // Get the x-coordinate from the config
-            Integer x = getIntegerFromConfig(LINK_MANAGER_X_KEY, config);
+            Integer x = getIntegerFromConfig(LINK_MANAGER_X_KEY, config.getProperties());
                 // Get the y-coordinate from the config
-            Integer y = getIntegerFromConfig(LINK_MANAGER_Y_KEY, config);
+            Integer y = getIntegerFromConfig(LINK_MANAGER_Y_KEY, config.getProperties());
                 // If both the x and y coordinates are not null
             if (x != null && y != null)
                 this.setLocation(x, y);
@@ -6737,7 +6689,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // tab for that tabs panel
         Map<Integer,Integer> selListMap = new HashMap<>();
             // This gets a set of keys for the properties
-        Set<String> keys = new HashSet<>(config.stringPropertyNames());
+        Set<String> keys = new HashSet<>(config.getProperties().stringPropertyNames());
             // Remove any null keys and keys that aren't prefixed keys for the 
             // selection
         keys.removeIf((String t) -> {
@@ -6753,7 +6705,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             CURRENT_TAB_LIST_ID_KEY,CURRENT_TAB_INDEX_KEY,
             SHOWN_CURRENT_TAB_LIST_ID_KEY,SHOWN_CURRENT_TAB_INDEX_KEY}){
             try{    // Get the value for that key, as a String
-                String value = config.getProperty(key);
+                String value = config.getProperties().getProperty(key);
                     // If the value is not null
                 if (value != null)
                         // Put the value into the legacy selection map, as an 
@@ -6786,7 +6738,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             else // Skip this key
                 continue;
                 // Get the value for this key
-            String value = config.getProperty(key);
+            String value = config.getProperties().getProperty(key);
                 // If the value is null
             if (value == null)
                 continue;
@@ -8476,11 +8428,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean loadFile(File file) {
-            return loadConfigFile(file,config);
+            return loadConfigFile(file,config.getProperties());
         }
         @Override
         protected void done(){
-//            config.putAll(loadedConfig);
+//            config.getProperties().putAll(loadedConfig);
             configureProgram();
             super.done();
             showHiddenListsToggle.setEnabled(true);
@@ -8512,7 +8464,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected boolean saveFile(File file) {
             showHiddenListsToggle.setEnabled(false);
             setIndeterminate(true);
-            Properties saveConfig = createSaveConfig(config);
+            Properties saveConfig = createSaveConfig(config.getProperties());
             if (exitAfterSaving && autoHideMenu.getDurationIndex() != 0)
                     // Make sure hidden lists are hidden
                 setConfigProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,false,saveConfig);
@@ -9690,9 +9642,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Add the configuration for SQLite
             addConfigRows("SQLiteConfig",sqlConfig.toProperties(),new SQLiteConfig().toProperties(),true);
                 // Add all the properties for this program
-            addConfigRows("Properties",config,defaultConfig);
+            addConfigRows("Properties",config.getProperties(),config.getDefaultProperties());
                 // Add all the private properties for this program
-            addConfigRows("Private Properties",privateConfig,defaultPrivateConfig);
+            addConfigRows("Private Properties",config.getPrivateProperties(),config.getDefaultPrivateProperties());
             
             return null;
         }
