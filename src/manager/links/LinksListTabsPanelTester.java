@@ -5,13 +5,14 @@
 package manager.links;
 
 import components.JListManipulator;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Rectangle;
+import icons.DebuggingIcon;
+import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.Objects;
+import java.util.*;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableModel;
+import manager.icons.ListIndicatorIcon;
 
 /**
  *
@@ -72,6 +73,13 @@ public class LinksListTabsPanelTester extends javax.swing.JFrame {
         jPanel5.setVisible(false);
         
         refreshTablesButtonActionPerformed(null);
+        
+        listIcon = new ListIndicatorIcon();
+        listIconDebug = new DebuggingIcon(listIcon,iconDebugToggle.isSelected());
+        listIconTestLabel.setIcon(listIconDebug);
+        listIcon.addChangeListener((ChangeEvent e) -> {
+            listIconTestLabel.repaint();
+        });
     }
     
     private void addTabCompFiller(){
@@ -234,6 +242,13 @@ public class LinksListTabsPanelTester extends javax.swing.JFrame {
         jPanel3 = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
         jPanel5 = new javax.swing.JPanel();
+        jPanel2 = new javax.swing.JPanel();
+        iconDebugToggle = new javax.swing.JCheckBox();
+        iconHiddenToggle = new javax.swing.JCheckBox();
+        iconReadOnlyToggle = new javax.swing.JCheckBox();
+        iconFullToggle = new javax.swing.JCheckBox();
+        printIconButton = new javax.swing.JButton();
+        listIconTestLabel = new javax.swing.JLabel();
         linkField = new javax.swing.JTextField();
         listAddButton = new javax.swing.JButton();
         listInsertButton = new javax.swing.JButton();
@@ -377,6 +392,79 @@ public class LinksListTabsPanelTester extends javax.swing.JFrame {
         );
 
         jTabbedPane1.addTab("Hidden Tab", jPanel5);
+
+        iconDebugToggle.setText("Debug");
+        iconDebugToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                iconDebugToggleActionPerformed(evt);
+            }
+        });
+
+        iconHiddenToggle.setText("Hidden");
+        iconHiddenToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                iconHiddenToggleActionPerformed(evt);
+            }
+        });
+
+        iconReadOnlyToggle.setText("Read Only");
+        iconReadOnlyToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                iconReadOnlyToggleActionPerformed(evt);
+            }
+        });
+
+        iconFullToggle.setText("Full");
+        iconFullToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                iconFullToggleActionPerformed(evt);
+            }
+        });
+
+        printIconButton.setText("Print Icon");
+
+        listIconTestLabel.setText("Hello There");
+        listIconTestLabel.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1)));
+        listIconTestLabel.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(iconDebugToggle)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(iconHiddenToggle)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(iconReadOnlyToggle)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(iconFullToggle)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 346, Short.MAX_VALUE)
+                        .addComponent(printIconButton))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(listIconTestLabel)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(listIconTestLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 42, Short.MAX_VALUE)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(iconDebugToggle)
+                    .addComponent(iconHiddenToggle)
+                    .addComponent(iconReadOnlyToggle)
+                    .addComponent(iconFullToggle)
+                    .addComponent(printIconButton))
+                .addContainerGap())
+        );
+
+        jTabbedPane1.addTab("Icons", jPanel2);
 
         linkField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -612,7 +700,7 @@ public class LinksListTabsPanelTester extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTabbedPane1)
+                    .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(linkField)
                         .addGap(11, 11, 11)
@@ -984,6 +1072,23 @@ public class LinksListTabsPanelTester extends javax.swing.JFrame {
         listTabsPanel.setStructureEdited(structEditedToggle.isSelected());
     }//GEN-LAST:event_structEditedToggleActionPerformed
 
+    private void iconDebugToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_iconDebugToggleActionPerformed
+        listIconDebug.setDebugEnabled(iconDebugToggle.isSelected());
+        listIconTestLabel.repaint();
+    }//GEN-LAST:event_iconDebugToggleActionPerformed
+
+    private void iconHiddenToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_iconHiddenToggleActionPerformed
+        listIcon.setHidden(iconHiddenToggle.isSelected());
+    }//GEN-LAST:event_iconHiddenToggleActionPerformed
+
+    private void iconReadOnlyToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_iconReadOnlyToggleActionPerformed
+        listIcon.setReadOnly(iconReadOnlyToggle.isSelected());
+    }//GEN-LAST:event_iconReadOnlyToggleActionPerformed
+
+    private void iconFullToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_iconFullToggleActionPerformed
+        listIcon.setFull(iconFullToggle.isSelected());
+    }//GEN-LAST:event_iconFullToggleActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -993,22 +1098,16 @@ public class LinksListTabsPanelTester extends javax.swing.JFrame {
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
-//        try {
-//            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-//                if ("Nimbus".equals(info.getName())) {
-//                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-//                    break;
-//                }
-//            }
-//        } catch (ClassNotFoundException ex) {
-//            java.util.logging.Logger.getLogger(ListTabsPanelTester.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (InstantiationException ex) {
-//            java.util.logging.Logger.getLogger(ListTabsPanelTester.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (IllegalAccessException ex) {
-//            java.util.logging.Logger.getLogger(ListTabsPanelTester.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-//            java.util.logging.Logger.getLogger(ListTabsPanelTester.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        }
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(LinksListTabsPanelTester.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
         //</editor-fold>
         
         /* Set the System Look and Feel look and feel */
@@ -1016,12 +1115,11 @@ public class LinksListTabsPanelTester extends javax.swing.JFrame {
         /* If System is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
-        try {
-            javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(LinksListTabsPanelTester.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
+//        try {
+//            javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
+//        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+//            java.util.logging.Logger.getLogger(LinksListTabsPanelTester.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        }
         //</editor-fold>
         
         /* Create and display the form */
@@ -1031,7 +1129,9 @@ public class LinksListTabsPanelTester extends javax.swing.JFrame {
             }
         });
     }
-
+    
+    private ListIndicatorIcon listIcon;
+    private DebuggingIcon listIconDebug;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTable actionTable;
     private javax.swing.JButton addLinkButton;
@@ -1049,6 +1149,10 @@ public class LinksListTabsPanelTester extends javax.swing.JFrame {
     private javax.swing.Box.Filler filler2;
     private javax.swing.Box.Filler filler3;
     private javax.swing.Box.Filler filler4;
+    private javax.swing.JCheckBox iconDebugToggle;
+    private javax.swing.JCheckBox iconFullToggle;
+    private javax.swing.JCheckBox iconHiddenToggle;
+    private javax.swing.JCheckBox iconReadOnlyToggle;
     private javax.swing.JButton indexOfIDButton;
     private javax.swing.JCheckBox isEditedToggle;
     private javax.swing.JButton isSelIDButton;
@@ -1059,6 +1163,7 @@ public class LinksListTabsPanelTester extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
@@ -1068,6 +1173,7 @@ public class LinksListTabsPanelTester extends javax.swing.JFrame {
     private javax.swing.JButton listAddButton;
     private javax.swing.JCheckBox listEditedDisplay;
     private javax.swing.JSpinner listIDSpinner;
+    private javax.swing.JLabel listIconTestLabel;
     private javax.swing.JButton listInsertButton;
     private javax.swing.JButton listManageButton;
     private javax.swing.JTextField listNameField;
@@ -1079,6 +1185,7 @@ public class LinksListTabsPanelTester extends javax.swing.JFrame {
     private javax.swing.JCheckBox newListIDToggle;
     private javax.swing.JMenu populateMenu;
     private javax.swing.JButton printButton;
+    private javax.swing.JButton printIconButton;
     private javax.swing.JMenu printMenu;
     private javax.swing.JMenu privateMenu;
     private javax.swing.JCheckBoxMenuItem propChangeListenerToggle;
