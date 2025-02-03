@@ -598,8 +598,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         URL url = LinkManager.class.getProtectionDomain().getCodeSource().getLocation();
             // If a URL was found
         if (url != null)
-            try {
-                    // Get the parent of this program
+            try {   // Get the parent of this program
                 return new File(url.toURI()).getParent();
             } catch (URISyntaxException ex) {
                     // If this is in debug mode
@@ -735,7 +734,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @throws SQLException If a database error occurs.
      */
     private LinkDatabaseConnection connect(String file) throws SQLException{
-        return new LinkDatabaseConnection(file, sqlConfig);
+        return new LinkDatabaseConnection(file, config.getSQLiteConfig());
     }
     /**
      * This creates and returns a connection to the database file located at 
@@ -931,8 +930,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         textPopupMenus = new HashMap<>();
         
         config = new LinkManagerConfiguration();
+            // Initialize the defaults that are not dependent on the UI
         config.getDefaultProperties().setProperty(DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
         config.getDefaultPrivateProperties().setProperty(DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
+        config.getSQLiteConfig().enforceForeignKeys(foreignKeysToggle.isSelected());
+        
         
         // TODO: Uncomment this when Dropbox token encryption is implemented
 //        obfuscator = Obfuscator.getInstance();
@@ -1179,20 +1181,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         searchMenu.add(searchPanel.getFindNextAction());
         searchMenu.add(searchPanel.getFindPreviousAction());
         
-        configCompKeyMap.put(listManipulator, LIST_MANAGER_KEY_PREFIX);
-        configCompKeyMap.put(listTabsManipulator, LIST_TABS_MANAGER_KEY_PREFIX);
-        configCompKeyMap.put(addLinksPanel, ADD_LINKS_PANEL_KEY_PREFIX);
-        configCompKeyMap.put(copyOrMoveListSelector, 
+            // Set up the component key prefix map
+        config.getComponentPrefixMap().put(listManipulator, LIST_MANAGER_KEY_PREFIX);
+        config.getComponentPrefixMap().put(listTabsManipulator, LIST_TABS_MANAGER_KEY_PREFIX);
+        config.getComponentPrefixMap().put(addLinksPanel, ADD_LINKS_PANEL_KEY_PREFIX);
+        config.getComponentPrefixMap().put(copyOrMoveListSelector, 
                 COPY_OR_MOVE_LINKS_PANEL_KEY_PREFIX);
-        configCompKeyMap.put(openFC, OPEN_FILE_CHOOSER_KEY_PREFIX);
-        configCompKeyMap.put(saveFC, SAVE_FILE_CHOOSER_KEY_PREFIX);
-        configCompKeyMap.put(configFC, CONFIG_FILE_CHOOSER_KEY_PREFIX);
-        configCompKeyMap.put(exportFC, EXPORT_FILE_CHOOSER_KEY_PREFIX);
-        configCompKeyMap.put(databaseFC, DATABASE_FILE_CHOOSER_KEY_PREFIX);
-        configCompKeyMap.put(LinkManager.this, LINK_MANAGER_KEY_PREFIX);
-        configCompKeyMap.put(setLocationDialog, 
+        config.getComponentPrefixMap().put(openFC, OPEN_FILE_CHOOSER_KEY_PREFIX);
+        config.getComponentPrefixMap().put(saveFC, SAVE_FILE_CHOOSER_KEY_PREFIX);
+        config.getComponentPrefixMap().put(configFC, CONFIG_FILE_CHOOSER_KEY_PREFIX);
+        config.getComponentPrefixMap().put(exportFC, EXPORT_FILE_CHOOSER_KEY_PREFIX);
+        config.getComponentPrefixMap().put(databaseFC, DATABASE_FILE_CHOOSER_KEY_PREFIX);
+        config.getComponentPrefixMap().put(LinkManager.this, LINK_MANAGER_KEY_PREFIX);
+        config.getComponentPrefixMap().put(setLocationDialog, 
                 DATABASE_LOCATION_DIALOG_KEY_PREFIX);
         
+            // Initialize the defaults that are dependent on the UI
         config.getDefaultProperties().setProperty(PROGRESS_DISPLAY_KEY, 
                 Integer.toString(progressDisplay.getDisplaySettings()));
         config.getDefaultProperties().setProperty(ALWAYS_ON_TOP_KEY, 
@@ -1229,19 +1233,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config.getDefaultProperties().setProperty(SYNC_DATABASE_KEY, 
                 Boolean.toString(syncDBToggle.isSelected()));
         
-        for (Map.Entry<Component,String> entry : configCompKeyMap.entrySet()){
+            // Go through the components and their key prefixes
+        for (Map.Entry<Component,String> entry : config.getComponentPrefixMap().entrySet()){
+                // Get the key prefix for the current component
             String key = entry.getValue();
+                // Get the preferred size for the current component
             Dimension dim = entry.getKey().getPreferredSize();
+                // If the current component has a preferred size
             if (dim != null){
+                    // Use the preferred size of the component as its default 
+                    // size
                 config.getDefaultProperties().setProperty(key+WIDTH_KEY_SUFFIX, 
                         Integer.toString(dim.width));
                 config.getDefaultProperties().setProperty(key+HEIGHT_KEY_SUFFIX, 
                         Integer.toString(dim.height));
             }
         }
-        
-        sqlConfig = new SQLiteConfig();
-        sqlConfig.enforceForeignKeys(foreignKeysToggle.isSelected());
         
         listContentsObserver = (Integer index, Integer size) -> {
                 // If the size is null (indicates whether this is to toggle 
@@ -1526,7 +1533,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param comp 
      */
     private void setConfigSizeProperty(Component comp){
-        String key = configCompKeyMap.get(comp);
+        String key = config.getComponentPrefixMap().get(comp);
         if (key != null)
             setConfigSizeProperty(key,comp.getSize());
     }
@@ -4051,7 +4058,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbCreateTablesButtonActionPerformed
 
     private void foreignKeysToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_foreignKeysToggleActionPerformed
-        sqlConfig.enforceForeignKeys(foreignKeysToggle.isSelected());
+        config.getSQLiteConfig().enforceForeignKeys(foreignKeysToggle.isSelected());
     }//GEN-LAST:event_foreignKeysToggleActionPerformed
 
     private void updateDBFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateDBFileButtonActionPerformed
@@ -5700,19 +5707,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private HashMap<Component, String> configCompKeyMap = new HashMap<>();
-//    /**
-//     * This is the preference node containing the shared configuration for this 
-//     * program.
-//     */
-//    private Preferences prefConfig = null;
-    /**
-     * This is the SQLite configuration to use for the database.
-     */
-    private SQLiteConfig sqlConfig;
-    /**
-     * 
-     */
     private DropboxLinkUtils dbxUtils = null;
 //    /**
 //     * 
@@ -6644,7 +6638,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Set the entered link from the config
             linkTextField.setText(config.getProperties().getProperty(ENTERED_LINK_TEXT_KEY));
                 // Go through the components with sizes saved to config
-            for (Map.Entry<Component,String> entry : configCompKeyMap.entrySet()){
+            for (Map.Entry<Component,String> entry : config.getComponentPrefixMap().entrySet()){
                     // Get the component to set the size of
                 Component comp = entry.getKey();
                     // Get the size from the config for the component
@@ -9640,7 +9634,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             super.backgroundAction();
             
                 // Add the configuration for SQLite
-            addConfigRows("SQLiteConfig",sqlConfig.toProperties(),new SQLiteConfig().toProperties(),true);
+            addConfigRows("SQLiteConfig",config.getSQLiteConfig().toProperties(),new SQLiteConfig().toProperties(),true);
                 // Add all the properties for this program
             addConfigRows("Properties",config.getProperties(),config.getDefaultProperties());
                 // Add all the private properties for this program
