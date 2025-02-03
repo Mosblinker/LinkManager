@@ -839,14 +839,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
                 @Override
                 public Long getTokenExpiresAt() {
-                    String value = config.getPrivateProperty(DROPBOX_TOKEN_EXPIRATION_KEY);
-                    if (value == null)
-                        return null;
-                    try{
-                        return Long.valueOf(value);
-                    } catch (NumberFormatException ex){
-                        return null;
-                    }
+                    return config.getPrivateLongProperty(DROPBOX_TOKEN_EXPIRATION_KEY);
                 }
                 @Override
                 public void setTokenExpiresAt(Long time) {
@@ -1197,8 +1190,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config.getComponentPrefixMap().put(exportFC, EXPORT_FILE_CHOOSER_KEY_PREFIX);
         config.getComponentPrefixMap().put(databaseFC, DATABASE_FILE_CHOOSER_KEY_PREFIX);
         config.getComponentPrefixMap().put(LinkManager.this, LINK_MANAGER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(setLocationDialog, 
-                DATABASE_LOCATION_DIALOG_KEY_PREFIX);
+        config.getComponentPrefixMap().put(setLocationDialog, DATABASE_LOCATION_DIALOG_KEY_PREFIX);
         
             // Initialize the defaults that are dependent on the UI
         config.setPropertyDefault(PROGRESS_DISPLAY_KEY, progressDisplay.getDisplaySettings());
@@ -3689,7 +3681,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         System.out.println();
         
-        System.out.println("Configuration: " + config.getProperties().size() + " " + config.getProperties().stringPropertyNames().size());
+        System.out.println("Configuration: " + config.getProperties().size() + 
+                " " + config.getProperties().stringPropertyNames().size());
         config.getProperties().list(System.out);
         System.out.println();
         System.out.println("Stored Configuration:");
@@ -6429,14 +6422,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
             // TODO: These configuration keys are deprecated and should be 
             // removed
-            config.getProperties().remove(CURRENT_TAB_LIST_ID_KEY);
-            config.getProperties().remove(CURRENT_TAB_INDEX_KEY);
-            config.getProperties().remove(SHOWN_CURRENT_TAB_LIST_ID_KEY);
-            config.getProperties().remove(SHOWN_CURRENT_TAB_INDEX_KEY);
+            config.removeProperty(CURRENT_TAB_LIST_ID_KEY);
+            config.removeProperty(CURRENT_TAB_INDEX_KEY);
+            config.removeProperty(SHOWN_CURRENT_TAB_LIST_ID_KEY);
+            config.removeProperty(SHOWN_CURRENT_TAB_INDEX_KEY);
                 // Remove the old file name
-            config.getProperties().remove(DATABASE_FILE_KEY);
+            config.removeProperty(DATABASE_FILE_KEY);
                 // Remove the old folder
-            config.getProperties().remove(DATABASE_FOLDER_KEY);
+            config.removeProperty(DATABASE_FOLDER_KEY);
             
         }   // Get the search text
         String text = searchPanel.getSearchText();
@@ -6521,28 +6514,28 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void configureProgram(){
             // Get the progress display value from the config
-        Integer temp = getIntegerFromConfig(PROGRESS_DISPLAY_KEY,config.getProperties());
+        Integer temp = config.getIntProperty(PROGRESS_DISPLAY_KEY);
             // If the progress display value is not null and not zero
         if (temp != null && temp != 0)
                 // Set the progress display value
             progressDisplay.setDisplaySettings(temp);
             // Set the always on top from the config
-        alwaysOnTopToggle.setSelected(Boolean.parseBoolean(config.getProperty(ALWAYS_ON_TOP_KEY)));
+        alwaysOnTopToggle.setSelected(config.getBooleanProperty(ALWAYS_ON_TOP_KEY));
         super.setAlwaysOnTop(alwaysOnTopToggle.isSelected());
             // Set the double new lines property from the config
-        doubleNewLinesToggle.setSelected(Boolean.parseBoolean(config.getProperty(BLANK_LINES_KEY)));
+        doubleNewLinesToggle.setSelected(config.getBooleanProperty(BLANK_LINES_KEY));
             // Set the link operations enabled property from the config
-        linkOperationToggle.setSelected(Boolean.parseBoolean(config.getProperty(ENABLE_LINK_OPS_KEY)));
+        linkOperationToggle.setSelected(config.getBooleanProperty(ENABLE_LINK_OPS_KEY));
             // Set the search matches spaces property from the config
-        searchPanel.setMatchSpaces(Boolean.parseBoolean(config.getProperty(SEARCH_MATCH_SPACES_KEY)));
+        searchPanel.setMatchSpaces(config.getBooleanProperty(SEARCH_MATCH_SPACES_KEY));
             // Set the search matches case property from the config
-        searchPanel.setMatchCase(Boolean.parseBoolean(config.getProperty(SEARCH_MATCH_CASE_KEY)));
+        searchPanel.setMatchCase(config.getBooleanProperty(SEARCH_MATCH_CASE_KEY));
             // Set the search matches wrap around property from the config
-        searchPanel.setWrapAround(Boolean.parseBoolean(config.getProperty(SEARCH_WRAP_AROUND_KEY)));
+        searchPanel.setWrapAround(config.getBooleanProperty(SEARCH_WRAP_AROUND_KEY));
             // Set the search text from the config
         searchPanel.setSearchText(config.getProperty(SEARCH_TEXT_KEY));
             // Set the show hidden lists property from the config
-        showHiddenListsToggle.setSelected(Boolean.parseBoolean(config.getProperty(HIDDEN_LISTS_ARE_SHOWN_KEY)));
+        showHiddenListsToggle.setSelected(config.getBooleanProperty(HIDDEN_LISTS_ARE_SHOWN_KEY));
             // Update the visible lists
         updateVisibleTabsPanel();
             // Enable the hidden lists link operation if link operations are 
@@ -6550,31 +6543,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         hiddenLinkOperationToggle.setEnabled(linkOperationToggle.isSelected());
             // Set whether hidden lists link operations enabled property from 
             // the config
-        hiddenLinkOperationToggle.setSelected(Boolean.parseBoolean(config.getProperty(ENABLE_HIDDEN_LINK_OPS_KEY)));
+        hiddenLinkOperationToggle.setSelected(config.getBooleanProperty(ENABLE_HIDDEN_LINK_OPS_KEY));
             // Set whether the program syncs the database to an external source 
             // upon saving or loading
-        syncDBToggle.setSelected(Boolean.parseBoolean(config.getProperty(SYNC_DATABASE_KEY)));
-            // Get the operation to use when changing the location of the 
+        syncDBToggle.setSelected(config.getBooleanProperty(SYNC_DATABASE_KEY));
+            // Set the operation to use when changing the location of the 
             // database file
-        temp = getIntegerFromConfig(DATABASE_FILE_CHANGE_OPERATION_KEY,config.getProperties());
-            // If the operation to use is not null
-        if (temp != null)
-                // Set the operation to use
-            dbFileChangeCombo.setSelectedIndex(temp);
+        dbFileChangeCombo.setSelectedIndex(config.getIntProperty(DATABASE_FILE_CHANGE_OPERATION_KEY, 
+                dbFileChangeCombo.getSelectedIndex()));
         
         updateDatabaseFileFields();
-            // Get the autosave frequency index from the config
-        temp = getIntegerFromConfig(AUTOSAVE_FREQUENCY_KEY,config.getProperties());
-            // If the autosave frequency index is not null
-        if (temp != null)
-                // Set the autosave frequency index
-            autosaveMenu.setFrequencyIndex(temp);
-            // Get the auto-hide wait duration index from the config
-        temp = getIntegerFromConfig(AUTO_HIDE_WAIT_DURATION_KEY,config.getProperties());
-            // If the auto-hide wait duration is not null
-        if (temp != null)
-                // Set the auto-hide wait duration index
-            autoHideMenu.setDurationIndex(temp);
+            // Set the autosave frequency index
+        autosaveMenu.setFrequencyIndex(config.getIntProperty(AUTOSAVE_FREQUENCY_KEY, 
+                autosaveMenu.getFrequencyIndex()));
+            // Set the auto-hide wait duration index
+        autoHideMenu.setDurationIndex(config.getIntProperty(AUTO_HIDE_WAIT_DURATION_KEY,
+                autoHideMenu.getDurationIndex()));
             // If the program has fully loaded
         if (fullyLoaded){
                 // Set the selection from the config
@@ -6603,9 +6587,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
             }
                 // Get the x-coordinate from the config
-            Integer x = getIntegerFromConfig(LINK_MANAGER_X_KEY, config.getProperties());
+            Integer x = config.getIntProperty(LINK_MANAGER_X_KEY);
                 // Get the y-coordinate from the config
-            Integer y = getIntegerFromConfig(LINK_MANAGER_Y_KEY, config.getProperties());
+            Integer y = config.getIntProperty(LINK_MANAGER_Y_KEY);
                 // If both the x and y coordinates are not null
             if (x != null && y != null)
                 this.setLocation(x, y);
@@ -6643,13 +6627,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         for (String key : new String[]{
             CURRENT_TAB_LIST_ID_KEY,CURRENT_TAB_INDEX_KEY,
             SHOWN_CURRENT_TAB_LIST_ID_KEY,SHOWN_CURRENT_TAB_INDEX_KEY}){
-            try{    // Get the value for that key, as a String
-                String value = config.getProperty(key);
-                    // If the value is not null
-                if (value != null)
-                        // Put the value into the legacy selection map, as an 
-                    legacySelListMap.put(key, Integer.valueOf(value));// integer
-            } catch(NumberFormatException ex){ }
+                // Get the value for that key from the config
+            Integer value = config.getIntProperty(key);
+                // If the value is not null
+            if (value != null)
+                legacySelListMap.put(key, value);
         }   // Put the legacy values into the selected list maps
         selListIDMap.put(0, legacySelListMap.get(CURRENT_TAB_LIST_ID_KEY));
         selListIDMap.put(1, legacySelListMap.get(SHOWN_CURRENT_TAB_LIST_ID_KEY));
