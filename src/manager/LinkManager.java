@@ -399,6 +399,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private static final String DROPBOX_TOKEN_EXPIRATION_KEY = 
             "DropboxTokenExpiresAt";
     /**
+     * This is the configuration key for the database file path when stored 
+     * externally if the database file is stored externally.
+     */
+    private static final String EXTERNAL_DATABASE_FILE_PATH_KEY = 
+            "External"+DATABASE_FILE_PATH_KEY;
+    /**
      * This is a collection storing the required Dropbox scope for the program. 
      * If this is null, then the program does not specify the scope it requires. 
      * If not, then this set should be immutable.
@@ -692,8 +698,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private String getExternalDatabaseFileName(){
-        return getDatabaseFileProperty(DATABASE_FILE_PATH_KEY, 
-                config.getPrivateDefault(DATABASE_FILE_PATH_KEY), 
+        return getDatabaseFileProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, 
+                config.getPrivateDefault(EXTERNAL_DATABASE_FILE_PATH_KEY), 
                 config.getPrivateProperties());
     }
     /**
@@ -932,8 +938,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config = new LinkManagerConfig();
             // Initialize the defaults that are not dependent on the UI
         config.setPropertyDefault(DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
-        config.setPrivateDefault(DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
-        config.getSQLiteConfig().enforceForeignKeys(foreignKeysToggle.isSelected());
+        config.setPrivateDefault(EXTERNAL_DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
         
         // TODO: Uncomment this when Dropbox token encryption is implemented
 //        obfuscator = Obfuscator.getInstance();
@@ -1215,6 +1220,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 //        config.setPropertyDefault(LINK_MANAGER_WINDOW_STATE_KEY, JFrame.NORMAL);
         config.setPropertyDefault(DATABASE_FILE_CHANGE_OPERATION_KEY, dbFileChangeCombo.getSelectedIndex());
         config.setPropertyDefault(SYNC_DATABASE_KEY, syncDBToggle.isSelected());
+        config.getSQLiteConfig().enforceForeignKeys(foreignKeysToggle.isSelected());
         
             // Go through the components and their key prefixes
         for (Map.Entry<Component,String> entry : config.getComponentPrefixMap().entrySet()){
@@ -4951,7 +4957,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void setDBResetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBResetButtonActionPerformed
         setDatabaseFileLocationFields(config.getPropertyDefault(DATABASE_FILE_PATH_KEY));
-        setExternalDatabaseFileLocationFields(config.getPrivateDefault(DATABASE_FILE_PATH_KEY));
+        setExternalDatabaseFileLocationFields(config.getPrivateDefault(EXTERNAL_DATABASE_FILE_PATH_KEY));
     }//GEN-LAST:event_setDBResetButtonActionPerformed
     
     private void dbFileBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileBrowseButtonActionPerformed
@@ -6177,11 +6183,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return false;
         }
     }
-    
-    
-    
-    
-    
     /**
      * 
      * @param conn
@@ -6504,6 +6505,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return false;
         try {
             loadProperties(file,config);
+                // If the config does not have the external database file path 
+                // key but it does have the regular database file path key
+            if (!config.containsKey(EXTERNAL_DATABASE_FILE_PATH_KEY) &&
+                    config.containsKey(DATABASE_FILE_PATH_KEY)){
+                    // Set the external database file path key to the regular 
+                    // database file path key
+                config.setProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, 
+                        config.getProperty(DATABASE_FILE_PATH_KEY));
+                    // Remove the regular database file path key
+                config.remove(DATABASE_FILE_PATH_KEY);
+            }
             return true;
         } catch (IOException ex) {
             return false;
