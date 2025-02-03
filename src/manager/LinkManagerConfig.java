@@ -5,14 +5,13 @@
 package manager;
 
 import java.awt.Component;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import org.sqlite.SQLiteConfig;
 
 /**
  * This is a class that is used to store and manage the configuration for 
- * LinkManager.
+ * LinkManager. All properties not stored in SQLiteConfig are stored internally 
+ * as Strings.
  * @author Milo Steier
  */
 public class LinkManagerConfig {
@@ -52,13 +51,30 @@ public class LinkManagerConfig {
 //     */
 //    private Preferences prefConfig = null;
     
-    public LinkManagerConfig(){
+    private LinkManagerConfig(Properties sqlProp){
         defaultConfig = new Properties();
         config = new Properties(defaultConfig);
         defaultPrivateConfig = new Properties();
         privateConfig = new Properties(defaultPrivateConfig);
-        sqlConfig = new SQLiteConfig();
         compKeyMap = new HashMap<>();
+            // If the given SQLite config properties is not null
+        if(sqlProp != null)
+            sqlConfig = new SQLiteConfig(sqlProp);
+        else
+            sqlConfig = new SQLiteConfig();
+    }
+    
+    public LinkManagerConfig(){
+        this((Properties)null);
+    }
+    
+    public LinkManagerConfig(LinkManagerConfig linkConfig){
+        this(linkConfig.sqlConfig.toProperties());
+        this.defaultConfig.putAll(linkConfig.defaultConfig);
+        this.defaultPrivateConfig.putAll(linkConfig.defaultPrivateConfig);
+        this.config.putAll(linkConfig.config);
+        this.privateConfig.putAll(linkConfig.privateConfig);
+        this.compKeyMap.putAll(linkConfig.compKeyMap);
     }
     /**
      * This returns the properties map that stores the configuration for 
@@ -113,4 +129,140 @@ public class LinkManagerConfig {
     public Map<Component, String> getComponentPrefixMap(){
         return compKeyMap;
     }
+    /**
+     * This sets the property in the given {@code config} Properties for the 
+     * given key to the given value, and returning the old value. If the given 
+     * value is null, then the property for the given key will be reset to its 
+     * default.
+     * @param key The key for the property to set (cannot be null).
+     * @param value The new value for the property, or null to reset the 
+     * property to its default value.
+     * @param config The Properties object to set the property of (cannot be 
+     * null).
+     * @param defaultConfig The Properties object containing the defaults for 
+     * {@code config}, or null.
+     * @return The old value set for the property, or null if no value was set.
+     * @throws NullPointerException If either {@code key} or {@code config} are 
+     * null.
+     */
+    protected String setConfigProperty(String key, Object value,
+            Properties config, Properties defaultConfig){
+            // Check if the key is null
+        Objects.requireNonNull(key, "The key for the property cannot be null");
+            // This gets the old value for the property
+        Object oldValue;
+            // If the value is null
+        if (value == null)
+                // Remove it from the configuration and get its value
+            oldValue = config.remove(key);
+        else{   // Get the value as a String
+            String valueStr = Objects.toString(value);
+                // This gets the default value for the property to be set, or 
+                // null if there is no default value (or no defaultConfig was 
+            String defValue = null;     // provided)
+                // If a default Properties map was provided
+            if (defaultConfig != null)
+                    // Get the default value for the property
+                defValue = defaultConfig.getProperty(key);
+                // If the config currently has a value set for the given key or 
+                // if the given value does not match the default value (prevents 
+                // needlessly setting the value to its default unless it was 
+                // previously set to something else)
+            if (config.containsKey(key) || !valueStr.equals(defValue))
+                    // Set the value in the config and get its old value
+                oldValue = config.setProperty(key, valueStr);
+            else    // Return the default value
+                return defValue;
+        }   // If the old value is null, return null. Otherwise, return the 
+            // value as a string
+        return (oldValue == null) ? null : oldValue.toString();
+    }
+    /**
+     * This sets the 
+     * @param key
+     * @param value
+     * @return 
+     */
+    public String setProperty(String key, Object value){
+        return setConfigProperty(key,value,getProperties(),getDefaultProperties());
+    }
+    /**
+     * 
+     * @param key
+     * @param value
+     * @return 
+     */
+    public String setPropertyDefault(String key, Object value){
+        return setConfigProperty(key,value,getDefaultProperties(),null);
+    }
+    /**
+     * 
+     * @param key
+     * @param value
+     * @return 
+     */
+    public String setPrivateProperty(String key, Object value){
+        return setConfigProperty(key,value,getPrivateProperties(),
+                getDefaultPrivateProperties());
+    }
+    /**
+     * 
+     * @param key
+     * @param value
+     * @return 
+     */
+    public String setPrivateDefault(String key, Object value){
+        return setConfigProperty(key,value,getDefaultPrivateProperties(),null);
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    public String getProperty(String key){
+        return getProperties().getProperty(key);
+    }
+    /**
+     * 
+     * @param key
+     * @param defaultValue
+     * @return 
+     */
+    public String getProperty(String key, String defaultValue){
+        return getProperties().getProperty(key, defaultValue);
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    public String getPrivateProperty(String key){
+        return getPrivateProperties().getProperty(key);
+    }
+    /**
+     * 
+     * @param key
+     * @param defaultValue
+     * @return 
+     */
+    public String getPrivateProperty(String key, String defaultValue){
+        return getPrivateProperties().getProperty(key, defaultValue);
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    public String getPropertyDefault(String key){
+        return getDefaultProperties().getProperty(key);
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    public String getPrivateDefault(String key){
+        return getDefaultPrivateProperties().getProperty(key);
+    }
+    
 }
