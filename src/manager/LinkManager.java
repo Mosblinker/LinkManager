@@ -670,7 +670,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (config == this.config.getPrivateProperties())
                 this.config.setPrivateProperty(propName,value);
             else
-                setConfigProperty(propName,value,config);
+                this.config.setConfigProperty(propName,value,config,this.config.getDefaultProperties());
             return !Objects.equals(oldValue, value);
         }
         return false;
@@ -1453,16 +1453,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         for (LinksListTabsPanel panel : listsTabPanels){
             panel.setListsEnabled(enabled);
         }
-    }
-    /**
-     * 
-     * @param key
-     * @param value
-     * @param config
-     * @return 
-     */
-    private Object setConfigProperty(String key,Object value,Properties config){
-        return this.config.setConfigProperty(key,value,config,this.config.getDefaultProperties());
     }
     /**
      * 
@@ -6369,22 +6359,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param config
      * @return 
      */
-    private Properties createSaveConfig(Properties config){
-        Properties saveConfig = new Properties(this.config.getDefaultProperties());
-        saveConfig.putAll(config);
-        return prepareSaveConfig(saveConfig);
+    private LinkManagerConfig createSaveConfig(LinkManagerConfig config){
+        return prepareSaveConfig(new LinkManagerConfig(config));
     }
     /**
      * 
      * @param config
      * @return 
      */
-    private Properties prepareSaveConfig(Properties config){
+    private LinkManagerConfig prepareSaveConfig(LinkManagerConfig config){
             // If the program has fully loaded
         if (fullyLoaded){
                 // Remove any keys from the config that are related to 
                 // selected tabs, selected links, or visible indexes
-            config.keySet().removeIf((Object t) -> {
+            config.getProperties().keySet().removeIf((Object t) -> {
                 return t == null || isPrefixedConfigKey(t.toString());
             });
                 // Map the list panels to their listIDs
@@ -6412,58 +6400,58 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Get the list panel
                 LinksListPanel panel = panelEntry.getValue();
                     // Set the selected link for the list
-                setConfigProperty(SELECTED_LINK_FOR_LIST_KEY_PREFIX+listID,
-                        panel.getSelectedValue(),config);
+                config.setProperty(SELECTED_LINK_FOR_LIST_KEY_PREFIX+listID,
+                        panel.getSelectedValue());
                     // Set the first visible index for the list
-                setConfigProperty(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX+listID,
-                        panel.getList().getFirstVisibleIndex(),config);
+                config.setProperty(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX+listID,
+                        panel.getList().getFirstVisibleIndex());
                     // Set the last visible index for the list
-                setConfigProperty(LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX+listID,
-                        panel.getList().getLastVisibleIndex(),config);
+                config.setProperty(LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX+listID,
+                        panel.getList().getLastVisibleIndex());
                     // If the panel's selection is not empty
                 if (!panel.isSelectionEmpty())
                         // Set whether the selected link is visible
-                    setConfigProperty(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX+listID,
-                            panel.isIndexVisible(panel.getSelectedIndex()),config);
+                    config.setProperty(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX+listID,
+                            panel.isIndexVisible(panel.getSelectedIndex()));
             }   // Go through the list tabs panels
             for (int i = 0; i < listsTabPanels.length; i++){
                     // Set the selected listID for the tabs panel
-                setConfigProperty(CURRENT_TAB_LIST_ID_KEY_PREFIX+i,
-                        listsTabPanels[i].getSelectedListID(),config);
+                config.setProperty(CURRENT_TAB_LIST_ID_KEY_PREFIX+i,
+                        listsTabPanels[i].getSelectedListID());
                     // Set the selected index for the tabs panel
-                setConfigProperty(CURRENT_TAB_INDEX_KEY_PREFIX+i,
+                config.setProperty(CURRENT_TAB_INDEX_KEY_PREFIX+i,
                             // If the tabs panel has nothing selected, set 
                             // the property to null. Otherwise, set it to 
                             // the selected index
                         (listsTabPanels[i].isSelectionEmpty())?null:
-                        listsTabPanels[i].getSelectedIndex(),config);
+                        listsTabPanels[i].getSelectedIndex());
             }
 
             // TODO: These configuration keys are deprecated and should be 
             // removed
-            config.remove(CURRENT_TAB_LIST_ID_KEY);
-            config.remove(CURRENT_TAB_INDEX_KEY);
-            config.remove(SHOWN_CURRENT_TAB_LIST_ID_KEY);
-            config.remove(SHOWN_CURRENT_TAB_INDEX_KEY);
+            config.getProperties().remove(CURRENT_TAB_LIST_ID_KEY);
+            config.getProperties().remove(CURRENT_TAB_INDEX_KEY);
+            config.getProperties().remove(SHOWN_CURRENT_TAB_LIST_ID_KEY);
+            config.getProperties().remove(SHOWN_CURRENT_TAB_INDEX_KEY);
                 // Remove the old file name
-            config.remove(DATABASE_FILE_KEY);
+            config.getProperties().remove(DATABASE_FILE_KEY);
                 // Remove the old folder
-            config.remove(DATABASE_FOLDER_KEY);
+            config.getProperties().remove(DATABASE_FOLDER_KEY);
             
         }   // Get the search text
         String text = searchPanel.getSearchText();
             // Set the search text in the configuration
-        setConfigProperty(SEARCH_TEXT_KEY,
+        config.setProperty(SEARCH_TEXT_KEY,
                     // If the search text is not null and not empty, put it 
                     // in the config. Otherwise, use null for the search text
-                (text!=null&&!text.isEmpty())?text:null,config);
+                (text!=null&&!text.isEmpty())?text:null);
             // Get the entered link text
         text = linkTextField.getText();
             // Set the entered link text in the configuration
-        setConfigProperty(ENTERED_LINK_TEXT_KEY,
+        config.setProperty(ENTERED_LINK_TEXT_KEY,
                     // If the entered link is not null and not empty, put it 
                     // in the config. Otherwise, use null for the entered link
-                (text!=null&&!text.isBlank())?text:null,config);
+                (text!=null&&!text.isBlank())?text:null);
         return config;
     }
     /**
@@ -6486,12 +6474,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
+     * @param config 
+     */
+    private void updatePrivateConfig(Properties config){
+            // If the config does not have the external database file path 
+            // key but it does have the regular database file path key
+        if (!config.containsKey(EXTERNAL_DATABASE_FILE_PATH_KEY) &&
+                config.containsKey(DATABASE_FILE_PATH_KEY)){
+                // Set the external database file path key to the regular 
+                // database file path key
+            config.setProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, 
+                    config.getProperty(DATABASE_FILE_PATH_KEY));
+        }   // Remove the regular database file path key
+        config.remove(DATABASE_FILE_PATH_KEY);
+    }
+    /**
+     * 
      * @return 
      */
     private boolean savePrivateConfig(){
         File file = getPrivateConfigFile();
         if (!file.exists() && config.getPrivateProperties().isEmpty())
             return true;
+        updatePrivateConfig(config.getPrivateProperties());
         return saveConfiguration(file,config.getPrivateProperties(), PRIVATE_CONFIG_FLAG);
     }
     /**
@@ -6505,17 +6510,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return false;
         try {
             loadProperties(file,config);
-                // If the config does not have the external database file path 
-                // key but it does have the regular database file path key
-            if (!config.containsKey(EXTERNAL_DATABASE_FILE_PATH_KEY) &&
-                    config.containsKey(DATABASE_FILE_PATH_KEY)){
-                    // Set the external database file path key to the regular 
-                    // database file path key
-                config.setProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, 
-                        config.getProperty(DATABASE_FILE_PATH_KEY));
-                    // Remove the regular database file path key
-                config.remove(DATABASE_FILE_PATH_KEY);
-            }
+            updatePrivateConfig(config);
             return true;
         } catch (IOException ex) {
             return false;
@@ -8408,11 +8403,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected boolean saveFile(File file) {
             showHiddenListsToggle.setEnabled(false);
             setIndeterminate(true);
-            Properties saveConfig = createSaveConfig(config.getProperties());
+            LinkManagerConfig saveConfig = createSaveConfig(config);
             if (exitAfterSaving && autoHideMenu.getDurationIndex() != 0)
                     // Make sure hidden lists are hidden
-                setConfigProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,false,saveConfig);
-            return saveConfiguration(file,saveConfig, GENERAL_CONFIG_FLAG);
+                saveConfig.setProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,false);
+            return saveConfiguration(file,saveConfig.getProperties(), GENERAL_CONFIG_FLAG);
         }
         @Override
         public String getProgressString(){
