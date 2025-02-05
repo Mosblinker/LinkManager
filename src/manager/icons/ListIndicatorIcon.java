@@ -32,6 +32,14 @@ public class ListIndicatorIcon implements Icon2D{
     protected EventListenerList listenerList = new EventListenerList();
     
     private int flags = 0;
+
+    public ListIndicatorIcon(int flags){
+        this.flags = flags;
+    }
+
+    public ListIndicatorIcon(){
+        this(0);
+    }
     
     public int getFlags(){
         return flags;
