@@ -45,53 +45,54 @@ public class ListIndicatorIcon implements Icon2D{
         return flags;
     }
     
-    public void setFlags(int flags){
+    public ListIndicatorIcon setFlags(int flags){
         if (this.flags == flags)
-            return;
+            return this;
         this.flags = flags;
         fireStateChanged();
+        return this;
     }
     
     public boolean getFlag(int flag){
         return LinkManager.getFlag(getFlags(), flag);
     }
     
-    public void setFlag(int flag, boolean value){
-        setFlags(LinkManager.setFlag(getFlags(), flag, value));
+    public ListIndicatorIcon setFlag(int flag, boolean value){
+        return setFlags(LinkManager.setFlag(getFlags(), flag, value));
     }
     
     public boolean isHidden(){
         return getFlag(HIDDEN_LIST_FLAG);
     }
     
-    public void setHidden(boolean value){
-        setFlag(HIDDEN_LIST_FLAG,value);
+    public ListIndicatorIcon setHidden(boolean value){
+        return setFlag(HIDDEN_LIST_FLAG,value);
     }
     
     public boolean isReadOnly(){
         return getFlag(READ_ONLY_LIST_FLAG);
     }
     
-    public void setReadOnly(boolean value){
-        setFlag(READ_ONLY_LIST_FLAG,value);
+    public ListIndicatorIcon setReadOnly(boolean value){
+        return setFlag(READ_ONLY_LIST_FLAG,value);
     }
     
     public boolean isFull(){
         return getFlag(FULL_LIST_FLAG);
     }
     
-    public void setFull(boolean value){
-        setFlag(FULL_LIST_FLAG,value);
+    public ListIndicatorIcon setFull(boolean value){
+        return setFlag(FULL_LIST_FLAG,value);
     }
     
-    public void updateFromList(LinksListModel model){
-        setHidden(model.isHidden());
-        setReadOnly(model.isReadOnly());
-        setFull(model.getSizeLimit() != null && model.isFull());
+    public ListIndicatorIcon updateFromList(LinksListModel model){
+        return setHidden(model.isHidden()).
+            setReadOnly(model.isReadOnly()).
+            setFull(model.getSizeLimit() != null && model.isFull());
     }
     
-    public void updateFromList(LinksListPanel panel){
-        updateFromList(panel.getModel());
+    public ListIndicatorIcon updateFromList(LinksListPanel panel){
+        return updateFromList(panel.getModel());
     }
 
     @Override
