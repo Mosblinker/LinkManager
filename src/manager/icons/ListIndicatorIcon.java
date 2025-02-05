@@ -13,6 +13,10 @@ import manager.links.*;
 
 /**
  *
+ * @todo Make this icon listen to changes to the state, properties, and list data of 
+ * LinksListModels and LinksListPanels, so that they can update automatically when a 
+ * change occurs that needs to be indicated.
+ * 
  * @author Milo Steier
  */
 public class ListIndicatorIcon implements Icon2D{
