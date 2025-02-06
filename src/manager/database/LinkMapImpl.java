@@ -567,6 +567,8 @@ class LinkMapImpl extends AbstractQueryRowMap<Long,String> implements LinkMap {
             while (rs.next())
                 linkIDs.add(rs.getLong(LINK_ID_COLUMN_NAME));
         }
+//        System.out.println(linkIDs);
+//        System.out.println(linkIDs.size());
         if (linkIDs.size() >= LINK_REMOVE_UNUSED_SPLIT){
             int size = size();
                 // Get the current state of the auto-commit
@@ -574,12 +576,33 @@ class LinkMapImpl extends AbstractQueryRowMap<Long,String> implements LinkMap {
                 // Turn off the auto-commit in order to group the following 
                 // database transactions to improve performance
             getConnection().setAutoCommit(false);
+//            ArrayList<Long> times = new ArrayList<>();
+//            long time = System.currentTimeMillis();
             for (int index = 0; index < linkIDs.size(); index += LINK_REMOVE_UNUSED_SPLIT){
+//                long temp = System.currentTimeMillis();
                 deleteListSQL(linkIDs.subList(index, Math.min(linkIDs.size(),index+LINK_REMOVE_UNUSED_SPLIT)));
+//                times.add(System.currentTimeMillis()-temp);
             }
 //            for (Long linkID : linkIDs){
+//                long temp = System.currentTimeMillis();
 //                deleteSQL(linkID);
+//                times.add(System.currentTimeMillis()-temp);
 //            }
+//            time = System.currentTimeMillis()-time;
+//            System.out.println("Time: " + time);
+//            System.out.printf("%1.2f ms per item%n",time/(double)linkIDs.size());
+//            long avg = 0;
+//            long min = Long.MAX_VALUE;
+//            long max = Long.MIN_VALUE;
+//            for (Long temp : times){
+//                System.out.printf("%12d%n",temp);
+//                avg += temp;
+//                min = Math.min(min, temp);
+//                max = Math.max(max, temp);
+//            }
+//            System.out.printf("%1.5f ms per item%n",avg/(double)times.size());
+//            System.out.println("Maximum: " + max);
+//            System.out.println("Minimum: " + min);
                 // Commit the changes to the database
             getConnection().commit();
                 // Restore the auto-commit back to what it was set to before
