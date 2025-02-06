@@ -5243,6 +5243,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbSearchButton.setEnabled(enabled);
         dbSearchField.setEnabled(enabled);
         dbSearchPrefixCheckBox.setEnabled(dbUsedPrefixCombo.isEnabled());
+        dbUpdateLastModButton.setEnabled(enabled);
         updateDBSearchPrefixCombo();
         updateExecuteQueryEnabled();
         updatePrefixButtons();
