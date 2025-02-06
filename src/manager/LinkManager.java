@@ -2835,7 +2835,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         );
 
         searchDialog.setTitle("Find...");
-        searchDialog.setMinimumSize(new java.awt.Dimension(517, 175));
+        searchDialog.setMinimumSize(new java.awt.Dimension(517, 190));
         searchDialog.setResizable(false);
 
         searchPanel.setEnabled(false);
