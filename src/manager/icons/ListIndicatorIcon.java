@@ -105,6 +105,7 @@ public class ListIndicatorIcon implements Icon2D{
         g.clipRect(0, 0, getIconWidth(), getIconHeight());
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
                 RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(c.getForeground());
         int xOff = 0;
         if (isHidden()){
             paintHiddenIndicator(c,g,xOff,0);
