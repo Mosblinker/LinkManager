@@ -105,17 +105,17 @@ public class ListIndicatorIcon implements Icon2D{
         g.clipRect(0, 0, getIconWidth(), getIconHeight());
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
                 RenderingHints.VALUE_ANTIALIAS_ON);
-        int yOff = 0;
+        int xOff = 0;
         if (isHidden()){
-            paintHiddenIndicator(c,g,0,yOff);
-            yOff += INDICATOR_SIZE + INDICATOR_SPACING;
+            paintHiddenIndicator(c,g,xOff,0);
+            xOff += INDICATOR_SIZE + INDICATOR_SPACING;
         }
         if (isReadOnly()){
-            paintReadOnlyIndicator(c,g,0,yOff);
-            yOff += INDICATOR_SIZE + INDICATOR_SPACING;
+            paintReadOnlyIndicator(c,g,xOff,0);
+            xOff += INDICATOR_SIZE + INDICATOR_SPACING;
         }
         if (isFull()){
-            painFullIndicator(c,g,0,yOff);
+            painFullIndicator(c,g,xOff,0);
         }
     }
     
