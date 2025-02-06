@@ -1967,7 +1967,7 @@
       <Properties>
         <Property name="title" type="java.lang.String" value="Find..."/>
         <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[517, 175]"/>
+          <Dimension value="[517, 190]"/>
         </Property>
         <Property name="resizable" type="boolean" value="false"/>
       </Properties>
