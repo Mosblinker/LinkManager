@@ -37,7 +37,7 @@ public class ListIndicatorIcon implements Icon2D{
     /**
      * This is the width of the indicator icon for full lists.
      */
-    protected static final int FULL_LIST_INDICATOR_WIDTH = INDICATOR_HEIGHT;
+    protected static final int FULL_LIST_INDICATOR_WIDTH = 4;
     /**
      * This is the spacing to use between the indicator icons.
      */
@@ -73,6 +73,10 @@ public class ListIndicatorIcon implements Icon2D{
     protected static Area padlockShackle = null;
     
     protected static RoundRectangle2D padlockBody = null;
+    
+    protected static Path2D fullListBody = null;
+    
+    protected static Ellipse2D fullListPoint = null;
 
     public ListIndicatorIcon(int flags){
         this.flags = flags;
@@ -86,7 +90,8 @@ public class ListIndicatorIcon implements Icon2D{
     private void constructShapes(){
             // If all the shapes have been initialized
         if (padlockShackle != null && padlockBody != null && 
-                hiddenListImage != null)
+                hiddenListImage != null && fullListBody != null && 
+                fullListPoint != null)
             return;
         
         Ellipse2D e = new Ellipse2D.Double();
@@ -122,9 +127,23 @@ public class ListIndicatorIcon implements Icon2D{
             rect.setFrameFromCenter(rect.getCenterX(), rect.getCenterY(), e.getMinX(), rect.getMinY());
             padlockShackle.subtract(new Area(e));
             padlockShackle.subtract(new Area(rect));
+        }   // If the full list indicator dot has not been initialized yet
+        if (fullListPoint == null){
+            fullListPoint = new Ellipse2D.Double();
+            fullListPoint.setFrameFromDiagonal(0, INDICATOR_HEIGHT, 
+                    FULL_LIST_INDICATOR_WIDTH, 
+                    INDICATOR_HEIGHT-FULL_LIST_INDICATOR_WIDTH);
+        }   // If the body of the full list indicator dot has not been 
+            // initialized yet
+        if (fullListBody == null){
+            fullListBody = new Path2D.Double();
+            fullListBody.moveTo(0, 0);
+            fullListBody.lineTo(FULL_LIST_INDICATOR_WIDTH, 0);
+            double fullListY = fullListPoint.getMinY() - 1.5;
+            fullListBody.lineTo(FULL_LIST_INDICATOR_WIDTH-1, fullListY);
+            fullListBody.lineTo(1, fullListY);
+            fullListBody.closePath();
         }
-        
-        // Create the full indicator
     }
     
     public int getFlags(){
@@ -184,7 +203,7 @@ public class ListIndicatorIcon implements Icon2D{
     @Override
     public void paintIcon2D(Component c, Graphics2D g, int x, int y) {
         g.translate(x, y);
-        g.clipRect(0, 0, getIconWidth(), getIconHeight());
+//        g.clipRect(0, 0, getIconWidth(), getIconHeight());
             // Enable antialiasing
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
                 RenderingHints.VALUE_ANTIALIAS_ON);
@@ -228,7 +247,11 @@ public class ListIndicatorIcon implements Icon2D{
     }
     
     protected void painFullIndicator(Component c, Graphics2D g, int x, int y){
-        // TODO: Implement painting an exclaimation mark
+        g = (Graphics2D) g.create();
+        g.translate(x, y);
+        g.fill(fullListBody);
+        g.fill(fullListPoint);
+        g.dispose();
     }
 
     @Override
