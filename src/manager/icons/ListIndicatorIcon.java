@@ -21,10 +21,26 @@ import manager.links.*;
  * @author Milo Steier
  */
 public class ListIndicatorIcon implements Icon2D{
-    
-    public static final int INDICATOR_SIZE = 17;
-    
-    public static final int INDICATOR_SPACING = 4;
+    /**
+     * This is the height of all the indicator icons.
+     */
+    protected static final int INDICATOR_HEIGHT = 17;
+    /**
+     * This is the width of the hidden list indicator icon.
+     */
+    protected static final int HIDDEN_INDICATOR_WIDTH = INDICATOR_HEIGHT;
+    /**
+     * This is the width of the read-only list indicator icon.
+     */
+    protected static final int READ_ONLY_INDICATOR_WIDTH = INDICATOR_HEIGHT-4;
+    /**
+     * This is the width of the indicator icon for full lists.
+     */
+    protected static final int FULL_LIST_INDICATOR_WIDTH = INDICATOR_HEIGHT;
+    /**
+     * This is the spacing to use between the indicator icons.
+     */
+    protected static final int INDICATOR_SPACING = 4;
     
     public static final int HIDDEN_LIST_FLAG = 0x01;
     
@@ -54,6 +70,7 @@ public class ListIndicatorIcon implements Icon2D{
     private void constructShapes(){
         Ellipse2D e = new Ellipse2D.Double();
         Rectangle2D rect = new Rectangle2D.Double();
+        
         // Create the eye shape
         
         padlockBody = new RoundRectangle2D.Double();
@@ -63,6 +80,8 @@ public class ListIndicatorIcon implements Icon2D{
         ((RoundRectangle2D.Double)padlockBody).archeight = 2.5;
         double padlockX1 = padlockBody.getMinX()+1.5;
         double padlockX2 = padlockBody.getMaxX()-1.5;
+        padlockBody.setFrameFromDiagonal(0, ((INDICATOR_HEIGHT/2.0)+(INDICATOR_HEIGHT/3.0))/2.0, 
+                READ_ONLY_INDICATOR_WIDTH, INDICATOR_HEIGHT);
         e.setFrameFromDiagonal(padlockX1, 0, padlockX2, (padlockX2-padlockX1));
         rect.setFrameFromDiagonal(padlockX1, e.getCenterY(), padlockX2, padlockBody.getMinY()+1);
         padlockShackle = new Area(e);
@@ -139,11 +158,11 @@ public class ListIndicatorIcon implements Icon2D{
         int xOff = 0;
         if (isHidden()){
             paintHiddenIndicator(c,g,xOff,0);
-            xOff += INDICATOR_SIZE + INDICATOR_SPACING;
+            xOff += HIDDEN_INDICATOR_WIDTH + INDICATOR_SPACING;
         }
         if (isReadOnly()){
             paintReadOnlyIndicator(c,g,xOff,0);
-            xOff += INDICATOR_SIZE + INDICATOR_SPACING;
+            xOff += READ_ONLY_INDICATOR_WIDTH + INDICATOR_SPACING;
         }
         if (isFull()){
             painFullIndicator(c,g,xOff,0);
@@ -169,16 +188,18 @@ public class ListIndicatorIcon implements Icon2D{
     @Override
     public int getIconWidth() {
         int width = 0;
-        for (boolean value : new boolean[]{isHidden(),isReadOnly(),isFull()}){
-            if (value)
-                width += INDICATOR_SIZE + INDICATOR_SPACING;
-        }
-        return Math.max(0, width-INDICATOR_SPACING);
+        if (isHidden())
+            width += HIDDEN_INDICATOR_WIDTH;
+        if (isReadOnly())
+            width += READ_ONLY_INDICATOR_WIDTH;
+        if (isFull())
+            width += FULL_LIST_INDICATOR_WIDTH;
+        return Math.max(0, width+(INDICATOR_SPACING*(Integer.bitCount(getFlags())-1)));
     }
 
     @Override
     public int getIconHeight() {
-        return INDICATOR_SIZE;
+        return INDICATOR_HEIGHT;
     }
     /**
      * This returns an array of all the objects currently registered as 
