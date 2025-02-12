@@ -54,9 +54,11 @@ public class ListIndicatorIcon implements Icon2D{
     
     private int flags = 0;
     
-    private Area padlockShackle;
+    protected static Area padlockShackle = null;
     
-    private RoundRectangle2D padlockBody;
+    protected static RoundRectangle2D padlockBody = null;
+    
+    
 
     public ListIndicatorIcon(int flags){
         this.flags = flags;
@@ -68,28 +70,36 @@ public class ListIndicatorIcon implements Icon2D{
     }
     
     private void constructShapes(){
+            // If all the shapes have been initialized
+        if (padlockShackle != null && padlockBody != null)
+            return;
+        
         Ellipse2D e = new Ellipse2D.Double();
         Rectangle2D rect = new Rectangle2D.Double();
         
         // Create the eye shape
         
-        padlockBody = new RoundRectangle2D.Double();
-        padlockBody.setFrameFromDiagonal(2, ((INDICATOR_SIZE/2.0)+(INDICATOR_SIZE/3.0))/2.0, 
-                INDICATOR_SIZE-2, INDICATOR_SIZE);
-        ((RoundRectangle2D.Double)padlockBody).arcwidth = 2.5;
-        ((RoundRectangle2D.Double)padlockBody).archeight = 2.5;
-        double padlockX1 = padlockBody.getMinX()+1.5;
-        double padlockX2 = padlockBody.getMaxX()-1.5;
-        padlockBody.setFrameFromDiagonal(0, ((INDICATOR_HEIGHT/2.0)+(INDICATOR_HEIGHT/3.0))/2.0, 
-                READ_ONLY_INDICATOR_WIDTH, INDICATOR_HEIGHT);
-        e.setFrameFromDiagonal(padlockX1, 0, padlockX2, (padlockX2-padlockX1));
-        rect.setFrameFromDiagonal(padlockX1, e.getCenterY(), padlockX2, padlockBody.getMinY()+1);
-        padlockShackle = new Area(e);
-        padlockShackle.add(new Area(rect));
-        e.setFrameFromCenter(e.getCenterX(), e.getCenterY(), e.getMinX()+2, e.getMinY()+2);
-        rect.setFrameFromCenter(rect.getCenterX(), rect.getCenterY(), e.getMinX(), rect.getMinY());
-        padlockShackle.subtract(new Area(e));
-        padlockShackle.subtract(new Area(rect));
+            // If the padlock body has not been initialized yet
+        if (padlockBody == null){
+            padlockBody = new RoundRectangle2D.Double();
+            padlockBody.setFrameFromDiagonal(0, 
+                    ((INDICATOR_HEIGHT/2.0)+(INDICATOR_HEIGHT/3.0))/2.0, 
+                    READ_ONLY_INDICATOR_WIDTH, INDICATOR_HEIGHT);
+            ((RoundRectangle2D.Double)padlockBody).arcwidth = 2.5;
+            ((RoundRectangle2D.Double)padlockBody).archeight = 2.5;
+        }   // If the padlock shackle has not been initialized yet
+        if (padlockShackle == null){
+            double padlockX1 = padlockBody.getMinX()+1.5;
+            double padlockX2 = padlockBody.getMaxX()-1.5;
+            e.setFrameFromDiagonal(padlockX1, 0, padlockX2, (padlockX2-padlockX1));
+            rect.setFrameFromDiagonal(padlockX1, e.getCenterY(), padlockX2, padlockBody.getMinY()+1);
+            padlockShackle = new Area(e);
+            padlockShackle.add(new Area(rect));
+            e.setFrameFromCenter(e.getCenterX(), e.getCenterY(), e.getMinX()+2, e.getMinY()+2);
+            rect.setFrameFromCenter(rect.getCenterX(), rect.getCenterY(), e.getMinX(), rect.getMinY());
+            padlockShackle.subtract(new Area(e));
+            padlockShackle.subtract(new Area(rect));
+        }
         
         // Create the full indicator
     }
