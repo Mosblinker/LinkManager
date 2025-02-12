@@ -8,7 +8,6 @@ import icons.Icon2D;
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.EventListener;
-import javax.swing.ImageIcon;
 import javax.swing.event.*;
 import manager.LinkManager;
 import manager.links.*;
@@ -29,7 +28,7 @@ public class ListIndicatorIcon implements Icon2D{
     /**
      * This is the width of the hidden list indicator icon.
      */
-    protected static final int HIDDEN_INDICATOR_WIDTH = INDICATOR_HEIGHT;
+    protected static final int HIDDEN_INDICATOR_WIDTH = INDICATOR_HEIGHT-1;
     /**
      * This is the width of the read-only list indicator icon.
      */
@@ -57,18 +56,11 @@ public class ListIndicatorIcon implements Icon2D{
      */
     public static final int FULL_LIST_FLAG = 0x04;
     /**
-     * This is the image used to indicate that a list is hidden.
-     */
-    private static final String HIDDEN_LIST_INDICATOR_IMAGE = 
-            "/images/Hidden Indicator Icon.png";
-    /**
      * This is an EventListenerList to store the listeners for this class.
      */
     protected EventListenerList listenerList = new EventListenerList();
     
     private int flags = 0;
-    
-    protected static Image hiddenListImage = null;
     
     protected static Area padlockShackle = null;
     
@@ -77,6 +69,8 @@ public class ListIndicatorIcon implements Icon2D{
     protected static Path2D fullListBody = null;
     
     protected static Ellipse2D fullListPoint = null;
+    
+    protected static Path2D eyeOutline = null;
     
     protected static Arc2D eyeIrisOutline = null;
     
@@ -94,38 +88,54 @@ public class ListIndicatorIcon implements Icon2D{
     private void constructShapes(){
             // If all the shapes have been initialized
         if (padlockShackle != null && padlockBody != null && 
-                hiddenListImage != null && fullListBody != null && 
-                fullListPoint != null && eyePupil != null && eyeIrisOutline != null)
+                fullListBody != null && fullListPoint != null && 
+                eyePupil != null && eyeIrisOutline != null && 
+                eyeOutline != null)
             return;
         
         Ellipse2D e = new Ellipse2D.Double();
         Rectangle2D rect = new Rectangle2D.Double();
-        rect.setFrameFromCenter(HIDDEN_INDICATOR_WIDTH/2.0,INDICATOR_HEIGHT/2.0, 
-                    0, 5);
         
-        // TODO: Create the eye shape from shapes instead of using an image
             // If the eye iris outline has not been initialized yet
         if (eyeIrisOutline == null){
             eyeIrisOutline = new Arc2D.Double();
-            eyeIrisOutline.setArcByCenter(rect.getCenterX(),rect.getCenterY(), 
+            eyeIrisOutline.setArcByCenter(HIDDEN_INDICATOR_WIDTH/2.0,INDICATOR_HEIGHT/2.0, 
                     2.5, 160, 310, Arc2D.OPEN);
         }   // If the eye pupil shape has not been initialized yet
         if (eyePupil == null){
             e.setFrameFromCenter(eyeIrisOutline.getCenterX(),eyeIrisOutline.getCenterY(),
                     eyeIrisOutline.getMinX()+1,eyeIrisOutline.getMinY()+1);
             eyePupil = new Area(e);
-            Arc2D temp = new Arc2D.Double();
-            temp.setArc(eyeIrisOutline);
-            temp.setArcType(Arc2D.PIE);
-            eyePupil.intersect(new Area(temp));
-        }
-            // If the hidden list image has not been initialized yet
-        if (hiddenListImage == null){
-                // Load the image using an ImageIcon and get the resulting image
-            hiddenListImage = new ImageIcon(this.getClass().
-                    getResource(HIDDEN_LIST_INDICATOR_IMAGE)).getImage();
-        }
-            // If the padlock body has not been initialized yet
+            Arc2D arc = new Arc2D.Double();
+            arc.setArc(eyeIrisOutline);
+            arc.setArcType(Arc2D.PIE);
+            eyePupil.intersect(new Area(arc));
+        }   // If the eye outline has not been initialized yet
+        if (eyeOutline == null){
+            eyeOutline = new Path2D.Double();
+            eyeOutline.moveTo(0, eyeIrisOutline.getCenterY());
+            double minY = eyeIrisOutline.getMinY()-1;
+            double maxY = eyeIrisOutline.getMaxY()+1;
+            double ctrlPt1X = eyeIrisOutline.getMinX()/2.0;
+            double ctrlPt2X = eyeIrisOutline.getCenterX()+(eyeIrisOutline.getMaxX()/2.0);
+            eyeOutline.curveTo(
+                    ctrlPt1X, eyeIrisOutline.getMinY(), 
+                    eyeIrisOutline.getMinX()+0.5, minY, 
+                    eyeIrisOutline.getCenterX(), minY);
+            eyeOutline.curveTo(
+                    eyeIrisOutline.getMaxX()+0.5, minY, 
+                    ctrlPt2X, eyeIrisOutline.getMinY(), 
+                    HIDDEN_INDICATOR_WIDTH, eyeIrisOutline.getCenterY());
+            eyeOutline.curveTo(
+                    ctrlPt2X,eyeIrisOutline.getMaxY(), 
+                    eyeIrisOutline.getMaxX()+0.5, maxY, 
+                    eyeIrisOutline.getCenterX(), maxY);
+            eyeOutline.curveTo(
+                    eyeIrisOutline.getMinX()+0.5, maxY, 
+                    ctrlPt1X, eyeIrisOutline.getMaxY(), 
+                    0, eyeIrisOutline.getCenterY());
+            eyeOutline.closePath();
+        }   // If the padlock body has not been initialized yet
         if (padlockBody == null){
             padlockBody = new RoundRectangle2D.Double();
             padlockBody.setFrameFromDiagonal(0, (INDICATOR_HEIGHT*3)/8.0,
@@ -250,14 +260,11 @@ public class ListIndicatorIcon implements Icon2D{
     
     protected void paintHiddenIndicator(Component c, Graphics2D g, int x, int y){
         g = (Graphics2D) g.create();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g.drawImage(hiddenListImage, x,y, 
-                HIDDEN_INDICATOR_WIDTH, INDICATOR_HEIGHT, c);
-        // TODO: Implement painting an eye using shapes instead of an image
         g.translate(x, y);
         g.draw(eyeIrisOutline);
         g.fill(eyePupil);
+        g.setStroke(new BasicStroke(1.25f));
+        g.draw(eyeOutline);
         g.dispose();
     }
     
