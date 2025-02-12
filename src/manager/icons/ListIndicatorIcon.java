@@ -77,6 +77,10 @@ public class ListIndicatorIcon implements Icon2D{
     protected static Path2D fullListBody = null;
     
     protected static Ellipse2D fullListPoint = null;
+    
+    protected static Arc2D eyeIrisOutline = null;
+    
+    protected static Area eyePupil = null;
 
     public ListIndicatorIcon(int flags){
         this.flags = flags;
@@ -91,14 +95,30 @@ public class ListIndicatorIcon implements Icon2D{
             // If all the shapes have been initialized
         if (padlockShackle != null && padlockBody != null && 
                 hiddenListImage != null && fullListBody != null && 
-                fullListPoint != null)
+                fullListPoint != null && eyePupil != null && eyeIrisOutline != null)
             return;
         
         Ellipse2D e = new Ellipse2D.Double();
         Rectangle2D rect = new Rectangle2D.Double();
+        rect.setFrameFromCenter(HIDDEN_INDICATOR_WIDTH/2.0,INDICATOR_HEIGHT/2.0, 
+                    0, 5);
         
         // TODO: Create the eye shape from shapes instead of using an image
-        
+            // If the eye iris outline has not been initialized yet
+        if (eyeIrisOutline == null){
+            eyeIrisOutline = new Arc2D.Double();
+            eyeIrisOutline.setArcByCenter(rect.getCenterX(),rect.getCenterY(), 
+                    2.5, 160, 310, Arc2D.OPEN);
+        }   // If the eye pupil shape has not been initialized yet
+        if (eyePupil == null){
+            e.setFrameFromCenter(eyeIrisOutline.getCenterX(),eyeIrisOutline.getCenterY(),
+                    eyeIrisOutline.getMinX()+1,eyeIrisOutline.getMinY()+1);
+            eyePupil = new Area(e);
+            Arc2D temp = new Arc2D.Double();
+            temp.setArc(eyeIrisOutline);
+            temp.setArcType(Arc2D.PIE);
+            eyePupil.intersect(new Area(temp));
+        }
             // If the hidden list image has not been initialized yet
         if (hiddenListImage == null){
                 // Load the image using an ImageIcon and get the resulting image
@@ -209,6 +229,10 @@ public class ListIndicatorIcon implements Icon2D{
             // Prioritize rendering quality over speed
         g.setRenderingHint(RenderingHints.KEY_RENDERING, 
                 RenderingHints.VALUE_RENDER_QUALITY);
+            // Set the stroke normalization to be pure, i.e. geometry should be 
+            // left unmodified
+        g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, 
+                RenderingHints.VALUE_STROKE_PURE);
         g.setColor(c.getForeground());
         int xOff = INDICATOR_SPACING;
         if (isHidden()){
@@ -226,12 +250,14 @@ public class ListIndicatorIcon implements Icon2D{
     
     protected void paintHiddenIndicator(Component c, Graphics2D g, int x, int y){
         g = (Graphics2D) g.create();
-//        g.translate(x, y);
-        // TODO: Implement painting an eye using shapes instead of an image
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         g.drawImage(hiddenListImage, x,y, 
                 HIDDEN_INDICATOR_WIDTH, INDICATOR_HEIGHT, c);
+        // TODO: Implement painting an eye using shapes instead of an image
+        g.translate(x, y);
+        g.draw(eyeIrisOutline);
+        g.fill(eyePupil);
         g.dispose();
     }
     
