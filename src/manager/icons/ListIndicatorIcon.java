@@ -210,7 +210,7 @@ public class ListIndicatorIcon implements Icon2D{
         g.setRenderingHint(RenderingHints.KEY_RENDERING, 
                 RenderingHints.VALUE_RENDER_QUALITY);
         g.setColor(c.getForeground());
-        int xOff = 0;
+        int xOff = INDICATOR_SPACING;
         if (isHidden()){
             paintHiddenIndicator(c,g,xOff,0);
             xOff += HIDDEN_INDICATOR_WIDTH + INDICATOR_SPACING;
@@ -260,7 +260,7 @@ public class ListIndicatorIcon implements Icon2D{
             width += READ_ONLY_INDICATOR_WIDTH;
         if (isFull())
             width += FULL_LIST_INDICATOR_WIDTH;
-        return Math.max(0, width+(INDICATOR_SPACING*(Integer.bitCount(getFlags())-1)));
+        return Math.max(0, width+(INDICATOR_SPACING*(Integer.bitCount(getFlags())))+1);
     }
 
     @Override
