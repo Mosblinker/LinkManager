@@ -25,19 +25,19 @@ public class ListIndicatorIcon implements Icon2D{
     /**
      * This is the height of all the indicator icons.
      */
-    protected static final int INDICATOR_HEIGHT = 17;
+    protected static final int INDICATOR_HEIGHT = 13;
     /**
      * This is the width of the hidden list indicator icon.
      */
-    protected static final int HIDDEN_INDICATOR_WIDTH = INDICATOR_HEIGHT-4;
+    protected static final int HIDDEN_INDICATOR_WIDTH = INDICATOR_HEIGHT;
     /**
      * This is the width of the read-only list indicator icon.
      */
-    protected static final int READ_ONLY_INDICATOR_WIDTH = INDICATOR_HEIGHT-4;
+    protected static final int READ_ONLY_INDICATOR_WIDTH = INDICATOR_HEIGHT-3;
     /**
      * This is the width of the indicator icon for full lists.
      */
-    protected static final int FULL_LIST_INDICATOR_WIDTH = 4;
+    protected static final int FULL_LIST_INDICATOR_WIDTH = 3;
     /**
      * This is the spacing to use between the indicator icons.
      */
@@ -108,8 +108,7 @@ public class ListIndicatorIcon implements Icon2D{
             // If the padlock body has not been initialized yet
         if (padlockBody == null){
             padlockBody = new RoundRectangle2D.Double();
-            padlockBody.setFrameFromDiagonal(0, 
-                    ((INDICATOR_HEIGHT/2.0)+(INDICATOR_HEIGHT/3.0))/2.0, 
+            padlockBody.setFrameFromDiagonal(0, (INDICATOR_HEIGHT*3)/8.0,
                     READ_ONLY_INDICATOR_WIDTH, INDICATOR_HEIGHT);
             ((RoundRectangle2D.Double)padlockBody).arcwidth = 2.5;
             ((RoundRectangle2D.Double)padlockBody).archeight = 2.5;
@@ -123,7 +122,7 @@ public class ListIndicatorIcon implements Icon2D{
             rect.setFrameFromDiagonal(padlockX1, e.getCenterY(), padlockX2, padlockBody.getMinY()+1);
             padlockShackle = new Area(e);
             padlockShackle.add(new Area(rect));
-            e.setFrameFromCenter(e.getCenterX(), e.getCenterY(), e.getMinX()+2, e.getMinY()+2);
+            e.setFrameFromCenter(e.getCenterX(), e.getCenterY(), e.getMinX()+1.25, e.getMinY()+1.25);
             rect.setFrameFromCenter(rect.getCenterX(), rect.getCenterY(), e.getMinX(), rect.getMinY());
             padlockShackle.subtract(new Area(e));
             padlockShackle.subtract(new Area(rect));
@@ -140,8 +139,8 @@ public class ListIndicatorIcon implements Icon2D{
             fullListBody.moveTo(0, 0);
             fullListBody.lineTo(FULL_LIST_INDICATOR_WIDTH, 0);
             double fullListY = fullListPoint.getMinY() - 1.5;
-            fullListBody.lineTo(FULL_LIST_INDICATOR_WIDTH-1, fullListY);
-            fullListBody.lineTo(1, fullListY);
+            fullListBody.lineTo(FULL_LIST_INDICATOR_WIDTH-0.75, fullListY);
+            fullListBody.lineTo(0.75, fullListY);
             fullListBody.closePath();
         }
     }
@@ -231,10 +230,8 @@ public class ListIndicatorIcon implements Icon2D{
         // TODO: Implement painting an eye using shapes instead of an image
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g.drawImage(hiddenListImage, x,
-                y+((INDICATOR_HEIGHT-HIDDEN_INDICATOR_WIDTH)/2), 
-                HIDDEN_INDICATOR_WIDTH, 
-                HIDDEN_INDICATOR_WIDTH, c);
+        g.drawImage(hiddenListImage, x,y, 
+                HIDDEN_INDICATOR_WIDTH, INDICATOR_HEIGHT, c);
         g.dispose();
     }
     
