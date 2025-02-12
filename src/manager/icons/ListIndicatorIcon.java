@@ -41,11 +41,19 @@ public class ListIndicatorIcon implements Icon2D{
      * This is the spacing to use between the indicator icons.
      */
     protected static final int INDICATOR_SPACING = 4;
-    
+    /**
+     * This is the flag indicating that the hidden list indicator should be 
+     * shown.
+     */
     public static final int HIDDEN_LIST_FLAG = 0x01;
-    
+    /**
+     * This is the flag indicating that the read-only list indicator should be 
+     * shown.
+     */
     public static final int READ_ONLY_LIST_FLAG = 0x02;
-    
+    /**
+     * This is the flag indicating that the full list indicator should be shown.
+     */
     public static final int FULL_LIST_FLAG = 0x04;
     /**
      * This is an EventListenerList to store the listeners for this class.
@@ -89,7 +97,9 @@ public class ListIndicatorIcon implements Icon2D{
             ((RoundRectangle2D.Double)padlockBody).archeight = 2.5;
         }   // If the padlock shackle has not been initialized yet
         if (padlockShackle == null){
+                // Get the minimum x for the padlock shackle
             double padlockX1 = padlockBody.getMinX()+1.5;
+                // Get the maximum x for the padlock shackle
             double padlockX2 = padlockBody.getMaxX()-1.5;
             e.setFrameFromDiagonal(padlockX1, 0, padlockX2, (padlockX2-padlockX1));
             rect.setFrameFromDiagonal(padlockX1, e.getCenterY(), padlockX2, padlockBody.getMinY()+1);
