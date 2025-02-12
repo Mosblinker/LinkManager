@@ -8,6 +8,7 @@ import icons.Icon2D;
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.EventListener;
+import javax.swing.ImageIcon;
 import javax.swing.event.*;
 import manager.LinkManager;
 import manager.links.*;
@@ -28,7 +29,7 @@ public class ListIndicatorIcon implements Icon2D{
     /**
      * This is the width of the hidden list indicator icon.
      */
-    protected static final int HIDDEN_INDICATOR_WIDTH = INDICATOR_HEIGHT;
+    protected static final int HIDDEN_INDICATOR_WIDTH = INDICATOR_HEIGHT-4;
     /**
      * This is the width of the read-only list indicator icon.
      */
@@ -56,17 +57,22 @@ public class ListIndicatorIcon implements Icon2D{
      */
     public static final int FULL_LIST_FLAG = 0x04;
     /**
+     * This is the image used to indicate that a list is hidden.
+     */
+    private static final String HIDDEN_LIST_INDICATOR_IMAGE = 
+            "/images/Hidden Indicator Icon.png";
+    /**
      * This is an EventListenerList to store the listeners for this class.
      */
     protected EventListenerList listenerList = new EventListenerList();
     
     private int flags = 0;
     
+    protected static Image hiddenListImage = null;
+    
     protected static Area padlockShackle = null;
     
     protected static RoundRectangle2D padlockBody = null;
-    
-    
 
     public ListIndicatorIcon(int flags){
         this.flags = flags;
@@ -79,14 +85,21 @@ public class ListIndicatorIcon implements Icon2D{
     
     private void constructShapes(){
             // If all the shapes have been initialized
-        if (padlockShackle != null && padlockBody != null)
+        if (padlockShackle != null && padlockBody != null && 
+                hiddenListImage != null)
             return;
         
         Ellipse2D e = new Ellipse2D.Double();
         Rectangle2D rect = new Rectangle2D.Double();
         
-        // Create the eye shape
+        // TODO: Create the eye shape from shapes instead of using an image
         
+            // If the hidden list image has not been initialized yet
+        if (hiddenListImage == null){
+                // Load the image using an ImageIcon and get the resulting image
+            hiddenListImage = new ImageIcon(this.getClass().
+                    getResource(HIDDEN_LIST_INDICATOR_IMAGE)).getImage();
+        }
             // If the padlock body has not been initialized yet
         if (padlockBody == null){
             padlockBody = new RoundRectangle2D.Double();
@@ -172,8 +185,12 @@ public class ListIndicatorIcon implements Icon2D{
     public void paintIcon2D(Component c, Graphics2D g, int x, int y) {
         g.translate(x, y);
         g.clipRect(0, 0, getIconWidth(), getIconHeight());
+            // Enable antialiasing
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
                 RenderingHints.VALUE_ANTIALIAS_ON);
+            // Prioritize rendering quality over speed
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, 
+                RenderingHints.VALUE_RENDER_QUALITY);
         g.setColor(c.getForeground());
         int xOff = 0;
         if (isHidden()){
@@ -190,7 +207,16 @@ public class ListIndicatorIcon implements Icon2D{
     }
     
     protected void paintHiddenIndicator(Component c, Graphics2D g, int x, int y){
-        // TODO: Implement painting an eye
+        g = (Graphics2D) g.create();
+//        g.translate(x, y);
+        // TODO: Implement painting an eye using shapes instead of an image
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.drawImage(hiddenListImage, x,
+                y+((INDICATOR_HEIGHT-HIDDEN_INDICATOR_WIDTH)/2), 
+                HIDDEN_INDICATOR_WIDTH, 
+                HIDDEN_INDICATOR_WIDTH, c);
+        g.dispose();
     }
     
     protected void paintReadOnlyIndicator(Component c, Graphics2D g, int x, int y){
