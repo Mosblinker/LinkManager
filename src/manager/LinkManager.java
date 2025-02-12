@@ -50,6 +50,7 @@ import javax.swing.tree.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
+import manager.icons.DefaultPfpIcon;
 import manager.links.*;
 import manager.timermenu.*;
 import measure.format.binary.ByteUnitFormat;

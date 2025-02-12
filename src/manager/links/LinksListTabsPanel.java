@@ -6,6 +6,7 @@ package manager.links;
 
 import components.debug.DebugCapable;
 import event.DisabledComponentMouseListener;
+import icons.DisabledIcon;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Font;
@@ -17,6 +18,7 @@ import java.util.*;
 import java.util.function.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import manager.icons.ListIndicatorIcon;
 
 /**
  *
@@ -65,20 +67,8 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
     
     private static final String EDITED_LIST_INDICATOR = "*";
     
-    private static final String HIDDEN_LIST_INDICATOR = "👁";
-    
-    private static final String READ_ONLY_LIST_INDICATOR = "🔏";
-    
-//    private static final String SIZE_LIMITED_LIST_INDICATOR = "";
-    
-    private static final String SIZE_LIMITED_FULL_LIST_INDICATOR = "❗";
-    
     public static final String RESERVED_LIST_NAME_CHARACTERS = 
-            EDITED_LIST_INDICATOR+
-            HIDDEN_LIST_INDICATOR+
-            READ_ONLY_LIST_INDICATOR+
-//            SIZE_LIMITED_LIST_INDICATOR+
-            SIZE_LIMITED_FULL_LIST_INDICATOR;
+            EDITED_LIST_INDICATOR;
     
     /**
      * The JTabbedPane used to display the panels that display the lists.
@@ -146,6 +136,8 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
      */
     private DisabledComponentMouseListener disabledListener = null;
     
+    private ListIconHandler listIconHandler;
+    
     private void initialize(){
         removedListIDs = new HashSet<>();
         panelActionMenus = new LinkedHashMap<>();
@@ -156,6 +148,7 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
         panelActionMapper = null;
         tabbedPane = new JTabbedPane();
         listHandler = new ListPanelHandler();
+        listIconHandler = new ListIconHandler();
         Handler handler = new Handler();
         tabbedPane.addChangeListener(handler);
         tabbedPane.addMouseListener(getDisabledComponentListener());
@@ -841,13 +834,6 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
             name = Objects.toString(panel.getListID(),"N/A") + ": " + name;
         if (panel.isEdited())
             name = EDITED_LIST_INDICATOR+name;
-        if (panel.isHidden())
-            name += " "+HIDDEN_LIST_INDICATOR;
-        if (panel.isReadOnly())
-            name += " "+READ_ONLY_LIST_INDICATOR;
-        if (panel.getSizeLimit() != null && panel.getModel().isFull())
-            name += " "+SIZE_LIMITED_FULL_LIST_INDICATOR;
-        
         return name;
     }
     
@@ -857,6 +843,17 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
     
     protected void updateTabTitle(LinksListPanel panel){
         updateTabTitle(tabbedPane.indexOfComponent(panel),panel);
+    }
+    
+    protected void updateTabIcon(int index, LinksListPanel panel){
+        Icon icon = tabbedPane.getIconAt(index);
+        if (icon instanceof ListIndicatorIcon){
+            ((ListIndicatorIcon)icon).updateFromList(panel);
+        }
+    }
+    
+    protected void updateTabIcon(LinksListPanel panel){
+        updateTabIcon(tabbedPane.indexOfComponent(panel),panel);
     }
     
     protected void updateTabToolTip(int index, LinksListPanel panel){
@@ -912,8 +909,11 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
         public void add(int index, LinksListPanel panel){
             Objects.requireNonNull(panel);
             Objects.checkIndex(index, size()+1);
-            tabbedPane.insertTab(getTitleForList(panel), null, panel, 
+            ListIndicatorIcon icon = new ListIndicatorIcon().updateFromList(panel);
+            icon.addChangeListener(listIconHandler);
+            tabbedPane.insertTab(getTitleForList(panel), icon, panel, 
                     panel.getListToolTipText(), index);
+            tabbedPane.setDisabledIconAt(index, new DisabledIcon(icon));
             tabbedPane.setTabComponentAt(index, panel.getTabComponent());
             addListToPanel(index,panel);
             setStructureEdited(true);
@@ -921,6 +921,9 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
         @Override
         public LinksListPanel remove(int index){
             LinksListPanel panel = get(index);
+            Icon icon = tabbedPane.getIconAt(index);
+            if (icon instanceof ListIndicatorIcon)
+                ((ListIndicatorIcon)icon).removeChangeListener(listIconHandler);
             if (panel != null){
                 removeListFromPanel(panel);
             }
@@ -938,6 +941,7 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
                 removeListFromPanel(panel);
             tabbedPane.setComponentAt(index, panel);
             updateTabTitle(index,panel);
+            updateTabIcon(index,panel);
             updateTabToolTip(index,panel);
             tabbedPane.setTabComponentAt(index, panel.getTabComponent());
             addListToPanel(index,panel);
@@ -997,6 +1001,14 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
         }
     }
     
+    private class ListIconHandler implements ChangeListener{
+        @Override
+        public void stateChanged(ChangeEvent evt) {
+            tabbedPane.revalidate();
+            tabbedPane.repaint();
+        }
+    }
+    
     private class ListPanelHandler implements ChangeListener, 
             PropertyChangeListener, ListDataListener, ListSelectionListener{
         
@@ -1046,6 +1058,7 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
             int index = getLists().indexOf(panel);
             switch(evt.getPropertyName()){
                 case(LinksListModel.LIST_SIZE_LIMIT_PROPERTY_CHANGED):
+                    updateTabIcon(index,panel);
                     updateTabToolTip(index,panel);
                     if (panel.isEdited())
                         setEdited(true);
@@ -1073,6 +1086,7 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
                 case(LinksListModel.LIST_NAME_PROPERTY_CHANGED):
                 case(LinksListModel.LIST_IS_READ_ONLY_PROPERTY_CHANGED):
                     updateTabTitle(index,panel);
+                    updateTabIcon(index,panel);
                     if (panel.isEdited())
                         setEdited(true);
             }
@@ -1085,6 +1099,7 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
             LinksListPanel panel = getPanel(evt);
             if (panel != null){
                 updateTabTitle(panel);
+                updateTabIcon(panel);
                 updateTabToolTip(panel);
             }
         }
@@ -1093,6 +1108,7 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
             LinksListPanel panel = getPanel(evt);
             if (panel != null){
                 updateTabTitle(panel);
+                updateTabIcon(panel);
                 updateTabToolTip(panel);
             }
         }
@@ -1101,6 +1117,7 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
             LinksListPanel panel = getPanel(evt);
             if (panel != null){
                 updateTabTitle(panel);
+                updateTabIcon(panel);
                 updateTabToolTip(panel);
             }
         }
