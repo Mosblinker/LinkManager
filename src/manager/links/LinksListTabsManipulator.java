@@ -12,6 +12,7 @@ import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.text.Position;
 
 /**
  *
@@ -718,6 +719,35 @@ public class LinksListTabsManipulator extends JListManipulator<LinksListModel>{
         return (showFlags & flag) == flag;
     }
     
+    @Override
+    protected void moveElements(int[] indexes, Position.Bias direction,
+            int distance, ListModelList<LinksListModel> model){
+        boolean update = skipUpdate;
+        skipUpdate = true;
+        super.moveElements(indexes, direction, distance, model);
+        skipUpdate = update;
+    }
+    @Override
+    protected void moveElementsToBoundary(int[] indexes,Position.Bias direction,
+            ListModelList<LinksListModel> model){
+        boolean update = skipUpdate;
+        skipUpdate = true;
+        super.moveElementsToBoundary(indexes, direction, model);
+        skipUpdate = update;
+    }
+    @Override
+    protected void reverseElements(int[] indexes, ListModelList<LinksListModel> model){
+        boolean update = skipUpdate;
+        skipUpdate = true;
+        super.reverseElements(indexes, model);
+        skipUpdate = update;
+    }
+    /**
+     * Whether the list maps should not be updated if the list model is changed 
+     * in some way.
+     */
+    private boolean skipUpdate = false;
+    
     private Set<String> usedNames = null;
     /**
      * This is a map that maps list models that have been renamed to their new 
@@ -816,12 +846,16 @@ public class LinksListTabsManipulator extends JListManipulator<LinksListModel>{
     }
     @Override
     protected void fireIntervalRemoved(int index0, int index1){
-        updateListMaps();
+            // If this should update the maps
+        if (!skipUpdate)
+            updateListMaps();
         super.fireIntervalRemoved(index0, index1);
     }
     @Override
     protected void fireContentsChanged(int index0, int index1){
-        updateListMaps();
+            // If this should update the maps
+        if (!skipUpdate)
+            updateListMaps();
         super.fireContentsChanged(index0, index1);
     }
     /**
