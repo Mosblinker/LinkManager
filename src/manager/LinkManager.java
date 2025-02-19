@@ -7294,8 +7294,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 try{    // If the whole source list has been added to the target
                     if (added.size() == source.getModel().size())
                         source.getModel().clear();
-                    else
-                        source.getModel().removeAll(added);
+                    else{
+                        // Get a copy of the source's list
+                        ArrayList<String> temp = new ArrayList<>(source.getModel());
+                        // Remove all the links that were added.
+                        temp.removeAll(added);
+                        // Update the contents of the souce panel
+                        source.updateModelContents(temp);
+                    }
                 } catch(Exception ex){
                         // If the program is in debug mode
                     if (isInDebug())
