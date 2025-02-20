@@ -29,6 +29,11 @@ public class LinkManagerConfig {
     protected static final String HEIGHT_KEY_SUFFIX = "Height";
     
     /**
+     * This is the name for the preference node used to store sensitive settings 
+     * for the program.
+     */
+    protected static final String PRIVATE_PREFERENCE_NODE_NAME = "private";
+    /**
      * This is the preference node containing all the preferences for 
      * LinkManager. This is the parent preference node for all other nodes, and 
      * any settings stored in this node are shared between all instances of 
