@@ -16,9 +16,15 @@ import org.sqlite.SQLiteConfig;
  * @author Milo Steier
  */
 public class LinkManagerConfig {
-    
+    /**
+     * This is the suffix for configuration keys for the width component of a 
+     * dimension.
+     */
     protected static final String WIDTH_KEY_SUFFIX = "Width";
-    
+    /**
+     * This is the suffix for configuration keys for the height component of a 
+     * dimension.
+     */
     protected static final String HEIGHT_KEY_SUFFIX = "Height";
     
     /**
