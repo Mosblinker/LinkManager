@@ -29,6 +29,31 @@ public class LinkManagerConfig {
     protected static final String HEIGHT_KEY_SUFFIX = "Height";
     
     /**
+     * This is the preference node containing all the preferences for 
+     * LinkManager. This is the parent preference node for all other nodes, and 
+     * any settings stored in this node are shared between all instances of 
+     * LinkManager.
+     */
+    private Preferences programNode;
+    /**
+     * This is the preference node containing all the preference nodes that 
+     * contain sensitive configuration data for LinkManager. These nodes are 
+     * used to store things like passwords and such.
+     */
+    private Preferences privateNode;
+    /**
+     * This is the preference node containing the configuration for this 
+     * instance of LinkManager and any that share this instance's ID.
+     */
+    private Preferences localNode = null;
+    /**
+     * This is the preference node containing the sensitive configuration data 
+     * for this instance of LinkManager and any that share this instance's ID. 
+     * This is used to store things like passwords and such, and is a child of 
+     * {@code privateNode}.
+     */
+    private Preferences privateLocalNode = null;
+    /**
      * This is a properties map that stores the configuration for LinkManager.
      */
     private final Properties config;
@@ -58,24 +83,6 @@ public class LinkManagerConfig {
      * settings that relate to that component.
      */
     private final Map<Component, String> compKeyMap;
-    /**
-     * This is the preference node containing all the preferences for 
-     * LinkManager. This is the parent preference node for all other nodes, and 
-     * any settings stored in this node are shared between all instances of 
-     * LinkManager.
-     */
-    private Preferences programNode = null;
-    /**
-     * This is the preference node containing the configuration for this 
-     * instance of LinkManager and any that share this instance's ID.
-     */
-    private Preferences localNode = null;
-    /**
-     * This is the preference node in the local preference node that stores any 
-     * sensitive configuration data for LinkManager. This is used to store 
-     * things like passwords and such, and is a child of {@code localNode}.
-     */
-    private Preferences privateNode = null;
     
     private LinkManagerConfig(Properties sqlProp){
         defaultConfig = new Properties();
