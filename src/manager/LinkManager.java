@@ -578,6 +578,57 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         addToPopupMenu(menu,undoCommands,editCommands,null);
     }
     /**
+     * This gets the hexadecimal String representation of the given UUID.
+     * @param uuid The UUID to get the hexadecimal representation of (cannot be 
+     * null).
+     * @return The hexadecimal string representation of the given UUID.
+     * @throws NullPointerException If the given UUID is null.
+     * @see #uuidFromHex(String) 
+     */
+    public static String uuidToHex(UUID uuid){
+            // Make sure the UUID is not null.
+        Objects.requireNonNull(uuid);
+        return String.format("%016X%016X",uuid.getMostSignificantBits(),
+                    uuid.getLeastSignificantBits());
+    }
+    /**
+     * This creates a UUID from the given hexadecimal string. This effectively 
+     * does the reverse of the {@link #uuidToHex(UUID) uuidToHex} method.
+     * @param value The String to convert to a UUID.
+     * @return The UUID represented by the given String.
+     * @throws NullPointerException If the String is null.
+     * @throws NumberFormatException If the String does not contain one or two 
+     * parsable {@code long} values encoded in base-16 (hexadecimal).
+     * @see #uuidToHex(UUID) 
+     * @see Long#parseUnsignedLong(String, int) 
+     */
+    public static UUID uuidFromHex(String value){
+            // Make sure the String is not null
+        Objects.requireNonNull(value);
+            // If the String is empty
+        if (value.isEmpty())
+            throw new NumberFormatException("UUID hex string cannot be empty");
+            // If the String is too long to be two long values
+        if (value.length() > 32)
+            throw new NumberFormatException("UUID hex string (" + value + 
+                    ") is too long ("+ value.length() + " > 32)");
+            // This gets the start of the least significant half of the UUID. 
+            // If the String only has the least significant half, then this will 
+            // be 0. Otherwise, this will contain the offset into the String
+        int lowStart = Math.max(value.length() - 16,0);
+            // Get the least significant half of the UUID
+        long leastSig = Long.parseUnsignedLong(value.substring(lowStart), 16);
+            // This will get the most significant half of the UUID
+        long mostSig = 0;
+            // If the String contains the most significant half of the UUID 
+            // (i.e. The string is longer than 16 characters
+        if (lowStart > 0)
+                // Get the most significant half of the UUID
+            mostSig = Long.parseUnsignedLong(value.substring(0, lowStart),16);
+            // Create and return a UUID with the least and most significant bits
+        return new UUID(mostSig,leastSig);
+    }
+    /**
      * This returns the working directory for this program.
      * @return The working directory for the program.
      */
