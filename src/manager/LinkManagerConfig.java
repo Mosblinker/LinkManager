@@ -42,20 +42,20 @@ public class LinkManagerConfig {
     private Preferences programNode;
     /**
      * This is the preference node containing all the preference nodes that 
-     * contain sensitive configuration data for LinkManager. These nodes are 
-     * used to store things like passwords and such.
+     * contain sensitive data for LinkManager. This is a child of {@code 
+     * programNode}.
      */
     private Preferences privateNode;
     /**
      * This is the preference node containing the configuration for this 
-     * instance of LinkManager and any that share this instance's ID.
+     * instance of LinkManager and any that share this instance's ID. This is a 
+     * child of {@code programNode}.
      */
     private Preferences localNode = null;
     /**
-     * This is the preference node containing the sensitive configuration data 
-     * for this instance of LinkManager and any that share this instance's ID. 
-     * This is used to store things like passwords and such, and is a child of 
-     * {@code privateNode}.
+     * This is the preference node containing the sensitive data for this 
+     * instance of LinkManager and any that share this instance's ID. This is a 
+     * child of {@code privateNode}.
      */
     private Preferences privateLocalNode = null;
     /**
@@ -113,6 +113,38 @@ public class LinkManagerConfig {
         this.config.putAll(linkConfig.config);
         this.privateConfig.putAll(linkConfig.privateConfig);
         this.compKeyMap.putAll(linkConfig.compKeyMap);
+    }
+    /**
+     * This returns the preference node used to store the shared configuration 
+     * data for all instances of LinkManager.
+     * @return The shared configuration preference node.
+     */
+    public Preferences getSharedPreferences(){
+        return programNode;
+    }
+    /**
+     * This returns the preference node used to store the preference nodes 
+     * storing sensitive data for LinkManager.
+     * @return The shared configuration preference node for private data.
+     */
+    protected Preferences getSharedPrivatePreferences(){
+        return privateNode;
+    }
+    /**
+     * This returns the preference node used to store the configuration for 
+     * LinkManager.
+     * @return The local preference node.
+     */
+    public Preferences getPreferences(){
+        return localNode;
+    }
+    /**
+     * This returns the preference node used to store the sensitive data for 
+     * LinkManager.
+     * @return The local preference node for private data.
+     */
+    public Preferences getPrivatePreferences(){
+        return privateLocalNode;
     }
     /**
      * This returns the properties map that stores the configuration for 
