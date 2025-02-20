@@ -40,6 +40,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.prefs.Preferences;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
@@ -99,6 +100,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * tables containing the links.
      */
     public static final String LINK_DATABASE_FILE = "LinkManager.db";
+    /**
+     * This is the name of the preference node used to store the settings for 
+     * this program.
+     */
+    private static final String PREFERENCE_NODE_NAME = 
+            "milo/link/LinkManager";
     /**
      * This is the name of the file used to store the configuration.
      */
@@ -940,7 +947,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         undoCommands = new HashMap<>();
         textPopupMenus = new HashMap<>();
         
-        config = new LinkManagerConfig();
+            // This will get the preference node for the program
+        Preferences node = null;
+        try{    // Try to get the preference node used for the program
+            node = Preferences.userRoot().node(PREFERENCE_NODE_NAME);
+        } catch (SecurityException | IllegalStateException ex){
+            System.out.println("Unable to load preference node: " +ex);
+        }
+        
+        config = new LinkManagerConfig(node);
             // Initialize the defaults that are not dependent on the UI
         config.setPropertyDefault(DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
         config.setPrivateDefault(EXTERNAL_DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
