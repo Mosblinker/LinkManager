@@ -7,6 +7,7 @@ package manager;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.util.*;
+import java.util.prefs.*;
 import org.sqlite.SQLiteConfig;
 
 /**
@@ -57,11 +58,24 @@ public class LinkManagerConfig {
      * settings that relate to that component.
      */
     private final Map<Component, String> compKeyMap;
-//    /**
-//     * This is the preference node containing the shared configuration for 
-//     * LinkManager.
-//     */
-//    private Preferences prefConfig = null;
+    /**
+     * This is the preference node containing all the preferences for 
+     * LinkManager. This is the parent preference node for all other nodes, and 
+     * any settings stored in this node are shared between all instances of 
+     * LinkManager.
+     */
+    private Preferences programNode = null;
+    /**
+     * This is the preference node containing the configuration for this 
+     * instance of LinkManager and any that share this instance's ID.
+     */
+    private Preferences localNode = null;
+    /**
+     * This is the preference node in the local preference node that stores any 
+     * sensitive configuration data for LinkManager. This is used to store 
+     * things like passwords and such, and is a child of {@code localNode}.
+     */
+    private Preferences privateNode = null;
     
     private LinkManagerConfig(Properties sqlProp){
         defaultConfig = new Properties();
