@@ -442,6 +442,38 @@ public class ConfigPreferences extends Preferences{
         return node.nodeExists(pathName);
     }
     /**
+     * This returns whether this node exists. It's worth mentioning that this 
+     * relies on the {@link Preferences#nodeExists(String) nodeExists("")} 
+     * method of the internal preference node to determine if this node exists. 
+     * This will return false if the backing store is inaccessible or fails in 
+     * some way.
+     * @return Whether this node exists.
+     * @see #nodeExists(String) 
+     * @see #node
+     */
+    protected boolean exists(){
+        try{
+            return node.nodeExists("");
+        } catch(BackingStoreException ex){
+            return false;
+        }
+    }
+    /**
+     * This checks if this node exists, and if not, throws an {@code 
+     * IllegalStateException}. It's worth mentioning that this method relies on 
+     * the {@link #exists() exists()} method and may also throw an {@code 
+     * IllegalStateException} if the backing store is inaccessible or fails in 
+     * some way.
+     * @throws IllegalStateException If this node does not exist.
+     * @see #nodeExists(String) 
+     * @see #exists() 
+     */
+    protected void checkExists(){
+            // If this node does not exist
+        if (!exists())
+            throw new IllegalStateException("Preference node does not exist");
+    }
+    /**
      * {@inheritDoc }
      * @throws BackingStoreException {@inheritDoc }
      * @throws IllegalStateException {@inheritDoc }
