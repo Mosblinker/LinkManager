@@ -1585,6 +1585,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         shownTotalSizeLabel = new javax.swing.JLabel();
         javax.swing.JLabel allTotalSizeTextLabel = new javax.swing.JLabel();
         allTotalSizeLabel = new javax.swing.JLabel();
+        programIDTextLabel = new javax.swing.JLabel();
+        programIDLabel = new javax.swing.JLabel();
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
         dbUpdateLastModButton = new javax.swing.JButton();
         dbPrefixesPanel = new javax.swing.JPanel();
@@ -2405,9 +2407,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
         gridBagConstraints.insets = new java.awt.Insets(0, 6, 6, 0);
         dbPropPanel.add(allTotalSizeLabel, gridBagConstraints);
+
+        programIDTextLabel.setText("Program ID:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        dbPropPanel.add(programIDTextLabel, gridBagConstraints);
+
+        programIDLabel.setText("N/A");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 6, 6, 0);
+        dbPropPanel.add(programIDLabel, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
         gridBagConstraints.weighty = 0.9;
@@ -5851,6 +5871,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton printDBButton;
     private javax.swing.JMenuItem printDataItem;
     private javax.swing.JCheckBoxMenuItem printListPropChangeToggle;
+    private javax.swing.JLabel programIDLabel;
+    private javax.swing.JLabel programIDTextLabel;
     private javax.swing.JProgressBar progressBar;
     private components.progress.JProgressDisplayMenu progressDisplay;
     private javax.swing.JPopupMenu queryPopupMenu;
@@ -9626,6 +9648,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             linkCountLabel.setText(Objects.toString(linkCount,"N/A"));
             shownTotalSizeLabel.setText(Objects.toString(shownTotalSize,"N/A"));
             allTotalSizeLabel.setText(Objects.toString(allTotalSize,"N/A"));
+            programIDLabel.setText(Objects.toString(config.getProgramID(), "N/A"));
             
             setTabEnabled(dbCreatePrefixScrollPane,createPrefixTestNode != null);
             if (createPrefixTestNode != null)
