@@ -6431,6 +6431,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Set whether hidden lists link operations enabled property from 
             // the config
         hiddenLinkOperationToggle.setSelected(config.getBooleanProperty(ENABLE_HIDDEN_LINK_OPS_KEY));
+            // Set whether additional details are shown when an error occurs 
+            // with the database
+        showDBErrorDetailsToggle.setSelected(config.getBooleanProperty(SHOW_DETAILED_DATABASE_ERRORS));
             // Set whether the program syncs the database to an external source 
             // upon saving or loading
         syncDBToggle.setSelected(config.getBooleanProperty(SYNC_DATABASE_KEY));
