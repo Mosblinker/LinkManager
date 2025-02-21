@@ -79,8 +79,10 @@ public class ConfigPreferences extends Preferences{
         return node.get(key, null);
     }
     /**
-     * This returns whether there is a value associated with the given key in 
-     * this preference node. 
+     * This returns whether there is a value explicitly associated with the 
+     * given key in this preference node. This will return {@code false} if 
+     * there is no value associated with the given key, even if the given key 
+     * has a default value associated with it.
      * @param key The key to check for.
      * @return {@code true} if and only if the given key has a value explicitly 
      * associated with it; {@code false} otherwise.
@@ -90,10 +92,32 @@ public class ConfigPreferences extends Preferences{
      * @see #get(String, String) 
      * @see #put(String, String) 
      * @see #keySet() 
+     * @see #containsKey(String) 
      */
     public boolean isKeySet(String key){
             // Return if there is a non-null value set for the given key
         return getValue(key) != null;
+    }
+    /**
+     * This returns whether there is a value associated with the given key in 
+     * this preference node. This also applies if the key has a default value 
+     * and that value has not been overridden by an explicit preference. The 
+     * {@link #isKeySet(String) isKeySet} method can be used to determine if a 
+     * key has a value explicitly set for it.
+     * @param key The key to check for.
+     * @return {@code true} if and only if the given key has a value associated 
+     * with it; {@code false} otherwise.
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given key is null.
+     * @see #get(String, String) 
+     * @see #put(String, String) 
+     * @see #keySet() 
+     * @see #isKeySet(String) 
+     */
+    public boolean containsKey(String key){
+            // Return if there is a non-null value set for the given key
+        return get(key, null) != null;
     }
     /**
      * {@inheritDoc }
@@ -611,6 +635,7 @@ public class ConfigPreferences extends Preferences{
      * @see #keys() 
      * @see #keySet() 
      * @see #isKeySet(String) 
+     * @see #containsKey(String) 
      * @see #get(String, String) 
      * @see #defaults
      */
