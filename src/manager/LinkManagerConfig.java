@@ -1173,4 +1173,35 @@ public class LinkManagerConfig {
     public String setPrivateFilePathProperty(String key, String value){
         return setPrivateProperty(key,formatFilePath(value));
     }
+    
+    
+    
+    /**
+     * 
+     * @param fileName 
+     */
+    public void setDefaultDatabaseFileName(String fileName){
+        setPropertyDefault(DATABASE_FILE_PATH_KEY,formatFilePath(fileName));
+    }
+    /**
+     * 
+     * @return 
+     */
+    public String getDefaultDatabaseFileName(){
+        return getPropertyDefault(DATABASE_FILE_PATH_KEY);
+    }
+    /**
+     * 
+     * @param fileName 
+     */
+    public void setDatabaseFileName(String fileName){
+        setFilePathProperty(DATABASE_FILE_PATH_KEY, fileName);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public String getDatabaseFileName(){
+        return getFilePathProperty(DATABASE_FILE_PATH_KEY);
+    }
 }
