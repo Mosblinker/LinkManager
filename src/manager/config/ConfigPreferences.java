@@ -594,6 +594,41 @@ public class ConfigPreferences extends Preferences{
         node.exportSubtree(os);
     }
     /**
+     * This converts this preference node into a {@code Properties} object. 
+     * <p>
+     * The returned {@code Properties} object is not backed by this preference 
+     * node. Changes to this preference node are not reflected in the {@code 
+     * Properties} object, or vice versa. However, the defaults for the returned 
+     * {@code Properties} object are backed by the defaults for this preference 
+     * node. Changes to the defaults for this preference node will be reflected 
+     * in the {@code Properties} object's defaults and vice versa.
+     * @return A {@code Properties} object containing all the keys and their 
+     * associated values in this preference node.
+     * @throws BackingStoreException If this operation cannot be completed due 
+     * to a failure in the backing store or an inability to communicate with it.
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @see #keys() 
+     * @see #keySet() 
+     * @see #isKeySet(String) 
+     * @see #get(String, String) 
+     * @see #defaults
+     */
+    public Properties toProperties() throws BackingStoreException{
+            // Create a properties map with the defaults for this node
+        Properties prop = new Properties(defaults);
+            // Go through all the keys that are in the preference node
+        for (String key : node.keys()){
+                // Get the value for that key
+            String value = getValue(key);
+                // If the value is not null
+            if (value != null)
+                    // Store it as a property
+                prop.setProperty(key, value);
+        }
+        return prop;
+    }
+    /**
      * This returns an array of all the objects currently registered as 
      * <code><em>Foo</em>Listener</code>s on this preference node. 
      * <code><em>Foo</em>Listener</code>s are registered via the 
