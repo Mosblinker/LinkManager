@@ -1467,6 +1467,99 @@ public class LinkManagerConfig {
         if (b != null)
                 // Set the always on top settings from the properties
             setAlwaysOnTop(b);
+            // Get the value for the add blank lines setting from the properties
+        b = getBooleanProperty(BLANK_LINES_KEY,prop);
+            // If the properties has the add blank lines setting
+        if (b != null)
+                // Set the add blank lines settings from the properties
+            setAddBlankLines(b);
+            // Get the value for the link operations enabled from the properties
+        b = getBooleanProperty(ENABLE_LINK_OPS_KEY,prop);
+            // If the properties has the link operations enabled value
+        if (b != null)
+                // Set the link operations enabled from the properties
+            setLinkOperationsEnabled(b);
+            // Get the value for the hidden link operations enabled from the 
+            // properties
+        b = getBooleanProperty(ENABLE_HIDDEN_LINK_OPS_KEY,prop);
+            // If the properties has the hidden link operations enabled value
+        if (b != null)
+                // Set the hidden link operations enabled from the properties
+            setHiddenLinkOperationsEnabled(b);
+            // Get the value for the database file change operation from the 
+            // properties
+        i = getIntProperty(DATABASE_FILE_CHANGE_OPERATION_KEY,prop);
+            // If the properties has the database file change operation
+        if (i != null)
+                // Set the database file change operation from the properties
+            setDatabaseFileChangeOperation(i);
+            // Get the value for the autosave frequency index from the 
+            // properties
+        i = getIntProperty(AUTOSAVE_FREQUENCY_KEY,prop);
+            // If the properties has the autosave frequency index
+        if (i != null)
+                // Set the autosave frequency index from the properties
+            setAutosaveFrequencyIndex(i);
+            // Get the value for the auto-hide wait duration index from the 
+            // properties
+        i = getIntProperty(AUTO_HIDE_WAIT_DURATION_KEY,prop);
+            // If the properties has the auto-hide wait duration index
+        if (i != null)
+                // Set the auto-hide wait duration index from the properties
+            setAutoHideWaitDurationIndex(i);
+            // Get the value for the search match case setting from the 
+            // properties
+        b = getBooleanProperty(SEARCH_MATCH_CASE_KEY,prop);
+            // If the properties has the search match case setting
+        if (b != null)
+                // Set the search match case setting from the properties
+            setSearchMatchCase(b);
+            // Get the value for the search match spaces setting from the 
+            // properties
+        b = getBooleanProperty(SEARCH_MATCH_SPACES_KEY,prop);
+            // If the properties has the search match spaces setting
+        if (b != null)
+                // Set the search match spaces setting from the properties
+            setSearchMatchSpaces(b);
+            // Get the value for the search wrap around setting from the 
+            // properties
+        b = getBooleanProperty(SEARCH_WRAP_AROUND_KEY,prop);
+            // If the properties has the search wrap around setting
+        if (b != null)
+                // Set the search wrap around setting from the properties
+            setSearchWrapAround(b);
+            // Get the value for the search text from the properties
+        str = prop.getProperty(SEARCH_TEXT_KEY);
+            // If the properties has the search text
+        if (str != null)
+                // Set the search text from the properties
+            setSearchText(str);
+            // Get the value for the entered link text from the properties
+        str = prop.getProperty(ENTERED_LINK_TEXT_KEY);
+            // If the properties has the entered link text
+        if (str != null)
+                // Set the entrered link text from the properties
+            setEnteredLinkText(str);
+            // Get the value for the hidden lists are shown setting from the 
+            // properties
+        b = getBooleanProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,prop);
+            // If the properties has the hidden lists are shown setting
+        if (b != null)
+                // Set the hidden lists are shown setting from the properties
+            setHiddenListsAreShown(b);
+            // Get the value for the database error details are shown setting 
+            // from the properties
+        b = getBooleanProperty(SHOW_DETAILED_DATABASE_ERRORS,prop);
+            // If the properties has the database error details are shown value
+        if (b != null)
+                // Set whether database error details are shown from the properties
+            setDatabaseErrorDetailsAreShown(b);
+            // Get the value for the database sync setting from the properties
+        b = getBooleanProperty(SYNC_DATABASE_KEY,prop);
+            // If the properties has the database sync setting
+        if (b != null)
+                // Set whether database will sync from the properties
+            setDatabaseWillSync(b);
         
             // TODO: Remove this once the config properties map is removed or 
             // repurposed.
