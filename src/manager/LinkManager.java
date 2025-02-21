@@ -3557,6 +3557,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.out.println("Is Input Enabled: " + isInputEnabled());
         System.out.println("Is Loading Files: " + isLoadingFiles());
         System.out.println("Is Saving Files: " + isSavingFiles());
+        System.out.println("Program ID: " + config.getProgramID());
         System.out.println("Config File: " + getConfigFile());
         System.out.println("Database File Name: " + getDatabaseFileName());
         File file = getDatabaseFile();
