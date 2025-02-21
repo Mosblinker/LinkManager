@@ -420,6 +420,20 @@ public class ConfigPreferences extends Preferences{
         return def;
     }
     /**
+     * 
+     * @param map 
+     */
+    public synchronized void putAll(Map<?, ?> map){
+            // Go through the entries in the map
+        for (Map.Entry<?, ?> entry : map.entrySet()){
+                // Put the entry into the preference node
+            put(entry.getKey().toString(),
+                        // If the value is not null, get it as a String. 
+                        // Otherwise, put null
+                    (entry.getValue()!=null)?entry.getValue().toString():null);
+        }
+    }
+    /**
      * This returns an unmodifiable set containing all the keys that have an 
      * associated value in this preference node. (The returned set will be empty 
      * if this node has no preferences.) 
