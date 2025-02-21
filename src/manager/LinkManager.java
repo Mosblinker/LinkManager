@@ -6053,187 +6053,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
-     * @param conn
-     * @param linkMap
-     * @param linkIDs
-     * @throws SQLException 
-     */
-    private void updatePrefixesInDatabase(LinkDatabaseConnection conn, 
-            LinkMap linkMap, Collection<Long> linkIDs) throws SQLException {
-            // Go through the linkIDs of the links to be updated
-        for (Long linkID : linkIDs){
-            conn.updateLinkData(linkID);
-            incrementProgressValue();
-        }
-    }
-    /**
-     * 
-     * @param conn
-     * @param models
-     * @throws SQLException 
-     */
-    private void writeToDatabase(LinkDatabaseConnection conn, 
-            Collection<LinksListModel> models) throws SQLException {
-            // Get the current state of the connection's auto-commit
-        boolean autoCommit = conn.getAutoCommit();
-            // Turn off the connection's auto-commit to group the following 
-            // database transactions to improve performance
-        conn.setAutoCommit(false);
-            // This gets the map of list names from the database
-        ListNameMap listNameMap = conn.getListNameMap();
-            // This gets the map of list contents from the database
-        ListDataMap listDataMap = conn.getListDataMap();
-            // This gets the map of links from the database
-        LinkMap linkMap = conn.getLinkMap();
-            // A set to use to sort the list models that have a listID
-        TreeSet<LinksListModel> sortedModels = new TreeSet<>();
-            // A set to store the listIDs encounted while sorting the models
-        HashSet<Integer> usedListIDs = new HashSet<>();
-            // This will get a set of unsorted models that do not have a listID
-        LinkedHashSet<LinksListModel> unsortedModels = new LinkedHashSet<>(models);
-            // Go through the models to be sorted
-        for (LinksListModel model : unsortedModels){
-                // If the model has a listID set for it
-            if (model.getListID() != null){
-                    // If some other list is already using that listID
-                if (usedListIDs.contains(model.getListID()))
-                        // Remove the listID from the model
-                    model.setListID(null);
-                else{
-                    sortedModels.add(model);
-                    usedListIDs.add(model.getListID());
-                }
-            }
-        }   // Turn the collection of models to be saved into a set containing 
-            // the sorted models
-        models = new LinkedHashSet<>(sortedModels);
-        models.addAll(unsortedModels);
-            // This is the total size of the models that had their contents 
-        int total = 0;  // modified
-            // This is a set containing the links from the models
-        Set<String> linksSet = new LinkedHashSet<>();
-            // Go through the models to be saved
-        for (LinksListModel model : models){
-                // Add the list to the list map if not absent
-            Integer listID = listNameMap.addIfAbsent(model);
-                // Update the properties of the list based off the model
-            listDataMap.get(listID).updateProperties(model);
-                // If the model's contents were modified
-            if (model.getContentsModified())
-                total += model.size();
-            linksSet.addAll(model);
-        }   // Remove null if present in the set
-        linksSet.remove(null);
-            // This gets the map of prefixes from the database
-        PrefixMap prefixMap = conn.getPrefixMap();
-            // This creates any prefixes that need to be created from the links 
-            // and gets a map containing the new prefixes
-        Map<Integer,String> newPrefixes = prefixMap.createPrefixesFrom(linksSet);
-        conn.commit();          // Commit the changes to the database
-        System.gc();            // Run the garbage collector
-            // Remove all the links already in the link map to get any new links
-        linksSet.removeAll(new HashSet<>(linkMap.values()));
-            // This is a set that will get all the links that may need to have 
-            // their prefix updated to the new longest prefix
-        Set<Long> outdatedLinks = new LinkedHashSet<>();
-            // Go through the new prefixes
-        for (String prefix : newPrefixes.values()){
-                // Add all the links with the current new prefix
-            outdatedLinks.addAll(linkMap.getStartsWith(prefix).navigableKeySet());
-        }
-        
-        setProgressMaximum(linksSet.size()+outdatedLinks.size()+total);
-        setIndeterminate(false);
-            // Update the prefixes of the outdated links
-        updatePrefixesInDatabase(conn, linkMap, outdatedLinks);
-        
-        setIndeterminate(true);
-        conn.commit();          // Commit the changes to the database
-        System.gc();            // Run the garbage collector
-            // Add the new links to the database.
-        linkMap.addAll(linksSet, listContentsObserver);
-        setIndeterminate(false);
-            // This gets a cached copy of the inverse link map
-        Map<String,Long> linkIDMap = new HashMap<>(conn.getLinkMap().inverse());
-            // Go through the models to be saved
-        for (LinksListModel model : models){
-                // If the model's contents were modified
-            if (model.getContentsModified()){
-                writeListToDatabase(conn,model,linkIDMap);
-            }
-        }
-        setIndeterminate(true);
-            // Update the list of all listIDs
-        writeTabsToDatabase(conn.getAllListIDs(),allListsTabsPanel);
-            // Update the list of shown listIDs
-        writeTabsToDatabase(conn.getShownListIDs(),shownListsTabsPanel);
-            // Remove any listIDs from the shown listIDs list that are hidden
-        conn.getShownListIDs().removeIf((Integer t) -> {
-                // Get the model with the current listID
-            LinksListModel model = allListsTabsPanel.getModelWithListID(t);
-                // Remove if no model has that listID or the model is hidden
-            return model == null || model.isHidden();
-        });
-        conn.commit();       // Commit the changes to the database
-        System.gc();         // Run the garbage collector
-            // Remove any duplicate links
-        linkMap.removeDuplicateRows();
-            // Remove any unused links
-        linkMap.removeUnusedRows();
-        conn.commit();       // Commit the changes to the database
-            // Restore the connection's auto-commit back to what it was set to 
-        conn.setAutoCommit(autoCommit);     // before
-    }
-    /**
-     * 
-     * @param conn
-     * @param model
-     * @param linkIDMap
-     * @throws SQLException 
-     */
-    private void writeListToDatabase(LinkDatabaseConnection conn, 
-            LinksListModel model,Map<String,Long> linkIDMap) throws SQLException{
-            // Get the current state of the connection's auto-commit
-        boolean autoCommit = conn.getAutoCommit();
-            // Turn off the connection's auto-commit to group the following 
-            // database transactions to improve performance
-        conn.setAutoCommit(false);
-            // Update th contents of the list based off the contents of the model
-        conn.getListContents(model.getListID()).updateContents(model, 
-                listContentsObserver,linkIDMap);
-        conn.commit();          // Commit the changes to the database
-        model.clearEdited();    // Clear whether the list was edited
-        System.gc();            // Run the garbage collector
-            // Restore the connection's auto-commit back to what it was set to 
-        conn.setAutoCommit(autoCommit);     // before
-    }
-    /**
-     * 
-     * @param dbListIDs
-     * @param tabsPanel
-     * @throws SQLException 
-     */
-    private void writeTabsToDatabase(ListIDList dbListIDs, 
-            LinksListTabsPanel tabsPanel) throws SQLException {
-            // Get a copy of the list IDs in the list from the database
-        Set<Integer> missingIDs = new LinkedHashSet<>(dbListIDs);
-            // Remove null listIDs
-        missingIDs.remove(null);
-            // Remove any listIDs that are in the tabs panel
-        missingIDs.removeAll(tabsPanel.getListIDs());
-            // Remove any listIDs that have been removed
-        missingIDs.removeAll(tabsPanel.getRemovedListIDs());
-            // Clear the list in the database
-        dbListIDs.clear();
-            // Add all the listIDs that are in the tabs panel
-        dbListIDs.addAll(tabsPanel.getListIDs());
-            // Remove any that are null
-        dbListIDs.removeIf((Integer t) -> t == null);
-            // Add any that are missing from the tabs panel
-        dbListIDs.addAll(missingIDs);
-    }
-    /**
-     * 
      * @param config
      * @return 
      */
@@ -6633,6 +6452,187 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (index >= -1 && index<listsTabPanels[i].getTabCount()) // cleared
                 listsTabPanels[i].setSelectedIndex(index);
         }
+    }
+    /**
+     * 
+     * @param conn
+     * @param linkMap
+     * @param linkIDs
+     * @throws SQLException 
+     */
+    private void updatePrefixesInDatabase(LinkDatabaseConnection conn, 
+            LinkMap linkMap, Collection<Long> linkIDs) throws SQLException {
+            // Go through the linkIDs of the links to be updated
+        for (Long linkID : linkIDs){
+            conn.updateLinkData(linkID);
+            incrementProgressValue();
+        }
+    }
+    /**
+     * 
+     * @param conn
+     * @param models
+     * @throws SQLException 
+     */
+    private void writeToDatabase(LinkDatabaseConnection conn, 
+            Collection<LinksListModel> models) throws SQLException {
+            // Get the current state of the connection's auto-commit
+        boolean autoCommit = conn.getAutoCommit();
+            // Turn off the connection's auto-commit to group the following 
+            // database transactions to improve performance
+        conn.setAutoCommit(false);
+            // This gets the map of list names from the database
+        ListNameMap listNameMap = conn.getListNameMap();
+            // This gets the map of list contents from the database
+        ListDataMap listDataMap = conn.getListDataMap();
+            // This gets the map of links from the database
+        LinkMap linkMap = conn.getLinkMap();
+            // A set to use to sort the list models that have a listID
+        TreeSet<LinksListModel> sortedModels = new TreeSet<>();
+            // A set to store the listIDs encounted while sorting the models
+        HashSet<Integer> usedListIDs = new HashSet<>();
+            // This will get a set of unsorted models that do not have a listID
+        LinkedHashSet<LinksListModel> unsortedModels = new LinkedHashSet<>(models);
+            // Go through the models to be sorted
+        for (LinksListModel model : unsortedModels){
+                // If the model has a listID set for it
+            if (model.getListID() != null){
+                    // If some other list is already using that listID
+                if (usedListIDs.contains(model.getListID()))
+                        // Remove the listID from the model
+                    model.setListID(null);
+                else{
+                    sortedModels.add(model);
+                    usedListIDs.add(model.getListID());
+                }
+            }
+        }   // Turn the collection of models to be saved into a set containing 
+            // the sorted models
+        models = new LinkedHashSet<>(sortedModels);
+        models.addAll(unsortedModels);
+            // This is the total size of the models that had their contents 
+        int total = 0;  // modified
+            // This is a set containing the links from the models
+        Set<String> linksSet = new LinkedHashSet<>();
+            // Go through the models to be saved
+        for (LinksListModel model : models){
+                // Add the list to the list map if not absent
+            Integer listID = listNameMap.addIfAbsent(model);
+                // Update the properties of the list based off the model
+            listDataMap.get(listID).updateProperties(model);
+                // If the model's contents were modified
+            if (model.getContentsModified())
+                total += model.size();
+            linksSet.addAll(model);
+        }   // Remove null if present in the set
+        linksSet.remove(null);
+            // This gets the map of prefixes from the database
+        PrefixMap prefixMap = conn.getPrefixMap();
+            // This creates any prefixes that need to be created from the links 
+            // and gets a map containing the new prefixes
+        Map<Integer,String> newPrefixes = prefixMap.createPrefixesFrom(linksSet);
+        conn.commit();          // Commit the changes to the database
+        System.gc();            // Run the garbage collector
+            // Remove all the links already in the link map to get any new links
+        linksSet.removeAll(new HashSet<>(linkMap.values()));
+            // This is a set that will get all the links that may need to have 
+            // their prefix updated to the new longest prefix
+        Set<Long> outdatedLinks = new LinkedHashSet<>();
+            // Go through the new prefixes
+        for (String prefix : newPrefixes.values()){
+                // Add all the links with the current new prefix
+            outdatedLinks.addAll(linkMap.getStartsWith(prefix).navigableKeySet());
+        }
+        
+        setProgressMaximum(linksSet.size()+outdatedLinks.size()+total);
+        setIndeterminate(false);
+            // Update the prefixes of the outdated links
+        updatePrefixesInDatabase(conn, linkMap, outdatedLinks);
+        
+        setIndeterminate(true);
+        conn.commit();          // Commit the changes to the database
+        System.gc();            // Run the garbage collector
+            // Add the new links to the database.
+        linkMap.addAll(linksSet, listContentsObserver);
+        setIndeterminate(false);
+            // This gets a cached copy of the inverse link map
+        Map<String,Long> linkIDMap = new HashMap<>(conn.getLinkMap().inverse());
+            // Go through the models to be saved
+        for (LinksListModel model : models){
+                // If the model's contents were modified
+            if (model.getContentsModified()){
+                writeListToDatabase(conn,model,linkIDMap);
+            }
+        }
+        setIndeterminate(true);
+            // Update the list of all listIDs
+        writeTabsToDatabase(conn.getAllListIDs(),allListsTabsPanel);
+            // Update the list of shown listIDs
+        writeTabsToDatabase(conn.getShownListIDs(),shownListsTabsPanel);
+            // Remove any listIDs from the shown listIDs list that are hidden
+        conn.getShownListIDs().removeIf((Integer t) -> {
+                // Get the model with the current listID
+            LinksListModel model = allListsTabsPanel.getModelWithListID(t);
+                // Remove if no model has that listID or the model is hidden
+            return model == null || model.isHidden();
+        });
+        conn.commit();       // Commit the changes to the database
+        System.gc();         // Run the garbage collector
+            // Remove any duplicate links
+        linkMap.removeDuplicateRows();
+            // Remove any unused links
+        linkMap.removeUnusedRows();
+        conn.commit();       // Commit the changes to the database
+            // Restore the connection's auto-commit back to what it was set to 
+        conn.setAutoCommit(autoCommit);     // before
+    }
+    /**
+     * 
+     * @param conn
+     * @param model
+     * @param linkIDMap
+     * @throws SQLException 
+     */
+    private void writeListToDatabase(LinkDatabaseConnection conn, 
+            LinksListModel model,Map<String,Long> linkIDMap) throws SQLException{
+            // Get the current state of the connection's auto-commit
+        boolean autoCommit = conn.getAutoCommit();
+            // Turn off the connection's auto-commit to group the following 
+            // database transactions to improve performance
+        conn.setAutoCommit(false);
+            // Update th contents of the list based off the contents of the model
+        conn.getListContents(model.getListID()).updateContents(model, 
+                listContentsObserver,linkIDMap);
+        conn.commit();          // Commit the changes to the database
+        model.clearEdited();    // Clear whether the list was edited
+        System.gc();            // Run the garbage collector
+            // Restore the connection's auto-commit back to what it was set to 
+        conn.setAutoCommit(autoCommit);     // before
+    }
+    /**
+     * 
+     * @param dbListIDs
+     * @param tabsPanel
+     * @throws SQLException 
+     */
+    private void writeTabsToDatabase(ListIDList dbListIDs, 
+            LinksListTabsPanel tabsPanel) throws SQLException {
+            // Get a copy of the list IDs in the list from the database
+        Set<Integer> missingIDs = new LinkedHashSet<>(dbListIDs);
+            // Remove null listIDs
+        missingIDs.remove(null);
+            // Remove any listIDs that are in the tabs panel
+        missingIDs.removeAll(tabsPanel.getListIDs());
+            // Remove any listIDs that have been removed
+        missingIDs.removeAll(tabsPanel.getRemovedListIDs());
+            // Clear the list in the database
+        dbListIDs.clear();
+            // Add all the listIDs that are in the tabs panel
+        dbListIDs.addAll(tabsPanel.getListIDs());
+            // Remove any that are null
+        dbListIDs.removeIf((Integer t) -> t == null);
+            // Add any that are missing from the tabs panel
+        dbListIDs.addAll(missingIDs);
     }
     /**
      * This is a LinksListTabAction that saves the links from a list to a 
