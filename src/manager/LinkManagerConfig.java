@@ -52,10 +52,18 @@ public class LinkManagerConfig {
      */
     private ConfigPreferences localNode = null;
     /**
+     * This is a properties map that stores the defaults for {@code localNode}.
+     */
+    private final Properties localDefaults;
+    /**
      * This is the preference node containing the sensitive data for this 
      * instance of LinkManager and any that share this instance's ID.
      */
     private ConfigPreferences privateNode = null;
+    /**
+     * This is a properties map that stores the defaults for {@code privateNode}.
+     */
+    private final Properties privateDefaults;
     /**
      * This is a properties map that stores the configuration for LinkManager.
      */
@@ -92,6 +100,8 @@ public class LinkManagerConfig {
         config = new Properties(defaultConfig);
         defaultPrivateConfig = new Properties();
         privateConfig = new Properties(defaultPrivateConfig);
+        localDefaults = new Properties();
+        privateDefaults = new Properties();
         compKeyMap = new HashMap<>();
             // If the given SQLite config properties is not null
         if(sqlProp != null)
@@ -114,6 +124,8 @@ public class LinkManagerConfig {
         this.config.putAll(linkConfig.config);
         this.privateConfig.putAll(linkConfig.privateConfig);
         this.compKeyMap.putAll(linkConfig.compKeyMap);
+        this.localDefaults.putAll(linkConfig.localDefaults);
+        this.privateDefaults.putAll(linkConfig.privateDefaults);
     }
     /**
      * This returns the preference node used to store the shared configuration 
@@ -127,17 +139,38 @@ public class LinkManagerConfig {
      * This returns the preference node used to store the configuration for 
      * LinkManager.
      * @return The local preference node.
+     * @see #getDefaults() 
      */
     public ConfigPreferences getPreferences(){
         return localNode;
     }
     /**
+     * This returns the properties map that stores the default values for the 
+     * {@link #getPreferences preference node}.
+     * @return The properties map with the defaults for the preference node.
+     * @see #getPreferences() 
+     */
+    public Properties getDefaults(){
+        return localDefaults;
+    }
+    /**
      * This returns the preference node used to store the sensitive data for 
      * LinkManager.
      * @return The local preference node for private data.
+     * @see #getPrivateDefaults() 
      */
     public ConfigPreferences getPrivatePreferences(){
         return privateNode;
+    }
+    /**
+     * This returns the properties map that stores the default values for the 
+     * {@link #getPrivatePreferences() sensitive data preference node}.
+     * @return The properties map with the defaults for the preference node for 
+     * private data.
+     * @see #getPrivatePreferences() 
+     */
+    public Properties getPrivateDefaults(){
+        return privateDefaults;
     }
     /**
      * This returns the properties map that stores the configuration for 
