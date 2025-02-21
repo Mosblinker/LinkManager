@@ -46,12 +46,6 @@ public class LinkManagerConfig {
      */
     public static final String DATABASE_FILE_PATH_KEY = "DatabaseFilePath";
     /**
-     * This is the configuration key for the database file path when stored 
-     * externally if the database file is stored externally.
-     */
-    public static final String EXTERNAL_DATABASE_FILE_PATH_KEY = 
-            "External"+DATABASE_FILE_PATH_KEY;
-    /**
      * This is the configuration key for how to handle changing where the 
      * database file is located.
      */

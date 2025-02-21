@@ -190,6 +190,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private static final String SHOWN_CURRENT_TAB_INDEX_KEY = 
             "ShownCurrentTabIndex";
     /**
+     * This is the configuration key for the database file path when stored 
+     * externally if the database file is stored externally.
+     */
+    public static final String EXTERNAL_DATABASE_FILE_PATH_KEY = 
+            "External"+DATABASE_FILE_PATH_KEY;
+    /**
      * This is the configuration key for the listID of the currently selected 
      * list if a list with a listID is selected. This is for the 
      */
