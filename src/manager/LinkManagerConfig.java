@@ -1221,6 +1221,20 @@ public class LinkManagerConfig {
      * @param value
      * @param node 
      */
+    protected void setPreference(String key,String value,ConfigPreferences node){
+            // If the value is null
+        if (value == null)
+                // Remove the value for the key, resetting it to default
+            node.remove(key);
+        else
+            node.put(key, value);
+    }
+    /**
+     * 
+     * @param key
+     * @param value
+     * @param node 
+     */
     protected void setIntPreference(String key, Integer value, 
             ConfigPreferences node){
             // If the value is null
@@ -1236,16 +1250,25 @@ public class LinkManagerConfig {
      * @param value
      * @param node 
      */
-    protected void setFilePathPreference(String key, String value, 
+    protected void setBooleanPreference(String key, Boolean value, 
             ConfigPreferences node){
-            // Format the file path
-        value = formatFilePath(value);
-            // If the file path is now null
+            // If the value is null
         if (value == null)
                 // Remove the value for the key, resetting it to default
             node.remove(key);
         else
-            node.put(key, value);
+            node.putBoolean(key, value);
+    }
+    /**
+     * 
+     * @param key
+     * @param value
+     * @param node 
+     */
+    protected void setFilePathPreference(String key, String value, 
+            ConfigPreferences node){
+            // Format the file path and set it
+        setPreference(key,formatFilePath(value), node);
     }
     /**
      * 
