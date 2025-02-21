@@ -1193,7 +1193,23 @@ public class LinkManagerConfig {
      * @param prop 
      */
     public void importProperties(Properties prop){
+            // If the properties has the database file path
+        if (prop.containsKey(DATABASE_FILE_PATH_KEY)){
+                // Get the database file path from the properties
+            String value = prop.getProperty(DATABASE_FILE_PATH_KEY);
+                // If the path is empty
+            if (value.isEmpty())
+                value = null;
+                // Set the database file path
+            setDatabaseFileName(value);
+        }
+        
+            // TODO: Remove this once the config properties map is removed or 
+            // repurposed.
+            // Add all the properties to the config properties map
         config.putAll(prop);
+            // Remove the database file path, since that's now in the 
+        config.remove(DATABASE_FILE_PATH_KEY);  // preference node
     }
     /**
      * 
@@ -1241,28 +1257,29 @@ public class LinkManagerConfig {
      * @param fileName 
      */
     public void setDefaultDatabaseFileName(String fileName){
-        setPropertyDefault(DATABASE_FILE_PATH_KEY,formatFilePath(fileName));
+        getDefaults().setProperty(DATABASE_FILE_PATH_KEY,formatFilePath(fileName));
     }
     /**
      * 
      * @return 
      */
     public String getDefaultDatabaseFileName(){
-        return getPropertyDefault(DATABASE_FILE_PATH_KEY);
+        return getDefaults().getProperty(DATABASE_FILE_PATH_KEY);
     }
     /**
      * 
      * @param fileName 
      */
     public void setDatabaseFileName(String fileName){
-        setFilePathProperty(DATABASE_FILE_PATH_KEY, fileName);
+        setFilePathPreference(DATABASE_FILE_PATH_KEY, fileName, localNode);
     }
     /**
      * 
      * @return 
      */
     public String getDatabaseFileName(){
-        return getFilePathProperty(DATABASE_FILE_PATH_KEY);
+        return getFilePathPreference(DATABASE_FILE_PATH_KEY, 
+                LinkManager.LINK_DATABASE_FILE, localNode);
     }
     /**
      * 
