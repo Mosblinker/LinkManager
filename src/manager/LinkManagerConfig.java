@@ -1449,18 +1449,18 @@ public class LinkManagerConfig {
      * @param prop 
      */
     public void importProperties(Properties prop){
+            // Get the value for the database file path from the properties
+        String str = prop.getProperty(DATABASE_FILE_PATH_KEY);
             // If the properties has the database file path
-        if (prop.containsKey(DATABASE_FILE_PATH_KEY)){
+        if (str != null)
                 // Set the database file path from the properties
-            setDatabaseFileName(prop.getProperty(DATABASE_FILE_PATH_KEY));
-        }   // If the properties has the progress display settings
-        if (prop.containsKey(PROGRESS_DISPLAY_KEY)){
-            try{    // Parse and set the progress display settings from the 
-                    // properties
-                setProgressDisplaySetting(Integer.valueOf(prop.getProperty(
-                        PROGRESS_DISPLAY_KEY)));
-            } catch (NumberFormatException ex) {}
-        }
+            setDatabaseFileName(str);
+            // Get the value for the progress display from the properties
+        Integer i = getIntProperty(PROGRESS_DISPLAY_KEY,prop);
+            // If the properties has the progress display settings
+        if (i != null)
+                // Set the progress display settings from the properties
+            setProgressDisplaySetting(i);
         
             // TODO: Remove this once the config properties map is removed or 
             // repurposed.
