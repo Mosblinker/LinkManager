@@ -1170,6 +1170,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Set and store a random program ID
             config.setProperty(PROGRAM_ID_KEY, config.setRandomProgramID());
         }
+            // TODO: Temporarily import the property list to the config
+        config.importProperties(config.getProperties());
+        
         System.gc();        // Run the garbage collector
         configureProgram();
         if (ENABLE_INITIAL_LOAD_AND_SAVE){
@@ -6038,18 +6041,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      * @param file
-     * @param config
+     * @param prop
      * @return 
      */
-    private boolean loadConfigFile(File file, Properties config){
+    private boolean loadConfigFile(File file, Properties prop){
         showHiddenListsToggle.setEnabled(false);
         try {
-            return loadConfiguration(file, config);
+            if (loadConfiguration(file, prop)){
+                config.importProperties(prop);
+                return true;
+            }
         } catch (IOException ex) {
             if (isInDebug())
                 System.out.println(ex);
-            return false;
         }
+        return false;
     }
     /**
      * 
@@ -8239,7 +8245,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private class ConfigLoader extends FileLoader{
         
-//        private Properties loadedConfig = new Properties();
+        private Properties loadedConfig = new Properties();
 
         ConfigLoader(File file) {
             super(file,fullyLoaded);
@@ -8250,7 +8256,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean loadFile(File file) {
-            return loadConfigFile(file,config.getProperties());
+            return loadConfigFile(file,loadedConfig);
         }
         @Override
         protected void done(){
