@@ -1190,6 +1190,47 @@ public class LinkManagerConfig {
     
     /**
      * 
+     * @param key
+     * @param value
+     * @param node 
+     */
+    protected void setFilePathPreference(String key, String value, 
+            ConfigPreferences node){
+            // Format the file path
+        value = formatFilePath(value);
+            // If the file path is now null
+        if (value == null)
+                // Remove the value for the key, resetting it to default
+            node.remove(key);
+        else
+            node.put(key, value);
+    }
+    /**
+     * 
+     * @param key
+     * @param defaultValue
+     * @param node
+     * @return 
+     */
+    protected String getFilePathPreference(String key, String defaultValue, 
+            ConfigPreferences node){
+            // Get the value of the property from the node and format it
+        String value = formatFilePath(node.get(key, null));
+            // If the value is not null
+        if (value != null)
+            return value;
+            // If there is a default property list for the node
+        if (node.getDefaults() != null){
+                // Get the value from the default property list and format it
+            value = formatFilePath(node.getDefaults().getProperty(key));
+                // If the value is not null
+            if (value != null)
+                return value;
+        }
+        return formatFilePath(defaultValue);
+    }
+    /**
+     * 
      * @param fileName 
      */
     public void setDefaultDatabaseFileName(String fileName){
