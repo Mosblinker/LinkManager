@@ -60,6 +60,25 @@ public class ConfigPreferences extends Preferences{
         this(node,null);
     }
     /**
+     * This returns the value associated with the given key in the preference 
+     * node. This will return null if there is no value associated with the 
+     * given key or if the backing store is inaccessible. This ignores the 
+     * defaults stored in the default property list.
+     * @param key The key to get the value associated with.
+     * @return The value associated with the key, or null if there is no value 
+     * associated with the key or the backing store is inaccessible.
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given key is null.
+     * @see #isKeySet(String) 
+     * @see #get(String, String) 
+     * @see Preferences#get(String, String) 
+     * @see #node
+     */
+    protected String getValue(String key){
+        return node.get(key, null);
+    }
+    /**
      * This returns whether there is a value associated with the given key in 
      * this preference node. 
      * @param key The key to check for.
@@ -74,7 +93,7 @@ public class ConfigPreferences extends Preferences{
      */
     public boolean isKeySet(String key){
             // Return if there is a non-null value set for the given key
-        return node.get(key, null) != null;
+        return getValue(key) != null;
     }
     /**
      * {@inheritDoc }
@@ -105,7 +124,7 @@ public class ConfigPreferences extends Preferences{
     @Override
     public String get(String key, String def) {
             // Get the value from the preference node, defaulting to null if not 
-        String value = node.get(key, null);     // found
+        String value = getValue(key);       // found
             // If there is a value set for the given key
         if (value != null)
             return value;
