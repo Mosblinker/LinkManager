@@ -56,6 +56,14 @@ public class ConfigPreferences extends Preferences{
         this(node,null);
     }
     /**
+     * 
+     * @param key
+     * @return 
+     */
+    public boolean isKeySet(String key){
+        return node.get(key, null) != null;
+    }
+    /**
      * {@inheritDoc }
      * @param key {@inheritDoc }
      * @param value {@inheritDoc }
