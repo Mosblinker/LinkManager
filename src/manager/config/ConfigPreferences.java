@@ -15,14 +15,6 @@ import javax.swing.event.EventListenerList;
  */
 public class ConfigPreferences extends Preferences{
     /**
-     * This contains the word "true".
-     */
-    private static final String TRUE = "true";
-    /**
-     * This contains the word "false".
-     */
-    private static final String FALSE = "false";
-    /**
      * This is the preference node that actually stores the values.
      */
     protected final Preferences node;
@@ -241,10 +233,10 @@ public class ConfigPreferences extends Preferences{
             // to null if it's not set
         String value = get(key, null);
             // If the value is equal to the word "true", ignoring case
-        if (TRUE.equalsIgnoreCase(value))
+        if ("true".equalsIgnoreCase(value))
             return true;
             // If the value is equal to the word "false", ignoring case
-        else if (FALSE.equalsIgnoreCase(value))
+        else if ("false".equalsIgnoreCase(value))
             return false;
         return def;
     }
