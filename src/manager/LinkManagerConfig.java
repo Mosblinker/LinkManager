@@ -1571,6 +1571,34 @@ public class LinkManagerConfig {
         config.remove(PROGRESS_DISPLAY_KEY);
             // Remove the always on top value, since that's in the preference node
         config.remove(ALWAYS_ON_TOP_KEY);
+            // Remove the add blank lines value, since that's in the preference node
+        config.remove(BLANK_LINES_KEY);
+            // Remove the link ops enabled value, since that's in the preference node
+        config.remove(ENABLE_LINK_OPS_KEY);
+            // Remove the hidden link ops enabled value, since that's in the preference node
+        config.remove(ENABLE_HIDDEN_LINK_OPS_KEY);
+            // Remove the database file change operation value, since that's in the preference node
+        config.remove(DATABASE_FILE_CHANGE_OPERATION_KEY);
+            // Remove the autosave frequency index, since that's in the preference node
+        config.remove(AUTOSAVE_FREQUENCY_KEY);
+            // Remove the auto-hide wait duration index, since that's in the preference node
+        config.remove(AUTO_HIDE_WAIT_DURATION_KEY);
+            // Remove the search match case value, since that's in the preference node
+        config.remove(SEARCH_MATCH_CASE_KEY);
+            // Remove the search match spaces value, since that's in the preference node
+        config.remove(SEARCH_MATCH_SPACES_KEY);
+            // Remove the search wrap around value, since that's in the preference node
+        config.remove(SEARCH_WRAP_AROUND_KEY);
+            // Remove the search text, since that's in the preference node
+        config.remove(SEARCH_TEXT_KEY);
+            // Remove the entered link text, since that's in the preference node
+        config.remove(ENTERED_LINK_TEXT_KEY);
+            // Remove the hidden lists are shown value, since that's in the preference node
+        config.remove(HIDDEN_LISTS_ARE_SHOWN_KEY);
+            // Remove the database error details are shown value, since that's in the preference node
+        config.remove(SHOW_DETAILED_DATABASE_ERRORS);
+            // Remove the database sync value, since that's in the preference node
+        config.remove(SYNC_DATABASE_KEY);
     }
     /**
      * 
@@ -1636,7 +1664,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setAddBlankLines(Boolean value){
-        setProperty(BLANK_LINES_KEY, value);
+        setPreference(BLANK_LINES_KEY, value, getPreferences());
     }
     /**
      * 
@@ -1644,14 +1672,14 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean getAddBlankLines(boolean defaultValue){
-        return getBooleanProperty(BLANK_LINES_KEY,defaultValue);
+        return getPreferences().getBoolean(BLANK_LINES_KEY, defaultValue);
     }
     /**
      * 
      * @param value 
      */
     public void setLinkOperationsEnabled(Boolean value){
-        setProperty(ENABLE_LINK_OPS_KEY,value);
+        setPreference(ENABLE_LINK_OPS_KEY, value, getPreferences());
     }
     /**
      * 
@@ -1659,14 +1687,14 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean isLinkOperationsEnabled(boolean defaultValue){
-        return getBooleanProperty(ENABLE_LINK_OPS_KEY,defaultValue);
+        return getPreferences().getBoolean(ENABLE_LINK_OPS_KEY, defaultValue);
     }
     /**
      * 
      * @param value 
      */
     public void setHiddenLinkOperationsEnabled(Boolean value){
-        setProperty(ENABLE_HIDDEN_LINK_OPS_KEY,value);
+        setPreference(ENABLE_HIDDEN_LINK_OPS_KEY, value, getPreferences());
     }
     /**
      * 
@@ -1674,14 +1702,16 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean isHiddenLinkOperationsEnabled(boolean defaultValue){
-        return getBooleanProperty(ENABLE_HIDDEN_LINK_OPS_KEY,defaultValue);
+        return getPreferences().getBoolean(ENABLE_HIDDEN_LINK_OPS_KEY, 
+                defaultValue);
     }
     /**
      * 
      * @param value 
      */
     public void setDatabaseFileChangeOperation(Integer value){
-        setProperty(DATABASE_FILE_CHANGE_OPERATION_KEY, value);
+        setPreference(DATABASE_FILE_CHANGE_OPERATION_KEY, value, 
+                getPreferences());
     }
     /**
      * 
@@ -1689,14 +1719,15 @@ public class LinkManagerConfig {
      * @return 
      */
     public int getDatabaseFileChangeOperation(int defaultValue){
-        return getIntProperty(DATABASE_FILE_CHANGE_OPERATION_KEY, defaultValue);
+        return getPreferences().getInt(DATABASE_FILE_CHANGE_OPERATION_KEY, 
+                defaultValue);
     }
     /**
      * 
      * @param value 
      */
     public void setAutosaveFrequencyIndex(Integer value){
-        setProperty(AUTOSAVE_FREQUENCY_KEY, value);
+        setPreference(AUTOSAVE_FREQUENCY_KEY, value, getPreferences());
     }
     /**
      * 
@@ -1704,14 +1735,14 @@ public class LinkManagerConfig {
      * @return 
      */
     public int getAutosaveFrequencyIndex(int defaultValue){
-        return getIntProperty(AUTOSAVE_FREQUENCY_KEY, defaultValue);
+        return getPreferences().getInt(AUTOSAVE_FREQUENCY_KEY, defaultValue);
     }
     /**
      * 
      * @param value 
      */
     public void setAutoHideWaitDurationIndex(Integer value){
-        setProperty(AUTO_HIDE_WAIT_DURATION_KEY, value);
+        setPreference(AUTO_HIDE_WAIT_DURATION_KEY, value, getPreferences());
     }
     /**
      * 
@@ -1719,14 +1750,14 @@ public class LinkManagerConfig {
      * @return 
      */
     public int getAutoHideWaitDurationIndex(int defaultValue){
-        return getIntProperty(AUTO_HIDE_WAIT_DURATION_KEY, defaultValue);
+        return getPreferences().getInt(AUTO_HIDE_WAIT_DURATION_KEY, defaultValue);
     }
     /**
      * 
      * @param value 
      */
     public void setSearchMatchCase(Boolean value){
-        setProperty(SEARCH_MATCH_CASE_KEY,value);
+        setPreference(SEARCH_MATCH_CASE_KEY, value, getPreferences());
     }
     /**
      * 
@@ -1734,14 +1765,14 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean getSearchMatchCase(boolean defaultValue){
-        return getBooleanProperty(SEARCH_MATCH_CASE_KEY,defaultValue);
+        return getPreferences().getBoolean(SEARCH_MATCH_CASE_KEY,defaultValue);
     }
     /**
      * 
      * @param value 
      */
     public void setSearchMatchSpaces(Boolean value){
-        setProperty(SEARCH_MATCH_SPACES_KEY,value);
+        setPreference(SEARCH_MATCH_SPACES_KEY, value, getPreferences());
     }
     /**
      * 
@@ -1749,14 +1780,14 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean getSearchMatchSpaces(boolean defaultValue){
-        return getBooleanProperty(SEARCH_MATCH_SPACES_KEY,defaultValue);
+        return getPreferences().getBoolean(SEARCH_MATCH_SPACES_KEY,defaultValue);
     }
     /**
      * 
      * @param value 
      */
     public void setSearchWrapAround(Boolean value){
-        setProperty(SEARCH_WRAP_AROUND_KEY,value);
+        setPreference(SEARCH_WRAP_AROUND_KEY, value, getPreferences());
     }
     /**
      * 
@@ -1764,16 +1795,17 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean getSearchWrapAround(boolean defaultValue){
-        return getBooleanProperty(SEARCH_WRAP_AROUND_KEY,defaultValue);
+        return getPreferences().getBoolean(SEARCH_WRAP_AROUND_KEY,defaultValue);
     }
     /**
      * 
      * @param text 
      */
     public void setSearchText(String text){
-            // If the search text is not null and not empty, store it in the 
-            // config. Otherwise, use null for the search text
-        setProperty(SEARCH_TEXT_KEY,(text!=null&&!text.isEmpty())?text:null);
+            // If the search text is null or empty, use null for it
+        if (text == null || text.isEmpty())
+            text = null;
+        setPreference(SEARCH_TEXT_KEY, text, getPreferences());
     }
     /**
      * 
@@ -1781,7 +1813,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public String getSearchText(String defaultValue){
-        return getProperty(SEARCH_TEXT_KEY,defaultValue);
+        return getPreferences().get(SEARCH_TEXT_KEY,defaultValue);
     }
     /**
      * 
@@ -1795,9 +1827,10 @@ public class LinkManagerConfig {
      * @param text 
      */
     public void setEnteredLinkText(String text){
-            // If the entered link is not null and not blank, store it in the 
-            // config. Otherwise, use null for the entered link
-        setProperty(ENTERED_LINK_TEXT_KEY,(text!=null&&!text.isBlank())?text:null);
+            // If the entered link text is null or blank, use null for it
+        if (text == null || text.isBlank())
+            text = null;
+        setPreference(ENTERED_LINK_TEXT_KEY, text, getPreferences());
     }
     /**
      * 
@@ -1805,7 +1838,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public String getEnteredLinkText(String defaultValue){
-        return getProperty(ENTERED_LINK_TEXT_KEY,defaultValue);
+        return getPreferences().get(ENTERED_LINK_TEXT_KEY,defaultValue);
     }
     /**
      * 
@@ -1819,7 +1852,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setHiddenListsAreShown(Boolean value){
-        setProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,value);
+        setPreference(HIDDEN_LISTS_ARE_SHOWN_KEY, value, getPreferences());
     }
     /**
      * 
@@ -1827,14 +1860,15 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean getHiddenListsAreShown(boolean defaultValue){
-        return getBooleanProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,defaultValue);
+        return getPreferences().getBoolean(HIDDEN_LISTS_ARE_SHOWN_KEY,
+                defaultValue);
     }
     /**
      * 
      * @param value 
      */
     public void setDatabaseErrorDetailsAreShown(Boolean value){
-        setProperty(SHOW_DETAILED_DATABASE_ERRORS,value);
+        setPreference(SHOW_DETAILED_DATABASE_ERRORS, value, getPreferences());
     }
     /**
      * 
@@ -1842,14 +1876,15 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean getDatabaseErrorDetailsAreShown(boolean defaultValue){
-        return getBooleanProperty(SHOW_DETAILED_DATABASE_ERRORS,defaultValue);
+        return getPreferences().getBoolean(SHOW_DETAILED_DATABASE_ERRORS,
+                defaultValue);
     }
     /**
      * 
      * @param value 
      */
     public void setDatabaseWillSync(Boolean value){
-        setProperty(SYNC_DATABASE_KEY,value);
+        setPreference(SYNC_DATABASE_KEY, value, getPreferences());
     }
     /**
      * 
@@ -1857,6 +1892,6 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean getDatabaseWillSync(boolean defaultValue){
-        return getBooleanProperty(SYNC_DATABASE_KEY,defaultValue);
+        return getPreferences().getBoolean(SYNC_DATABASE_KEY,defaultValue);
     }
 }
