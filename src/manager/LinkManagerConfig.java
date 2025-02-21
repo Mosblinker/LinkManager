@@ -1221,13 +1221,33 @@ public class LinkManagerConfig {
      * @param value
      * @param node 
      */
-    protected void setPreference(String key,String value,ConfigPreferences node){
+    protected void setPreference(String key,Object value,ConfigPreferences node){
             // If the value is null
         if (value == null)
                 // Remove the value for the key, resetting it to default
             node.remove(key);
-        else
-            node.put(key, value);
+            // If the value is a boolean
+        else if (value instanceof Boolean)
+                // Set the value as a boolean
+            node.putBoolean(key, (boolean) value);
+            // If the value is a double
+        else if (value instanceof Double)
+                // Set the value as a double
+            node.putDouble(key, (double) value);
+            // If the value is a float
+        else if (value instanceof Float)
+                // Set the value as a float
+            node.putFloat(key, (float) value);
+            // If the value is a long
+        else if (value instanceof Long)
+                // Set the value as a long
+            node.putLong(key, (long) value);
+            // If the value is a number (should only be ints, shorts, and bytes 
+        else if (value instanceof Number)   // left)
+                // Set the value as an integer
+            node.putInt(key, ((Number)value).intValue());
+        else    // Get the value as a string and set it
+            node.put(key, value.toString());
     }
     /**
      * 
@@ -1235,29 +1255,13 @@ public class LinkManagerConfig {
      * @param value
      * @param node 
      */
-    protected void setIntPreference(String key, Integer value, 
-            ConfigPreferences node){
+    protected void setPreference(String key,byte[] value,ConfigPreferences node){
             // If the value is null
         if (value == null)
                 // Remove the value for the key, resetting it to default
             node.remove(key);
-        else
-            node.putInt(key, value);
-    }
-    /**
-     * 
-     * @param key
-     * @param value
-     * @param node 
-     */
-    protected void setBooleanPreference(String key, Boolean value, 
-            ConfigPreferences node){
-            // If the value is null
-        if (value == null)
-                // Remove the value for the key, resetting it to default
-            node.remove(key);
-        else
-            node.putBoolean(key, value);
+        else    // Set the value to the given byte array
+            node.putByteArray(key, value);
     }
     /**
      * 
@@ -1328,7 +1332,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setProgressDisplaySetting(Integer value){
-        setIntPreference(PROGRESS_DISPLAY_KEY, value, localNode);
+        setPreference(PROGRESS_DISPLAY_KEY, value, localNode);
     }
     /**
      * 
