@@ -48,6 +48,7 @@ import javax.swing.table.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 import javax.swing.tree.*;
+import static manager.LinkManagerConfig.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
@@ -189,68 +190,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private static final String SHOWN_CURRENT_TAB_INDEX_KEY = 
             "ShownCurrentTabIndex";
     /**
-     * This is the configuration key for the progress display setting.
-     */
-    private static final String PROGRESS_DISPLAY_KEY = "DisplayProgress";
-    /**
-     * This is the configuration key for the always on top setting.
-     */
-    private static final String ALWAYS_ON_TOP_KEY = "AlwaysOnTop";
-    /**
-     * This is the configuration key for the blank lines setting.
-     */
-    private static final String BLANK_LINES_KEY = "AddBlankLines";
-    /**
-     * This is the configuration key for the setting that enables link 
-     * operations.
-     */
-    private static final String ENABLE_LINK_OPS_KEY = "EnableLinkOperations";
-    /**
-     * This is the configuration key for the setting that enables link 
-     * operations for hidden lists.
-     */
-    private static final String ENABLE_HIDDEN_LINK_OPS_KEY = 
-            "EnableHiddenLinkOperations";
-    /**
-     * This is the configuration key for the database file path.
-     */
-    private static final String DATABASE_FILE_PATH_KEY = "DatabaseFilePath";
-    /**
-     * This is the configuration key for how to handle changing where the 
-     * database file is located.
-     */
-    private static final String DATABASE_FILE_CHANGE_OPERATION_KEY = 
-            "DatabaseFileChangeOperation";
-    /**
-     * This is the configuration key for the autosave frequency setting.
-     */
-    private static final String AUTOSAVE_FREQUENCY_KEY = 
-            "AutosaveFrequencyIndex";
-    /**
-     * This is the configuration key for the auto-hide wait duration setting.
-     */
-    private static final String AUTO_HIDE_WAIT_DURATION_KEY = 
-            "AutoHideWaitDurationIndex";
-    /**
-     * This is the configuration key for the setting that determines if the 
-     * search factors in capitalization.
-     */
-    private static final String SEARCH_MATCH_CASE_KEY = "MatchCase";
-    /**
-     * This is the configuration key for the setting that determines if the 
-     * search factors in white spaces.
-     */
-    private static final String SEARCH_MATCH_SPACES_KEY = "MatchWhiteSpaces";
-    /**
-     * This is the configuration key for the setting that determines if the 
-     * search wraps around when it reaches the end of the list.
-     */
-    private static final String SEARCH_WRAP_AROUND_KEY = "SearchWrapAround";
-    /**
-     * This is the configuration key for the text to search for.
-     */
-    private static final String SEARCH_TEXT_KEY = "SearchText";
-    /**
      * This is the configuration key for the listID of the currently selected 
      * list if a list with a listID is selected. This is for the 
      */
@@ -303,37 +242,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         CURRENT_TAB_LIST_ID_KEY_PREFIX,
         CURRENT_TAB_INDEX_KEY_PREFIX
     };
-    /**
-     * This is the configuration key for the text in the link text field. This 
-     * is only loaded when the program first starts, and does not get set when 
-     * the user loads a configuration file.
-     */
-    private static final String ENTERED_LINK_TEXT_KEY = "EnteredLink";
-    /**
-     * This is the configuration key for whether the exception and error codes 
-     * will be included in any error popups related to the database when not in 
-     * debug mode. The exception and error code will be shown regardless of this 
-     * setting when in debug mode.
-     */
-    private static final String SHOW_DETAILED_DATABASE_ERRORS = 
-            "ShowDetailedDatabaseErrors";
-    /**
-     * This is the configuration key for whether lists set to hidden should be 
-     * made visible or not.
-     */
-    private static final String HIDDEN_LISTS_ARE_SHOWN_KEY = 
-            "HiddenListsAreShown";
-    /**
-     * This is the configuration key for whether outdated lists should be 
-     * overwritten when saving the lists to the database. {@code 0} for no, 
-     * {@code 1} for yes, and {@code 2} for ask before saving.
-     * 
-     * @todo Implement this feature.
-     */
-    private static final String REPLACE_OUTDATED_LISTS_KEY = 
-            "ReplaceOutdatedLists";
-    
-    private static final String SYNC_DATABASE_KEY = "SyncDatabase";
     
     private static final String LIST_MANAGER_KEY_PREFIX = "ListManager";
     
@@ -406,12 +314,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String DROPBOX_TOKEN_EXPIRATION_KEY = 
             "DropboxTokenExpiresAt";
-    /**
-     * This is the configuration key for the database file path when stored 
-     * externally if the database file is stored externally.
-     */
-    private static final String EXTERNAL_DATABASE_FILE_PATH_KEY = 
-            "External"+DATABASE_FILE_PATH_KEY;
     /**
      * This is a collection storing the required Dropbox scope for the program. 
      * If this is null, then the program does not specify the scope it requires. 

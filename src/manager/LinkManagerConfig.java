@@ -19,6 +19,106 @@ import org.sqlite.SQLiteConfig;
  */
 public class LinkManagerConfig {
     /**
+     * This is the configuration key for the progress display setting.
+     */
+    public static final String PROGRESS_DISPLAY_KEY = "DisplayProgress";
+    /**
+     * This is the configuration key for the always on top setting.
+     */
+    public static final String ALWAYS_ON_TOP_KEY = "AlwaysOnTop";
+    /**
+     * This is the configuration key for the blank lines setting.
+     */
+    public static final String BLANK_LINES_KEY = "AddBlankLines";
+    /**
+     * This is the configuration key for the setting that enables link 
+     * operations.
+     */
+    public static final String ENABLE_LINK_OPS_KEY = "EnableLinkOperations";
+    /**
+     * This is the configuration key for the setting that enables link 
+     * operations for hidden lists.
+     */
+    public static final String ENABLE_HIDDEN_LINK_OPS_KEY = 
+            "EnableHiddenLinkOperations";
+    /**
+     * This is the configuration key for the database file path.
+     */
+    public static final String DATABASE_FILE_PATH_KEY = "DatabaseFilePath";
+    /**
+     * This is the configuration key for the database file path when stored 
+     * externally if the database file is stored externally.
+     */
+    public static final String EXTERNAL_DATABASE_FILE_PATH_KEY = 
+            "External"+DATABASE_FILE_PATH_KEY;
+    /**
+     * This is the configuration key for how to handle changing where the 
+     * database file is located.
+     */
+    public static final String DATABASE_FILE_CHANGE_OPERATION_KEY = 
+            "DatabaseFileChangeOperation";
+    /**
+     * This is the configuration key for the autosave frequency setting.
+     */
+    public static final String AUTOSAVE_FREQUENCY_KEY = 
+            "AutosaveFrequencyIndex";
+    /**
+     * This is the configuration key for the auto-hide wait duration setting.
+     */
+    public static final String AUTO_HIDE_WAIT_DURATION_KEY = 
+            "AutoHideWaitDurationIndex";
+    /**
+     * This is the configuration key for the setting that determines if the 
+     * search factors in capitalization.
+     */
+    public static final String SEARCH_MATCH_CASE_KEY = "MatchCase";
+    /**
+     * This is the configuration key for the setting that determines if the 
+     * search factors in white spaces.
+     */
+    public static final String SEARCH_MATCH_SPACES_KEY = "MatchWhiteSpaces";
+    /**
+     * This is the configuration key for the setting that determines if the 
+     * search wraps around when it reaches the end of the list.
+     */
+    public static final String SEARCH_WRAP_AROUND_KEY = "SearchWrapAround";
+    /**
+     * This is the configuration key for the text to search for.
+     */
+    public static final String SEARCH_TEXT_KEY = "SearchText";
+    /**
+     * This is the configuration key for the text in the link text field. This 
+     * is only loaded when the program first starts, and does not get set when 
+     * the user loads a configuration file.
+     */
+    public static final String ENTERED_LINK_TEXT_KEY = "EnteredLink";
+    /**
+     * This is the configuration key for whether the exception and error codes 
+     * will be included in any error popups related to the database when not in 
+     * debug mode. The exception and error code will be shown regardless of this 
+     * setting when in debug mode.
+     */
+    public static final String SHOW_DETAILED_DATABASE_ERRORS = 
+            "ShowDetailedDatabaseErrors";
+    /**
+     * This is the configuration key for whether lists set to hidden should be 
+     * made visible or not.
+     */
+    public static final String HIDDEN_LISTS_ARE_SHOWN_KEY = 
+            "HiddenListsAreShown";
+    /**
+     * This is the configuration key for whether outdated lists should be 
+     * overwritten when saving the lists to the database. {@code 0} for no, 
+     * {@code 1} for yes, and {@code 2} for ask before saving.
+     * 
+     * @todo Implement this feature.
+     */
+    public static final String REPLACE_OUTDATED_LISTS_KEY = 
+            "ReplaceOutdatedLists";
+    
+    public static final String SYNC_DATABASE_KEY = "SyncDatabase";
+    
+    /**
      * This is the suffix for configuration keys for the width component of a 
      * dimension.
      */
