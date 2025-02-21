@@ -1216,4 +1216,262 @@ public class LinkManagerConfig {
     public String getDatabaseFileName(){
         return getFilePathProperty(DATABASE_FILE_PATH_KEY);
     }
+    /**
+     * 
+     * @param value 
+     */
+    public void setProgressDisplaySetting(Integer value){
+        setProperty(PROGRESS_DISPLAY_KEY, value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public int getProgressDisplaySetting(int defaultValue){
+        return getIntProperty(PROGRESS_DISPLAY_KEY, defaultValue);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setAlwaysOnTop(Boolean value){
+        setProperty(ALWAYS_ON_TOP_KEY, value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean isAlwaysOnTop(boolean defaultValue){
+        return getBooleanProperty(ALWAYS_ON_TOP_KEY, defaultValue);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setAddBlankLines(Boolean value){
+        setProperty(BLANK_LINES_KEY, value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean getAddBlankLines(boolean defaultValue){
+        return getBooleanProperty(BLANK_LINES_KEY,defaultValue);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setLinkOperationsEnabled(Boolean value){
+        setProperty(ENABLE_LINK_OPS_KEY,value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean isLinkOperationsEnabled(boolean defaultValue){
+        return getBooleanProperty(ENABLE_LINK_OPS_KEY,defaultValue);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setHiddenLinkOperationsEnabled(Boolean value){
+        setProperty(ENABLE_HIDDEN_LINK_OPS_KEY,value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean isHiddenLinkOperationsEnabled(boolean defaultValue){
+        return getBooleanProperty(ENABLE_HIDDEN_LINK_OPS_KEY,defaultValue);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setDatabaseFileChangeOperation(Integer value){
+        setProperty(DATABASE_FILE_CHANGE_OPERATION_KEY, value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public int getDatabaseFileChangeOperation(int defaultValue){
+        return getIntProperty(DATABASE_FILE_CHANGE_OPERATION_KEY, defaultValue);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setAutosaveFrequencyIndex(Integer value){
+        setProperty(AUTOSAVE_FREQUENCY_KEY, value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public int getAutosaveFrequencyIndex(int defaultValue){
+        return getIntProperty(AUTOSAVE_FREQUENCY_KEY, defaultValue);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setAutoHideWaitDurationIndex(Integer value){
+        setProperty(AUTO_HIDE_WAIT_DURATION_KEY, value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public int getAutoHideWaitDurationIndex(int defaultValue){
+        return getIntProperty(AUTO_HIDE_WAIT_DURATION_KEY, defaultValue);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setSearchMatchCase(Boolean value){
+        setProperty(SEARCH_MATCH_CASE_KEY,value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean getSearchMatchCase(boolean defaultValue){
+        return getBooleanProperty(SEARCH_MATCH_CASE_KEY,defaultValue);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setSearchMatchSpaces(Boolean value){
+        setProperty(SEARCH_MATCH_SPACES_KEY,value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean getSearchMatchSpaces(boolean defaultValue){
+        return getBooleanProperty(SEARCH_MATCH_SPACES_KEY,defaultValue);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setSearchWrapAround(Boolean value){
+        setProperty(SEARCH_WRAP_AROUND_KEY,value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean getSearchWrapAround(boolean defaultValue){
+        return getBooleanProperty(SEARCH_WRAP_AROUND_KEY,defaultValue);
+    }
+    /**
+     * 
+     * @param text 
+     */
+    public void setSearchText(String text){
+            // If the search text is not null and not empty, store it in the 
+            // config. Otherwise, use null for the search text
+        setProperty(SEARCH_TEXT_KEY,(text!=null&&!text.isEmpty())?text:null);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public String getSearchText(String defaultValue){
+        return getProperty(SEARCH_TEXT_KEY,defaultValue);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public String getSearchText(){
+        return getSearchText(null);
+    }
+    /**
+     * 
+     * @param text 
+     */
+    public void setEnteredLinkText(String text){
+            // If the entered link is not null and not blank, store it in the 
+            // config. Otherwise, use null for the entered link
+        setProperty(ENTERED_LINK_TEXT_KEY,(text!=null&&!text.isBlank())?text:null);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public String getEnteredLinkText(String defaultValue){
+        return getProperty(ENTERED_LINK_TEXT_KEY,defaultValue);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public String getEnteredLinkText(){
+        return getEnteredLinkText(null);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setHiddenListsAreShown(Boolean value){
+        setProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean getHiddenListsAreShown(boolean defaultValue){
+        return getBooleanProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,defaultValue);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setDatabaseErrorDetailsAreShown(Boolean value){
+        setProperty(SHOW_DETAILED_DATABASE_ERRORS,value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean getDatabaseErrorDetailsAreShown(boolean defaultValue){
+        return getBooleanProperty(SHOW_DETAILED_DATABASE_ERRORS,defaultValue);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setDatabaseWillSync(Boolean value){
+        setProperty(SYNC_DATABASE_KEY,value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean getDatabaseWillSync(boolean defaultValue){
+        return getBooleanProperty(SYNC_DATABASE_KEY,defaultValue);
+    }
 }
