@@ -1461,6 +1461,12 @@ public class LinkManagerConfig {
         if (i != null)
                 // Set the progress display settings from the properties
             setProgressDisplaySetting(i);
+            // Get the value for the always on top setting from the properties
+        Boolean b = getBooleanProperty(ALWAYS_ON_TOP_KEY,prop);
+            // If the properties has the always on top setting
+        if (b != null)
+                // Set the always on top settings from the properties
+            setAlwaysOnTop(b);
         
             // TODO: Remove this once the config properties map is removed or 
             // repurposed.
@@ -1470,6 +1476,8 @@ public class LinkManagerConfig {
         config.remove(DATABASE_FILE_PATH_KEY);
             // Remove the progress display, since that's in the preference node
         config.remove(PROGRESS_DISPLAY_KEY);
+            // Remove the always on top value, since that's in the preference node
+        config.remove(ALWAYS_ON_TOP_KEY);
     }
     /**
      * 
@@ -1520,7 +1528,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setAlwaysOnTop(Boolean value){
-        setProperty(ALWAYS_ON_TOP_KEY, value);
+        setPreference(ALWAYS_ON_TOP_KEY, value, getPreferences());
     }
     /**
      * 
@@ -1528,7 +1536,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean isAlwaysOnTop(boolean defaultValue){
-        return getBooleanProperty(ALWAYS_ON_TOP_KEY, defaultValue);
+        return getPreferences().getBoolean(ALWAYS_ON_TOP_KEY, defaultValue);
     }
     /**
      * 
