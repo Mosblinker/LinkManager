@@ -575,12 +575,31 @@ public class ConfigPreferences extends Preferences{
     public void exportSubtree(OutputStream os) throws IOException, BackingStoreException {
         node.exportSubtree(os);
     }
-    
+    /**
+     * This returns an array of all the objects currently registered as 
+     * <code><em>Foo</em>Listener</code>s on this preference node. 
+     * <code><em>Foo</em>Listener</code>s are registered via the 
+     * <code>add<em>Foo</em>Listener</code> method. <p>
+     * 
+     * The listener type can be specified using a class literal, such as 
+     * <code><em>Foo</em>Listener.class</code>. If no such listeners exist, then 
+     * an empty array will be returned.
+     * @param <T> The type of {@code EventListener} being requested.
+     * @param listenerType The type of listeners being requested. This should 
+     * be an interface that descends from {@code EventListener}.
+     * @return An array of the objects registered as the given listener type on 
+     * this preference node, or an empty array if no such listeners have been 
+     * added.
+     */
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType){
+        return listenerList.getListeners(listenerType);
+    }
     /**
      * {@inheritDoc }
      * @param pcl {@inheritDoc }
      * @throws IllegalStateException {@inheritDoc }
      * @see #removePreferenceChangeListener(PreferenceChangeListener) 
+     * @see #getPreferenceChangeListeners() 
      * @see #addNodeChangeListener(NodeChangeListener) 
      */
     @Override
@@ -597,6 +616,7 @@ public class ConfigPreferences extends Preferences{
      * @param pcl {@inheritDoc }
      * @throws IllegalStateException {@inheritDoc }
      * @see #addPreferenceChangeListener(PreferenceChangeListener) 
+     * @see #getPreferenceChangeListeners() 
      */
     @Override
     public void removePreferenceChangeListener(PreferenceChangeListener pcl) {
@@ -605,12 +625,28 @@ public class ConfigPreferences extends Preferences{
             // Remove the listener from the list of listeners
         listenerList.remove(PreferenceChangeListener.class, pcl);
     }
-
+    /**
+     * This returns an array containing all the {@code 
+     * PreferenceChangeListener}s that have been registered to this preference 
+     * node. 
+     * @return An array containing the {@code PreferenceChangeListener}s that 
+     * have been registered, or an empty array if none have been registered.
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @see #addPreferenceChangeListener(PreferenceChangeListener) 
+     * @see #removePreferenceChangeListener(PreferenceChangeListener) 
+     */
+    public PreferenceChangeListener[] getPreferenceChangeListeners(){
+            // Check if this node exists
+        checkExists();
+        return listenerList.getListeners(PreferenceChangeListener.class);
+    }
     /**
      * {@inheritDoc }
      * @param ncl {@inheritDoc }
      * @throws IllegalStateException {@inheritDoc }
      * @see #removeNodeChangeListener(NodeChangeListener) 
+     * @see #getNodeChangeListeners() 
      * @see #addPreferenceChangeListener(PreferenceChangeListener) 
      */
     @Override
@@ -627,6 +663,7 @@ public class ConfigPreferences extends Preferences{
      * @param ncl {@inheritDoc }
      * @throws IllegalStateException {@inheritDoc }
      * @see #addNodeChangeListener(NodeChangeListener) 
+     * @see #getNodeChangeListeners() 
      */
     @Override
     public void removeNodeChangeListener(NodeChangeListener ncl) {
@@ -634,5 +671,20 @@ public class ConfigPreferences extends Preferences{
         checkExists();
             // Remove the listener from the list of listeners
         listenerList.remove(NodeChangeListener.class, ncl);
+    }
+    /**
+     * This returns an array containing all the {@code NodeChangeListener}s that 
+     * have been registered to this preference node. 
+     * @return An array containing the {@code NodeChangeListener}s that have 
+     * been registered, or an empty array if none have been registered.
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @see #addNodeChangeListener(NodeChangeListener) 
+     * @see #removeNodeChangeListener(NodeChangeListener) 
+     */
+    public NodeChangeListener[] getNodeChangeListeners(){
+            // Check if this node exists
+        checkExists();
+        return listenerList.getListeners(NodeChangeListener.class);
     }
 }
