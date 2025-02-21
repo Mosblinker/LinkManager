@@ -1117,25 +1117,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config.getComponentPrefixMap().put(setLocationDialog, DATABASE_LOCATION_DIALOG_KEY_PREFIX);
         
             // Initialize the defaults that are dependent on the UI
-        config.setPropertyDefault(PROGRESS_DISPLAY_KEY, progressDisplay.getDisplaySettings());
-        config.setPropertyDefault(ALWAYS_ON_TOP_KEY, alwaysOnTopToggle.isSelected());
-        config.setPropertyDefault(BLANK_LINES_KEY, doubleNewLinesToggle.isSelected());
-        config.setPropertyDefault(ENABLE_LINK_OPS_KEY, linkOperationToggle.isSelected());
-        config.setPropertyDefault(ENABLE_HIDDEN_LINK_OPS_KEY, hiddenLinkOperationToggle.isSelected());
-        config.setPropertyDefault(AUTOSAVE_FREQUENCY_KEY, autosaveMenu.getFrequencyIndex());
-        config.setPropertyDefault(AUTO_HIDE_WAIT_DURATION_KEY, autoHideMenu.getDurationIndex());
-        config.setPropertyDefault(SEARCH_MATCH_CASE_KEY, searchPanel.getMatchCase());
-        config.setPropertyDefault(SEARCH_MATCH_SPACES_KEY, searchPanel.getMatchSpaces());
-        config.setPropertyDefault(SEARCH_WRAP_AROUND_KEY, searchPanel.getWrapAround());
-        config.setPropertyDefault(HIDDEN_LISTS_ARE_SHOWN_KEY, showHiddenListsToggle.isSelected());
-        config.setPropertyDefault(REPLACE_OUTDATED_LISTS_KEY, 2);
-        config.setPropertyDefault(SHOW_DETAILED_DATABASE_ERRORS, showDBErrorDetailsToggle.isSelected());
         config.setPropertyDefault(LINK_MANAGER_X_KEY, 0);
         config.setPropertyDefault(LINK_MANAGER_Y_KEY, 0);
-            // TODO: Implement the window state key
-//        config.setPropertyDefault(LINK_MANAGER_WINDOW_STATE_KEY, JFrame.NORMAL);
-        config.setPropertyDefault(DATABASE_FILE_CHANGE_OPERATION_KEY, dbFileChangeCombo.getSelectedIndex());
-        config.setPropertyDefault(SYNC_DATABASE_KEY, syncDBToggle.isSelected());
         
             // Go through the components to store their preferred sizes
         for (Component comp : config.getComponentPrefixMap().keySet()){
