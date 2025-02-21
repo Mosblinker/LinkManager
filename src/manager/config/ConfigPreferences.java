@@ -56,11 +56,20 @@ public class ConfigPreferences extends Preferences{
         this(node,null);
     }
     /**
-     * 
-     * @param key
-     * @return 
+     * This returns whether there is a value associated with the given key in 
+     * this preference node. 
+     * @param key The key to check for.
+     * @return {@code true} if and only if the given key has a value explicitly 
+     * associated with it; {@code false} otherwise.
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given key is null.
+     * @see #get(String, String) 
+     * @see #put(String, String) 
+     * @see #keySet() 
      */
     public boolean isKeySet(String key){
+            // Return if there is a non-null value set for the given key
         return node.get(key, null) != null;
     }
     /**
