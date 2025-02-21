@@ -51,6 +51,12 @@ public class ConfigPreferences extends Preferences{
 //            defaults = new Properties();
         this.defaults = defaults;
         listenerList = new EventListenerList();
+            // Create a handler to listen to the node
+        Handler handler = new Handler();
+            // Add the handler as a NodeChangeListener
+        node.addNodeChangeListener(handler);
+            // Add the handler as a PreferenceChangeListener
+        node.addPreferenceChangeListener(handler);
     }
     /**
      * This constructs a {@code ConfigPreferences} that is a wrapper for the 
@@ -828,5 +834,55 @@ public class ConfigPreferences extends Preferences{
      */
     protected void fireChildNodeRemoved(Preferences child){
         fireChildNodeRemoved(this,child);
+    }
+    /**
+     * This is a handler class used for listening to the internal preference 
+     * node and forwarding its {@code NodeChangeEvent}s and {@code 
+     * PreferenceChangeEvent}s to the listeners registered to this preference 
+     * node.
+     */
+    private class Handler implements NodeChangeListener, PreferenceChangeListener{
+        @Override
+        public void childAdded(NodeChangeEvent evt) {
+                // If the event is not null
+            if (evt != null){
+                    // If the parent node is the internal node
+                if (evt.getParent() == node)
+                        // Use this node as the parent node instead
+                    fireChildNodeAdded(evt.getChild());
+                    // If the child node is the internal node
+                else if (evt.getChild() == node)
+                        // Use this node as the child node instead
+                    fireChildNodeAdded(evt.getParent(),ConfigPreferences.this);
+                else    // Forward the event as is
+                    fireChildNodeAdded(evt);
+            }
+        }
+        @Override
+        public void childRemoved(NodeChangeEvent evt) {
+                // If the event is not null
+            if (evt != null){
+                    // If the parent node is the internal node
+                if (evt.getParent() == node)
+                        // Use this node as the parent node instead
+                    fireChildNodeRemoved(evt.getChild());
+                    // If the child node is the internal node
+                else if (evt.getChild() == node)
+                        // Use this node as the child node instead
+                    fireChildNodeRemoved(evt.getParent(),ConfigPreferences.this);
+                else    // Forward the event as is
+                    fireChildNodeRemoved(evt);
+            }
+        }
+        @Override
+        public void preferenceChange(PreferenceChangeEvent evt) {
+                // If the event is not null and its source is the internal node
+            if (evt != null && evt.getSource() == node)
+                    // Fire the preference change event with this node as the 
+                    // source
+                firePreferenceChanged(evt.getKey(),evt.getNewValue());
+            else    // Fire the preference change event as is
+                firePreferenceChanged(evt);
+        }
     }
 }
