@@ -332,9 +332,16 @@ public class ConfigPreferences extends Preferences{
      */
     @Override
     public void putByteArray(String key, byte[] value) {
-        // TODO: Should this handle something similar to how LinkManagerConfig 
-        // deals with setting values to either their defaults or to null?
-        node.putByteArray(key, value);
+            // Make sure the key is not null
+        Objects.requireNonNull(key, "Key cannot be null");
+            // Make sure the byte array value is not null
+        Objects.requireNonNull(value, "Value cannot be null");
+            // If the byte array's length exceeds 3/4ths of the max value length
+        if (value.length > Preferences.MAX_VALUE_LENGTH*(3/4))
+            throw new IllegalArgumentException("Byte array is too long ("+
+                    value.length+" > "+(Preferences.MAX_VALUE_LENGTH*(3/4))+")");
+            // Encode the byte array in Base64 and store it
+        put(key,Base64.getEncoder().encodeToString(value));
     }
     /**
      * {@inheritDoc }
