@@ -104,8 +104,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is the name of the preference node used to store the settings for 
      * this program.
      */
-    private static final String PREFERENCE_NODE_NAME = 
-            "milo/link/LinkManager";
+    private static final String PREFERENCE_NODE_NAME = "milo/link/LinkManager";
     /**
      * This is the name of the file used to store the configuration.
      */
@@ -130,6 +129,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String PRIVATE_CONFIG_FLAG = 
             "[LinkManager Private Config]";
+    /**
+     * This is the configuration key for the program ID. This is used to
+     * determine what preference node to use for the program.
+     */
+    private static final String PROGRAM_ID_KEY = "ProgramID";
     /**
      * This is the configuration key for the database folder setting. This key 
      * has been deprecated in favor of storing the database file name in a 
