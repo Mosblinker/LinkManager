@@ -40,7 +40,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.prefs.Preferences;
+import java.util.prefs.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
@@ -49,6 +49,7 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 import javax.swing.tree.*;
 import static manager.LinkManagerConfig.*;
+import manager.config.ConfigPreferences;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
@@ -9477,6 +9478,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 Properties defaultConfig){
             addConfigRows(source,config,defaultConfig,false);
         }
+        /**
+         * 
+         * @param source
+         * @param config
+         */
+        private void addConfigRows(String source, ConfigPreferences config){
+                // If the preference node is null
+            if (config == null)
+                return;
+            try {
+                addConfigRows(source,config.toProperties(),config.getDefaults());
+            } catch (BackingStoreException | IllegalStateException ex) {
+                    // If the program is in debug mode
+                if (isInDebug())
+                    System.out.println("Error: " + ex);
+            }
+        }
         @Override
         protected boolean loadFile(File file){
             if (file.exists())  // If the database file exists
@@ -9495,6 +9513,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             addConfigRows("Properties",config.getProperties(),config.getDefaultProperties());
                 // Add all the private properties for this program
             addConfigRows("Private Properties",config.getPrivateProperties(),config.getDefaultPrivateProperties());
+                // Add all the shared preferences for this program
+            addConfigRows("Shared Preferences",config.getSharedPreferences());
+                // Add all the local preferences for this program
+            addConfigRows("Local Preferences",config.getPreferences());
+                // Add all the private preferences for this program
+            addConfigRows("Private Preferences",config.getPrivatePreferences());
             
             return null;
         }
