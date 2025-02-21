@@ -1202,14 +1202,44 @@ public class LinkManagerConfig {
                 value = null;
                 // Set the database file path
             setDatabaseFileName(value);
+        }   // If the properties has the progress display settings
+        if (prop.containsKey(PROGRESS_DISPLAY_KEY)){
+                // Get the value from the properties, as a String
+            String value = prop.getProperty(PROGRESS_DISPLAY_KEY);
+                // If the value is empty
+            if (value.isEmpty())
+                    // Reset the progress display setting
+                setProgressDisplaySetting(null);
+            else{
+                try{    // Parse and set the progress display settings
+                    setProgressDisplaySetting(Integer.valueOf(value));
+                } catch (NumberFormatException ex) {}
+            }
         }
         
             // TODO: Remove this once the config properties map is removed or 
             // repurposed.
             // Add all the properties to the config properties map
         config.putAll(prop);
-            // Remove the database file path, since that's now in the 
-        config.remove(DATABASE_FILE_PATH_KEY);  // preference node
+            // Remove the database file path, since that's in the preference node
+        config.remove(DATABASE_FILE_PATH_KEY);
+            // Remove the progress display, since that's in the preference node
+        config.remove(PROGRESS_DISPLAY_KEY);
+    }
+    /**
+     * 
+     * @param key
+     * @param value
+     * @param node 
+     */
+    protected void setIntPreference(String key, Integer value, 
+            ConfigPreferences node){
+            // If the value is null
+        if (value == null)
+                // Remove the value for the key, resetting it to default
+            node.remove(key);
+        else
+            node.putInt(key, value);
     }
     /**
      * 
@@ -1286,7 +1316,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setProgressDisplaySetting(Integer value){
-        setProperty(PROGRESS_DISPLAY_KEY, value);
+        setIntPreference(PROGRESS_DISPLAY_KEY, value, localNode);
     }
     /**
      * 
@@ -1294,7 +1324,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public int getProgressDisplaySetting(int defaultValue){
-        return getIntProperty(PROGRESS_DISPLAY_KEY, defaultValue);
+        return localNode.getInt(PROGRESS_DISPLAY_KEY, defaultValue);
     }
     /**
      * 
