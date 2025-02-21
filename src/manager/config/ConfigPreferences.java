@@ -722,4 +722,111 @@ public class ConfigPreferences extends Preferences{
         checkExists();
         return listenerList.getListeners(NodeChangeListener.class);
     }
+    /**
+     * This is used to notify the {@code NodeChangeListener}s registered to this 
+     * preference node that a child node has been added or removed from its 
+     * parent.
+     * @param evt The {@code NodeChangeEvent} to send out to the listeners.
+     * @param removed {@code true} if the child node was removed, {@code false} 
+     * if the child node was added.
+     */
+    private void fireNodeChangeEvent(NodeChangeEvent evt, boolean removed){
+            // A for loop to go through the node change listeners
+        for (NodeChangeListener l : listenerList.getListeners(NodeChangeListener.class)){
+            if (l != null){     // If the current listener is not null
+                if (removed)    // If a child node has been removed
+                        // Notify the listener of a child node being removed
+                    l.childRemoved(evt);
+                else    // Notify the listener of a child node being added
+                    l.childAdded(evt);
+            }
+        }
+    }
+    /**
+     * This is used to notify the {@code NodeChangeListener}s registered to this 
+     * preference node that a child node has been added to its parent.
+     * @param evt The {@code NodeChangeEvent} to send out to the listeners.
+     * @see #fireChildNodeAdded(Preferences, Preferences) 
+     * @see #fireChildNodeAdded(Preferences) 
+     * @see #fireChildNodeRemoved(NodeChangeEvent) 
+     * @see #fireChildNodeRemoved(Preferences, Preferences) 
+     * @see #fireChildNodeRemoved(Preferences) 
+     */
+    protected void fireChildNodeAdded(NodeChangeEvent evt){
+        fireNodeChangeEvent(evt,false);
+    }
+    /**
+     * This is used to notify the {@code NodeChangeListener}s registered to this 
+     * preference node that the given child node has been added to the given 
+     * parent node.
+     * @param parent The parent of the node that was added.
+     * @param child The child node that was added.
+     * @see NodeChangeEvent
+     * @see #fireChildNodeAdded(NodeChangeEvent) 
+     * @see #fireChildNodeAdded(Preferences) 
+     * @see #fireChildNodeRemoved(NodeChangeEvent) 
+     * @see #fireChildNodeRemoved(Preferences, Preferences) 
+     * @see #fireChildNodeRemoved(Preferences) 
+     */
+    protected void fireChildNodeAdded(Preferences parent, Preferences child){
+        fireChildNodeAdded(new NodeChangeEvent(parent,child));
+    }
+    /**
+     * This is used to notify the {@code NodeChangeListener}s registered to this 
+     * preference node that the given child node has been added to this node.
+     * @param child The child node that was added.
+     * @see NodeChangeEvent
+     * @see #fireChildNodeAdded(NodeChangeEvent) 
+     * @see #fireChildNodeAdded(Preferences, Preferences) 
+     * @see #fireChildNodeRemoved(NodeChangeEvent) 
+     * @see #fireChildNodeRemoved(Preferences, Preferences) 
+     * @see #fireChildNodeRemoved(Preferences) 
+     */
+    protected void fireChildNodeAdded(Preferences child){
+        fireChildNodeAdded(this,child);
+    }
+    /**
+     * This is used to notify the {@code NodeChangeListener}s registered to this 
+     * preference node that a child node has been removed from its parent.
+     * @param evt The {@code NodeChangeEvent} to send out to the listeners.
+     * @see #fireChildNodeAdded(NodeChangeEvent) 
+     * @see #fireChildNodeAdded(Preferences, Preferences) 
+     * @see #fireChildNodeAdded(Preferences) 
+     * @see #fireChildNodeRemoved(Preferences, Preferences) 
+     * @see #fireChildNodeRemoved(Preferences) 
+     */
+    protected void fireChildNodeRemoved(NodeChangeEvent evt){
+        fireNodeChangeEvent(evt,true);
+    }
+    /**
+     * This is used to notify the {@code NodeChangeListener}s registered to this 
+     * preference node that the given child node has been removed from the given 
+     * parent node.
+     * @param parent The parent of the node that was added.
+     * @param child The child node that was added.
+     * @see NodeChangeEvent
+     * @see #fireChildNodeAdded(NodeChangeEvent) 
+     * @see #fireChildNodeAdded(Preferences, Preferences) 
+     * @see #fireChildNodeAdded(Preferences) 
+     * @see #fireChildNodeRemoved(NodeChangeEvent) 
+     * @see #fireChildNodeRemoved(Preferences) 
+     */
+    protected void fireChildNodeRemoved(Preferences parent, Preferences child){
+        fireChildNodeRemoved(new NodeChangeEvent(parent,child));
+    }
+    /**
+     * This is used to notify the {@code NodeChangeListener}s registered to this 
+     * preference node that the given child node has been removed from this 
+     * node.
+     * @param child The child node that was added.
+     * @see NodeChangeEvent
+     * @see #fireChildNodeAdded(NodeChangeEvent) 
+     * @see #fireChildNodeAdded(Preferences, Preferences) 
+     * @see #fireChildNodeAdded(Preferences) 
+     * @see #fireChildNodeRemoved(NodeChangeEvent) 
+     * @see #fireChildNodeRemoved(Preferences, Preferences) 
+     */
+    protected void fireChildNodeRemoved(Preferences child){
+        fireChildNodeRemoved(this,child);
+    }
 }
