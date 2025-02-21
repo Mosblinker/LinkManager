@@ -1136,7 +1136,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 //        config.setPropertyDefault(LINK_MANAGER_WINDOW_STATE_KEY, JFrame.NORMAL);
         config.setPropertyDefault(DATABASE_FILE_CHANGE_OPERATION_KEY, dbFileChangeCombo.getSelectedIndex());
         config.setPropertyDefault(SYNC_DATABASE_KEY, syncDBToggle.isSelected());
-        config.getSQLiteConfig().enforceForeignKeys(foreignKeysToggle.isSelected());
         
             // Go through the components to store their preferred sizes
         for (Component comp : config.getComponentPrefixMap().keySet()){
@@ -1144,6 +1143,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // default size
             config.setDefaultSizeProperty(comp,comp.getPreferredSize());
         }
+        
+            // Set the SQLite config to enforce the foreign keys
+        config.getSQLiteConfig().enforceForeignKeys(foreignKeysToggle.isSelected());
         
         listContentsObserver = (Integer index, Integer size) -> {
                 // If the size is null (indicates whether this is to toggle 
