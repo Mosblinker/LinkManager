@@ -8,6 +8,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.util.*;
 import java.util.prefs.*;
+import manager.config.ConfigPreferences;
 import org.sqlite.SQLiteConfig;
 
 /**
@@ -39,7 +40,7 @@ public class LinkManagerConfig {
      * any settings stored in this node are shared between all instances of 
      * LinkManager.
      */
-    private Preferences programNode;
+    private ConfigPreferences programNode;
     /**
      * This is the preference node containing all the preference nodes that 
      * contain sensitive data for LinkManager. This is a child of {@code 
@@ -51,13 +52,13 @@ public class LinkManagerConfig {
      * instance of LinkManager and any that share this instance's ID. This is a 
      * child of {@code programNode}.
      */
-    private Preferences localNode = null;
+    private ConfigPreferences localNode = null;
     /**
      * This is the preference node containing the sensitive data for this 
      * instance of LinkManager and any that share this instance's ID. This is a 
      * child of {@code privateNode}.
      */
-    private Preferences privateLocalNode = null;
+    private ConfigPreferences privateLocalNode = null;
     /**
      * This is a properties map that stores the configuration for LinkManager.
      */
@@ -100,7 +101,7 @@ public class LinkManagerConfig {
             sqlConfig = new SQLiteConfig(sqlProp);
         else
             sqlConfig = new SQLiteConfig();
-        programNode = node;
+        programNode = new ConfigPreferences(node);
             // If there is a program node
         if (programNode != null){
             try{    // Get the node for the sensitive config data
@@ -132,7 +133,7 @@ public class LinkManagerConfig {
      * data for all instances of LinkManager.
      * @return The shared configuration preference node.
      */
-    public Preferences getSharedPreferences(){
+    public ConfigPreferences getSharedPreferences(){
         return programNode;
     }
     /**
@@ -148,7 +149,7 @@ public class LinkManagerConfig {
      * LinkManager.
      * @return The local preference node.
      */
-    public Preferences getPreferences(){
+    public ConfigPreferences getPreferences(){
         return localNode;
     }
     /**
@@ -156,7 +157,7 @@ public class LinkManagerConfig {
      * LinkManager.
      * @return The local preference node for private data.
      */
-    public Preferences getPrivatePreferences(){
+    public ConfigPreferences getPrivatePreferences(){
         return privateLocalNode;
     }
     /**
