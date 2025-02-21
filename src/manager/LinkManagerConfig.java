@@ -30,10 +30,15 @@ public class LinkManagerConfig {
     protected static final String HEIGHT_KEY_SUFFIX = "Height";
     
     /**
-     * This is the name for the preference node used to store sensitive settings 
-     * for the program.
+     * This is the start of the path for the preference node used to store the 
+     * configuration data for an instance of the program.
      */
-    protected static final String PRIVATE_PREFERENCE_NODE_NAME = "private";
+    private static final String LOCAL_PREFERENCE_NODE_PATH = "local/";
+    /**
+     * This is the start of the path for the preference node used to store 
+     * sensitive data for the program.
+     */
+    private static final String PRIVATE_PREFERENCE_NODE_PATH = "private/";
     /**
      * This is the preference node containing all the preferences for 
      * LinkManager. This is the parent preference node for all other nodes, and 
@@ -42,23 +47,15 @@ public class LinkManagerConfig {
      */
     private ConfigPreferences programNode;
     /**
-     * This is the preference node containing all the preference nodes that 
-     * contain sensitive data for LinkManager. This is a child of {@code 
-     * programNode}.
-     */
-    private Preferences privateNode;
-    /**
      * This is the preference node containing the configuration for this 
-     * instance of LinkManager and any that share this instance's ID. This is a 
-     * child of {@code programNode}.
+     * instance of LinkManager and any that share this instance's ID.
      */
     private ConfigPreferences localNode = null;
     /**
      * This is the preference node containing the sensitive data for this 
-     * instance of LinkManager and any that share this instance's ID. This is a 
-     * child of {@code privateNode}.
+     * instance of LinkManager and any that share this instance's ID.
      */
-    private ConfigPreferences privateLocalNode = null;
+    private ConfigPreferences privateNode = null;
     /**
      * This is a properties map that stores the configuration for LinkManager.
      */
@@ -102,14 +99,6 @@ public class LinkManagerConfig {
         else
             sqlConfig = new SQLiteConfig();
         programNode = new ConfigPreferences(node);
-            // If there is a program node
-        if (programNode != null){
-            try{    // Get the node for the sensitive config data
-                privateNode = programNode.node(PRIVATE_PREFERENCE_NODE_NAME);
-            } catch (IllegalStateException ex){
-                privateNode = null;
-            }
-        }
     }
     
     public LinkManagerConfig(Preferences node){
@@ -137,14 +126,6 @@ public class LinkManagerConfig {
         return programNode;
     }
     /**
-     * This returns the preference node used to store the preference nodes 
-     * storing sensitive data for LinkManager.
-     * @return The shared configuration preference node for private data.
-     */
-    protected Preferences getSharedPrivatePreferences(){
-        return privateNode;
-    }
-    /**
      * This returns the preference node used to store the configuration for 
      * LinkManager.
      * @return The local preference node.
@@ -158,7 +139,7 @@ public class LinkManagerConfig {
      * @return The local preference node for private data.
      */
     public ConfigPreferences getPrivatePreferences(){
-        return privateLocalNode;
+        return privateNode;
     }
     /**
      * This returns the properties map that stores the configuration for 
