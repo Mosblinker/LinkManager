@@ -656,6 +656,18 @@ public class LinkManagerConfig {
     /**
      * 
      * @param key
+     * @param defaultValue
+     * @return 
+     */
+    public boolean getBooleanProperty(String key, boolean defaultValue){
+        String value = getProperty(key);
+        if (value == null)
+            return defaultValue;
+        return Boolean.parseBoolean(value);
+    }
+    /**
+     * 
+     * @param key
      * @return 
      */
     public boolean getPrivateBooleanProperty(String key){
