@@ -1393,7 +1393,7 @@ public class LinkManagerConfig {
      * @param fileName 
      */
     public void setDatabaseFileName(String fileName){
-        setFilePathPreference(DATABASE_FILE_PATH_KEY, fileName, localNode);
+        setFilePathPreference(DATABASE_FILE_PATH_KEY,fileName,getPreferences());
     }
     /**
      * 
@@ -1401,14 +1401,14 @@ public class LinkManagerConfig {
      */
     public String getDatabaseFileName(){
         return getFilePathPreference(DATABASE_FILE_PATH_KEY, 
-                LinkManager.LINK_DATABASE_FILE, localNode);
+                LinkManager.LINK_DATABASE_FILE, getPreferences());
     }
     /**
      * 
      * @param value 
      */
     public void setProgressDisplaySetting(Integer value){
-        setPreference(PROGRESS_DISPLAY_KEY, value, localNode);
+        setPreference(PROGRESS_DISPLAY_KEY, value, getPreferences());
     }
     /**
      * 
@@ -1416,7 +1416,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public int getProgressDisplaySetting(int defaultValue){
-        return localNode.getInt(PROGRESS_DISPLAY_KEY, defaultValue);
+        return getPreferences().getInt(PROGRESS_DISPLAY_KEY, defaultValue);
     }
     /**
      * 
