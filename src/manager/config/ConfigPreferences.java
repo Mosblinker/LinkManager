@@ -642,6 +642,41 @@ public class ConfigPreferences extends Preferences{
         return listenerList.getListeners(PreferenceChangeListener.class);
     }
     /**
+     * This is used to notify the {@code PreferenceChangeListener}s registered 
+     * to this preference node that a preference has been added, removed, or has 
+     * had its value changed.
+     * @param evt The {@code PreferenceChangeEvent} to send out to the 
+     * listeners.
+     * @see #firePreferenceChanged(String, String) 
+     * @see #addPreferenceChangeListener(PreferenceChangeListener) 
+     * @see #removePreferenceChangeListener(PreferenceChangeListener) 
+     * @see #getPreferenceChangeListeners() 
+     */
+    protected void firePreferenceChanged(PreferenceChangeEvent evt){
+            // A for loop to go through the preference change listeners
+        for (PreferenceChangeListener l : 
+                listenerList.getListeners(PreferenceChangeListener.class)){
+            if (l != null)  // If the current listener is not null
+                l.preferenceChange(evt);
+        }
+    }
+    /**
+     * This is used to notify the {@code PreferenceChangeListener}s registered 
+     * to this preference node that a preference has been added, removed, or has 
+     * had its value changed.
+     * @param key The key of the preference that was changed.
+     * @param newValue The new value for the preference, or null if the 
+     * preference is being removed.
+     * @see PreferenceChangeEvent
+     * @see #firePreferenceChanged(PreferenceChangeEvent) 
+     * @see #addPreferenceChangeListener(PreferenceChangeListener) 
+     * @see #removePreferenceChangeListener(PreferenceChangeListener) 
+     * @see #getPreferenceChangeListeners() 
+     */
+    protected void firePreferenceChanged(String key, String newValue){
+        firePreferenceChanged(new PreferenceChangeEvent(this,key,newValue));
+    }
+    /**
      * {@inheritDoc }
      * @param ncl {@inheritDoc }
      * @throws IllegalStateException {@inheritDoc }
