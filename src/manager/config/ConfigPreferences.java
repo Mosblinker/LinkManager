@@ -443,17 +443,16 @@ public class ConfigPreferences extends Preferences{
     }
     /**
      * This returns whether this node exists. It's worth mentioning that this 
-     * relies on the {@link Preferences#nodeExists(String) nodeExists("")} 
-     * method of the internal preference node to determine if this node exists. 
-     * This will return false if the backing store is inaccessible or fails in 
-     * some way.
+     * relies on the {@link nodeExists(String) nodeExists("")} method to 
+     * determine if this node exists. This will return {@code false} if the 
+     * backing store is inaccessible or fails to determine if this node exists.
      * @return Whether this node exists.
      * @see #nodeExists(String) 
      * @see #node
      */
     protected boolean exists(){
         try{
-            return node.nodeExists("");
+            return nodeExists("");
         } catch(BackingStoreException ex){
             return false;
         }
@@ -462,8 +461,8 @@ public class ConfigPreferences extends Preferences{
      * This checks if this node exists, and if not, throws an {@code 
      * IllegalStateException}. It's worth mentioning that this method relies on 
      * the {@link #exists() exists()} method and may also throw an {@code 
-     * IllegalStateException} if the backing store is inaccessible or fails in 
-     * some way.
+     * IllegalStateException} if the backing store is inaccessible or fails to 
+     * determine if this node exists.
      * @throws IllegalStateException If this node does not exist.
      * @see #nodeExists(String) 
      * @see #exists() 
