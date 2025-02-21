@@ -60,6 +60,14 @@ public class ConfigPreferences extends Preferences{
         this(node,null);
     }
     /**
+     * This returns the {@code Properties} object that stores the defaults for 
+     * this preference node.
+     * @return The {@code Properties} object that stores the defaults, or null.
+     */
+    public Properties getDefaults(){
+        return defaults;
+    }
+    /**
      * This returns the value associated with the given key in the preference 
      * node. This will return null if there is no value associated with the 
      * given key or if the backing store is inaccessible. This ignores the 
@@ -637,7 +645,7 @@ public class ConfigPreferences extends Preferences{
      * @see #isKeySet(String) 
      * @see #containsKey(String) 
      * @see #get(String, String) 
-     * @see #defaults
+     * @see #getDefaults() 
      */
     public Properties toProperties() throws BackingStoreException{
             // Create a properties map with the defaults for this node
