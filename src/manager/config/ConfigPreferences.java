@@ -141,9 +141,15 @@ public class ConfigPreferences extends Preferences{
         Objects.requireNonNull(key, "Key cannot be null");
             // Make sure the byte array value is not null
         Objects.requireNonNull(value, "Value cannot be null");
+        
         // TODO: Should this handle something similar to how LinkManagerConfig 
         // deals with setting values to either their defaults or to null?
-        node.put(key, value);
+        
+            // Get the current value, defaulting to null if not set
+        String old = get(key, null);
+            // If the new value is different from the old value
+        if (!value.equals(old))
+            node.put(key, value);
     }
     /**
      * {@inheritDoc }
