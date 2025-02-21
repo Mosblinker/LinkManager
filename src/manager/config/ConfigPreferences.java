@@ -15,13 +15,13 @@ import javax.swing.event.EventListenerList;
  */
 public class ConfigPreferences extends Preferences{
     /**
-     * This contains the word "TRUE".
+     * This contains the word "true".
      */
-    private static final String TRUE = "TRUE";
+    private static final String TRUE = "true";
     /**
-     * This contains the word "FALSE".
+     * This contains the word "false".
      */
-    private static final String FALSE = "FALSE";
+    private static final String FALSE = "false";
     /**
      * This is the preference node that actually stores the values.
      */
@@ -150,9 +150,7 @@ public class ConfigPreferences extends Preferences{
      */
     @Override
     public void putInt(String key, int value) {
-        // TODO: Should this handle something similar to how LinkManagerConfig 
-        // deals with setting values to either their defaults or to null?
-        node.putInt(key, value);
+        put(key, Integer.toString(value));
     }
     /**
      * {@inheritDoc }
@@ -188,9 +186,7 @@ public class ConfigPreferences extends Preferences{
      */
     @Override
     public void putLong(String key, long value) {
-        // TODO: Should this handle something similar to how LinkManagerConfig 
-        // deals with setting values to either their defaults or to null?
-        node.putLong(key, value);
+        put(key,Long.toString(value));
     }
     /**
      * {@inheritDoc }
