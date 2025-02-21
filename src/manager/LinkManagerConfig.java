@@ -1190,33 +1190,6 @@ public class LinkManagerConfig {
     
     /**
      * 
-     * @param prop 
-     */
-    public void importProperties(Properties prop){
-            // If the properties has the database file path
-        if (prop.containsKey(DATABASE_FILE_PATH_KEY)){
-                // Set the database file path from the properties
-            setDatabaseFileName(prop.getProperty(DATABASE_FILE_PATH_KEY));
-        }   // If the properties has the progress display settings
-        if (prop.containsKey(PROGRESS_DISPLAY_KEY)){
-            try{    // Parse and set the progress display settings from the 
-                    // properties
-                setProgressDisplaySetting(Integer.valueOf(prop.getProperty(
-                        PROGRESS_DISPLAY_KEY)));
-            } catch (NumberFormatException ex) {}
-        }
-        
-            // TODO: Remove this once the config properties map is removed or 
-            // repurposed.
-            // Add all the properties to the config properties map
-        config.putAll(prop);
-            // Remove the database file path, since that's in the preference node
-        config.remove(DATABASE_FILE_PATH_KEY);
-            // Remove the progress display, since that's in the preference node
-        config.remove(PROGRESS_DISPLAY_KEY);
-    }
-    /**
-     * 
      * @param key
      * @param value
      * @param node 
@@ -1297,6 +1270,33 @@ public class LinkManagerConfig {
                 return value;
         }
         return formatFilePath(defaultValue);
+    }
+    /**
+     * 
+     * @param prop 
+     */
+    public void importProperties(Properties prop){
+            // If the properties has the database file path
+        if (prop.containsKey(DATABASE_FILE_PATH_KEY)){
+                // Set the database file path from the properties
+            setDatabaseFileName(prop.getProperty(DATABASE_FILE_PATH_KEY));
+        }   // If the properties has the progress display settings
+        if (prop.containsKey(PROGRESS_DISPLAY_KEY)){
+            try{    // Parse and set the progress display settings from the 
+                    // properties
+                setProgressDisplaySetting(Integer.valueOf(prop.getProperty(
+                        PROGRESS_DISPLAY_KEY)));
+            } catch (NumberFormatException ex) {}
+        }
+        
+            // TODO: Remove this once the config properties map is removed or 
+            // repurposed.
+            // Add all the properties to the config properties map
+        config.putAll(prop);
+            // Remove the database file path, since that's in the preference node
+        config.remove(DATABASE_FILE_PATH_KEY);
+            // Remove the progress display, since that's in the preference node
+        config.remove(PROGRESS_DISPLAY_KEY);
     }
     /**
      * 
