@@ -94,6 +94,10 @@ public class LinkManagerConfig {
      * settings that relate to that component.
      */
     private final Map<Component, String> compKeyMap;
+    /**
+     * This is the ID for the program.
+     */
+    private UUID programID = null;
     
     private LinkManagerConfig(Properties sqlProp, ConfigPreferences node){
         defaultConfig = new Properties();
@@ -117,8 +121,6 @@ public class LinkManagerConfig {
     
     public LinkManagerConfig(LinkManagerConfig linkConfig){
         this(linkConfig.sqlConfig.toProperties(), linkConfig.programNode);
-        this.localNode = linkConfig.localNode;
-        this.privateNode = linkConfig.privateNode;
         this.defaultConfig.putAll(linkConfig.defaultConfig);
         this.defaultPrivateConfig.putAll(linkConfig.defaultPrivateConfig);
         this.config.putAll(linkConfig.config);
@@ -126,6 +128,7 @@ public class LinkManagerConfig {
         this.compKeyMap.putAll(linkConfig.compKeyMap);
         this.localDefaults.putAll(linkConfig.localDefaults);
         this.privateDefaults.putAll(linkConfig.privateDefaults);
+        LinkManagerConfig.this.setProgramID(linkConfig.programID);
     }
     /**
      * This returns the preference node used to store the shared configuration 
@@ -226,6 +229,52 @@ public class LinkManagerConfig {
         if (!path.isEmpty() && path.charAt(path.length()-1) != '/')
             path += "/";
         return getNode(path+programID.toString(), defaults);
+    }
+    /**
+     * This returns the program ID set for this configuration.
+     * @return The program ID.
+     */
+    public UUID getProgramID(){
+        return programID;
+    }
+    /**
+     * This sets the program ID for this configuration. This will also set the 
+     * {@link #getPreferences() local} and {@link #getPrivatePreferences() 
+     * private preference nodes}.
+     * @param id The new program ID.
+     * @throws NullPointerException If the program ID is null.
+     * @see #getProgramID() 
+     * @see #setRandomProgramID() 
+     * @see #getPreferences()
+     * @see #getPrivatePreferences()
+     */
+    public void setProgramID(UUID id){
+            // Check if the program ID is null
+        Objects.requireNonNull(id, "Program ID cannot be null");
+            // If the program ID would not change
+        if (id.equals(programID))
+            return;
+        programID = id;
+            // Set the local preference node
+        localNode = getProgramIDNode(LOCAL_PREFERENCE_NODE_PATH,localDefaults);
+            // Set the private preference node
+        privateNode = getProgramIDNode(PRIVATE_PREFERENCE_NODE_PATH,privateDefaults);
+    }
+    /**
+     * This sets the program ID to be a random {@code UUID}.
+     * @return The {@code UUID} used as the program ID.
+     * @see UUID#randomUUID() 
+     * @see #getProgramID() 
+     * @see #setProgramID(UUID) 
+     * @see #getPreferences()
+     * @see #getPrivatePreferences()
+     */
+    public UUID setRandomProgramID(){
+            // Generate a random UUID
+        UUID id = UUID.randomUUID();
+            // Set the program ID to the generated UUID
+        setProgramID(id);
+        return id;
     }
     /**
      * This returns the properties map that stores the configuration for 
