@@ -1304,6 +1304,103 @@ public class LinkManagerConfig {
     /**
      * 
      * @param key
+     * @param prop
+     * @return 
+     */
+    protected Integer getIntProperty(String key, Properties prop){
+            // Get the value from the properties, as a String
+        String value = prop.getProperty(key);
+            // If the value is not null and not empty
+        if (value != null && !value.isEmpty())
+            try{    // Try to parse the value and return it
+                return Integer.valueOf(value);
+            } catch (NumberFormatException ex){ }
+        return null;
+    }
+    /**
+     * 
+     * @param key
+     * @param prop
+     * @return 
+     */
+    protected Long getLongProperty(String key, Properties prop){
+            // Get the value from the properties, as a String
+        String value = prop.getProperty(key);
+            // If the value is not null and not empty
+        if (value != null && !value.isEmpty())
+            try{    // Try to parse the value and return it
+                return Long.valueOf(value);
+            } catch (NumberFormatException ex){ }
+        return null;
+    }
+    /**
+     * 
+     * @param key
+     * @param prop
+     * @return 
+     */
+    protected Boolean getBooleanProperty(String key, Properties prop){
+            // Get the value from the properties, as a String
+        String value = prop.getProperty(key);
+            // If the value is equal to the word "true", ignoring case
+        if ("true".equalsIgnoreCase(value))
+            return true;
+            // If the value is equal to the word "false", ignoring case
+        else if ("false".equalsIgnoreCase(value))
+            return false;
+        return null;
+    }
+    /**
+     * 
+     * @param key
+     * @param prop
+     * @return 
+     */
+    protected Float getFloatProperty(String key, Properties prop){
+            // Get the value from the properties, as a String
+        String value = prop.getProperty(key);
+            // If the value is not null and not empty
+        if (value != null && !value.isEmpty())
+            try{    // Try to parse the value and return it
+                return Float.valueOf(value);
+            } catch (NumberFormatException ex){ }
+        return null;
+    }
+    /**
+     * 
+     * @param key
+     * @param prop
+     * @return 
+     */
+    protected Double getDoubleProperty(String key, Properties prop){
+            // Get the value from the properties, as a String
+        String value = prop.getProperty(key);
+            // If the value is not null and not empty
+        if (value != null && !value.isEmpty())
+            try{    // Try to parse the value and return it
+                return Double.valueOf(value);
+            } catch (NumberFormatException ex){ }
+        return null;
+    }
+    /**
+     * 
+     * @param key
+     * @param prop
+     * @return 
+     */
+    protected byte[] getByteArrayProperty(String key, Properties prop){
+            // Get the value from the properties, as a String
+        String value = prop.getProperty(key);
+            // If the value is not null and not empty
+        if (value != null && !value.isEmpty())
+            try{    // Try to decode the value in Base64 into an array of bytes
+                return Base64.getDecoder().decode(value);
+            } catch (IllegalArgumentException ex) {}
+        return null;
+    }
+    /**
+     * 
+     * @param key
      * @param value
      * @param prop 
      */
