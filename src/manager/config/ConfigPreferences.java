@@ -38,9 +38,9 @@ public class ConfigPreferences extends Preferences{
     public ConfigPreferences(Preferences node, Properties defaults){
             // Make sure the preference node is not null
         this.node = Objects.requireNonNull(node);
-//            // If the given Properties map is null
-//        if (defaults == null)
-//            defaults = new Properties();
+            // If the given Properties map is null
+        if (defaults == null)
+            defaults = new Properties();
         this.defaults = defaults;
         listenerList = new EventListenerList();
             // Create a handler to listen to the node
