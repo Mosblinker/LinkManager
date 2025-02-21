@@ -223,9 +223,7 @@ public class ConfigPreferences extends Preferences{
      */
     @Override
     public void putBoolean(String key, boolean value) {
-        // TODO: Should this handle something similar to how LinkManagerConfig 
-        // deals with setting values to either their defaults or to null?
-        node.putBoolean(key, value);
+        put(key,Boolean.toString(value));
     }
     /**
      * {@inheritDoc }
@@ -261,9 +259,7 @@ public class ConfigPreferences extends Preferences{
      */
     @Override
     public void putFloat(String key, float value) {
-        // TODO: Should this handle something similar to how LinkManagerConfig 
-        // deals with setting values to either their defaults or to null?
-        node.putFloat(key, value);
+        put(key,Float.toString(value));
     }
     /**
      * {@inheritDoc }
@@ -299,9 +295,7 @@ public class ConfigPreferences extends Preferences{
      */
     @Override
     public void putDouble(String key, double value) {
-        // TODO: Should this handle something similar to how LinkManagerConfig 
-        // deals with setting values to either their defaults or to null?
-        node.putDouble(key, value);
+        put(key,Double.toString(value));
     }
     /**
      * {@inheritDoc }
