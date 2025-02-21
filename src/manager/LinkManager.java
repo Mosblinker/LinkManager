@@ -1273,6 +1273,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
         loadPrivateConfig(config.getPrivateProperties());
+        
+            // TODO: This is temporarily being loaded from the private config
+            
+            // Get the program ID as a String
+        String programIDStr = config.getPrivateProperty(PROGRAM_ID_KEY);
+            // This gets the program ID
+        UUID programID = null;
+            // If there is a program ID set
+        if (programIDStr != null){
+            try{    // Try to get the program ID
+                programID = UUID.fromString(programIDStr);
+            } catch (IllegalArgumentException ex){}
+        }   // If there is a program ID to use
+        if (programID != null)
+            config.setProgramID(programID);
+        else{
+                // Set and store a random program ID
+            config.setPrivateProperty(PROGRAM_ID_KEY, config.setRandomProgramID());
+        }
         System.gc();        // Run the garbage collector
         configureProgram();
         if (ENABLE_INITIAL_LOAD_AND_SAVE){
