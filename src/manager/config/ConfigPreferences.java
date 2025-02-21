@@ -86,6 +86,10 @@ public class ConfigPreferences extends Preferences{
      */
     @Override
     public void put(String key, String value) {
+            // Make sure the key is not null
+        Objects.requireNonNull(key, "Key cannot be null");
+            // Make sure the byte array value is not null
+        Objects.requireNonNull(value, "Value cannot be null");
         // TODO: Should this handle something similar to how LinkManagerConfig 
         // deals with setting values to either their defaults or to null?
         node.put(key, value);
