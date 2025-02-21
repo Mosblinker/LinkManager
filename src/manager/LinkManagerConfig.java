@@ -1273,6 +1273,82 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @param key
+     * @param value
+     * @param prop 
+     */
+    protected void setProperty(String key, Object value, Properties prop){
+            // If the value is null
+        if (value == null)
+                // Remove the key from the properties
+            prop.remove(key);
+        else    // Set the value as a String
+            prop.setProperty(key, value.toString());
+    }
+    /**
+     * 
+     * @param key
+     * @param value
+     * @param prop 
+     */
+    protected void setProperty(String key, byte[] value, Properties prop){
+            // This will get the value encoded as a base64 String, or null
+        String str = null;
+            // If the byte array is not null
+        if (value != null)
+                // Encode the byte array as a base64 String
+            str = Base64.getEncoder().encodeToString(value);
+            // Set the value in the properties
+        setProperty(key,str,prop);
+    }
+    /**
+     * 
+     * @param key
+     * @param value
+     * @param prop 
+     */
+    protected void setFilePathProperty(String key,String value,Properties prop){
+            // Format the file path and set it
+        setProperty(key,formatFilePath(value), prop);
+    }
+    /**
+     * 
+     * @param key
+     * @param defaultValue
+     * @param prop
+     * @param defaults
+     * @return 
+     */
+    protected String getFilePathProperty(String key, String defaultValue, 
+            Properties prop, Properties defaults){
+            // Get the value of the property from the properties and format it
+        String value = formatFilePath(prop.getProperty(key));
+            // If the value is not null
+        if (value != null)
+            return value;
+            // If there is a default property list for the node
+        if (defaults != null){
+                // Get the value from the default property list and format it
+            value = formatFilePath(defaults.getProperty(key));
+                // If the value is not null
+            if (value != null)
+                return value;
+        }
+        return formatFilePath(defaultValue);
+    }
+    /**
+     * 
+     * @param key
+     * @param defaultValue
+     * @param prop
+     * @return 
+     */
+    protected String getFilePathProperty(String key, String defaultValue, 
+            Properties prop){
+        return getFilePathProperty(key,defaultValue,prop,null);
+    }
+    /**
+     * 
      * @param prop 
      */
     public void importProperties(Properties prop){
@@ -1303,14 +1379,14 @@ public class LinkManagerConfig {
      * @param fileName 
      */
     public void setDefaultDatabaseFileName(String fileName){
-        getDefaults().setProperty(DATABASE_FILE_PATH_KEY,formatFilePath(fileName));
+        setFilePathProperty(DATABASE_FILE_PATH_KEY,fileName,getDefaults());
     }
     /**
      * 
      * @return 
      */
     public String getDefaultDatabaseFileName(){
-        return getDefaults().getProperty(DATABASE_FILE_PATH_KEY);
+        return getFilePathProperty(DATABASE_FILE_PATH_KEY,null,getDefaults());
     }
     /**
      * 
