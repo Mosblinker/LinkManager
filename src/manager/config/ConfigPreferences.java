@@ -341,6 +341,52 @@ public class ConfigPreferences extends Preferences{
         return def;
     }
     /**
+     * This returns an unmodifiable set containing all the keys that have an 
+     * associated value in this preference node. (The returned set will be empty 
+     * if this node has no preferences.) 
+     * <p>
+     * If either this preference node has any <i>stored defaults</i> in its 
+     * default properties list or the implementation of the preference node 
+     * being wrapped supports <i>stored defaults</i> and there are any such 
+     * defaults at this node that have not been overridden, by explicit 
+     * preferences, the defaults are returned in the set in addition to any 
+     * explicit preferences.
+     * <p>
+     * The returned set is not backed by the preference node. Changes to this 
+     * preference node are not reflected in the returned set.
+     * 
+     * @return An unmodifiable set of keys that have an associated value in this 
+     * preference node, including keys in the default property list.
+     * @throws BackingStoreException If this operation cannot be completed due 
+     * to a failure in the backing store or an inability to communicate with it.
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @see #keys() 
+     */
+    public Set<String> keySet() throws BackingStoreException {
+            // This set will get all the keys in the node and the default 
+            // properties list
+        Set<String> keys = new LinkedHashSet<>();
+            // Add all the keys from the preference node
+        keys.addAll(Arrays.asList(node.keys()));
+            // If there is a default properties list
+        if (defaults != null)
+                // Add all the property names for the default properties
+            keys.addAll(defaults.stringPropertyNames());
+        return Collections.unmodifiableSet(keys);
+    }
+    /**
+     * {@inheritDoc }
+     * @return {@inheritDoc }
+     * @throws BackingStoreException {@inheritDoc }
+     * @throws IllegalStateException {@inheritDoc }
+     * @see #keySet() 
+     */
+    @Override
+    public String[] keys() throws BackingStoreException {
+        return keySet().toArray(String[]::new);
+    }
+    /**
      * {@inheritDoc }
      * @return {@inheritDoc }
      * @throws BackingStoreException {@inheritDoc }
