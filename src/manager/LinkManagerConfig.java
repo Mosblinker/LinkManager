@@ -33,12 +33,12 @@ public class LinkManagerConfig {
      * This is the start of the path for the preference node used to store the 
      * configuration data for an instance of the program.
      */
-    private static final String LOCAL_PREFERENCE_NODE_PATH = "local/";
+    private static final String LOCAL_PREFERENCE_NODE_PATH = "local";
     /**
      * This is the start of the path for the preference node used to store 
      * sensitive data for the program.
      */
-    private static final String PRIVATE_PREFERENCE_NODE_PATH = "private/";
+    private static final String PRIVATE_PREFERENCE_NODE_PATH = "private";
     /**
      * This is the preference node containing all the preferences for 
      * LinkManager. This is the parent preference node for all other nodes, and 
@@ -171,6 +171,61 @@ public class LinkManagerConfig {
      */
     public Properties getPrivateDefaults(){
         return privateDefaults;
+    }
+    /**
+     * This gets a preference node relative to the program preference node with 
+     * the given defaults. This is equivalent to the following: 
+     * 
+     * <pre> {@code
+     * Preferences node = getSharedPreferences().node(pathName);
+     * return new ConfigPreferences(node, defaults);
+     * }</pre>
+     * 
+     * @param pathName The path name for the preference node to return.
+     * @param defaults The defaults for the preferences.
+     * @return A ConfigPreferences node from the shared preference node.
+     * @throws IllegalArgumentException If the path name is invalid (i.e. it 
+     * contains multiple consecutive slash characters or it ends with a slash 
+     * character and is more than one character long).
+     * @throws NullPointerException If the path name is null.
+     * @throws IllegalStateException If the program node (or an ancestor) has 
+     * been removed with the {@link ConfigPreferences#removeNode() removeNode()} 
+     * method.
+     * @see #getSharedPreferences() 
+     * @see ConfigPreferences#node(String) 
+     * @see ConfigPreferences
+     * @see #getProgramIDNode(String, Properties) 
+     */
+    protected ConfigPreferences getNode(String pathName, Properties defaults){
+        return new ConfigPreferences(programNode.node(pathName),defaults);
+    }
+    /**
+     * This returns a preference node that is relative to the program preference 
+     * node, and using the {@link #getProgramID() program ID} as the name of the 
+     * node. This is roughly equivalent to calling {@link #getNode(String, 
+     * Properties) getNode}{@code (path+"/"+getProgramID().toString(), 
+     * defaults)}.
+     * @param path The path for the node. The path will end with the program ID.
+     * @param defaults The defaults for the preferences.
+     * @return A ConfigPreferences node from the shared preference node and with 
+     * the program ID as the name.
+     * @throws IllegalArgumentException If the path name is invalid (i.e. it 
+     * contains multiple consecutive slash characters).
+     * @throws IllegalStateException If the program node (or an ancestor) has 
+     * been removed with the {@link ConfigPreferences#removeNode() removeNode()} 
+     * method.
+     * @see #getNode(String, Properties) 
+     * @see #getSharedPreferences() 
+     * @see #getProgramID() 
+     */
+    protected ConfigPreferences getProgramIDNode(String path, Properties defaults){
+            // If the path is null
+        if (path == null)
+            path = "";
+            // If the path is not empty and does not end with a slash
+        if (!path.isEmpty() && path.charAt(path.length()-1) != '/')
+            path += "/";
+        return getNode(path+programID.toString(), defaults);
     }
     /**
      * This returns the properties map that stores the configuration for 
