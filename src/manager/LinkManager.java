@@ -604,22 +604,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return new File(getProgramDirectory(),DROPBOX_API_KEY_FILE);
     }
     /**
-     * This returns the name for the file that stores the database for the 
-     * program.
-     * @return The name of the file containing the database.
-     */
-    private String getDatabaseFileName(){
-        return config.getFilePathProperty(DATABASE_FILE_PATH_KEY);
-    }
-    /**
-     * 
-     * @param fileName
-     * @return 
-     */
-    private String setDatabaseFileName(String fileName){
-        return config.setFilePathProperty(DATABASE_FILE_PATH_KEY, fileName);
-    }
-    /**
      * 
      * @return 
      */
@@ -631,8 +615,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param fileName
      * @return 
      */
-    private String setExternalDatabaseFileName(String fileName){
-        return config.setPrivateFilePathProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, fileName);
+    private void setExternalDatabaseFileName(String fileName){
+        config.setPrivateFilePathProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, fileName);
     }
     /**
      * 
@@ -655,14 +639,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return The database file.
      */
     private File getDatabaseFile(){
-        return getDatabaseFile(getDatabaseFileName());
+        return getDatabaseFile(config.getDatabaseFileName());
     }
     /**
      * 
      */
     private void updateDatabaseFileFields(){
             // Get the database file from the config
-        dbFileNameField.setText(getDatabaseFileName());
+        dbFileNameField.setText(config.getDatabaseFileName());
     }
     /**
      * This creates and returns a connection to the database file located at 
@@ -870,7 +854,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         config = new LinkManagerConfig(node);
             // Initialize the defaults that are not dependent on the UI
-        config.setPropertyDefault(DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
+        config.setDefaultDatabaseFileName(LINK_DATABASE_FILE);
         config.setPrivateDefault(EXTERNAL_DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
         
         // TODO: Uncomment this when Dropbox token encryption is implemented
@@ -3566,7 +3550,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.out.println("Is Saving Files: " + isSavingFiles());
         System.out.println("Program ID: " + config.getProgramID());
         System.out.println("Config File: " + getConfigFile());
-        System.out.println("Database File Name: " + getDatabaseFileName());
+        System.out.println("Database File Name: " + config.getDatabaseFileName());
         File file = getDatabaseFile();
         System.out.println("Database File: " + file);
         System.out.print("Canonical Database File: ");
@@ -3826,12 +3810,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_executeQueryActionPerformed
     
     private void setDBFileNameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBFileNameButtonActionPerformed
-        setDatabaseFileName(dbFileNameField.getText());
+        config.setDatabaseFileName(dbFileNameField.getText());
         updateDatabaseFileFields();
     }//GEN-LAST:event_setDBFileNameButtonActionPerformed
 
     private void resetDBFilePathButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetDBFilePathButtonActionPerformed
-        setDatabaseFileName(null);
+        config.setDatabaseFileName(null);
         updateDatabaseFileFields();
     }//GEN-LAST:event_resetDBFilePathButtonActionPerformed
 
@@ -3845,7 +3829,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent
      */
     private void printDBButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_printDBButtonActionPerformed
-        System.out.println("Database File Name: " + getDatabaseFileName());
+        System.out.println("Database File Name: " + config.getDatabaseFileName());
         System.out.println("Database File: " + getDatabaseFile());
             // Try to connect to the database and create an SQL statement for it
         try(LinkDatabaseConnection conn = connect(getDatabaseFile());
@@ -4741,7 +4725,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // This will be true if the database location dialog has not been opened before
         if (setLocationDialog.isLocationByPlatform())
             setLocationDialog.setLocationRelativeTo(this);
-        setDatabaseFileLocationFields(getDatabaseFileName());
+        setDatabaseFileLocationFields(config.getDatabaseFileName());
         setExternalDatabaseFileLocationFields(getExternalDatabaseFileName());
         loadExternalAccountData();
         updateDBLocationEnabled();
@@ -4781,7 +4765,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Get the operation to perform on the old file
         int op = dbFileChangeCombo.getSelectedIndex();
             // Check if the new file name is the same as the old file name
-        if (Objects.equals(fileName, getDatabaseFileName())){
+        if (Objects.equals(fileName, config.getDatabaseFileName())){
                 // No change will occur
             setLocationDialog.setVisible(false);
             return;
@@ -4835,7 +4819,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 try {    // If the new file is the same as the old file
                     if (Files.isSameFile(newPath, oldFile.toPath())){
                             // Set the path in the config
-                        setDatabaseFileName(fileName);
+                        config.setDatabaseFileName(fileName);
                             // No change will occur to the file itself
                         setLocationDialog.setVisible(false);
                         return;
@@ -4887,7 +4871,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             saver = new DatabaseFileChanger(op,oldFile,fileName);
             saver.execute();
         } else {
-            setDatabaseFileName(fileName);
+            config.setDatabaseFileName(fileName);
             setLocationDialog.setVisible(false);
         }
     }//GEN-LAST:event_setDBAcceptButtonActionPerformed
@@ -9946,7 +9930,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             if (success){
-                setDatabaseFileName(target);
+                config.setDatabaseFileName(target);
             }
             super.done();
             setLocationDialog.setVisible(false);
