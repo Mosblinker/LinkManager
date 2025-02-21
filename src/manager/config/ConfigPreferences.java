@@ -7,6 +7,7 @@ package manager.config;
 import java.io.*;
 import java.util.*;
 import java.util.prefs.*;
+import javax.swing.event.EventListenerList;
 
 /**
  *
@@ -31,6 +32,10 @@ public class ConfigPreferences extends Preferences{
      */
     protected Properties defaults;
     /**
+     * The list of EventListeners registered to this node.
+     */
+    protected EventListenerList listenerList;
+    /**
      * This constructs a {@code ConfigPreferences} that is a wrapper for the 
      * given preferences node and which has the specified defaults.
      * @param node The preference node to wrap (cannot be null).
@@ -45,6 +50,7 @@ public class ConfigPreferences extends Preferences{
 //        if (defaults == null)
 //            defaults = new Properties();
         this.defaults = defaults;
+        listenerList = new EventListenerList();
     }
     /**
      * This constructs a {@code ConfigPreferences} that is a wrapper for the 
