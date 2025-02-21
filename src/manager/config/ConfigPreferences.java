@@ -576,23 +576,63 @@ public class ConfigPreferences extends Preferences{
         node.exportSubtree(os);
     }
     
+    /**
+     * {@inheritDoc }
+     * @param pcl {@inheritDoc }
+     * @throws IllegalStateException {@inheritDoc }
+     * @see #removePreferenceChangeListener(PreferenceChangeListener) 
+     * @see #addNodeChangeListener(NodeChangeListener) 
+     */
     @Override
     public void addPreferenceChangeListener(PreferenceChangeListener pcl) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            // Check if this node exists
+        checkExists();
+            // If the given listener is not null
+        if (pcl != null)
+                // Add the listener to the list of listeners
+            listenerList.add(PreferenceChangeListener.class, pcl);
     }
-
+    /**
+     * {@inheritDoc }
+     * @param pcl {@inheritDoc }
+     * @throws IllegalStateException {@inheritDoc }
+     * @see #addPreferenceChangeListener(PreferenceChangeListener) 
+     */
     @Override
     public void removePreferenceChangeListener(PreferenceChangeListener pcl) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            // Check if this node exists
+        checkExists();
+            // Remove the listener from the list of listeners
+        listenerList.remove(PreferenceChangeListener.class, pcl);
     }
 
+    /**
+     * {@inheritDoc }
+     * @param ncl {@inheritDoc }
+     * @throws IllegalStateException {@inheritDoc }
+     * @see #removeNodeChangeListener(NodeChangeListener) 
+     * @see #addPreferenceChangeListener(PreferenceChangeListener) 
+     */
     @Override
     public void addNodeChangeListener(NodeChangeListener ncl) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            // Check if this node exists
+        checkExists();
+            // If the given listener is not null
+        if (ncl != null)
+                // Add the listener to the list of listeners
+            listenerList.add(NodeChangeListener.class, ncl);
     }
-
+    /**
+     * {@inheritDoc }
+     * @param ncl {@inheritDoc }
+     * @throws IllegalStateException {@inheritDoc }
+     * @see #addNodeChangeListener(NodeChangeListener) 
+     */
     @Override
     public void removeNodeChangeListener(NodeChangeListener ncl) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            // Check if this node exists
+        checkExists();
+            // Remove the listener from the list of listeners
+        listenerList.remove(NodeChangeListener.class, ncl);
     }
 }
