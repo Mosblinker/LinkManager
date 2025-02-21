@@ -11,7 +11,6 @@ import java.sql.*;
 import java.util.*;
 import javax.swing.JProgressBar;
 import javax.swing.table.*;
-import manager.LinkManager;
 import manager.links.LinksListModel;
 import org.sqlite.*;
 import sql.*;
@@ -1577,7 +1576,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     
     public static final int DATABASE_MAJOR_VERSION = 3;
     
-    public static final int DATABASE_MINOR_VERSION = 2;
+    public static final int DATABASE_MINOR_VERSION = 3;
     
     public static final int DATABASE_PATCH_VERSION = 0;
     
@@ -3531,13 +3530,14 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 if (!updateSuccess)
                     break;
             case("3.0.0"):      // If version 3.0.0
-                setDatabaseUUIDIfAbsent();
             case("3.1.0"):      // If version 3.1.0
                     // Ensure that the default is set properly
-                getDatabaseProperties().getDefaults().setProperty(
+                properties.getDefaults().setProperty(
                         DATABASE_LAST_MODIFIED_CONFIG_KEY, DATABASE_LAST_MODIFIED_CONFIG_DEFAULT);
                 setDatabaseLastModified();
-//            case("3.2.0"):      // If version 3.2.0
+            case("3.2.0"):      // If version 3.2.0
+                setDatabaseUUIDIfAbsent();
+//            case("3.3.0"):      // If version 3.3.0
         }
             // If foreign keys are supported
         if (foreignKeys != null)
@@ -3702,7 +3702,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             // If the UUID is null
         if (uuid == null)
             return null;
-        return LinkManager.uuidToHex(uuid);
+        return uuid.toString();
     }
     /**
      * 
@@ -3713,14 +3713,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             // If the UUID String is null or blank
         if (value == null || value.isBlank())
             return null;
-            // Trim the UUID String
-        value = value.trim();
-            // If the UUID String is too long
-        if (value.length() > 32)
-            value = value.substring(0, 32);
-        try{
-            return LinkManager.uuidFromHex(value);
-        } catch (NumberFormatException ex){ 
+        try{    // Try to parse the UUID from a string
+            return UUID.fromString(value.trim());
+        } catch (IllegalArgumentException ex){ 
             return null;
         }
     }
