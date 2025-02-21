@@ -1190,6 +1190,13 @@ public class LinkManagerConfig {
     
     /**
      * 
+     * @param prop 
+     */
+    public void importProperties(Properties prop){
+        config.putAll(prop);
+    }
+    /**
+     * 
      * @param key
      * @param value
      * @param node 
