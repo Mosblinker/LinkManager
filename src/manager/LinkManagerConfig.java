@@ -87,7 +87,7 @@ public class LinkManagerConfig {
      */
     private final Map<Component, String> compKeyMap;
     
-    private LinkManagerConfig(Properties sqlProp, Preferences node){
+    private LinkManagerConfig(Properties sqlProp, ConfigPreferences node){
         defaultConfig = new Properties();
         config = new Properties(defaultConfig);
         defaultPrivateConfig = new Properties();
@@ -98,19 +98,17 @@ public class LinkManagerConfig {
             sqlConfig = new SQLiteConfig(sqlProp);
         else
             sqlConfig = new SQLiteConfig();
-        programNode = new ConfigPreferences(node);
+        programNode = node;
     }
     
     public LinkManagerConfig(Preferences node){
-        this(null, node);
-    }
-    
-    public LinkManagerConfig(){
-        this(null, null);
+        this(null, new ConfigPreferences(node));
     }
     
     public LinkManagerConfig(LinkManagerConfig linkConfig){
         this(linkConfig.sqlConfig.toProperties(), linkConfig.programNode);
+        this.localNode = linkConfig.localNode;
+        this.privateNode = linkConfig.privateNode;
         this.defaultConfig.putAll(linkConfig.defaultConfig);
         this.defaultPrivateConfig.putAll(linkConfig.defaultPrivateConfig);
         this.config.putAll(linkConfig.config);
