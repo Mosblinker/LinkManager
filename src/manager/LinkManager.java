@@ -1152,10 +1152,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         loadPrivateConfig(config.getPrivateProperties());
         
-            // TODO: This is temporarily being loaded from the private config
+            // TODO: This is temporarily being loaded from the config
             
             // Get the program ID as a String
-        String programIDStr = config.getPrivateProperty(PROGRAM_ID_KEY);
+        String programIDStr = config.getProperty(PROGRAM_ID_KEY);
             // This gets the program ID
         UUID programID = null;
             // If there is a program ID set
@@ -1168,7 +1168,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             config.setProgramID(programID);
         else{
                 // Set and store a random program ID
-            config.setPrivateProperty(PROGRAM_ID_KEY, config.setRandomProgramID());
+            config.setProperty(PROGRAM_ID_KEY, config.setRandomProgramID());
         }
         System.gc();        // Run the garbage collector
         configureProgram();
