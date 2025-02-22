@@ -1030,7 +1030,9 @@ public class LinkManagerConfig {
             config.remove(entry.getValue()+COMPONENT_LOCATION_KEY_SUFFIX);
                 // Remove the component bounds, since that's in the preference node
             config.remove(entry.getValue()+COMPONENT_BOUNDS_KEY_SUFFIX);
-        }
+        }   // This maps listIDs to the selected link for that list
+        Map<Integer,String> selMap = new HashMap<>();
+            // This maps the listIDs to whether the selected link is visible for 
             // This maps the list types to the listID of the selected list for 
             // that list type
         Map<Integer,Integer> selListIDMap = new HashMap<>();
@@ -1047,9 +1049,13 @@ public class LinkManagerConfig {
             // Go through the property keys that deal with lists
         for (String key : listKeys){
             String keyPrefix;   // Get the prefix for the current key
-            String keySuffix;   // The suffix for the property version of the key
+                // The suffix for the property version of the key
+            String keySuffix = LIST_ID_PROPERTY_KEY_SUFFIX;   
+                // If the key starts with the selected link key
+            if (key.startsWith(SELECTED_LINK_FOR_LIST_KEY))
+                keyPrefix = SELECTED_LINK_FOR_LIST_KEY;
                 // If the key starts with the current tab listID key
-            if (key.startsWith(CURRENT_TAB_LIST_ID_KEY)){
+            else if (key.startsWith(CURRENT_TAB_LIST_ID_KEY)){
                 keyPrefix = CURRENT_TAB_LIST_ID_KEY;
                 keySuffix = LIST_TYPE_PROPERTY_KEY_SUFFIX;
             }   // If the key starts with the current tab index key
@@ -1063,6 +1069,10 @@ public class LinkManagerConfig {
                         keySuffix.length()));
                     // Determine which key this is based off the prefix
                 switch(keyPrefix){
+                        // If this is the selected link key
+                    case(SELECTED_LINK_FOR_LIST_KEY):
+                        selMap.put(type, cProp.getProperty(key));
+                        break;
                         // If this is the current tab listID key
                     case(CURRENT_TAB_LIST_ID_KEY):
                         selListIDMap.put(type, cProp.getIntProperty(key));
@@ -1077,11 +1087,14 @@ public class LinkManagerConfig {
                 // repurposed.
                 // Remove this key since it'll soon be in the preference node
             config.remove(key);
-        }
+        }   // Remove all null values from the selected links
+        selMap.values().removeIf((String t) -> t == null);
             // Remove all null values from the current tab listIDs
         selListIDMap.values().removeIf((Integer t) -> t == null);
             // Remove all null values from the current tab indexes
         selListMap.values().removeIf((Integer t) -> t == null);
+            // Add all the values for the selected links in the lists
+        getSelectedLinkMap().putAll(selMap);
         
             // Add all the values for the current tab listIDs 
         getCurrentTabListIDMap().putAll(selListIDMap);
