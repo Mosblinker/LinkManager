@@ -545,6 +545,66 @@ public class ConfigPreferences extends Preferences{
     }
     /**
      * 
+     * @param key
+     * @param value 
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given key is null.
+     * @see #put(String, String) 
+     * @see #putInt(String, int) 
+     * @see #putLong(String, long) 
+     * @see #putBoolean(String, boolean) 
+     * @see #putFloat(String, float) 
+     * @see #putDouble(String, double) 
+     * @see #putByteArray(String, byte[]) 
+     * @see #putDimension(String, Dimension) 
+     * @see #putPoint(String, Point) 
+     * @see #putRectangle(String, Rectangle) 
+     * @see #remove(String) 
+     */
+    public void putObject(String key, Object value){
+            // If the value is null
+        if (value == null)
+                // Remove the value for the key, resetting it to default
+            remove(key);
+            // If the value is a boolean
+        else if (value instanceof Boolean)
+                // Set the value as a boolean
+            putBoolean(key, (boolean) value);
+            // If the value is a double
+        else if (value instanceof Double)
+                // Set the value as a double
+            putDouble(key, (double) value);
+            // If the value is a float
+        else if (value instanceof Float)
+                // Set the value as a float
+            putFloat(key, (float) value);
+            // If the value is a long
+        else if (value instanceof Long)
+                // Set the value as a long
+            putLong(key, (long) value);
+            // If the value is a number (should only be ints, shorts, and bytes 
+        else if (value instanceof Number)   // left)
+                // Set the value as an integer
+            putInt(key, ((Number)value).intValue());
+            // If the value is a byte array
+        else if (value instanceof byte[])
+            putByteArray(key, (byte[])value);
+            // If the value is a dimension
+        else if (value instanceof Dimension)
+                // Set the value as a dimension
+            putDimension(key, (Dimension)value);
+            // If the value is a point
+        else if (value instanceof Point)
+            putPoint(key, (Point)value);
+            // If the value is a rectangle
+        else if (value instanceof Rectangle)
+            putRectangle(key, (Rectangle)value);
+        else    // Get the value as a string and set it
+            put(key, value.toString());
+    }
+    /**
+     * 
      * @param map 
      * @throws IllegalStateException If this node (or an ancestor) has been 
      * removed with the {@link #removeNode() removeNode()} method.
@@ -555,10 +615,7 @@ public class ConfigPreferences extends Preferences{
             // Go through the entries in the map
         for (Map.Entry<?, ?> entry : map.entrySet()){
                 // Put the entry into the preference node
-            put(entry.getKey().toString(),
-                        // If the value is not null, get it as a String. 
-                        // Otherwise, put null
-                    (entry.getValue()!=null)?entry.getValue().toString():null);
+            putObject(entry.getKey().toString(),entry.getValue());
         }
     }
     /**
