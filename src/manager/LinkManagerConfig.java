@@ -155,6 +155,11 @@ public class LinkManagerConfig {
      */
     public static final String FRAME_WINDOW_STATE_KEY_SUFFIX = "WindowState";
     /**
+     * This is the prefix for keys relating to Dropbox settings when importing 
+     * or exporting the settings.
+     */
+    public static final String DROPBOX_SETTING_KEY_PREFIX = "Dropbox";
+    /**
      * This is the start of the path for the preference node used to store the 
      * configuration data for an instance of the program.
      */
@@ -943,6 +948,13 @@ public class LinkManagerConfig {
             setDatabaseErrorDetailsAreShown(b);     // properties
             // Get the value for the database sync setting from the properties
         b = cProp.getBooleanProperty(SYNC_DATABASE_KEY);
+            // Get the value for the Dropbox database file path from the 
+            // properties
+        str = cProp.getProperty(DROPBOX_SETTING_KEY_PREFIX+DATABASE_FILE_PATH_KEY);    
+            // If the properties has the Dropbox database file path
+        if (str != null)
+                // Set the Dropbox database file path from the properties
+            setDropboxDatabaseFileName(str);
             // If the properties has the database sync setting
         if (b != null)
                 // Set whether database will sync from the properties
@@ -1017,6 +1029,8 @@ public class LinkManagerConfig {
         config.remove(SHOW_DETAILED_DATABASE_ERRORS);
             // Remove the database sync value, since that's in the preference node
         config.remove(SYNC_DATABASE_KEY);
+            // Remove the dropbox database file path, since that's in the preference node
+        config.remove(DROPBOX_SETTING_KEY_PREFIX+DATABASE_FILE_PATH_KEY);
     }
     /**
      * 
