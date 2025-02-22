@@ -1796,6 +1796,16 @@ public class LinkManagerConfig {
     /**
      * 
      * @param comp
+     * @param width
+     * @param height 
+     */
+    public void setDefaultComponentSize(Component comp, int width, int height){
+        getDefaults().setDimensionProperty(
+                getComponentName(comp)+COMPONENT_SIZE_KEY_SUFFIX, width,height);
+    }
+    /**
+     * 
+     * @param comp
      * @param value 
      */
     public void setDefaultComponentSize(Component comp, Dimension value){
@@ -1810,6 +1820,16 @@ public class LinkManagerConfig {
     public Dimension getDefaultComponentSize(Component comp){
         return getDefaults().getDimensionProperty(
                 getComponentName(comp)+COMPONENT_SIZE_KEY_SUFFIX);
+    }
+    /**
+     * 
+     * @param comp
+     * @param width
+     * @param height 
+     */
+    public void setComponentSize(Component comp, int width, int height){
+        getPreferences().putDimension(
+                getComponentName(comp)+COMPONENT_SIZE_KEY_SUFFIX, width,height);
     }
     /**
      * 
