@@ -1410,6 +1410,14 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @param comp
+     * @return 
+     */
+    protected String getComponentName(Component comp){
+        return getComponentNames().getOrDefault(comp, comp.getName());
+    }
+    /**
+     * 
      * @param prop 
      */
     public void importProperties(Properties prop){
