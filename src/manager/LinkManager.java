@@ -128,25 +128,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String PROGRAM_ID_KEY = "ProgramID";
     /**
-     * This is the configuration key for the listID of the currently selected 
-     * list if a list with a listID is selected. This is for the 
-     */
-    private static final String CURRENT_TAB_LIST_ID_KEY_PREFIX = 
-            "CurrentTabListIDForType";
-    /**
-     * This is the configuration key for the index of the currently selected 
-     * tab if a tab is selected. This value is used as a fallback value to be 
-     * used when the value for {@link CURRENT_TAB_LIST_ID_KEY} is unavailable 
-     * either due to the currently selected list not having a listID, no lists 
-     * have the selected listID, or the current tab is not a list. The value for 
-     * {@code CURRENT_TAB_LIST_ID_KEY} takes priority over this value due to 
-     * the listIDs staying more or less constant for any given list saved to or 
-     * loaded from the database, whereas the index for any given list may vary 
-     * between instances of the program.
-     */
-    private static final String CURRENT_TAB_INDEX_KEY_PREFIX = 
-            "CurrentTabIndexForType";
-    /**
      * This is the prefix for the configuration key for the currently selected 
      * link in a list with a listID. The list's listID is appended to the end of 
      * this to get the configuration key specific for that list.
@@ -176,9 +157,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         SELECTED_LINK_FOR_LIST_KEY_PREFIX,
         SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX,
         FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX,
-        LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX,
-        CURRENT_TAB_LIST_ID_KEY_PREFIX,
-        CURRENT_TAB_INDEX_KEY_PREFIX
+        LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX
     };
     
     private static final String LIST_MANAGER_NAME = "ListManager";
