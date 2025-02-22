@@ -4584,7 +4584,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private void setExternalDatabaseFileLocationFields(String fileName){
-        dbxDbFileField.setText(fileName);
+        dbxDbFileField.setText(formatDropboxPath(fileName));
     }
     
     private void setDBCancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBCancelButtonActionPerformed
@@ -6438,6 +6438,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbListIDs.removeIf((Integer t) -> t == null);
             // Add any that are missing from the tabs panel
         dbListIDs.addAll(missingIDs);
+    }
+    /**
+     * 
+     * @param path
+     * @return 
+     */
+    private String formatDropboxPath(String path){
+            // If the path does not start with a slash
+        if (!path.startsWith("/"))
+                // Add a slash to the start of the file name
+            return "/"+path;
+        return path;
     }
     /**
      * This is a LinksListTabAction that saves the links from a list to a 
@@ -8480,7 +8492,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          */
         protected void uploadDatabase(){
-            saver = new DbxUploader(file,"/"+getExternalDatabaseFileName(),false,exitAfterSaving);
+            saver = new DbxUploader(file,config.getDropboxDatabaseFileName(),false,exitAfterSaving);
             saver.execute();
         }
         @Override
@@ -10214,7 +10226,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param loadFlags 
          */
         DbxDownloader(File file,String dbxPath,Integer loadFlags){
-            super(file,dbxPath,loadFlags);
+            super(file,formatDropboxPath(dbxPath),loadFlags);
         }
         /**
          * 
@@ -10222,7 +10234,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param dbxPath
          */
         DbxDownloader(File file,String dbxPath){
-            super(file,dbxPath);
+            super(file,formatDropboxPath(dbxPath));
         }
         @Override
         protected String getFileNotFoundMessage(File file, String path){
@@ -10288,7 +10300,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param exit 
          */
         DbxUploader(File file,String dbxPath,boolean showSuccess,boolean exit) {
-            super(file,dbxPath,showSuccess,exit);
+            super(file,formatDropboxPath(dbxPath),showSuccess,exit);
         }
         /**
          * 
@@ -10297,7 +10309,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param showSuccess 
          */
         DbxUploader(File file, String dbxPath, boolean showSuccess){
-            super(file,dbxPath,showSuccess);
+            super(file,formatDropboxPath(dbxPath),showSuccess);
         }
         /**
          * 
@@ -10305,7 +10317,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file 
          */
         DbxUploader(File file,String dbxPath){
-            super(file,dbxPath);
+            super(file,formatDropboxPath(dbxPath));
         }
         @Override
         protected String getExceptionMessage(File file, String path){
