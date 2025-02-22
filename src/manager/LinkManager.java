@@ -9280,14 +9280,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     new SQLiteConfig().toProperties(),true);
                 // Add all the properties for this program
             addConfigRows("Properties",config.getProperties(),config.getDefaultProperties());
-                // Add all the private properties for this program
-            addConfigRows("Private Properties",config.getPrivateProperties(),config.getDefaultPrivateProperties());
                 // Add all the shared preferences for this program
             addConfigRows("Shared Preferences",config.getSharedPreferences());
                 // Add all the local preferences for this program
             addConfigRows("Local Preferences",config.getPreferences());
-                // Add all the private preferences for this program
-            addConfigRows("Private Preferences",config.getPrivatePreferences());
                 // Add all the local Dropbox preferences for this program
             addConfigRows("Dropbox Preferences",config.getDropboxPreferences());
             
