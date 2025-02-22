@@ -258,42 +258,6 @@ public class ConfigUtilities {
     }
     /**
      * 
-     * @param values
-     * @param arr
-     * @param offset
-     * @return 
-     */
-    public static byte[] intArrayToBytes(int[] values, byte[] arr, int offset){
-            // Go through the array of integers
-        for (int i : values){
-                // Add the integer to the byte array
-            arr = toByteArray(i,arr,offset);
-                // Next integer is offset by the number of bytes
-            offset += Integer.BYTES;
-        }
-        return arr;
-    }
-    /**
-     * 
-     * @param value
-     * @param offset
-     * @param length
-     * @return 
-     */
-    public static int[] intArrayFromBytes(byte[] value, int offset, int length){
-            // An array to get the integers in the byte array
-        int[] arr = new int[length];
-            // Go through the integers in the byte array for as long as there 
-            // are integer to add to the integer array
-        for (int i = 0; i < length && offset < value.length; i++, 
-                offset+=Integer.BYTES){
-                // Get the next integer from the array
-            arr[i] = toInteger(value,offset);
-        }
-        return arr;
-    }
-    /**
-     * 
      * @param width
      * @param height
      * @return 
