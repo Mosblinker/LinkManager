@@ -45,23 +45,35 @@ public class ConfigUtilities {
      * @param value
      * @param arr
      * @param offset
+     * @param size The number of bytes that are in the value.
      * @return 
      */
-    public static byte[] toByteArray(int value, byte[] arr, int offset){
+    private static byte[] toByteArray(long value, byte[] arr, int offset, int size){
             // If the offset into the array is negative
         if (offset < 0)
             throw new IndexOutOfBoundsException("Array offset cannot be negative ("+
                     offset+")");
             // Expand the byte array if it's too small (or create it if it's 
-        arr = expandByteArray(arr, offset+Integer.BYTES);   // null)
+        arr = expandByteArray(arr, offset+size);    // null)
             // A for loop to go through the bytes of the given value
-        for (int i = 0; i < Integer.BYTES && value != 0; i++){
+        for (int i = 0; i < size && value != 0; i++){
                 // Add the current least significant byte to the array
             arr[offset+i] = (byte)(value & 0xFF);
                 // Shift the value by one byte
             value >>= Byte.SIZE;
         }
         return arr;
+    }
+    /**
+     * 
+     * @param value
+     * @param arr
+     * @param offset
+     * @return 
+     */
+    public static byte[] toByteArray(int value, byte[] arr, int offset){
+        return toByteArray(Integer.toUnsignedLong(value),arr,offset,
+                Integer.BYTES);
     }
     /**
      * 
