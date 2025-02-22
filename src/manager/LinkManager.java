@@ -50,6 +50,7 @@ import javax.swing.table.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 import javax.swing.tree.*;
+import static manager.LinkManagerConfig.*;
 import manager.config.ConfigPreferences;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
@@ -9155,6 +9156,28 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         private void addConfigRows(String source, Preferences node){
             addConfigRows(source,new ConfigPreferences(node));
         }
+        /**
+         * 
+         * @param sourceTemplate
+         * @param prefix 
+         */
+        private void addNodeChildConfigRows(String sourceTemplate, String prefix){
+            try{    // Get the children of the local preference node, as a 
+                    // tree set
+                TreeSet<String> childNodes = new TreeSet<>(Arrays.asList(
+                        config.getPreferences().childrenNames()));
+                    // Remove anything that doesn't have the given prefix
+                childNodes.removeIf((String t) -> t == null || 
+                        !t.startsWith(prefix));
+                    // Go through the child nodes
+                for (String child : childNodes){
+                        // Add all the values in the child node
+                    addConfigRows(String.format(sourceTemplate, 
+                            child.substring(prefix.length())), 
+                            config.getPreferences().node(child));
+                }
+            } catch (BackingStoreException ex) {}
+        }
         @Override
         protected boolean loadFile(File file){
             if (file.exists())  // If the database file exists
@@ -9175,7 +9198,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             addConfigRows("Shared Preferences",config.getSharedPreferences());
                 // Add all the local preferences for this program
             addConfigRows("Local Preferences",config.getPreferences());
-                
+                // Add all the list type nodes
+            addNodeChildConfigRows("List Type %s Preferences",
+                    LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX);
+                // Add all the list ID nodes
+            addNodeChildConfigRows("List ID %s Preferences",
+                    LIST_ID_PREFERENCE_NODE_NAME_PREFIX);
                 // Add all the local Dropbox preferences for this program
             addConfigRows("Dropbox Preferences",config.getDropboxPreferences());
             
