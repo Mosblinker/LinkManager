@@ -132,7 +132,7 @@ public class ConfigUtilities {
      * @param offset
      * @return 
      */
-    public static int intFromBytes(byte[] value, int offset){
+    public static int toInteger(byte[] value, int offset){
             // Check if the array is null
         Objects.requireNonNull(value);
             // Check if the offset is in the array
@@ -158,7 +158,7 @@ public class ConfigUtilities {
             // Go through the array of integers
         for (int i : values){
                 // Add the integer to the byte array
-            arr = intToBytes(i,arr,offset);
+            arr = toByteArray(i,arr,offset);
                 // Next integer is offset by the number of bytes
             offset += Integer.BYTES;
         }
@@ -179,7 +179,7 @@ public class ConfigUtilities {
         for (int i = 0; i < length && offset < value.length; i++, 
                 offset+=Integer.BYTES){
                 // Get the next integer from the array
-            arr[i] = intFromBytes(value,offset);
+            arr[i] = toInteger(value,offset);
         }
         return arr;
     }
