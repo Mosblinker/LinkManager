@@ -1118,7 +1118,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         for (Component comp : config.getComponentNames().keySet()){
                 // Use the preferred size of the current component as its 
                 // default size
-            config.setDefaultSizeProperty(comp,comp.getPreferredSize());
+            config.setDefaultComponentSize(comp,comp.getPreferredSize());
         }
         
             // Set the SQLite config to enforce the foreign keys
@@ -4069,7 +4069,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             beep();
         listManipulator.setPreferredSize(listManipulator.getSize());
             // Set the list manipulator panel's size in the config
-        config.setSizeProperty(listManipulator);
+        config.setComponentSize(listManipulator);
         linkTextField.grabFocus();
     }//GEN-LAST:event_manageLinksButtonActionPerformed
     /**
@@ -4338,7 +4338,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         listTabsManipulator.setPreferredSize(listTabsManipulator.getSize());
             // Set the list tabs manipulator panel's size in the config
-        config.setSizeProperty(listTabsManipulator);
+        config.setComponentSize(listTabsManipulator);
         System.gc();
     }//GEN-LAST:event_manageListsItemActionPerformed
     /**
@@ -4645,7 +4645,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // If the window is not maximized
         if (!isMaximized())
                 // Set the windows's size in the config
-            config.setSizeProperty(this);
+            config.setComponentSize(this);
     }//GEN-LAST:event_formComponentResized
 
     private void formWindowStateChanged(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowStateChanged
@@ -4929,7 +4929,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void setLocationDialogComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_setLocationDialogComponentResized
             // Set the dialog's size in the config if it's saved
-        config.setSizeProperty(setLocationDialog);
+        config.setComponentSize(setLocationDialog);
     }//GEN-LAST:event_setLocationDialogComponentResized
 
     private void dbxPrintButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxPrintButtonActionPerformed
@@ -5455,7 +5455,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 option = fc.showOpenDialog(this);
             fc.setPreferredSize(fc.getSize());
                 // Set the file chooser's size in the config if it's saved
-            config.setSizeProperty(fc);
+            config.setComponentSize(fc);
             if (option == JFileChooser.APPROVE_OPTION){
                 file = fc.getSelectedFile();
                 if (!file.exists()){
@@ -5489,7 +5489,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             option = fc.showSaveDialog(this);
         fc.setPreferredSize(fc.getSize());
             // Set the file chooser's size in the config if it's saved
-        config.setSizeProperty(fc);
+        config.setComponentSize(fc);
             // If the user wants to save the file
         if (option == JFileChooser.APPROVE_OPTION)
             return fc.getSelectedFile();
@@ -6278,7 +6278,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Go through the components with sizes saved to config
             for (Component comp : config.getComponentNames().keySet()){
                     // Get the size from the config for the component
-                Dimension dim = config.getSizeProperty(comp);
+                Dimension dim = config.getComponentSize(comp);
                     // If the size for the component is null
                 if (dim == null)
                     continue;
@@ -6720,7 +6720,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             addLinksPanel.setPreferredSize(addLinksPanel.getSize());
                 // Set the add list panel's size in the config
-            config.setSizeProperty(addLinksPanel);
+            config.setComponentSize(addLinksPanel);
         }
         @Override
         protected String getNewActionName(LinksListPanel panel){
@@ -6800,7 +6800,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             copyOrMoveListSelector.setPreferredSize(
                     copyOrMoveListSelector.getSize());
                 // Set the copy or move selector panel's size in the config
-            config.setSizeProperty(copyOrMoveListSelector);
+            config.setComponentSize(copyOrMoveListSelector);
         }
         @Override
         protected String getNewActionName(LinksListPanel panel){
