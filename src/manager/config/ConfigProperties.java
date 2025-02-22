@@ -94,11 +94,51 @@ public class ConfigProperties extends Properties{
     /**
      * 
      * @param key
+     * @param x
+     * @param y
+     * @return 
+     */
+    public synchronized Object setPointProperty(String key, int x, int y){
+        return setProperty(key,ConfigUtilities.pointToByteArray(x, y));
+    }
+    /**
+     * 
+     * @param key
      * @param value
      * @return 
      */
     public synchronized Object setPointProperty(String key, Point value){
-        return setProperty(key,pointToByteArray(value));
+            // If the new value is null
+        if (value == null)
+                // Remove the value from the map
+            return remove(key);
+            // Set the point property
+        return setPointProperty(key,value.x,value.y);
+    }
+    /**
+     * 
+     * @param key
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     * @return 
+     */
+    public synchronized Object setRectangleProperty(String key, int x, int y, 
+            int width, int height){
+        return setProperty(key,ConfigUtilities.rectangleToByteArray(x,y,width,
+                height));
+    }
+    /**
+     * 
+     * @param key
+     * @param width
+     * @param height
+     * @return 
+     */
+    public synchronized Object setRectangleProperty(String key, int width, 
+            int height){
+        return setRectangleProperty(key,0,0,width,height);
     }
     /**
      * 
@@ -107,7 +147,12 @@ public class ConfigProperties extends Properties{
      * @return 
      */
     public synchronized Object setRectangleProperty(String key,Rectangle value){
-        return setProperty(key,rectangleToByteArray(value));
+            // If the new value is null
+        if (value == null)
+                // Remove the value from the map
+            return remove(key);
+            // Set the rectangle property
+        return setRectangleProperty(key,value.x,value.y,value.width,value.height);
     }
     /**
      * 

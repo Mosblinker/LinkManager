@@ -495,19 +495,40 @@ public class ConfigPreferences extends Preferences{
     }
     /**
      * 
+     * @param key 
+     * @param x 
+     * @param y 
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given key is null.
+     * @see #putPoint(String, Point) 
+     * @see #getPoint(String, Point) 
+     * @see #get(String, String) 
+     */
+    public void putPoint(String key, int x, int y){
+            // Store the integers into the preference node
+        putByteArray(key,ConfigUtilities.pointToByteArray(x, y));
+    }
+    /**
+     * 
      * @param key
      * @param value 
      * @throws IllegalStateException If this node (or an ancestor) has been 
      * removed with the {@link #removeNode() removeNode()} method.
      * @throws NullPointerException If the given key is null.
+     * @see #putPoint(String, int, int) 
      * @see #getPoint(String, Point) 
      * @see #get(String, String) 
      * @see #getByteArray(String, byte[]) 
      * @see #putByteArray(String, byte[]) 
      */
     public void putPoint(String key, Point value){
-            // Convert the point object into an array of bytes and store it
-        putByteArray(key,pointToByteArray(value));
+            // If the value is null
+        if (value == null)
+                // Remove the value for the key, resetting it to default
+            remove(key);
+        else    // Store the point
+            putPoint(key,value.x,value.y);
     }
     /**
      * 
@@ -517,6 +538,7 @@ public class ConfigPreferences extends Preferences{
      * @throws IllegalStateException If this node (or an ancestor) has been 
      * removed with the {@link #removeNode() removeNode()} method.
      * @throws NullPointerException If the given key is null.
+     * @see #putPoint(String, int, int) 
      * @see #putPoint(String, Point) 
      * @see #get(String, String) 
      * @see #getByteArray(String, byte[]) 
@@ -530,19 +552,58 @@ public class ConfigPreferences extends Preferences{
     }
     /**
      * 
+     * @param key 
+     * @param x 
+     * @param y 
+     * @param width 
+     * @param height 
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given key is null.
+     * @see #putRectangle(java.lang.String, int, int) 
+     * @see #getRectangle(String, Rectangle) 
+     * @see #get(String, String) 
+     */
+    public void putRectangle(String key, int x, int y, int width, int height){
+            // Store the integers into the preference node
+        putByteArray(key,ConfigUtilities.rectangleToByteArray(x,y,width,height));
+    }
+    /**
+     * 
+     * @param key 
+     * @param width 
+     * @param height 
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given key is null.
+     * @see #putRectangle(java.lang.String, int, int, int, int) 
+     * @see #getRectangle(String, Rectangle) 
+     * @see #get(String, String) 
+     */
+    public void putRectangle(String key, int width, int height){
+        putRectangle(key,0,0,width,height);
+    }
+    /**
+     * 
      * @param key
      * @param value 
      * @throws IllegalStateException If this node (or an ancestor) has been 
      * removed with the {@link #removeNode() removeNode()} method.
      * @throws NullPointerException If the given key is null.
+     * @see #putRectangle(java.lang.String, int, int, int, int) 
+     * @see #putRectangle(java.lang.String, int, int) 
      * @see #getRectangle(String, Rectangle) 
      * @see #get(String, String) 
      * @see #getByteArray(String, byte[]) 
      * @see #putByteArray(String, byte[]) 
      */
     public void putRectangle(String key, Rectangle value){
-            // Convert the rectangle object into an array of bytes and store it
-        putByteArray(key,rectangleToByteArray(value));
+            // If the value is null
+        if (value == null)
+                // Remove the value for the key, resetting it to default
+            remove(key);
+        else    // Store the rectangle
+            putRectangle(key,value.x,value.y,value.width,value.height);
     }
     /**
      * 
@@ -552,6 +613,8 @@ public class ConfigPreferences extends Preferences{
      * @throws IllegalStateException If this node (or an ancestor) has been 
      * removed with the {@link #removeNode() removeNode()} method.
      * @throws NullPointerException If the given key is null.
+     * @see #putRectangle(java.lang.String, int, int, int, int) 
+     * @see #putRectangle(java.lang.String, int, int) 
      * @see #putRectangle(String, Rectangle) 
      * @see #get(String, String) 
      * @see #getByteArray(String, byte[]) 
