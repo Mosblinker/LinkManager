@@ -1743,7 +1743,7 @@ public class LinkManagerConfig {
      * 
      * @param <V> 
      */
-    private abstract class ListDataMap<V> extends AbstractMap<Integer,V>{
+    private abstract class ListConfigDataMap<V> extends AbstractMap<Integer,V>{
         /**
          * This is an array containing the entries in this map. This is 
          * initially null and is initialized the first time it is used.
@@ -1753,12 +1753,11 @@ public class LinkManagerConfig {
          * This returns the value to which the specified key is mapped to, or 
          * null if this map contains no mapping for the key. This is called by 
          * the {@code get} method to get the value to return.
-         * @param key The key whose associated value is to be returned. (Will 
-         * not be null)
+         * @param key The key whose associated value is to be returned.
          * @return The value to which the specified key is mapped to, or null if 
          * this map contains no mapping for the key.
          */
-        protected abstract V getValue(Integer key);
+        protected abstract V getValue(int key);
         @Override
         public V get(Object key){
                 // Require the key to not be null
@@ -1783,7 +1782,7 @@ public class LinkManagerConfig {
          * {@code put} method to put the values and {@code remove} method to 
          * remove the key.
          * @param key The key with which the given value is to be associated 
-         * with. (Will not be null)
+         * with.
          * @param value The value to be associated with the given key, or null 
          * if the key is to be removed.
          * @throws ClassCastException If the class of the given key or value 
@@ -1791,7 +1790,7 @@ public class LinkManagerConfig {
          * @see IllegalArgumentException If some property of the given key or 
          * value prevents it from being stored in this map.
          */
-        protected abstract void putValue(Integer key, V value);
+        protected abstract void putValue(int key, V value);
         @Override
         public V put(Integer key, V value){
                 // Require the key to not be null
@@ -1888,7 +1887,7 @@ public class LinkManagerConfig {
                                     }
                                     @Override
                                     public V getValue() {
-                                        return ListDataMap.this.getValue(key);
+                                        return ListConfigDataMap.this.getValue(key);
                                     }
                                     @Override
                                     public V setValue(V value) {
