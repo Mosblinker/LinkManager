@@ -254,6 +254,16 @@ public class LinkManagerConfig {
      */
     private final Map<Component, String> compNameMap;
     /**
+     * This is a map view of the current tab listIDs. This is initially null 
+     * and is initialized when first used.
+     */
+    private Map<Integer, Integer> currTabIDMap = null;
+    /**
+     * This is a map view of the current tab list indexes. This is initially 
+     * null and is initialized when first used.
+     */
+    private Map<Integer, Integer> currTabIndexMap = null;
+    /**
      * This is the ID for the program.
      */
     private UUID programID = null;
@@ -1586,6 +1596,29 @@ public class LinkManagerConfig {
      */
     public Integer getCurrentTabIndex(int listType){
         return getCurrentTabValue(listType, CURRENT_TAB_INDEX_KEY);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<Integer, Integer> getCurrentTabIndexMap(){
+        if (currTabIndexMap == null){
+            currTabIndexMap = new ListConfigDataMap<>(){
+                @Override
+                protected Integer getValue(int key) {
+                    return getCurrentTabIndex(key);
+                }
+                @Override
+                protected void putValue(int key, Integer value) {
+                    setCurrentTabIndex(key,value);
+                }
+                @Override
+                protected String getPrefixForNodes() {
+                    return LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX;
+                }
+            };
+        }
+        return currTabIndexMap;
     }
     /**
      * 
