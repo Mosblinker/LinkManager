@@ -173,7 +173,7 @@ public class LinkManagerConfig {
     /**
      * This is a properties map that stores the configuration for LinkManager.
      */
-    private final Properties config;
+    private final ConfigProperties config;
     /**
      * This is a properties map that stores the default configuration for 
      * LinkManager, and which serves as the default properties map for {@code 
@@ -184,7 +184,7 @@ public class LinkManagerConfig {
      * This is a properties map that stores the private configuration data for 
      * LinkManager. This is used to store things like passwords and such.
      */
-    private final Properties privateConfig;
+    private final ConfigProperties privateConfig;
     /**
      * This is a properties map that stores the default configuration for 
      * private configuration for LinkManager, and which serves as the default 
@@ -211,9 +211,9 @@ public class LinkManagerConfig {
      */
     private LinkManagerConfig(Properties sqlProp, ConfigPreferences node){
         defaultConfig = new Properties();
-        config = new Properties(defaultConfig);
+        config = new ConfigProperties(defaultConfig);
         defaultPrivateConfig = new Properties();
-        privateConfig = new Properties(defaultPrivateConfig);
+        privateConfig = new ConfigProperties(defaultPrivateConfig);
         compNameMap = new HashMap<>();
             // If the given SQLite config properties is not null
         if(sqlProp != null)
@@ -425,7 +425,7 @@ public class LinkManagerConfig {
      * LinkManager.
      * @return The properties map.
      */
-    public Properties getProperties(){
+    public ConfigProperties getProperties(){
         return config;
     }
     /**
@@ -441,7 +441,7 @@ public class LinkManagerConfig {
      * data for LinkManager. This is used to store things like passwords.
      * @return The properties map for private data.
      */
-    public Properties getPrivateProperties(){
+    public ConfigProperties getPrivateProperties(){
         return privateConfig;
     }
     /**
