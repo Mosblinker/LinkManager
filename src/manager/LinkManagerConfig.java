@@ -316,7 +316,16 @@ public class LinkManagerConfig {
      * lists. This is initially null and is initialized when first used.
      */
     private Map<Integer, Boolean> selLinkVisMap = null;
-    
+    /**
+     * This is a map view of the first visible indexes in the lists. This is 
+     * initially null and is initialized when first used.
+     */
+    private Map<Integer, Integer> firstVisIndexMap = null;
+    /**
+     * This is a map view of the last visible indexes in the lists. This is 
+     * initially null and is initialized when first used.
+     */
+    private Map<Integer, Integer> lastVisIndexMap = null;
     /**
      * This is the ID for the program.
      */
@@ -1067,6 +1076,12 @@ public class LinkManagerConfig {
                 // If the key starts with the selected link is visible key
             else if (key.startsWith(SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
                 keyPrefix = SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY;
+                // If the key starts with the first visible index key
+            else if (key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY))
+                keyPrefix = FIRST_VISIBLE_INDEX_FOR_LIST_KEY;
+                // If the key starts with the last visible index key
+            else if (key.startsWith(LAST_VISIBLE_INDEX_FOR_LIST_KEY))
+                keyPrefix = LAST_VISIBLE_INDEX_FOR_LIST_KEY;
                 // If the key starts with the current tab listID key
             else if (key.startsWith(CURRENT_TAB_LIST_ID_KEY)){
                 keyPrefix = CURRENT_TAB_LIST_ID_KEY;
@@ -1128,7 +1143,10 @@ public class LinkManagerConfig {
         getSelectedLinkMap().putAll(selMap);
             // Add all the values for the selected links are visible in the lists
         getSelectedLinkIsVisibleMap().putAll(selVisMap);
-        
+            // Add all the values for the first visible indexes in the lists
+        getFirstVisibleIndexMap().putAll(firstVisMap);
+            // Add all the values for the last visible indexes in the lists
+        getLastVisibleIndexMap().putAll(lastVisMap);
             // Add all the values for the current tab listIDs 
         getCurrentTabListIDMap().putAll(selListIDMap);
             // Add all the values for the current tab indexes
@@ -1723,13 +1741,11 @@ public class LinkManagerConfig {
     }
     /**
      * 
-     * @param listType
+     * @param node
      * @param key
      * @return 
      */
-    private Integer getCurrentTabValue(int listType, String key){
-            // Get the preference node for the list type
-        ConfigPreferences node = getListTypePreferences(listType);
+    private Integer getIntegerPreference(ConfigPreferences node, String key){
             // Get whether the node contains the key
         if (node.containsKey(key))
                 // Get the value for the given key
@@ -1751,7 +1767,8 @@ public class LinkManagerConfig {
      * @return 
      */
     public Integer getCurrentTabListID(int listType){
-        return getCurrentTabValue(listType, CURRENT_TAB_LIST_ID_KEY);
+        return getIntegerPreference(getListTypePreferences(listType), 
+                CURRENT_TAB_LIST_ID_KEY);
     }
     /**
      * 
@@ -1790,7 +1807,8 @@ public class LinkManagerConfig {
      * @return 
      */
     public Integer getCurrentTabIndex(int listType){
-        return getCurrentTabValue(listType, CURRENT_TAB_INDEX_KEY);
+        return getIntegerPreference(getListTypePreferences(listType), 
+                CURRENT_TAB_INDEX_KEY);
     }
     /**
      * 
@@ -1920,20 +1938,114 @@ public class LinkManagerConfig {
         }
         return selLinkVisMap;
     }
-    
+    /**
+     * 
+     * @param listID
+     * @param value 
+     */
+    public void setFirstVisibleIndex(int listID, Integer value){
+        getListPreferences(listID).putObject(FIRST_VISIBLE_INDEX_FOR_LIST_KEY,
+                value);
+    }
+    /**
+     * 
+     * @param listID
+     * @return 
+     */
+    public Integer getFirstVisibleIndex(int listID){
+        return getIntegerPreference(getListPreferences(listID), 
+                FIRST_VISIBLE_INDEX_FOR_LIST_KEY);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<Integer, Integer> getFirstVisibleIndexMap(){
+        if (firstVisIndexMap == null){
+            firstVisIndexMap = new ListConfigDataMap<>(){
+                @Override
+                protected Integer getValue(int key) {
+                    return getFirstVisibleIndex(key);
+                }
+                @Override
+                protected void putValue(int key, Integer value) {
+                    setFirstVisibleIndex(key,value);
+                }
+                @Override
+                protected String getPrefixForNodes() {
+                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                }
+            };
+        }
+        return firstVisIndexMap;
+    }
+    /**
+     * 
+     * @param listID
+     * @param value 
+     */
+    public void setLastVisibleIndex(int listID, Integer value){
+        getListPreferences(listID).putObject(LAST_VISIBLE_INDEX_FOR_LIST_KEY,
+                value);
+    }
+    /**
+     * 
+     * @param listID
+     * @return 
+     */
+    public Integer getLastVisibleIndex(int listID){
+        return getIntegerPreference(getListPreferences(listID), 
+                LAST_VISIBLE_INDEX_FOR_LIST_KEY);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<Integer, Integer> getLastVisibleIndexMap(){
+        if (lastVisIndexMap == null){
+            lastVisIndexMap = new ListConfigDataMap<>(){
+                @Override
+                protected Integer getValue(int key) {
+                    return getLastVisibleIndex(key);
+                }
+                @Override
+                protected void putValue(int key, Integer value) {
+                    setLastVisibleIndex(key,value);
+                }
+                @Override
+                protected String getPrefixForNodes() {
+                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                }
+            };
+        }
+        return lastVisIndexMap;
+    }
     /**
      * 
      * @param listID
      * @param panel 
      */
     public void setVisibleSection(int listID, LinksListPanel panel){
-        
-            // This gets whether the selected index is visible
+            // This will get the first visible index
+        Integer firstVisIndex = null;
+            // This will get the last visible index
+        Integer lastVisIndex = null;
+            // This will get whether the selected index is visible
         Boolean isSelVis = null;
-            // If the panel is not null and the panel's selection is not empty
-        if (panel != null && !panel.isSelectionEmpty())
-                // Get whether the selected indes is visible
-            isSelVis = panel.isIndexVisible(panel.getSelectedIndex());
+            // If the panel is not null
+        if (panel != null){
+                // Get the first visible index for the list
+            firstVisIndex = panel.getList().getFirstVisibleIndex();
+                // Get the last visible index for the list
+            lastVisIndex = panel.getList().getLastVisibleIndex();
+                // If the panel's selection is not empty
+            if (!panel.isSelectionEmpty())
+                    // Get whether the selected indes is visible
+                isSelVis = panel.isIndexVisible(panel.getSelectedIndex());
+        }   // Set the first visible index for the list
+        setFirstVisibleIndex(listID,firstVisIndex);
+            // Set the last visible index for the list
+        setLastVisibleIndex(listID,lastVisIndex);
             // Set whether the selected link is visible
         setSelectedLinkIsVisible(listID,isSelVis);
     }
