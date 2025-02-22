@@ -78,6 +78,57 @@ public class ConfigUtilities {
     /**
      * 
      * @param value
+     * @param arr
+     * @param offset
+     * @return 
+     */
+    public static byte[] toByteArray(short value, byte[] arr, int offset){
+        return toByteArray(Short.toUnsignedLong(value),arr,offset,Short.BYTES);
+    }
+    /**
+     * 
+     * @param value
+     * @param arr
+     * @param offset
+     * @return 
+     */
+    public static byte[] toByteArray(long value, byte[] arr, int offset){
+        return toByteArray(value, arr, offset, Long.BYTES);
+    }
+    /**
+     * 
+     * @param value
+     * @param arr
+     * @param offset
+     * @return 
+     */
+    public static byte[] toByteArray(float value, byte[] arr, int offset){
+        return toByteArray(Float.floatToIntBits(value),arr,offset);
+    }
+    /**
+     * 
+     * @param value
+     * @param arr
+     * @param offset
+     * @return 
+     */
+    public static byte[] toByteArray(double value, byte[] arr, int offset){
+        return toByteArray(Double.doubleToLongBits(value),arr,offset,
+                Double.BYTES);
+    }
+    /**
+     * 
+     * @param value
+     * @param arr
+     * @param offset
+     * @return 
+     */
+    public static byte[] toByteArray(char value, byte[] arr, int offset){
+        return toByteArray((short)value, arr, offset);
+    }
+    /**
+     * 
+     * @param value
      * @param offset
      * @return 
      */
