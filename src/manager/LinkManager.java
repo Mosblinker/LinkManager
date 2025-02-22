@@ -9241,19 +9241,28 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         /**
          * 
          * @param source
-         * @param config
+         * @param node
          */
-        private void addConfigRows(String source, ConfigPreferences config){
+        private void addConfigRows(String source, ConfigPreferences node){
                 // If the preference node is null
-            if (config == null)
+            if (node == null)
                 return;
-            try {
-                addConfigRows(source,config.toProperties(),config.getDefaults());
+            try {   // If the node exists
+                if (node.nodeExists(""))
+                    addConfigRows(source,node.toProperties(),node.getDefaults());
             } catch (BackingStoreException | IllegalStateException ex) {
                     // If the program is in debug mode
                 if (isInDebug())
                     System.out.println("Error: " + ex);
             }
+        }
+        /**
+         * 
+         * @param source
+         * @param node 
+         */
+        private void addConfigRows(String source, Preferences node){
+            addConfigRows(source,new ConfigPreferences(node));
         }
         @Override
         protected boolean loadFile(File file){
@@ -9279,6 +9288,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             addConfigRows("Local Preferences",config.getPreferences());
                 // Add all the private preferences for this program
             addConfigRows("Private Preferences",config.getPrivatePreferences());
+                // Add all the local Dropbox preferences for this program
+            addConfigRows("Dropbox Preferences",config.getDropboxPreferences());
             
             return null;
         }
