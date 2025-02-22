@@ -51,7 +51,7 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 import javax.swing.tree.*;
 import static manager.LinkManagerConfig.*;
-import manager.config.ConfigPreferences;
+import manager.config.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
@@ -9099,6 +9099,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         /**
          * 
          * @param source
+         * @param prop 
+         */
+        private void addConfigRows(String source, ConfigProperties prop){
+            addConfigRows(source,prop,prop.getDefaults());
+        }
+        /**
+         * 
+         * @param source
          * @param node
          */
         private void addConfigRows(String source, ConfigPreferences node){
@@ -9107,20 +9115,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return;
             try {   // If the node exists
                 if (node.nodeExists(""))
-                    addConfigRows(source,node.toProperties(),node.getDefaults());
+                    addConfigRows(source,node.toProperties());
             } catch (BackingStoreException | IllegalStateException ex) {
                     // If the program is in debug mode
                 if (isInDebug())
                     System.out.println("Error: " + ex);
             }
-        }
-        /**
-         * 
-         * @param source
-         * @param node 
-         */
-        private void addConfigRows(String source, Preferences node){
-            addConfigRows(source,new ConfigPreferences(node));
         }
         /**
          * 
