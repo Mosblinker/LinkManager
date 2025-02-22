@@ -301,9 +301,7 @@ public class ConfigUtilities {
             // If the given dimension object is null
         if (value == null)
             return null;
-            // Convert the dimension object into an array of integers, and 
-            // convert that into an array of bytes
-        return intArrayToBytes(new int[]{value.width,value.height},null,0);
+        return intArraytoByteArray(DIMENSION_BYTE_ARRAY_HEADER,value.width,value.height);
     }
     /**
      * 
@@ -314,10 +312,13 @@ public class ConfigUtilities {
             // If the given array is null
         if (value == null)
             return null;
-            // Convert the array of bytes into two integers
-        int[] arr = intArrayFromBytes(value,0,2);
-            // Create and return a new Dimension object with the two integers
-        return new Dimension(arr[0],arr[1]);
+            // Get an integer buffer to get the values for the dimension
+        IntBuffer buffer = toIntBuffer(DIMENSION_BYTE_ARRAY_HEADER,value);
+            // If the buffer is null (did not match the header) or there aren't 
+            // 2 integers in the buffer
+        if (buffer == null || buffer.remaining() != 2)
+            return null;
+        return new Dimension(buffer.get(),buffer.get());
     }
     /**
      * 
