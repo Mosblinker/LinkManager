@@ -100,6 +100,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         "Links"
     };
     /**
+     * This is the argument for specifying a program ID for the program from the 
+     * arguments.
+     */
+    public static final String PROGRAM_ID_ARGUMENT = "-programID=";
+    /**
      * This holds the abstract path to the default database file storing the 
      * tables containing the links.
      */
@@ -597,10 +602,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * This constructs a new LinkManager with the given value determining if it 
-     * is in debug mode.
+     * is in debug mode and the given program ID.
      * @param debugMode Whether the program is in debug mode.
+     * @param programID The program ID for this instance of the program. This is 
+     * used to determine which settings to use.
      */
-    public LinkManager(boolean debugMode) {
+    public LinkManager(boolean debugMode, UUID programID) {
         this.debugMode = debugMode;
         setIconImages(generateIconImages(
                 new ImageIcon(this.getClass().getResource(ICON_FILE)).getImage()));
@@ -919,16 +926,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
             // TODO: This is temporarily being loaded from the config
             
-            // Get the program ID as a String
-        String programIDStr = config.getProperties().getProperty(PROGRAM_ID_KEY);
-            // This gets the program ID
-        UUID programID = null;
-            // If there is a program ID set
-        if (programIDStr != null){
-            try{    // Try to get the program ID
-                programID = UUID.fromString(programIDStr);
-            } catch (IllegalArgumentException ex){}
-        }   // If there is a program ID to use
+            // If no program ID was provided to the program
+        if (programID == null){
+                // Get the program ID as a String
+            String programIDStr = config.getProperties().getProperty(PROGRAM_ID_KEY);
+                // If there is a program ID set
+            if (programIDStr != null){
+                try{    // Try to get the program ID
+                    programID = UUID.fromString(programIDStr);
+                } catch (IllegalArgumentException ex){}
+            }
+        }
+           // If there is a program ID to use
         if (programID != null)
             config.setProgramID(programID);
         else{
@@ -947,7 +956,26 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 //        loader.execute();
     }
     /**
-     * This constructs a new LinkManager that is not in debug mode.
+     * This constructs a new LinkManager with the given value determining if it 
+     * is in debug mode and that will load the program ID from the 
+     * configuration.
+     * @param debugMode Whether the program is in debug mode.
+     */
+    public LinkManager(boolean debugMode){
+        this(debugMode,null);
+    }
+     /**
+     * This constructs a new LinkManager that is not in debug mode and with the 
+     * given program ID.
+     * @param programID The program ID for this instance of the program. This is 
+     * used to determine which settings to use.
+     */
+    public LinkManager(UUID programID) {
+        this(false,programID);
+    }
+    /**
+     * This constructs a new LinkManager that is not in debug mode and that will 
+     * load the program ID from the configuration.
      */
     public LinkManager(){
         this(false);
@@ -4987,7 +5015,44 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
-            new LinkManager(DebugCapable.checkForDebugArgument(args)).setVisible(true);
+                // This will get the program ID for the program
+            UUID programID = null;
+                // This gets an array containing all the arguments that could be 
+                // the program ID
+            ArrayList<String> progIDArgs = new ArrayList<>(Arrays.asList(args));
+                // Remove any arguments that are either null or don't start 
+                // with the program ID argument
+            progIDArgs.removeIf((String t) -> t == null || 
+                    !t.startsWith(PROGRAM_ID_ARGUMENT));
+                // If there are any arguments that could be the program ID
+            if (!progIDArgs.isEmpty()){
+                    // If there are too many arguments for the program ID
+                if (progIDArgs.size() > 1){
+                        // Tell the user that there are too many program IDs
+                    System.out.println("Too many arguments for program ID, expected at most 1.");
+                    JOptionPane.showMessageDialog(null, 
+                            "Too many arguments provided for the program ID.\n"
+                                    + "This program expects at most one.", 
+                            "ERROR - Too Many Program IDs",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                try{
+                    programID = UUID.fromString(progIDArgs.get(0).substring(
+                            PROGRAM_ID_ARGUMENT.length()));
+                } catch (IllegalArgumentException ex){
+                        // Tell the user that the program ID is invalid
+                    System.out.println("Program ID is invalid, expected UUID.");
+                    JOptionPane.showMessageDialog(null, 
+                            "The program ID is invalid.\n"
+                                    + "The program ID should be a UUID.", 
+                            "ERROR - Invalid Program IDs",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+            new LinkManager(DebugCapable.checkForDebugArgument(args),programID)
+                    .setVisible(true);
         });
     }
     @Override
