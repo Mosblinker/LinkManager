@@ -4088,8 +4088,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // If the source of the change is the currently selected list
             if (Objects.equals(getSelectedList(),evt.getSource())){
                 updateSelectedLink(); 
-            }   // If the program has fully loaded
-            if (fullyLoaded){
+            }   // If the program has fully loaded and the program isn't loading 
+                // the database
+            if (fullyLoaded && !isLoadingDatabase()){
                     // This will get the listID of the list that the selection 
                 Integer listID;     // changed
                     // This will get the newly selected value
@@ -8440,7 +8441,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // version this program supports
             if (!conn.updateDatabaseDefinitions(stmt,LinkManager.this))
                 return false;
-                // Get the map containing the list IDs and data
+                // Get a set of models that currently already exist
+            Set<LinksListModel> oldModels = new HashSet<>(allListsTabsPanel.getModels());
+                // Make sure this set has ALL the models, even those that are 
+                // somehow absent from the all lists panel
+            oldModels.addAll(shownListsTabsPanel.getModels());
+                // This will get a map of the existing models mapped to their 
+                // listID. Models that don't have a listID won't be in this map
+            Map<Integer, LinksListModel> oldModelsMap = new HashMap<>();
+                // Go through the existing models
+            for (LinksListModel model : oldModels){
+                    // If the current model does not have a null listID
+                if (model.getListID() != null){
+                    oldModelsMap.put(model.getListID(), model);
+                }
+            }   // Get the map containing the list IDs and data
             ListDataMap listDataMap = conn.getListDataMap();
                 // Get the map of list data that will be loaded. If we are 
                 // loading all the lists, then this will just be the list data 
@@ -8453,18 +8468,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (getLoadsAll()){
                     // Get the total size of all the lists in the database
                 total = listDataMap.totalSize();
-            } else {// Get a set of models that currently already exist
-                Set<LinksListModel> existingModels = new HashSet<>(allListsTabsPanel.getModels());
-                    // Make sure this set has ALL the models, even those that 
-                    // are somehow absent from the all lists panel
-                existingModels.addAll(shownListsTabsPanel.getModels());
-                    // Go through the existing models
-                for (LinksListModel model : existingModels){
-                        // If the current model does not have a null listID
-                    if (model.getListID() != null)
-                            // Put the current model into the map of models 
-                        models.put(model.getListID(), model);
-                }
+            } else {// Put the map of existing models into the map of models to 
+                models.putAll(oldModelsMap);    // be used
                     // Copy the list data map, since we don't want to edit the 
                 loadData = new TreeMap<>(listDataMap);  // actual database
                     // Remove any lists that do not need to be re-loaded
@@ -8489,15 +8494,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             setIndeterminate(false);
                 // Go through the lists to be loaded
             for (Map.Entry<Integer,ListContents> listData:loadData.entrySet()){
-                    // Get a model version of the current list and put it in the 
-                    // map containing the loaded models
-                models.put(listData.getKey(), 
-                        listData.getValue().toModel(listContentsObserver));
+                    // Get the listID of the list being loaded
+                Integer listID = listData.getKey();
+                    // Get a model version of the current list
+                LinksListModel model = listData.getValue().toModel(listContentsObserver);
+                    // Get the old version of the model (the one that this model 
+                    // is replacing), and copy the selection from the old model
+                model.setSelectionFrom(oldModelsMap.get(listID));
+                    // Put the model in the map containing the loaded models
+                models.put(listID, model);
             }
             setIndeterminate(true);
                 // This gets a map mapping the tabs panels to the list of 
                 // listIDs for the lists to be shown by the panels
-            HashMap<LinksListTabsPanel, List<Integer>> tabsListIDs = new HashMap<>();
+            Map<LinksListTabsPanel,List<Integer>> tabsListIDs = new HashMap<>();
                 // Get a copy of the list of listIDs for the all lists panel
             List<Integer> allListIDs = new ArrayList<>(conn.getAllListIDs());
                 // Remove any null listIDs
@@ -8552,8 +8562,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // if the replacement model is somehow null
                         if (temp == t || temp == null)
                             return t;   // Do not replace this model
-                            // Copy the selection from the original model
-                        temp.setSelectionFrom(t);
                         return temp;
                     });
                 }

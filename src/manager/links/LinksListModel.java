@@ -1497,8 +1497,13 @@ public class LinksListModel extends ArrayListModel<String> implements
             // If the model is this model or the model is null
         if (model == this || model == null)
             return;
-            // Set this model's selection mode from the given model
-        setSelectionMode(model.getSelectionMode());
+            // If this model's selection mode is different from the given model
+        if (getSelectionMode() != model.getSelectionMode())
+                // Set this model's selection mode from the given model
+            setSelectionMode(model.getSelectionMode());
+            // If the selected items are the same for both models
+        if (Arrays.equals(getSelectedIndices(), model.getSelectedIndices()))
+            return;
             // Get if this model is currently adjusting the selection
         boolean adjusting = getValueIsAdjusting();
             // If the given model is not empty (we would only need to do one 

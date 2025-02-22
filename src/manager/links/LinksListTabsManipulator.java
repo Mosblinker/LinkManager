@@ -627,7 +627,7 @@ public class LinksListTabsManipulator extends JListManipulator<LinksListModel>{
      * @param listTabsPanel 
      */
     public void updateListTabs(LinksListTabsPanel listTabsPanel){
-        listTabsPanel.setModels(getListData());
+        listTabsPanel.setModels(getListData(),true);
         updateListMaps();
         for (LinksListModel model : renameMap.keySet()){
             model.setListName(renameMap.get(model));
