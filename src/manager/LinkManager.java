@@ -6097,9 +6097,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                             selVisMap.getOrDefault(listID, false));
                 }
             }
-        }   // Remove any null selected tab indexes
-        selListMap.values().removeIf((Integer t) -> t == null);
-            // Replace the selected listIDs with the indexes for those listIDs
+        }   // Replace the selected listIDs with the indexes for those listIDs
         selListIDMap.replaceAll((Integer listType, Integer listID) -> {
                 // If the list type is not null and is a valid index in the 
                 // tabs panel array and the listID is not null
