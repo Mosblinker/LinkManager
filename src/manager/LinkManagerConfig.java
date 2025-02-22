@@ -353,14 +353,14 @@ public class LinkManagerConfig {
      * This returns the preference node used to store the Dropbox settings.
      * @return 
      */
-    protected Preferences getDropboxPreferences(){
+    public Preferences getDropboxPreferences(){
         return getPreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
     }
     /**
      * This returns the preference node used to store the Dropbox access tokens.
      * @return 
      */
-    protected Preferences getPrivateDropboxPreferences(){
+    public Preferences getPrivateDropboxPreferences(){
         return getPrivatePreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
     }
     /**
