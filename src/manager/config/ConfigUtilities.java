@@ -130,22 +130,33 @@ public class ConfigUtilities {
      * 
      * @param value
      * @param offset
+     * @param size The number of bytes that are in the value to return.
      * @return 
      */
-    public static int toInteger(byte[] value, int offset){
+    private static Number toNumber(byte[] value, int offset, int size){
             // Check if the array is null
         Objects.requireNonNull(value);
             // Check if the offset is in the array
         Objects.checkIndex(offset, value.length);
             // This will get the value to return
-        int temp = 0;
-            // Go through the bytes for the integer, making sure not to exceed 
-            // the size of the array
-        for (int i = 0; i < Integer.BYTES && i+offset < value.length; i++){
+        long number = 0;
+           // Go through the bytes for the value, making sure not to exceed the 
+           // size of the array
+        for (int i = 0; i < size && i+offset < value.length; i++){
                 // Get the current byte and bit-shift it into place
-            temp |= Byte.toUnsignedInt(value[i+offset]) << (Byte.SIZE*i);
+            number |= Byte.toUnsignedInt(value[i+offset]) << (Byte.SIZE*i);
         }
-        return temp;
+        return number;
+    }
+    /**
+     * 
+     * @param value
+     * @param offset
+     * @return 
+     */
+    public static int toInteger(byte[] value, int offset){
+        return toNumber(value,offset,Integer.BYTES).intValue();
+    }
     }
     /**
      * 
