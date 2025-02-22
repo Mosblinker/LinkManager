@@ -1799,7 +1799,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setDefaultComponentSize(Component comp, Dimension value){
-        getDefaults().setProperty(
+        getDefaults().setDimensionProperty(
                 getComponentName(comp)+COMPONENT_SIZE_KEY_SUFFIX, value);
     }
     /**

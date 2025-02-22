@@ -73,8 +73,8 @@ public class ConfigProperties extends Properties{
      * @param value
      * @return 
      */
-    public synchronized Object setProperty(String key, Dimension value){
         return setProperty(key,dimensionToBytes(value));
+    public synchronized Object setDimensionProperty(String key,Dimension value){
     }
     /**
      * 
@@ -82,8 +82,8 @@ public class ConfigProperties extends Properties{
      * @param value
      * @return 
      */
-    public synchronized Object setProperty(String key, Point value){
         return setProperty(key,pointToBytes(value));
+    public synchronized Object setPointProperty(String key, Point value){
     }
     /**
      * 
@@ -91,8 +91,8 @@ public class ConfigProperties extends Properties{
      * @param value
      * @return 
      */
-    public synchronized Object setProperty(String key, Rectangle value){
         return setProperty(key,rectangleToBytes(value));
+    public synchronized Object setRectangleProperty(String key,Rectangle value){
     }
     /**
      * 
@@ -109,6 +109,18 @@ public class ConfigProperties extends Properties{
         else if (value instanceof byte[])
                 // Set the property as a byte array
             return setProperty(key, (byte[]) value);
+            // If the new value is a dimension
+        else if (value instanceof Dimension)
+                // Set the value as a dimension
+            return setDimensionProperty(key,(Dimension)value);
+            // If the new value is a point
+        else if (value instanceof Point)
+                // Set the value as a point
+            return setPointProperty(key,(Point)value);
+            // If the new value is a rectangle
+        else if (value instanceof Rectangle)
+                // Set the value as a rectangle
+            return setRectangleProperty(key,(Rectangle)value);
             // Set the property as a String
         return setProperty(key,value.toString());
     }
