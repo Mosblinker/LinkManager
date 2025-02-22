@@ -782,13 +782,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             System.out.println("Unable to load preference node: " +ex);
         }
         
+            // TODO: Uncomment this when Dropbox token encryption is implemented
+//        config = new LinkManagerConfig(node,Obfuscator.getInstance());
         config = new LinkManagerConfig(node);
             // Initialize the defaults that are not dependent on the UI
         config.setDefaultDatabaseFileName(LINK_DATABASE_FILE);
         config.setPrivateDefault(EXTERNAL_DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
-        
-        // TODO: Uncomment this when Dropbox token encryption is implemented
-//        obfuscator = Obfuscator.getInstance();
         
         loadDbxUtils();
         
@@ -5495,10 +5494,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      */
     private DropboxLinkUtils dbxUtils = null;
-//    /**
-//     * 
-//     */
-//    private Obfuscator obfuscator;
     /**
      * This is used to format file sizes when displaying the size of a file.
      */

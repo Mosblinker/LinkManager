@@ -11,6 +11,7 @@ import java.awt.Rectangle;
 import java.util.*;
 import java.util.prefs.*;
 import manager.config.*;
+import manager.security.Obfuscator;
 import org.sqlite.SQLiteConfig;
 
 /**
@@ -205,11 +206,17 @@ public class LinkManagerConfig {
      */
     private UUID programID = null;
     /**
+     * This is the Obfuscator object used to encrypt and decrypt sensitive data.
+     */
+    private Obfuscator obfuscator;
+    /**
      * 
      * @param sqlProp
      * @param node 
+     * @param obfuscator
      */
-    private LinkManagerConfig(Properties sqlProp, ConfigPreferences node){
+    private LinkManagerConfig(Properties sqlProp, ConfigPreferences node,
+            Obfuscator obfuscator){
         defaultConfig = new Properties();
         config = new ConfigProperties(defaultConfig);
         defaultPrivateConfig = new Properties();
@@ -223,20 +230,31 @@ public class LinkManagerConfig {
         programNode = node;
         localDefaults = new ConfigProperties();
         privateDefaults = new ConfigProperties();
+        this.obfuscator = obfuscator;
+    }
+    /**
+     * 
+     * @param node 
+     * @param obfuscator 
+     */
+    public LinkManagerConfig(Preferences node, Obfuscator obfuscator){
+        this(null, new ConfigPreferences(node, new ConfigProperties()), 
+                obfuscator);
     }
     /**
      * 
      * @param node 
      */
     public LinkManagerConfig(Preferences node){
-        this(null, new ConfigPreferences(node, new ConfigProperties()));
+        this(node,null);
     }
     /**
      * 
      * @param linkConfig 
      */
     public LinkManagerConfig(LinkManagerConfig linkConfig){
-        this(linkConfig.sqlConfig.toProperties(), linkConfig.programNode);
+        this(linkConfig.sqlConfig.toProperties(), linkConfig.programNode,
+                linkConfig.obfuscator);
         this.defaultConfig.putAll(linkConfig.defaultConfig);
         this.defaultPrivateConfig.putAll(linkConfig.defaultPrivateConfig);
         this.config.putAll(linkConfig.config);
