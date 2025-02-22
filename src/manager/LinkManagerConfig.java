@@ -1194,58 +1194,10 @@ public class LinkManagerConfig {
      * @param value
      * @param node 
      */
-    protected void setPreference(String key,Object value,ConfigPreferences node){
-            // If the value is null
-        if (value == null)
-                // Remove the value for the key, resetting it to default
-            node.remove(key);
-            // If the value is a boolean
-        else if (value instanceof Boolean)
-                // Set the value as a boolean
-            node.putBoolean(key, (boolean) value);
-            // If the value is a double
-        else if (value instanceof Double)
-                // Set the value as a double
-            node.putDouble(key, (double) value);
-            // If the value is a float
-        else if (value instanceof Float)
-                // Set the value as a float
-            node.putFloat(key, (float) value);
-            // If the value is a long
-        else if (value instanceof Long)
-                // Set the value as a long
-            node.putLong(key, (long) value);
-            // If the value is a number (should only be ints, shorts, and bytes 
-        else if (value instanceof Number)   // left)
-                // Set the value as an integer
-            node.putInt(key, ((Number)value).intValue());
-        else    // Get the value as a string and set it
-            node.put(key, value.toString());
-    }
-    /**
-     * 
-     * @param key
-     * @param value
-     * @param node 
-     */
-    protected void setPreference(String key,byte[] value,ConfigPreferences node){
-            // If the value is null
-        if (value == null)
-                // Remove the value for the key, resetting it to default
-            node.remove(key);
-        else    // Set the value to the given byte array
-            node.putByteArray(key, value);
-    }
-    /**
-     * 
-     * @param key
-     * @param value
-     * @param node 
-     */
     protected void setFilePathPreference(String key, String value, 
             ConfigPreferences node){
             // Format the file path and set it
-        setPreference(key,formatFilePath(value), node);
+        node.put(key,formatFilePath(value));
     }
     /**
      * 
@@ -1627,7 +1579,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setProgressDisplaySetting(Integer value){
-        setPreference(PROGRESS_DISPLAY_KEY, value, getPreferences());
+        getPreferences().putObject(PROGRESS_DISPLAY_KEY, value);
     }
     /**
      * 
@@ -1642,7 +1594,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setAlwaysOnTop(Boolean value){
-        setPreference(ALWAYS_ON_TOP_KEY, value, getPreferences());
+        getPreferences().putObject(ALWAYS_ON_TOP_KEY, value);
     }
     /**
      * 
@@ -1657,7 +1609,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setAddBlankLines(Boolean value){
-        setPreference(BLANK_LINES_KEY, value, getPreferences());
+        getPreferences().putObject(BLANK_LINES_KEY, value);
     }
     /**
      * 
@@ -1672,7 +1624,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setLinkOperationsEnabled(Boolean value){
-        setPreference(ENABLE_LINK_OPS_KEY, value, getPreferences());
+        getPreferences().putObject(ENABLE_LINK_OPS_KEY, value);
     }
     /**
      * 
@@ -1687,7 +1639,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setHiddenLinkOperationsEnabled(Boolean value){
-        setPreference(ENABLE_HIDDEN_LINK_OPS_KEY, value, getPreferences());
+        getPreferences().putObject(ENABLE_HIDDEN_LINK_OPS_KEY, value);
     }
     /**
      * 
@@ -1703,8 +1655,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setDatabaseFileChangeOperation(Integer value){
-        setPreference(DATABASE_FILE_CHANGE_OPERATION_KEY, value, 
-                getPreferences());
+        getPreferences().putObject(DATABASE_FILE_CHANGE_OPERATION_KEY, value);
     }
     /**
      * 
@@ -1720,7 +1671,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setAutosaveFrequencyIndex(Integer value){
-        setPreference(AUTOSAVE_FREQUENCY_KEY, value, getPreferences());
+        getPreferences().putObject(AUTOSAVE_FREQUENCY_KEY, value);
     }
     /**
      * 
@@ -1735,7 +1686,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setAutoHideWaitDurationIndex(Integer value){
-        setPreference(AUTO_HIDE_WAIT_DURATION_KEY, value, getPreferences());
+        getPreferences().putObject(AUTO_HIDE_WAIT_DURATION_KEY, value);
     }
     /**
      * 
@@ -1750,7 +1701,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setSearchMatchCase(Boolean value){
-        setPreference(SEARCH_MATCH_CASE_KEY, value, getPreferences());
+        getPreferences().putObject(SEARCH_MATCH_CASE_KEY, value);
     }
     /**
      * 
@@ -1765,7 +1716,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setSearchMatchSpaces(Boolean value){
-        setPreference(SEARCH_MATCH_SPACES_KEY, value, getPreferences());
+        getPreferences().putObject(SEARCH_MATCH_SPACES_KEY, value);
     }
     /**
      * 
@@ -1780,7 +1731,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setSearchWrapAround(Boolean value){
-        setPreference(SEARCH_WRAP_AROUND_KEY, value, getPreferences());
+        getPreferences().putObject(SEARCH_WRAP_AROUND_KEY, value);
     }
     /**
      * 
@@ -1798,7 +1749,8 @@ public class LinkManagerConfig {
             // If the search text is null or empty, use null for it
         if (text == null || text.isEmpty())
             text = null;
-        setPreference(SEARCH_TEXT_KEY, text, getPreferences());
+            // Store the search text in the preference node
+        getPreferences().put(SEARCH_TEXT_KEY, text);
     }
     /**
      * 
@@ -1823,7 +1775,7 @@ public class LinkManagerConfig {
             // If the entered link text is null or blank, use null for it
         if (text == null || text.isBlank())
             text = null;
-        setPreference(ENTERED_LINK_TEXT_KEY, text, getPreferences());
+        getPreferences().put(ENTERED_LINK_TEXT_KEY, text);
     }
     /**
      * 
@@ -1845,7 +1797,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setHiddenListsAreShown(Boolean value){
-        setPreference(HIDDEN_LISTS_ARE_SHOWN_KEY, value, getPreferences());
+        getPreferences().putObject(HIDDEN_LISTS_ARE_SHOWN_KEY, value);
     }
     /**
      * 
@@ -1861,7 +1813,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setDatabaseErrorDetailsAreShown(Boolean value){
-        setPreference(SHOW_DETAILED_DATABASE_ERRORS, value, getPreferences());
+        getPreferences().putObject(SHOW_DETAILED_DATABASE_ERRORS, value);
     }
     /**
      * 
@@ -1877,7 +1829,7 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setDatabaseWillSync(Boolean value){
-        setPreference(SYNC_DATABASE_KEY, value, getPreferences());
+        getPreferences().putObject(SYNC_DATABASE_KEY, value);
     }
     /**
      * 
