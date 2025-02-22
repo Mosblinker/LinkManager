@@ -113,11 +113,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public static final String CONFIG_FILE = "LinkManager.cfg";
     /**
-     * This is the name of the file used to store the private configuration. 
-     * This is used to store things like passwords and credentials.
-     */
-    private static final String PRIVATE_CONFIG_FILE = "LinkManagerPrivate.cfg";
-    /**
      * This is the name of the file used to store the dropbox API keys.
      */
     public static final String DROPBOX_API_KEY_FILE = "LinkManagerDropboxKey.json";
@@ -126,12 +121,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * file.
      */
     private static final String GENERAL_CONFIG_FLAG = "[LinkManager Config]";
-    /**
-     * This is the header flag for the private settings in the configuration 
-     * file.
-     */
-    private static final String PRIVATE_CONFIG_FLAG = 
-            "[LinkManager Private Config]";
     /**
      * This is the configuration key for the program ID. This is used to
      * determine what preference node to use for the program.
@@ -481,14 +470,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private File getConfigFile(){
         return getRelativeFile(CONFIG_FILE);
-    }
-    /**
-     * This returns the file used to store the private configuration of the 
-     * program.
-     * @return The configuration file storing private settings.
-     */
-    private File getPrivateConfigFile(){
-        return getRelativeFile(PRIVATE_CONFIG_FILE);
     }
     /**
      * This returns the file containing the Dropbox API keys for this program.
@@ -987,7 +968,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // TODO: Error message window
             }
         }
-        loadPrivateConfig(config.getPrivateProperties());
         
             // TODO: This is temporarily being loaded from the config
             
@@ -4785,17 +4765,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void dbxLogOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogOutButtonActionPerformed
         dbxUtils.clearCredentials();
         // TODO: Figure out how to properly deal with logging out of dropbox
-        saver = new PrivateConfigSaver(){
-            @Override
-            protected void done(){
-                super.done();
-                JOptionPane.showMessageDialog(setLocationDialog, 
-                        "Don't forget to disconnect this "
-                        + "app from your Dropbox account.","Dropbox Log out",
-                        JOptionPane.INFORMATION_MESSAGE);
-            }
-        };
-        saver.execute();
     }//GEN-LAST:event_dbxLogOutButtonActionPerformed
 
     private void dbxLogInButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogInButtonActionPerformed
@@ -4844,14 +4813,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     JOptionPane.showMessageDialog(setLocationDialog,message,
                             "Missing Permissions",JOptionPane.ERROR_MESSAGE);
                     dbxUtils.clearCredentials();
-                    saver = new PrivateConfigSaver();
-                    saver.execute();
                     return;
                 }
             }
             dbxUtils.setCredentials(authFinish);
-            saver = new PrivateConfigSaver();
-            saver.execute();
         } catch (DbxException ex){
             if (isInDebug())
                 System.out.println("Error: " + ex);
@@ -4968,7 +4933,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             throws DbxException{
         if (cred.aboutToExpire()){
             dbxUtils.refreshCredentials(client.refreshAccessToken());
-            savePrivateConfig();
         }
     }
     
@@ -5945,41 +5909,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return false;
         }
         return true;
-    }
-    /**
-     * 
-     * @param config 
-     */
-    private void updatePrivateConfig(Properties config){
-        
-    }
-    /**
-     * 
-     * @return 
-     */
-    private boolean savePrivateConfig(){
-        File file = getPrivateConfigFile();
-        if (!file.exists() && config.getPrivateProperties().isEmpty())
-            return true;
-        updatePrivateConfig(config.getPrivateProperties());
-        return saveConfiguration(file,config.getPrivateProperties(), PRIVATE_CONFIG_FLAG);
-    }
-    /**
-     * 
-     * @param config
-     * @return 
-     */
-    private boolean loadPrivateConfig(Properties config){
-        File file = getPrivateConfigFile();
-        if (!file.exists())
-            return false;
-        try {
-            loadProperties(file,config);
-            updatePrivateConfig(config);
-            return true;
-        } catch (IOException ex) {
-            return false;
-        }
     }
     /**
      * This loads the configuration for the program from the configuration map.
@@ -8085,47 +8014,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return "Saving Configuration";
         }
         @Override
-        protected void exitProgram(){
-            saver = new PrivateConfigSaver(true);
-            saver.execute();
-        }
-        @Override
         protected void done(){
             super.done();
             showHiddenListsToggle.setEnabled(!exitAfterSaving);
-        }
-    }
-    /**
-     * 
-     */
-    private class PrivateConfigSaver extends FileSaver{
-        /**
-         * 
-         * @param exit 
-         */
-        public PrivateConfigSaver(boolean exit) {
-            super(getPrivateConfigFile(), exit);
-        }
-        /**
-         * 
-         */
-        public PrivateConfigSaver() {
-            super(getPrivateConfigFile());
-        }
-        @Override
-        public String getProgressString(){
-            return "Saving Configuration";
-        }
-        @Override
-        protected void showSuccessPrompt(File file){ }
-        @Override
-        protected boolean saveFile(File file) {
-            return savePrivateConfig();
-        }
-        @Override
-        protected void done(){
-            super.done();
-            loadExternalAccountData();
         }
     }
     /**
@@ -10521,8 +10412,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 setCard(setLocationPanel,setDropboxCard);
             } else if (!validAccount){
                 dbxUtils.clearCredentials();
-                saver = new PrivateConfigSaver();
-                saver.execute();
             } else {
                 setCard(setLocationPanel,setExternalCard);
             }
