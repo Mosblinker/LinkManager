@@ -114,7 +114,24 @@ public class LinkManagerConfig {
             "ReplaceOutdatedLists";
     
     public static final String SYNC_DATABASE_KEY = "SyncDatabase";
-    
+    /**
+     * This is the configuration key for the encrypted access token for the 
+     * Dropbox account to use to access the database file if the database file 
+     * is stored in a Dropbox account. 
+     */
+    public static final String DROPBOX_ACCESS_TOKEN_KEY = "DropboxAccessToken";
+    /**
+     * This is the configuration key for the encrypted refresh token for the 
+     * Dropbox account to use to access the database file if the database file 
+     * is stored in a Dropbox account.
+     */
+    public static final String DROPBOX_REFRESH_TOKEN_KEY = "DropboxRefreshToken";
+    /**
+     * This is the configuration key for the expiration time for the Dropbox 
+     * access token for the Dropbox account used to access the database file if 
+     * the database file is stored in a Dropbox account.
+     */
+    public static final String DROPBOX_TOKEN_EXPIRATION_KEY = "DropboxTokenExpiresAt";
     /**
      * This is the suffix for the configuration keys for the size of a 
      * component.

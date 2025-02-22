@@ -223,35 +223,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private static final String LINK_MANAGER_NAME = "LinkManager";
     /**
-     * This is the configuration key for the encrypted access token for the 
-     * Dropbox account to use to access the database file if the database file 
-     * is stored in a Dropbox account. Notice that the access token is 
-     * encrypted so as to prevent malicious actors from retrieving the access 
-     * token from the private configuration file. This value also contains a 
-     * checksum, a public key, and is encoded in base 64.
-     * 
-     * @todo Implement the encryption of the Dropbox access token.
-     */
-    private static final String DROPBOX_ACCESS_TOKEN_KEY = "DropboxAccessToken";
-    /**
-     * This is the configuration key for the encrypted refresh token for the 
-     * Dropbox account to use to access the database file if the database file 
-     * is stored in a Dropbox account. Notice that the refresh token is 
-     * encrypted so as to prevent malicious actors from retrieving the refresh 
-     * token from the private configuration file. This value also contains a 
-     * checksum, a public key, and is encoded in base 64. 
-     * 
-     * @todo Implement the encryption of the Dropbox access token.
-     */
-    private static final String DROPBOX_REFRESH_TOKEN_KEY="DropboxRefreshToken";
-    /**
-     * This is the configuration key for the expiration time for the Dropbox 
-     * access token for the Dropbox account used to access the database file if 
-     * the database file is stored in a Dropbox account.
-     */
-    private static final String DROPBOX_TOKEN_EXPIRATION_KEY = 
-            "DropboxTokenExpiresAt";
-    /**
      * This is a collection storing the required Dropbox scope for the program. 
      * If this is null, then the program does not specify the scope it requires. 
      * If not, then this set should be immutable.
