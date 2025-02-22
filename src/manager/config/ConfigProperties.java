@@ -73,8 +73,8 @@ public class ConfigProperties extends Properties{
      * @param value
      * @return 
      */
-        return setProperty(key,dimensionToBytes(value));
     public synchronized Object setDimensionProperty(String key,Dimension value){
+        return setProperty(key,dimensionToByteArray(value));
     }
     /**
      * 
@@ -82,8 +82,8 @@ public class ConfigProperties extends Properties{
      * @param value
      * @return 
      */
-        return setProperty(key,pointToBytes(value));
     public synchronized Object setPointProperty(String key, Point value){
+        return setProperty(key,pointToByteArray(value));
     }
     /**
      * 
@@ -91,8 +91,8 @@ public class ConfigProperties extends Properties{
      * @param value
      * @return 
      */
-        return setProperty(key,rectangleToBytes(value));
     public synchronized Object setRectangleProperty(String key,Rectangle value){
+        return setProperty(key,rectangleToByteArray(value));
     }
     /**
      * 
@@ -291,7 +291,7 @@ public class ConfigProperties extends Properties{
             // If the byte array is not null and is 2 integers long
         if (arr != null && arr.length == Integer.BYTES*2)
                 // Convert the byte array into a dimension object
-            return dimensionFromBytes(arr);
+            return dimensionFromByteArray(arr);
         return defaultValue;
     }
     /**
@@ -314,7 +314,7 @@ public class ConfigProperties extends Properties{
             // If the byte array is not null and is 2 integers long
         if (arr != null && arr.length == Integer.BYTES*2)
                 // Convert the byte array into a point object
-            return pointFromBytes(arr);
+            return pointFromByteArray(arr);
         return defaultValue;
     }
     /**
@@ -338,7 +338,7 @@ public class ConfigProperties extends Properties{
         if (arr != null && (arr.length == Integer.BYTES*2 || 
                 arr.length == Integer.BYTES*4))
                 // Convert the byte array into a rectangle object
-            return rectangleFromBytes(arr);
+            return rectangleFromByteArray(arr);
         return defaultValue;
     }
     /**

@@ -449,7 +449,7 @@ public class ConfigPreferences extends Preferences{
      */
     public void putDimension(String key, Dimension value){
             // Convert the dimension object into an array of bytes and store it
-        putByteArray(key,dimensionToBytes(value));
+        putByteArray(key,dimensionToByteArray(value));
     }
     /**
      * 
@@ -470,7 +470,7 @@ public class ConfigPreferences extends Preferences{
             // If the byte array is not null and is 2 integers long
         if (arr != null && arr.length == Integer.BYTES*2)
                 // Convert the byte array into a dimension object
-            return dimensionFromBytes(arr);
+            return dimensionFromByteArray(arr);
         return def;
     }
     /**
@@ -487,7 +487,7 @@ public class ConfigPreferences extends Preferences{
      */
     public void putPoint(String key, Point value){
             // Convert the point object into an array of bytes and store it
-        putByteArray(key,pointToBytes(value));
+        putByteArray(key,pointToByteArray(value));
     }
     /**
      * 
@@ -508,7 +508,7 @@ public class ConfigPreferences extends Preferences{
             // If the byte array is not null and is 2 integers long
         if (arr != null && arr.length == Integer.BYTES*2)
                 // Convert the byte array into a point object
-            return pointFromBytes(arr);
+            return pointFromByteArray(arr);
         return def;
     }
     /**
@@ -525,7 +525,7 @@ public class ConfigPreferences extends Preferences{
      */
     public void putRectangle(String key, Rectangle value){
             // Convert the rectangle object into an array of bytes and store it
-        putByteArray(key,rectangleToBytes(value));
+        putByteArray(key,rectangleToByteArray(value));
     }
     /**
      * 
@@ -547,7 +547,7 @@ public class ConfigPreferences extends Preferences{
         if (arr != null && (arr.length == Integer.BYTES*2 || 
                 arr.length == Integer.BYTES*4))
                 // Convert the byte array into a rectangle object
-            return rectangleFromBytes(arr);
+            return rectangleFromByteArray(arr);
         return def;
     }
     /**

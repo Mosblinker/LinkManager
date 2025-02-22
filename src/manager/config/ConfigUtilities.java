@@ -297,7 +297,7 @@ public class ConfigUtilities {
      * @param value
      * @return 
      */
-    public static byte[] dimensionToBytes(Dimension value){
+    public static byte[] dimensionToByteArray(Dimension value){
             // If the given dimension object is null
         if (value == null)
             return null;
@@ -310,7 +310,7 @@ public class ConfigUtilities {
      * @param value
      * @return 
      */
-    public static Dimension dimensionFromBytes(byte[] value){
+    public static Dimension dimensionFromByteArray(byte[] value){
             // If the given array is null
         if (value == null)
             return null;
@@ -324,7 +324,7 @@ public class ConfigUtilities {
      * @param value
      * @return 
      */
-    public static byte[] pointToBytes(Point value){
+    public static byte[] pointToByteArray(Point value){
             // If the given point object is null
         if (value == null)
             return null;
@@ -337,7 +337,7 @@ public class ConfigUtilities {
      * @param value
      * @return 
      */
-    public static Point pointFromBytes(byte[] value){
+    public static Point pointFromByteArray(byte[] value){
             // If the given array is null
         if (value == null)
             return null;
@@ -351,7 +351,7 @@ public class ConfigUtilities {
      * @param value
      * @return 
      */
-    public static byte[] rectangleToBytes(Rectangle value){
+    public static byte[] rectangleToByteArray(Rectangle value){
             // If the given rectangle object is null
         if (value == null)
             return null;
@@ -365,7 +365,7 @@ public class ConfigUtilities {
      * @param value
      * @return 
      */
-    public static Rectangle rectangleFromBytes(byte[] value){
+    public static Rectangle rectangleFromByteArray(byte[] value){
             // If the given array is null
         if (value == null)
             return null;
