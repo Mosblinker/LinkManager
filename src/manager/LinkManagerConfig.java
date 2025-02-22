@@ -307,6 +307,12 @@ public class LinkManagerConfig {
      */
     private Map<Integer, Integer> currTabIndexMap = null;
     /**
+     * This is a map view of the selected links for the lists. This is initially 
+     * null and is initialized when first used.
+     */
+    private Map<Integer, String> selLinkMap = null;
+    
+    /**
      * This is the ID for the program.
      */
     private UUID programID = null;
@@ -1753,6 +1759,45 @@ public class LinkManagerConfig {
             // Otherwise, set it to the selected index
         setCurrentTabIndex(listType, (tabsPanel.isSelectionEmpty()) ? null :
                 tabsPanel.getSelectedIndex());
+    }
+    /**
+     * 
+     * @param listID
+     * @param value 
+     */
+    public void setSelectedLink(int listID, String value){
+        getListPreferences(listID).put(SELECTED_LINK_FOR_LIST_KEY, value);
+    }
+    /**
+     * 
+     * @param listID
+     * @return 
+     */
+    public String getSelectedLink(int listID){
+        return getListPreferences(listID).get(SELECTED_LINK_FOR_LIST_KEY, null);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<Integer,String> getSelectedLinkMap(){
+        if (selLinkMap == null){
+            selLinkMap = new ListConfigDataMap<>(){
+                @Override
+                protected String getValue(int key) {
+                    return getSelectedLink(key);
+                }
+                @Override
+                protected void putValue(int key, String value) {
+                    setSelectedLink(key,value);
+                }
+                @Override
+                protected String getPrefixForNodes() {
+                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                }
+            };
+        }
+        return selLinkMap;
     }
     /**
      * 
