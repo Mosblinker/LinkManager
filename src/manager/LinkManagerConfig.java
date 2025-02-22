@@ -6,6 +6,7 @@ package manager;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.util.*;
 import java.util.prefs.*;
 import manager.config.*;
@@ -1455,11 +1456,20 @@ public class LinkManagerConfig {
             if (dim != null)
                     // Set the component's size from the properties
                 setComponentSize(entry.getKey(),dim);
+                // Get the location for the component from the properties
+            Point point = cProp.getPointProperty(entry.getValue()+
+                    COMPONENT_LOCATION_KEY_SUFFIX);
+                // If the properties has a location for the component
+            if (point != null)
+                    // Set the component's location from the properties
+                setComponentLocation(entry.getKey(),point);
             
                 // TODO: Remove this once the config properties map is removed or 
                 // repurposed.
                 // Remove the component size, since that's in the preference node
             config.remove(entry.getValue()+COMPONENT_SIZE_KEY_SUFFIX);
+                // Remove the component location, since that's in the preference node
+            config.remove(entry.getValue()+COMPONENT_LOCATION_KEY_SUFFIX);
         }
         
             // TODO: Remove this once the config properties map is removed or 
@@ -1864,5 +1874,77 @@ public class LinkManagerConfig {
      */
     public Dimension getComponentSize(Component comp){
         return getComponentSize(comp,null);
+    }
+    /**
+     * 
+     * @param comp
+     * @param x
+     * @param y 
+     */
+    public void setDefaultComponentLocation(Component comp, int x, int y){
+        getDefaults().setPointProperty(getComponentName(comp)+
+                COMPONENT_LOCATION_KEY_SUFFIX, x, y);
+    }
+    /**
+     * 
+     * @param comp
+     * @param value 
+     */
+    public void setDefaultComponentLocation(Component comp, Point value){
+        getDefaults().setPointProperty(getComponentName(comp)+
+                COMPONENT_LOCATION_KEY_SUFFIX, value);
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Point getDefaultComponentLocation(Component comp){
+        return getDefaults().getPointProperty(getComponentName(comp)+
+                COMPONENT_LOCATION_KEY_SUFFIX);
+    }
+    /**
+     * 
+     * @param comp
+     * @param x
+     * @param y 
+     */
+    public void setComponentLocation(Component comp, int x, int y){
+        getPreferences().putPoint(getComponentName(comp)+
+                COMPONENT_LOCATION_KEY_SUFFIX, x, y);
+    }
+    /**
+     * 
+     * @param comp
+     * @param value 
+     */
+    public void setComponentLocation(Component comp, Point value){
+        getPreferences().putPoint(getComponentName(comp)+
+                COMPONENT_LOCATION_KEY_SUFFIX, value);
+    }
+    /**
+     * 
+     * @param comp 
+     */
+    public void setComponentLocation(Component comp){
+        setComponentLocation(comp,comp.getLocation());
+    }
+    /**
+     * 
+     * @param comp
+     * @param defaultValue
+     * @return 
+     */
+    public Point getComponentLocation(Component comp, Point defaultValue){
+        return getPreferences().getPoint(getComponentName(comp)+
+                COMPONENT_LOCATION_KEY_SUFFIX, defaultValue);
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Point getComponentLocation(Component comp){
+        return getComponentLocation(comp,null);
     }
 }
