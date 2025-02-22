@@ -5886,10 +5886,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     config.setProperty(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX+listID,
                             panel.isIndexVisible(panel.getSelectedIndex()));
             }
-        }   // Set the search text in the configuration
-        config.setSearchText(searchPanel.getSearchText());
-            // Set the entered link text in the configuration
-        config.setEnteredLinkText(linkTextField.getText());
+        }
+            // Update the program's configuration
+        updateProgramConfig();
         return config;
     }
     /**
@@ -5909,6 +5908,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return false;
         }
         return true;
+    }
+    /**
+     * This updates the values in the program's configuration that would update 
+     * too frequently if updated in real time or that would be too difficult to 
+     * cover all possible ways of the value being set.
+     */
+    private void updateProgramConfig(){
+            // Set the search text in the configuration
+        config.setSearchText(searchPanel.getSearchText());
+            // Set the entered link text in the configuration
+        config.setEnteredLinkText(linkTextField.getText());
     }
     /**
      * This loads the configuration for the program from the configuration map.
