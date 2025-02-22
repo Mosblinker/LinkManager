@@ -592,50 +592,6 @@ public class LinkManagerConfig {
     }
     /**
      * 
-     * @param map
-     * @param config
-     * @param defaultConfig 
-     */
-    protected synchronized void addConfigProperties(Map<?, ?> map, 
-            Properties config, Properties defaultConfig){
-            // Go through the given map's entries
-        for (Map.Entry<?, ?> entry : map.entrySet()){
-                // Set the property
-            setConfigProperty(Objects.requireNonNull(entry.getKey()).toString(),
-                    entry.getValue(),config,defaultConfig);
-        }
-    }
-    /**
-     * 
-     * @param map 
-     */
-    public synchronized void addProperties(Map<?, ?> map){
-        addConfigProperties(map, getProperties(), getDefaultProperties());
-    }
-    /**
-     * 
-     * @param map 
-     */
-    public synchronized void addDefaultProperties(Map<?, ?> map){
-        addConfigProperties(map, getDefaultProperties(), null);
-    }
-    /**
-     * 
-     * @param map 
-     */
-    public synchronized void addPrivateProperties(Map<?, ?> map){
-        addConfigProperties(map, getPrivateProperties(), 
-                getDefaultPrivateProperties());
-    }
-    /**
-     * 
-     * @param map 
-     */
-    public synchronized void addDefaultPrivateProperties(Map<?, ?> map){
-        addConfigProperties(map, getDefaultPrivateProperties(), null);
-    }
-    /**
-     * 
      * @param value
      * @return 
      */
