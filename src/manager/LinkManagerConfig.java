@@ -345,6 +345,13 @@ public class LinkManagerConfig {
         return privateDefaults;
     }
     /**
+     * This returns the preference node used to store the Dropbox settings.
+     * @return 
+     */
+    protected Preferences getDropboxPreferences(){
+        return getPreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
+    }
+    /**
      * This returns the preference node used to store the Dropbox access tokens.
      * @return 
      */
@@ -402,7 +409,7 @@ public class LinkManagerConfig {
         if (path == null)
             path = "";
             // If the path is not empty and does not end with a slash
-        if (!path.isEmpty() && path.charAt(path.length()-1) != '/')
+        if (!path.isEmpty() && !path.endsWith("/"))
             path += "/";
         return getNode(path+programID.toString(), defaults);
     }
@@ -718,9 +725,15 @@ public class LinkManagerConfig {
      * @param node 
      */
     protected void setFilePathPreference(String key, String value, 
-            ConfigPreferences node){
-            // Format the file path and set it
-        node.put(key,formatFilePath(value));
+            Preferences node){
+            // Format the file path
+        value = formatFilePath(value);
+            // If the value is null
+        if (value == null)
+                // Remove the key from the node
+            node.remove(key);
+        else    // Put the value into the node
+            node.put(key,value);
     }
     /**
      * 
@@ -1552,6 +1565,27 @@ public class LinkManagerConfig {
     public boolean isComponentBoundsSet(Component comp){
         return getPreferences().isKeySet(getComponentName(comp)+
                 COMPONENT_BOUNDS_KEY_SUFFIX);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setDropboxDatabaseFileName(String value){
+        setFilePathPreference(DATABASE_FILE_PATH_KEY,value,
+                getDropboxPreferences());
+    }
+    /**
+     * 
+     * @return 
+     */
+    public String getDropboxDatabaseFileName(){
+            // Get the value from the Dropbox preference node, defaulting to 
+            // the link database file name, and format it
+        String value = formatFilePath(getDropboxPreferences().get(
+                DATABASE_FILE_PATH_KEY, LinkManager.LINK_DATABASE_FILE));
+            // If the value for the file name is not null, return it. Otherwise, 
+            // return the link database file name
+        return (value != null) ? value : LinkManager.LINK_DATABASE_FILE;
     }
     /**
      * 

@@ -506,21 +506,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
-     * @return 
-     */
-    private String getExternalDatabaseFileName(){
-        return config.getPrivateFilePathProperty(EXTERNAL_DATABASE_FILE_PATH_KEY);
-    }
-    /**
-     * 
-     * @param fileName
-     * @return 
-     */
-    private void setExternalDatabaseFileName(String fileName){
-        config.setPrivateFilePathProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, fileName);
-    }
-    /**
-     * 
      * @param fileName The file name for the database file
      * @return 
      */
@@ -4234,7 +4219,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }   // If this will sync the database to the cloud and the user is 
             // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            saver = new DbxDownloader(file,"/"+getExternalDatabaseFileName(),loadFlags);
+            saver = new DbxDownloader(file,config.getDropboxDatabaseFileName(),loadFlags);
             saver.execute();
         } else {
             loader = new DatabaseLoader(setFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG,false));
@@ -4570,20 +4555,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // This will be true if the database location dialog has not been opened before
         if (setLocationDialog.isLocationByPlatform())
             setLocationDialog.setLocationRelativeTo(this);
-        setDatabaseFileLocationFields(config.getDatabaseFileName());
-        setExternalDatabaseFileLocationFields(getExternalDatabaseFileName());
+        setDatabaseFileFields(config.getDatabaseFileName());
+        setDropboxDatabaseFileFields(config.getDropboxDatabaseFileName());
         loadExternalAccountData();
         updateDBLocationEnabled();
         setLocationDialog.setVisible(true);
     }//GEN-LAST:event_setDBLocationItemActionPerformed
     
-    private void setDatabaseFileLocationFields(String fileName){
+    private void setDatabaseFileFields(String fileName){
         File file = getDatabaseFile(fileName);
         dbFileField.setText(fileName);
         databaseFC.setCurrentDirectory(file);
     }
     
-    private void setExternalDatabaseFileLocationFields(String fileName){
+    private void setDropboxDatabaseFileFields(String fileName){
         dbxDbFileField.setText(formatDropboxPath(fileName));
     }
     
@@ -4722,8 +4707,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_setDBAcceptButtonActionPerformed
 
     private void setDBResetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBResetButtonActionPerformed
-        setDatabaseFileLocationFields(config.getPropertyDefault(DATABASE_FILE_PATH_KEY));
-        setExternalDatabaseFileLocationFields(config.getPrivateDefault(EXTERNAL_DATABASE_FILE_PATH_KEY));
+        setDatabaseFileFields(LINK_DATABASE_FILE);
+        setDropboxDatabaseFileFields(LINK_DATABASE_FILE);
     }//GEN-LAST:event_setDBResetButtonActionPerformed
     
     private void dbFileBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileBrowseButtonActionPerformed
@@ -4898,13 +4883,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     protected void done(){
                         super.done();
                         if (!getExitAfterSaving()){
-                            saver = new DbxUploader(getDatabaseFile(),"/"+getExternalDatabaseFileName());
+                            saver = new DbxUploader(getDatabaseFile(),config.getDropboxDatabaseFileName());
                             saver.execute();
                         }
                     }
                 };
             } else {
-                saver = new DbxUploader(getDatabaseFile(),"/"+getExternalDatabaseFileName());
+                saver = new DbxUploader(getDatabaseFile(),config.getDropboxDatabaseFileName());
             }
             saver.execute();
         }
@@ -4912,7 +4897,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void downloadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadDBItemActionPerformed
         if (isLoggedInToDropbox()){
-            saver = new DbxDownloader(getDatabaseFile(),"/"+getExternalDatabaseFileName());
+            saver = new DbxDownloader(getDatabaseFile(),config.getDropboxDatabaseFileName());
             saver.execute();
         }
     }//GEN-LAST:event_downloadDBItemActionPerformed
