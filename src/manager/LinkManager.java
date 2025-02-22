@@ -276,19 +276,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             "SetDatabaseLocation";
     
     private static final String LINK_MANAGER_NAME = "LinkManager";
-    
-    private static final String LINK_MANAGER_X_KEY = 
-            LINK_MANAGER_NAME+"X";
-    
-    private static final String LINK_MANAGER_Y_KEY = 
-            LINK_MANAGER_NAME+"Y";
-    
-    /**
-     * 
-     * @todo Implement the storing of the window state.
-     */
-    @Deprecated
-    private static final String HEIGHT_KEY_SUFFIX = "Height";
     /**
      * This is the configuration key for the encrypted access token for the 
      * Dropbox account to use to access the database file if the database file 
