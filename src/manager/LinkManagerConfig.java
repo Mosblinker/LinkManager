@@ -1620,7 +1620,7 @@ public class LinkManagerConfig {
     /**
      * 
      */
-    public void clearDropbox(){
+    public void clearDropboxToken(){
         setDropboxAccessToken(null);
         setDropboxRefreshToken(null);
         setDropboxTokenExpiresAt(null);
@@ -1655,6 +1655,11 @@ public class LinkManagerConfig {
         @Override
         public void setTokenExpiresAt(Long time) {
             setDropboxTokenExpiresAt(time);
+        }
+        @Override
+        public void clearCredentials(){
+            super.clearCredentials();
+            clearDropboxToken();
         }
     }
 }

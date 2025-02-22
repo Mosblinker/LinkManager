@@ -4829,7 +4829,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void dbxLogOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogOutButtonActionPerformed
         dbxUtils.clearCredentials();
-        config.clearDropbox();
         // TODO: Figure out how to properly deal with logging out of dropbox
         saver = new PrivateConfigSaver(){
             @Override
