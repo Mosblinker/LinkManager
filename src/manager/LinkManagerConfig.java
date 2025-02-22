@@ -165,6 +165,11 @@ public class LinkManagerConfig {
      */
     private static final String PRIVATE_PREFERENCE_NODE_PATH = "private";
     /**
+     * This is the name of the preference nodes used to store the data for 
+     * Dropbox.
+     */
+    private static final String DROPBOX_PREFERENCE_NODE_NAME = "dropbox";
+    /**
      * This is the preference node containing all the preferences for 
      * LinkManager. This is the parent preference node for all other nodes, and 
      * any settings stored in this node are shared between all instances of 
@@ -338,6 +343,13 @@ public class LinkManagerConfig {
      */
     public ConfigProperties getPrivateDefaults(){
         return privateDefaults;
+    }
+    /**
+     * This returns the preference node used to store the Dropbox access tokens.
+     * @return 
+     */
+    protected Preferences getPrivateDropboxPreferences(){
+        return getPrivatePreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
     }
     /**
      * This gets a preference node relative to the program preference node with 
@@ -1557,13 +1569,29 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @param key 
+     */
+    private void removeDropboxPreference(String key){
+        try{    // If the preference node exists
+            if (getPrivatePreferences().nodeExists(DROPBOX_PREFERENCE_NODE_NAME))
+                    // Remove the key from it
+                getPrivateDropboxPreferences().remove(key);
+        } catch (BackingStoreException ex) {}
+    }
+    /**
+     * 
      * @todo Add encryption of the Dropbox tokens.
      * 
      * @param key
      * @param token 
      */
     private void setDropboxToken(String key, String token){
-        getPrivateProperties().setProperty(key, token);
+            // If the token is null
+        if (token == null)
+                // Remove the key from the Dropbox preference node
+            removeDropboxPreference(key);
+        else    // Get the private Dropbox preference node and put the token in 
+            getPrivateDropboxPreferences().put(key, token);     // it
     }
     /**
      * 
@@ -1573,7 +1601,7 @@ public class LinkManagerConfig {
      * @return 
      */
     private String getDropboxToken(String key){
-        return getPrivateProperties().getProperty(key);
+        return getPrivateDropboxPreferences().get(key, null);
     }
     /**
      * 
@@ -1608,22 +1636,33 @@ public class LinkManagerConfig {
      * @param time 
      */
     public void setDropboxTokenExpiresAt(Long time){
-        getPrivateProperties().setProperty(DROPBOX_TOKEN_EXPIRATION_KEY,time);
+            // If the given time is null
+        if (time == null)
+                // Remove the value set for the time
+            removeDropboxPreference(DROPBOX_TOKEN_EXPIRATION_KEY);
+        else    // Set the value for the time
+            getPrivateDropboxPreferences().putLong(DROPBOX_TOKEN_EXPIRATION_KEY,
+                    time);
     }
     /**
      * 
      * @return 
      */
     public Long getDropboxTokenExpiresAt(){
-        return getPrivateProperties().getLongProperty(DROPBOX_TOKEN_EXPIRATION_KEY);
+            // Get the private Dropbox preference node
+        Preferences node = getPrivateDropboxPreferences();
+            // Get whether the node contains the dropbox token expire time
+        if (node.get(DROPBOX_TOKEN_EXPIRATION_KEY, null) == null)
+            return null;
+        return node.getLong(DROPBOX_TOKEN_EXPIRATION_KEY, 0);
     }
     /**
      * 
      */
     public void clearDropboxToken(){
-        setDropboxAccessToken(null);
-        setDropboxRefreshToken(null);
-        setDropboxTokenExpiresAt(null);
+        try {
+            getPrivateDropboxPreferences().removeNode();
+        } catch (BackingStoreException ex) { }
     }
     
     
