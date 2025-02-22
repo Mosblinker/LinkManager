@@ -50,7 +50,6 @@ import javax.swing.table.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 import javax.swing.tree.*;
-import static manager.LinkManagerConfig.*;
 import manager.config.ConfigPreferences;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
@@ -138,12 +137,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * determine what preference node to use for the program.
      */
     private static final String PROGRAM_ID_KEY = "ProgramID";
-    /**
-     * This is the configuration key for the database file path when stored 
-     * externally if the database file is stored externally.
-     */
-    public static final String EXTERNAL_DATABASE_FILE_PATH_KEY = 
-            "External"+DATABASE_FILE_PATH_KEY;
     /**
      * This is the configuration key for the listID of the currently selected 
      * list if a list with a listID is selected. This is for the 
@@ -5958,16 +5951,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param config 
      */
     private void updatePrivateConfig(Properties config){
-            // If the config does not have the external database file path 
-            // key but it does have the regular database file path key
-        if (!config.containsKey(EXTERNAL_DATABASE_FILE_PATH_KEY) &&
-                config.containsKey(DATABASE_FILE_PATH_KEY)){
-                // Set the external database file path key to the regular 
-                // database file path key
-            config.setProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, 
-                    config.getProperty(DATABASE_FILE_PATH_KEY));
-        }   // Remove the regular database file path key
-        config.remove(DATABASE_FILE_PATH_KEY);
+        
     }
     /**
      * 
