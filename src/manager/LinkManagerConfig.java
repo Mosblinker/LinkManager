@@ -152,6 +152,25 @@ public class LinkManagerConfig {
      */
     public static final String CURRENT_TAB_INDEX_KEY = "CurrentTabIndex";
     /**
+     * This is the configuration key for the currently selected link in a list 
+     * with a listID.
+     */
+    public static final String SELECTED_LINK_FOR_LIST_KEY = 
+            "SelectedLink";
+    /**
+     * This is the configuration key for whether the currently selected link in 
+     * a list is visible. (i.e. whether this should scroll to the selected link 
+     * when the program is first loading) with a listID.
+     */
+    public static final String SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY = 
+            "SelectedLinkIsVisible";
+    
+    public static final String FIRST_VISIBLE_INDEX_FOR_LIST_KEY = 
+            "FirstVisibleIndex";
+    
+    public static final String LAST_VISIBLE_INDEX_FOR_LIST_KEY = 
+            "LastVisibleIndex";
+    /**
      * This is the suffix for the configuration keys for the size of a 
      * component.
      */
@@ -204,7 +223,10 @@ public class LinkManagerConfig {
      * that deal with list IDs.
      */
     private static final String[] LIST_ID_PROPERTY_KEY_PREFIXES = {
-        
+        SELECTED_LINK_FOR_LIST_KEY,
+        SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY,
+        FIRST_VISIBLE_INDEX_FOR_LIST_KEY,
+        LAST_VISIBLE_INDEX_FOR_LIST_KEY
     };
     /**
      * This is the start of the path for the preference node used to store the 
