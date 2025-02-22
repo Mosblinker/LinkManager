@@ -1033,6 +1033,11 @@ public class LinkManagerConfig {
         }   // This maps listIDs to the selected link for that list
         Map<Integer,String> selMap = new HashMap<>();
             // This maps the listIDs to whether the selected link is visible for 
+        Map<Integer,Boolean> selVisMap = new HashMap<>();   // that list
+            // This maps the listIDs to the first visible index for that list
+        Map<Integer,Integer> firstVisMap = new HashMap<>();
+            // This maps the listIDs to the last visible index for that list
+        Map<Integer,Integer> lastVisMap = new HashMap<>();
             // This maps the list types to the listID of the selected list for 
             // that list type
         Map<Integer,Integer> selListIDMap = new HashMap<>();
@@ -1073,6 +1078,18 @@ public class LinkManagerConfig {
                     case(SELECTED_LINK_FOR_LIST_KEY):
                         selMap.put(type, cProp.getProperty(key));
                         break;
+                        // If this is the selected link is visible key
+                    case(SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY):
+                        selVisMap.put(type, cProp.getBooleanProperty(key));
+                        break;
+                        // If this is the first visible index key
+                    case(FIRST_VISIBLE_INDEX_FOR_LIST_KEY):
+                        firstVisMap.put(type, cProp.getIntProperty(key));
+                        break;
+                        // If this is the last visible index key
+                    case(LAST_VISIBLE_INDEX_FOR_LIST_KEY):
+                        lastVisMap.put(type, cProp.getIntProperty(key));
+                        break;
                         // If this is the current tab listID key
                     case(CURRENT_TAB_LIST_ID_KEY):
                         selListIDMap.put(type, cProp.getIntProperty(key));
@@ -1089,6 +1106,12 @@ public class LinkManagerConfig {
             config.remove(key);
         }   // Remove all null values from the selected links
         selMap.values().removeIf((String t) -> t == null);
+            // Remove all the null values from whether the links are visible
+        selVisMap.values().removeIf((Boolean t) -> t == null);
+            // Remove all the null values from the first visible indexes
+        firstVisMap.values().removeIf((Integer t) -> t == null);
+            // Remove all the null values from the last visible indexes
+        lastVisMap.values().removeIf((Integer t) -> t == null);
             // Remove all null values from the current tab listIDs
         selListIDMap.values().removeIf((Integer t) -> t == null);
             // Remove all null values from the current tab indexes
