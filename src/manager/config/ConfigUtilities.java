@@ -359,8 +359,8 @@ public class ConfigUtilities {
      * @return 
      */
     public static Point pointFromByteArray(byte[] value, Point defaultValue){
-            // If the given array is null
-        if (value == null)
+            // If the given array is null or the array is not two integers long
+        if (value == null || value.length != Integer.BYTES*2)
             return defaultValue;
             // Convert the array of bytes into two integers
         int[] arr = intArrayFromBytes(value,0,2);
@@ -397,8 +397,10 @@ public class ConfigUtilities {
      */
     public static Rectangle rectangleFromByteArray(byte[] value, 
             Rectangle defaultValue){
-            // If the given array is null
-        if (value == null)
+            // If the given array is null or the given array is neither 2 or 4 
+            // integers long
+        if (value == null || !(value.length == Integer.BYTES*2 || 
+                value.length == Integer.BYTES*4))
             return defaultValue;
             // Convert the array of bytes into 4 integers
         int[] arr = intArrayFromBytes(value,0,4);
