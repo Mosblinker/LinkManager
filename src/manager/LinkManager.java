@@ -620,7 +620,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     System.out.println("Error Reading File: " + ex);
                 return null;
             }
-            dbxUtils = new DropboxLinkUtils(){
+            dbxUtils = config.new DropboxLinkUtilsConfig(){
                 DbxAppInfo info = appInfo;
                 @Override
                 public String getAppKey() {
@@ -637,30 +637,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 @Override
                 public String getClientID() {
                     return DROPBOX_CLIENT_ID;
-                }
-                @Override
-                public String getAccessToken() {
-                    return getDropboxToken(DROPBOX_ACCESS_TOKEN_KEY);
-                }
-                @Override
-                public void setAccessToken(String token) {
-                    setDropboxToken(DROPBOX_ACCESS_TOKEN_KEY,token);
-                }
-                @Override
-                public String getRefreshToken() {
-                    return getDropboxToken(DROPBOX_REFRESH_TOKEN_KEY);
-                }
-                @Override
-                public void setRefreshToken(String token) {
-                    setDropboxToken(DROPBOX_REFRESH_TOKEN_KEY,token);
-                }
-                @Override
-                public Long getTokenExpiresAt() {
-                    return config.getPrivateProperties().getLongProperty(DROPBOX_TOKEN_EXPIRATION_KEY);
-                }
-                @Override
-                public void setTokenExpiresAt(Long time) {
-                    config.getPrivateProperties().setProperty(DROPBOX_TOKEN_EXPIRATION_KEY,time);
                 }
                 @Override
                 public DbxAppInfo getAppInfo(){
@@ -4853,7 +4829,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void dbxLogOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogOutButtonActionPerformed
         dbxUtils.clearCredentials();
-        // TODO: Figure out how to properly deal with logging out from this program
+        config.clearDropbox();
+        // TODO: Figure out how to properly deal with logging out of dropbox
         saver = new PrivateConfigSaver(){
             @Override
             protected void done(){

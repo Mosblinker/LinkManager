@@ -11,6 +11,7 @@ import java.awt.Rectangle;
 import java.util.*;
 import java.util.prefs.*;
 import manager.config.*;
+import manager.dropbox.DropboxLinkUtils;
 import manager.security.Obfuscator;
 import org.sqlite.SQLiteConfig;
 
@@ -1623,5 +1624,37 @@ public class LinkManagerConfig {
         setDropboxAccessToken(null);
         setDropboxRefreshToken(null);
         setDropboxTokenExpiresAt(null);
+    }
+    
+    
+    
+    /**
+     * 
+     */
+    public abstract class DropboxLinkUtilsConfig extends DropboxLinkUtils{
+        @Override
+        public String getAccessToken() {
+            return getDropboxAccessToken();
+        }
+        @Override
+        public void setAccessToken(String token) {
+            setDropboxAccessToken(token);
+        }
+        @Override
+        public String getRefreshToken() {
+            return getDropboxRefreshToken();
+        }
+        @Override
+        public void setRefreshToken(String token) {
+            setDropboxRefreshToken(token);
+        }
+        @Override
+        public Long getTokenExpiresAt() {
+            return getDropboxTokenExpiresAt();
+        }
+        @Override
+        public void setTokenExpiresAt(Long time) {
+            setDropboxTokenExpiresAt(time);
+        }
     }
 }
