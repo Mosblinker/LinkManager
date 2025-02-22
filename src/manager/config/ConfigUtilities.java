@@ -224,7 +224,7 @@ public class ConfigUtilities {
      * @param values
      * @return 
      */
-    private static byte[] toByteArray(short header, int... values){
+    private static byte[] intArraytoByteArray(short header, int... values){
             // This will get a byte array representation of the given integers
         byte[] arr = new byte[Short.BYTES+(Integer.BYTES*values.length)];
             // Wrap the byte array with a byte buffer to write to it
