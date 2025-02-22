@@ -6269,11 +6269,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
         setIndeterminate(true);
-            // Update the list of all listIDs
-        writeTabsToDatabase(conn.getAllListIDs(),allListsTabsPanel);
-            // Update the list of shown listIDs
-        writeTabsToDatabase(conn.getShownListIDs(),shownListsTabsPanel);
-            // Remove any listIDs from the shown listIDs list that are hidden
+            // Go through the tab panels
+        for (int i = 0; i < listsTabPanels.length; i++){
+                // Update the list of the listIDs
+            writeTabsToDatabase(conn.getListIDs(i),listsTabPanels[i]);
+        }   // Remove any listIDs from the shown listIDs list that are hidden
         conn.getShownListIDs().removeIf((Integer t) -> {
                 // Get the model with the current listID
             LinksListModel model = allListsTabsPanel.getModelWithListID(t);
