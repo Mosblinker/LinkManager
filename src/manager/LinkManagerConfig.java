@@ -185,19 +185,17 @@ public class LinkManagerConfig {
      * This is the name of the preference nodes used to store the data for 
      * Dropbox.
      */
-    private static final String DROPBOX_PREFERENCE_NODE_NAME = "dropbox";
+    public static final String DROPBOX_PREFERENCE_NODE_NAME = "dropbox";
     /**
      * This is the prefix for the name of the preference nodes used to store 
      * the settings relating to a specific type of list.
      */
-    private static final String LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX = 
-            "listType=";
+    public static final String LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX="listType=";
     /**
      * This is the prefix for the name of the preference nodes used to store 
      * the settings relating to a specific list.
      */
-    private static final String LIST_ID_PREFERENCE_NODE_NAME_PREFIX = 
-            "listID=";
+    public static final String LIST_ID_PREFERENCE_NODE_NAME_PREFIX = "listID=";
     /**
      * This is the preference node containing all the preferences for 
      * LinkManager. This is the parent preference node for all other nodes, and 

@@ -9175,6 +9175,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             addConfigRows("Shared Preferences",config.getSharedPreferences());
                 // Add all the local preferences for this program
             addConfigRows("Local Preferences",config.getPreferences());
+                
                 // Add all the local Dropbox preferences for this program
             addConfigRows("Dropbox Preferences",config.getDropboxPreferences());
             
