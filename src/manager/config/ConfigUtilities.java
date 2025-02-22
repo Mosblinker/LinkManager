@@ -315,19 +315,29 @@ public class ConfigUtilities {
     /**
      * 
      * @param value
+     * @param defaultValue
      * @return 
      */
-    public static Dimension dimensionFromByteArray(byte[] value){
+    public static Dimension dimensionFromByteArray(byte[] value, 
+            Dimension defaultValue){
             // If the given array is null
         if (value == null)
-            return null;
+            return defaultValue;
             // Get an integer buffer to get the values for the dimension
         IntBuffer buffer = toIntBuffer(DIMENSION_BYTE_ARRAY_HEADER,value);
             // If the buffer is null (did not match the header) or there aren't 
             // 2 integers in the buffer
         if (buffer == null || buffer.remaining() != 2)
-            return null;
+            return defaultValue;
         return new Dimension(buffer.get(),buffer.get());
+    }
+    /**
+     * 
+     * @param value
+     * @return 
+     */
+    public static Dimension dimensionFromByteArray(byte[] value){
+        return dimensionFromByteArray(value,null);
     }
     /**
      * 
