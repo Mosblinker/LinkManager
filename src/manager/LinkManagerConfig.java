@@ -1554,4 +1554,74 @@ public class LinkManagerConfig {
         return getPreferences().isKeySet(getComponentName(comp)+
                 COMPONENT_BOUNDS_KEY_SUFFIX);
     }
+    /**
+     * 
+     * @todo Add encryption of the Dropbox tokens.
+     * 
+     * @param key
+     * @param token 
+     */
+    private void setDropboxToken(String key, String token){
+        getPrivateProperties().setProperty(key, token);
+    }
+    /**
+     * 
+     * @todo Add decryption of the Dropbox tokens.
+     * 
+     * @param key
+     * @return 
+     */
+    private String getDropboxToken(String key){
+        return getPrivateProperties().getProperty(key);
+    }
+    /**
+     * 
+     * @param token 
+     */
+    public void setDropboxAccessToken(String token){
+        setDropboxToken(DROPBOX_ACCESS_TOKEN_KEY,token);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public String getDropboxAccessToken(){
+        return getDropboxToken(DROPBOX_ACCESS_TOKEN_KEY);
+    }
+    /**
+     * 
+     * @param token 
+     */
+    public void setDropboxRefreshToken(String token){
+        setDropboxToken(DROPBOX_REFRESH_TOKEN_KEY,token);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public String getDropboxRefreshToken(){
+        return getDropboxToken(DROPBOX_REFRESH_TOKEN_KEY);
+    }
+    /**
+     * 
+     * @param time 
+     */
+    public void setDropboxTokenExpiresAt(Long time){
+        getPrivateProperties().setProperty(DROPBOX_TOKEN_EXPIRATION_KEY,time);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Long getDropboxTokenExpiresAt(){
+        return getPrivateProperties().getLongProperty(DROPBOX_TOKEN_EXPIRATION_KEY);
+    }
+    /**
+     * 
+     */
+    public void clearDropbox(){
+        setDropboxAccessToken(null);
+        setDropboxRefreshToken(null);
+        setDropboxTokenExpiresAt(null);
+    }
 }
