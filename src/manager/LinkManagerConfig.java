@@ -184,10 +184,10 @@ public class LinkManagerConfig {
      */
     private final SQLiteConfig sqlConfig;
     /**
-     * This is a map used to map components to the prefixes for keys for 
-     * settings that relate to that component.
+     * This is a map used to map components to the names of the component in 
+     * the settings.
      */
-    private final Map<Component, String> compKeyMap;
+    private final Map<Component, String> compNameMap;
     /**
      * This is the ID for the program.
      */
@@ -202,7 +202,7 @@ public class LinkManagerConfig {
         config = new Properties(defaultConfig);
         defaultPrivateConfig = new Properties();
         privateConfig = new Properties(defaultPrivateConfig);
-        compKeyMap = new HashMap<>();
+        compNameMap = new HashMap<>();
             // If the given SQLite config properties is not null
         if(sqlProp != null)
             sqlConfig = new SQLiteConfig(sqlProp);
@@ -229,7 +229,7 @@ public class LinkManagerConfig {
         this.defaultPrivateConfig.putAll(linkConfig.defaultPrivateConfig);
         this.config.putAll(linkConfig.config);
         this.privateConfig.putAll(linkConfig.privateConfig);
-        this.compKeyMap.putAll(linkConfig.compKeyMap);
+        this.compNameMap.putAll(linkConfig.compNameMap);
         this.localDefaults.addProperties(linkConfig.localDefaults);
         this.privateDefaults.addProperties(linkConfig.privateDefaults);
         LinkManagerConfig.this.setProgramID(linkConfig.programID);
@@ -401,15 +401,12 @@ public class LinkManagerConfig {
         return sqlConfig;
     }
     /**
-     * This returns a map used to map components in LinkManager to the prefixes 
-     * for properties that relate to that component. For example, the properties 
-     * for which these are prefixes for may be for the size of a component or 
-     * the selected file for a file chooser.
-     * @return A map that maps components to the prefixes for their respective 
-     * properties.
+     * This returns a map used to map components in LinkManager to the names of 
+     * the component in the settings that relate to that component.
+     * @return A map that maps components to the names for those components.
      */
-    public Map<Component, String> getComponentPrefixMap(){
-        return compKeyMap;
+    public Map<Component, String> getComponentNames(){
+        return compNameMap;
     }
     /**
      * This returns the properties map that stores the configuration for 
@@ -923,7 +920,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public Dimension getSizeProperty(Component comp){
-        return getSizeProperty(getComponentPrefixMap().get(comp));
+        return getSizeProperty(getComponentNames().get(comp));
     }
     /**
      * 
@@ -932,7 +929,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public Dimension getSizeProperty(Component comp, Dimension dim){
-        return getSizeProperty(getComponentPrefixMap().get(comp),dim);
+        return getSizeProperty(getComponentNames().get(comp),dim);
     }
     /**
      * 
@@ -948,7 +945,7 @@ public class LinkManagerConfig {
      * @param dim 
      */
     public void setSizeProperty(Component comp, Dimension dim){
-        setSizeProperty(getComponentPrefixMap().get(comp),dim);
+        setSizeProperty(getComponentNames().get(comp),dim);
     }
     /**
      * 
@@ -983,7 +980,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public Dimension getDefaultSizeProperty(Component comp){
-        return getDefaultSizeProperty(getComponentPrefixMap().get(comp));
+        return getDefaultSizeProperty(getComponentNames().get(comp));
     }
     /**
      * 
@@ -992,7 +989,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public Dimension getDefaultSizeProperty(Component comp, Dimension dim){
-        return getDefaultSizeProperty(getComponentPrefixMap().get(comp),dim);
+        return getDefaultSizeProperty(getComponentNames().get(comp),dim);
     }
     /**
      * 
@@ -1008,7 +1005,7 @@ public class LinkManagerConfig {
      * @param dim 
      */
     public void setDefaultSizeProperty(Component comp, Dimension dim){
-        setDefaultSizeProperty(getComponentPrefixMap().get(comp),dim);
+        setDefaultSizeProperty(getComponentNames().get(comp),dim);
     }
     /**
      * 
@@ -1043,7 +1040,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public Dimension getPrivateSizeProperty(Component comp){
-        return getPrivateSizeProperty(getComponentPrefixMap().get(comp));
+        return getPrivateSizeProperty(getComponentNames().get(comp));
     }
     /**
      * 
@@ -1052,7 +1049,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public Dimension getPrivateSizeProperty(Component comp, Dimension dim){
-        return getPrivateSizeProperty(getComponentPrefixMap().get(comp),dim);
+        return getPrivateSizeProperty(getComponentNames().get(comp),dim);
     }
     /**
      * 
@@ -1068,7 +1065,7 @@ public class LinkManagerConfig {
      * @param dim 
      */
     public void setPrivateSizeProperty(Component comp, Dimension dim){
-        setPrivateSizeProperty(getComponentPrefixMap().get(comp),dim);
+        setPrivateSizeProperty(getComponentNames().get(comp),dim);
     }
     /**
      * 
@@ -1103,7 +1100,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public Dimension getDefaultPrivateSizeProperty(Component comp){
-        return getDefaultPrivateSizeProperty(getComponentPrefixMap().get(comp));
+        return getDefaultPrivateSizeProperty(getComponentNames().get(comp));
     }
     /**
      * 
@@ -1112,7 +1109,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public Dimension getDefaultPrivateSizeProperty(Component comp, Dimension dim){
-        return getDefaultPrivateSizeProperty(getComponentPrefixMap().get(comp),dim);
+        return getDefaultPrivateSizeProperty(getComponentNames().get(comp),dim);
     }
     /**
      * 
@@ -1128,7 +1125,7 @@ public class LinkManagerConfig {
      * @param dim 
      */
     public void setDefaultPrivateSizeProperty(Component comp, Dimension dim){
-        setDefaultPrivateSizeProperty(getComponentPrefixMap().get(comp),dim);
+        setDefaultPrivateSizeProperty(getComponentNames().get(comp),dim);
     }
     /**
      * 

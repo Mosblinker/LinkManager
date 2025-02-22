@@ -1097,25 +1097,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         searchMenu.add(searchPanel.getFindPreviousAction());
         
             // Set up the component key prefix map
-        config.getComponentPrefixMap().put(listManipulator, LIST_MANAGER_NAME);
-        config.getComponentPrefixMap().put(listTabsManipulator, LIST_TABS_MANAGER_NAME);
-        config.getComponentPrefixMap().put(addLinksPanel, ADD_LINKS_PANEL_NAME);
-        config.getComponentPrefixMap().put(copyOrMoveListSelector, 
+        config.getComponentNames().put(listManipulator, LIST_MANAGER_NAME);
+        config.getComponentNames().put(listTabsManipulator, LIST_TABS_MANAGER_NAME);
+        config.getComponentNames().put(addLinksPanel, ADD_LINKS_PANEL_NAME);
+        config.getComponentNames().put(copyOrMoveListSelector, 
                 COPY_OR_MOVE_LINKS_PANEL_NAME);
-        config.getComponentPrefixMap().put(openFC, OPEN_FILE_CHOOSER_NAME);
-        config.getComponentPrefixMap().put(saveFC, SAVE_FILE_CHOOSER_NAME);
-        config.getComponentPrefixMap().put(configFC, CONFIG_FILE_CHOOSER_NAME);
-        config.getComponentPrefixMap().put(exportFC, EXPORT_FILE_CHOOSER_NAME);
-        config.getComponentPrefixMap().put(databaseFC, DATABASE_FILE_CHOOSER_NAME);
-        config.getComponentPrefixMap().put(LinkManager.this, LINK_MANAGER_NAME);
-        config.getComponentPrefixMap().put(setLocationDialog, DATABASE_LOCATION_DIALOG_NAME);
+        config.getComponentNames().put(openFC, OPEN_FILE_CHOOSER_NAME);
+        config.getComponentNames().put(saveFC, SAVE_FILE_CHOOSER_NAME);
+        config.getComponentNames().put(configFC, CONFIG_FILE_CHOOSER_NAME);
+        config.getComponentNames().put(exportFC, EXPORT_FILE_CHOOSER_NAME);
+        config.getComponentNames().put(databaseFC, DATABASE_FILE_CHOOSER_NAME);
+        config.getComponentNames().put(LinkManager.this, LINK_MANAGER_NAME);
+        config.getComponentNames().put(setLocationDialog, DATABASE_LOCATION_DIALOG_NAME);
         
             // Initialize the defaults that are dependent on the UI
         config.setPropertyDefault(LINK_MANAGER_X_KEY, 0);
         config.setPropertyDefault(LINK_MANAGER_Y_KEY, 0);
         
             // Go through the components to store their preferred sizes
-        for (Component comp : config.getComponentPrefixMap().keySet()){
+        for (Component comp : config.getComponentNames().keySet()){
                 // Use the preferred size of the current component as its 
                 // default size
             config.setDefaultSizeProperty(comp,comp.getPreferredSize());
@@ -6276,7 +6276,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Set the entered link from the config
             linkTextField.setText(config.getEnteredLinkText());
                 // Go through the components with sizes saved to config
-            for (Component comp : config.getComponentPrefixMap().keySet()){
+            for (Component comp : config.getComponentNames().keySet()){
                     // Get the size from the config for the component
                 Dimension dim = config.getSizeProperty(comp);
                     // If the size for the component is null
