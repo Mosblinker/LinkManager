@@ -341,6 +341,17 @@ public class ConfigUtilities {
     }
     /**
      * 
+     * @param x
+     * @param y
+     * @return 
+     */
+    public static byte[] pointToByteArray(int x, int y){
+            // Put the two integers into an array of integers, and convert that 
+            // into an array of bytes
+        return intArrayToBytes(new int[]{x,y},null,0);
+    }
+    /**
+     * 
      * @param value
      * @return 
      */
@@ -348,9 +359,7 @@ public class ConfigUtilities {
             // If the given point object is null
         if (value == null)
             return null;
-            // Convert the point object into an array of integers, and 
-            // convert that into an array of bytes
-        return intArrayToBytes(new int[]{value.x,value.y},null,0);
+        return pointToByteArray(value.x,value.y);
     }
     /**
      * 
@@ -377,6 +386,28 @@ public class ConfigUtilities {
     }
     /**
      * 
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     * @return 
+     */
+    public static byte[] rectangleToByteArray(int x,int y,int width,int height){
+            // Put the 4 integers into an array of integers, and convert that 
+            // into an array of bytes
+        return intArrayToBytes(new int[]{x,y,width,height},null,0);
+    }
+    /**
+     * 
+     * @param width
+     * @param height
+     * @return 
+     */
+    public static byte[] rectangleToByteArray(int width,int height){
+        return rectangleToByteArray(0,0,width,height);
+    }
+    /**
+     * 
      * @param value
      * @return 
      */
@@ -386,8 +417,7 @@ public class ConfigUtilities {
             return null;
             // Convert the rectangle object into an array of integers, and 
             // convert that into an array of bytes
-        return intArrayToBytes(new int[]{value.x,value.y,value.width,
-            value.height},null,0);
+        return rectangleToByteArray(value.x,value.y,value.width,value.height);
     }
     /**
      * 
