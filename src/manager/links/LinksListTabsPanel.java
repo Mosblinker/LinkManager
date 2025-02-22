@@ -642,11 +642,17 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
             selListID = selPanel.getListID();
         }   // This gets whether no change has occurred
         boolean noChange = !structEdited && models.size()==getModels().size();
+            // This maps the old models to their listIDs. Any models without a 
+            // listID aren't included in this map
         HashMap<Integer,LinksListModel> modelIDs = new HashMap<>();
         HashMap<LinksListModel,String> selValues = new HashMap<>();
+            // This maps the old models to their visible rectangles
         HashMap<LinksListModel,Rectangle> visibleRects = new HashMap<>();
+            // Go through the panels in the tabs
         for (LinksListPanel panel : this){
+                // Get the panel's model
             LinksListModel model = panel.getModel();
+                // If the panel's model's listID is not null
             if (model.getListID() != null)
                 modelIDs.put(model.getListID(), model);
             selValues.put(model, panel.getSelectedValue());
