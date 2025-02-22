@@ -196,10 +196,6 @@ public class LinkManagerConfig {
      */
     private ConfigPreferences privateNode = null;
     /**
-     * This is a properties map that stores the defaults for {@code privateNode}.
-     */
-    private final ConfigProperties privateDefaults;
-    /**
      * This is a properties map that stores the configuration for LinkManager.
      */
     private final ConfigProperties config;
@@ -244,7 +240,6 @@ public class LinkManagerConfig {
             sqlConfig = new SQLiteConfig();
         programNode = node;
         localDefaults = new ConfigProperties();
-        privateDefaults = new ConfigProperties();
         this.obfuscator = obfuscator;
     }
     /**
@@ -274,7 +269,6 @@ public class LinkManagerConfig {
         this.config.putAll(linkConfig.config);
         this.compNameMap.putAll(linkConfig.compNameMap);
         this.localDefaults.addProperties(linkConfig.localDefaults);
-        this.privateDefaults.addProperties(linkConfig.privateDefaults);
         LinkManagerConfig.this.setProgramID(linkConfig.programID);
     }
     /**
@@ -323,16 +317,6 @@ public class LinkManagerConfig {
      */
     public ConfigPreferences getPrivatePreferences(){
         return privateNode;
-    }
-    /**
-     * This returns the properties map that stores the default values for the 
-     * {@link #getPrivatePreferences() sensitive data preference node}.
-     * @return The properties map with the defaults for the preference node for 
-     * private data.
-     * @see #getPrivatePreferences() 
-     */
-    public ConfigProperties getPrivateDefaults(){
-        return privateDefaults;
     }
     /**
      * This returns the preference node used to store the Dropbox settings.
@@ -429,9 +413,9 @@ public class LinkManagerConfig {
             return;
         programID = id;
             // Set the local preference node
-        localNode = getProgramIDNode(LOCAL_PREFERENCE_NODE_PATH,localDefaults);
+        localNode = getProgramIDNode(LOCAL_PREFERENCE_NODE_PATH,getDefaults());
             // Set the private preference node
-        privateNode = getProgramIDNode(PRIVATE_PREFERENCE_NODE_PATH,privateDefaults);
+        privateNode = getProgramIDNode(PRIVATE_PREFERENCE_NODE_PATH,null);
     }
     /**
      * This sets the program ID to be a random {@code UUID}.
