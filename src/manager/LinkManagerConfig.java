@@ -113,6 +113,22 @@ public class LinkManagerConfig {
     public static final String SYNC_DATABASE_KEY = "SyncDatabase";
     
     /**
+     * This is the suffix for the configuration keys for the size of a 
+     * component.
+     */
+    public static final String COMPONENT_SIZE_KEY_SUFFIX = "Size";
+    /**
+     * This is the suffix for the configuration keys for the position of a 
+     * component.
+     */
+    public static final String COMPONENT_POSITION_KEY_SUFFIX = "Position";
+    /**
+     * This is the suffix for the configuration keys for the bounds of a 
+     * component.
+     */
+    public static final String COMPONENT_BOUNDS_KEY_SUFFIX = "Bounds";
+    
+    /**
      * This is the old suffix for configuration keys for the width component of 
      * a dimension.
      */
