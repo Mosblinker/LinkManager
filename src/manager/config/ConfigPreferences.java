@@ -132,28 +132,30 @@ public class ConfigPreferences extends Preferences{
         return get(key, null) != null;
     }
     /**
-     * {@inheritDoc }
+     * {@inheritDoc } If the specified value is null, then the value associated 
+     * with the specified key will be {@link #remove(String) removed}.
      * @param key {@inheritDoc }
-     * @param value {@inheritDoc }
-     * @throws NullPointerException {@inheritDoc }
+     * @param value The value to be associated with the specified key, or null.
+     * @throws NullPointerException If the key is {@code null}.
      * @throws IllegalArgumentException {@inheritDoc }
      * @throws IllegalStateException {@inheritDoc }
+     * @see #remove(String) 
      */
     @Override
     public void put(String key, String value) {
             // Make sure the key is not null
         Objects.requireNonNull(key, "Key cannot be null");
-            // Make sure the byte array value is not null
-        Objects.requireNonNull(value, "Value cannot be null");
-        
-        // TODO: Should this handle something similar to how LinkManagerConfig 
-        // deals with setting values to either their defaults or to null?
-        
-            // Get the current value, defaulting to null if not set
-        String old = get(key, null);
-            // If the new value is different from the old value
-        if (!value.equals(old))
-            node.put(key, value);
+            // If the value is null
+        if (value == null){
+                // Remove the value, resetting it to the default
+            remove(key);
+        } else {
+                // Get the current value, defaulting to null if not set
+            String old = get(key, null);
+                // If the new value is different from the old value
+            if (!value.equals(old))
+                node.put(key, value);
+        }
     }
     /**
      * {@inheritDoc }
@@ -381,7 +383,7 @@ public class ConfigPreferences extends Preferences{
      * {@inheritDoc }
      * @param key {@inheritDoc }
      * @param value {@inheritDoc }
-     * @throws NullPointerException {@inheritDoc }
+     * @throws NullPointerException If the key is {@code null}.
      * @throws IllegalArgumentException {@inheritDoc }
      * @throws IllegalStateException {@inheritDoc }
      * @see #getByteArray(String, byte[]) 
@@ -391,9 +393,12 @@ public class ConfigPreferences extends Preferences{
     public void putByteArray(String key, byte[] value) {
             // Make sure the key is not null
         Objects.requireNonNull(key, "Key cannot be null");
-            // Make sure the byte array value is not null
-        Objects.requireNonNull(value, "Value cannot be null");
-            // If the byte array's length exceeds 3/4ths of the max value length
+            // If the value is null
+        if (value == null){
+                // Remove the value, resetting it to the default
+            remove(key);
+            return;
+        }   // If the byte array's length exceeds 3/4ths of the max value length
         if (value.length > Preferences.MAX_VALUE_LENGTH*(3/4))
             throw new IllegalArgumentException("Byte array is too long ("+
                     value.length+" > "+(Preferences.MAX_VALUE_LENGTH*(3/4))+")");
@@ -427,6 +432,10 @@ public class ConfigPreferences extends Preferences{
      * 
      * @param key
      * @param value 
+     * @see #getDimension(String, Dimension) 
+     * @see #get(String, String) 
+     * @see #getByteArray(String, byte[]) 
+     * @see #putByteArray(String, byte[]) 
      */
     public void putDimension(String key, Dimension value){
             // Convert the dimension object into an array of bytes and store it
@@ -437,6 +446,10 @@ public class ConfigPreferences extends Preferences{
      * @param key
      * @param def
      * @return 
+     * @see #putDimension(String, Dimension) 
+     * @see #get(String, String) 
+     * @see #getByteArray(String, byte[]) 
+     * @see #putByteArray(String, byte[]) 
      */
     public Dimension getDimension(String key, Dimension def){
             // Get the dimensions as a byte array, defaulting to null
@@ -451,6 +464,10 @@ public class ConfigPreferences extends Preferences{
      * 
      * @param key
      * @param value 
+     * @see #getPoint(String, Point) 
+     * @see #get(String, String) 
+     * @see #getByteArray(String, byte[]) 
+     * @see #putByteArray(String, byte[]) 
      */
     public void putPoint(String key, Point value){
             // Convert the point object into an array of bytes and store it
@@ -461,6 +478,10 @@ public class ConfigPreferences extends Preferences{
      * @param key
      * @param def
      * @return 
+     * @see #putPoint(String, Point) 
+     * @see #get(String, String) 
+     * @see #getByteArray(String, byte[]) 
+     * @see #putByteArray(String, byte[]) 
      */
     public Point getPoint(String key, Point def){
             // Get the point as a byte array, defaulting to null
@@ -475,6 +496,10 @@ public class ConfigPreferences extends Preferences{
      * 
      * @param key
      * @param value 
+     * @see #getRectangle(String, Rectangle) 
+     * @see #get(String, String) 
+     * @see #getByteArray(String, byte[]) 
+     * @see #putByteArray(String, byte[]) 
      */
     public void putRectangle(String key, Rectangle value){
             // Convert the rectangle object into an array of bytes and store it
@@ -485,6 +510,10 @@ public class ConfigPreferences extends Preferences{
      * @param key
      * @param def
      * @return 
+     * @see #putRectangle(String, Rectangle) 
+     * @see #get(String, String) 
+     * @see #getByteArray(String, byte[]) 
+     * @see #putByteArray(String, byte[]) 
      */
     public Rectangle getRectangle(String key, Rectangle def){
             // Get the rectangle as a byte array, defaulting to null
