@@ -6021,7 +6021,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         Map<Integer,Integer> firstVisMap = new HashMap<>();
             // This maps the tabs panel indexes to the listID of the selected 
             // list for that tabs panel
-        Map<Integer,Integer> selListIDMap = config.getCurrentTabListIDMap();
+        Map<Integer,Integer> selListIDMap = new HashMap<>(config.getCurrentTabListIDMap());
             // This maps the tabs panel indexes to the selected index of the 
             // tab for that tabs panel
         Map<Integer,Integer> selListMap = config.getCurrentTabIndexMap();
