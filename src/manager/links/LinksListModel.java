@@ -1499,6 +1499,9 @@ public class LinksListModel extends ArrayListModel<String> implements
             return;
             // Set this model's selection mode from the given model
         setSelectionMode(model.getSelectionMode());
+            // If the selected items are the same for both models
+        if (Arrays.equals(getSelectedIndices(), model.getSelectedIndices()))
+            return;
             // Get if this model is currently adjusting the selection
         boolean adjusting = getValueIsAdjusting();
             // If the given model is not empty (we would only need to do one 
