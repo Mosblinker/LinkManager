@@ -1,0 +1,200 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package manager.config;
+
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.Objects;
+
+/**
+ * A utility library used with configuration stuff.
+ * @author Mosblinker
+ */
+public class ConfigUtilities {
+    /**
+     * This class cannot be constructed.
+     */
+    private ConfigUtilities() {}
+    /**
+     * 
+     * @param value
+     * @param arr
+     * @param offset
+     * @return 
+     */
+    public static byte[] intToBytes(int value, byte[] arr, int offset){
+            // If the offset into the array is negative
+        if (offset < 0)
+            throw new IndexOutOfBoundsException("Array offset cannot be negative ("+
+                    offset+")");
+            // This is the minimum length that the array needs to be
+        int len = offset+Integer.BYTES;
+            // If the given byte array is null
+        if (arr == null)
+                // Create a new array with the correct length
+            arr = new byte[len];
+            // If the given byte array is too short
+        else if (arr.length < len){
+                // Store the array in a temporary variable
+            byte[] temp = arr;
+                // Create a new array with the correct length
+            arr = new byte[len];
+                // Copy the contents of the old array into the new array
+            System.arraycopy(temp, 0, arr, 0, temp.length);
+        }   // A for loop to go through the bytes of the given value
+        for (int i = 0; i < Integer.BYTES && value != 0; i++){
+                // Add the current least significant byte to the array
+            arr[offset+i] = (byte)(value & 0xFF);
+                // Shift the value by one byte
+            value >>= Byte.SIZE;
+        }
+        return arr;
+    }
+    /**
+     * 
+     * @param value
+     * @param offset
+     * @return 
+     */
+    public static int intFromBytes(byte[] value, int offset){
+            // Check if the array is null
+        Objects.requireNonNull(value);
+            // Check if the offset is in the array
+        Objects.checkIndex(offset, value.length);
+            // This will get the value to return
+        int temp = 0;
+            // Go through the bytes for the integer, making sure not to exceed 
+            // the size of the array
+        for (int i = 0; i < Integer.BYTES && i+offset < value.length; i++){
+                // Get the current byte and bit-shift it into place
+            temp |= Byte.toUnsignedInt(value[i+offset]) << (Byte.SIZE*i);
+        }
+        return temp;
+    }
+    /**
+     * 
+     * @param values
+     * @param arr
+     * @param offset
+     * @return 
+     */
+    public static byte[] intArrayToBytes(int[] values, byte[] arr, int offset){
+            // Go through the array of integers
+        for (int i : values){
+                // Add the integer to the byte array
+            arr = intToBytes(i,arr,offset);
+                // Next integer is offset by the number of bytes
+            offset += Integer.BYTES;
+        }
+        return arr;
+    }
+    /**
+     * 
+     * @param value
+     * @param offset
+     * @param length
+     * @return 
+     */
+    public static int[] intArrayFromBytes(byte[] value, int offset, int length){
+            // An array to get the integers in the byte array
+        int[] arr = new int[length];
+            // Go through the integers in the byte array for as long as there 
+            // are integer to add to the integer array
+        for (int i = 0; i < length && offset < value.length; i++, 
+                offset+=Integer.BYTES){
+                // Get the next integer from the array
+            arr[i] = intFromBytes(value,offset);
+        }
+        return arr;
+    }
+    /**
+     * 
+     * @param value
+     * @return 
+     */
+    public static byte[] dimensionToBytes(Dimension value){
+            // If the given dimension object is null
+        if (value == null)
+            return null;
+            // Convert the dimension object into an array of integers, and 
+            // convert that into an array of bytes
+        return intArrayToBytes(new int[]{value.width,value.height},null,0);
+    }
+    /**
+     * 
+     * @param value
+     * @return 
+     */
+    public static Dimension dimensionFromBytes(byte[] value){
+            // If the given array is null
+        if (value == null)
+            return null;
+            // Convert the array of bytes into two integers
+        int[] arr = intArrayFromBytes(value,0,2);
+            // Create and return a new Dimension object with the two integers
+        return new Dimension(arr[0],arr[1]);
+    }
+    /**
+     * 
+     * @param value
+     * @return 
+     */
+    public static byte[] pointToBytes(Point value){
+            // If the given point object is null
+        if (value == null)
+            return null;
+            // Convert the point object into an array of integers, and 
+            // convert that into an array of bytes
+        return intArrayToBytes(new int[]{value.x,value.y},null,0);
+    }
+    /**
+     * 
+     * @param value
+     * @return 
+     */
+    public static Point pointFromBytes(byte[] value){
+            // If the given array is null
+        if (value == null)
+            return null;
+            // Convert the array of bytes into two integers
+        int[] arr = intArrayFromBytes(value,0,2);
+            // Create and return a new Point object with the two integers
+        return new Point(arr[0],arr[1]);
+    }
+    /**
+     * 
+     * @param value
+     * @return 
+     */
+    public static byte[] rectangleToBytes(Rectangle value){
+            // If the given rectangle object is null
+        if (value == null)
+            return null;
+            // Convert the rectangle object into an array of integers, and 
+            // convert that into an array of bytes
+        return intArrayToBytes(new int[]{value.x,value.y,value.width,
+            value.height},null,0);
+    }
+    /**
+     * 
+     * @param value
+     * @return 
+     */
+    public static Rectangle rectangleFromBytes(byte[] value){
+            // If the given array is null
+        if (value == null)
+            return null;
+            // Convert the array of bytes into 4 integers
+        int[] arr = intArrayFromBytes(value,0,4);
+            // If there were actually only 2 integers in the byte array
+        if (value.length <= Integer.BYTES*2)
+                // Create and return a new Rectangle object with the 2 integers 
+                // as the size of the rectangle
+            return new Rectangle(arr[0],arr[1]);
+            // Create and return a new Rectangle object with the 4 integers
+        return new Rectangle(arr[0],arr[1],arr[2],arr[3]);
+    }
+}
