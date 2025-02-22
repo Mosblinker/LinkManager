@@ -570,26 +570,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return connect(file.toString());
     }
     /**
-     * 
-     * @todo Add decryption of the Dropbox token.
-     * 
-     * @param key
-     * @return 
-     */
-    private String getDropboxToken(String key){
-        return config.getPrivateProperty(key);
-    }
-    /**
-     * 
-     * @todo Add encryption of the Dropbox token.
-     * 
-     * @param key
-     * @param token 
-     */
-    private void setDropboxToken(String key, String token){
-        config.setPrivateProperty(key, token);
-    }
-    /**
      * This returns whether the program is logged in to Dropbox.
      * @return Whether the program is logged in to Dropbox.
      */
