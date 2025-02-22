@@ -4061,19 +4061,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void listsTabsPanelStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_listsTabsPanelStateChanged
         updateButtons();
-            // This is the index for the list tabs panel
-        int type = -1;
-            // Go through the list tabs panels
-        for (int i = 0; i < listsTabPanels.length && type < 0; i++){
-                // If the event source is the current list tabs panel
-            if (evt.getSource() == listsTabPanels[i])
-                type = i;
-        }   // If the event source is found in the list tabs panel array (it 
-        if (type >= 0)  // should be)
-            config.setCurrentTab(type, listsTabPanels[type]);
-            // If the program is in debug mode
-        else if (isInDebug())
-            System.out.println("Not found in list tabs panels: " +evt.getSource());
+            // If the program has fully loaded
+        if (fullyLoaded){
+                // This is the index for the list tabs panel
+            int type = -1;
+                // Go through the list tabs panels
+            for (int i = 0; i < listsTabPanels.length && type < 0; i++){
+                    // If the event source is the current list tabs panel
+                if (evt.getSource() == listsTabPanels[i])
+                    type = i;
+            }   // If the event source is found in the list tabs panel array (it 
+            if (type >= 0)  // should be)
+                config.setCurrentTab(type, listsTabPanels[type]);
+                // If the program is in debug mode
+            else if (isInDebug())
+                System.out.println("Not found in list tabs panels: " +evt.getSource());
+        }
     }//GEN-LAST:event_listsTabsPanelStateChanged
     /**
      * This processes a change to the selection in the currently selected list.
@@ -4085,28 +4088,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // If the source of the change is the currently selected list
             if (Objects.equals(getSelectedList(),evt.getSource())){
                 updateSelectedLink(); 
-            }   // This will get the listID of the list that the selection 
-            Integer listID;     // changed
-                // This will get the newly selected value
-            String selValue;
-                // If the source of the event is a LinksListPanel
-            if (evt.getSource() instanceof LinksListPanel){
-                    // Get the source as a panel
-                LinksListPanel panel = (LinksListPanel)evt.getSource();
-                listID = panel.getListID();
-                selValue = panel.getSelectedValue();
-                // If the source of the event is a LinksListModel
-            } else if (evt.getSource() instanceof LinksListModel){
-                    // Get the source as a model
-                LinksListModel model = (LinksListModel)evt.getSource();
-                listID = model.getListID();
-                selValue = model.getSelectedValue();
-            } else
-                return;
-                // If the listID for this list is not null
-            if (listID != null)
-                    // Set the selected link for the list
-                config.setSelectedLink(listID, selValue);
+            }   // If the program has fully loaded
+            if (fullyLoaded){
+                    // This will get the listID of the list that the selection 
+                Integer listID;     // changed
+                    // This will get the newly selected value
+                String selValue;
+                    // If the source of the event is a LinksListPanel
+                if (evt.getSource() instanceof LinksListPanel){
+                        // Get the source as a panel
+                    LinksListPanel panel = (LinksListPanel)evt.getSource();
+                    listID = panel.getListID();
+                    selValue = panel.getSelectedValue();
+                    // If the source of the event is a LinksListModel
+                } else if (evt.getSource() instanceof LinksListModel){
+                        // Get the source as a model
+                    LinksListModel model = (LinksListModel)evt.getSource();
+                    listID = model.getListID();
+                    selValue = model.getSelectedValue();
+                } else
+                    return;
+                    // If the listID for this list is not null
+                if (listID != null)
+                        // Set the selected link for the list
+                    config.setSelectedLink(listID, selValue);
+            }
         }
     }//GEN-LAST:event_listsTabsPanelValueChanged
 
