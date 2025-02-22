@@ -736,12 +736,6 @@ public class LinkManagerConfig {
                 // object as its defaults. This should be okay since we won't be 
                 // writing to it, only reading from it.
             cProp = new ConfigProperties(prop);
-        
-            // TODO: Remove this once the config properties map is removed or 
-            // repurposed.
-            // Add all the properties to the config properties map
-        config.putAll(prop);
-        
             // Get the value for the database file path from the properties
         String str = cProp.getProperty(DATABASE_FILE_PATH_KEY);
             // If the properties has the database file path
@@ -883,15 +877,6 @@ public class LinkManagerConfig {
             if (rect != null)
                     // Set the component's bounds from the properties
                 setComponentBounds(entry.getKey(),rect);
-            
-                // TODO: Remove this once the config properties map is removed or 
-                // repurposed.
-                // Remove the component size, since that's in the preference node
-            config.remove(entry.getValue()+COMPONENT_SIZE_KEY_SUFFIX);
-                // Remove the component location, since that's in the preference node
-            config.remove(entry.getValue()+COMPONENT_LOCATION_KEY_SUFFIX);
-                // Remove the component bounds, since that's in the preference node
-            config.remove(entry.getValue()+COMPONENT_BOUNDS_KEY_SUFFIX);
         }   // This maps listIDs to the selected link for that list
         Map<Integer,String> selMap = new HashMap<>();
             // This maps the listIDs to whether the selected link is visible for 
@@ -970,11 +955,6 @@ public class LinkManagerConfig {
                         selListMap.put(type, cProp.getIntProperty(key));
                 }
             } catch(NumberFormatException ex){ }
-            
-                // TODO: Remove this once the config properties map is removed or 
-                // repurposed.
-                // Remove this key since it'll soon be in the preference node
-            config.remove(key);
         }   // Remove all null values from the selected links
         selMap.values().removeIf((String t) -> t == null);
             // Remove all the null values from whether the links are visible
@@ -999,45 +979,6 @@ public class LinkManagerConfig {
         getCurrentTabListIDMap().putAll(selListIDMap);
             // Add all the values for the current tab indexes
         getCurrentTabIndexMap().putAll(selListMap);
-        
-            // TODO: Remove this once the config properties map is removed or 
-            // repurposed.
-            // Remove the database file path, since that's in the preference node
-        config.remove(DATABASE_FILE_PATH_KEY);
-            // Remove the progress display, since that's in the preference node
-        config.remove(PROGRESS_DISPLAY_KEY);
-            // Remove the always on top value, since that's in the preference node
-        config.remove(ALWAYS_ON_TOP_KEY);
-            // Remove the add blank lines value, since that's in the preference node
-        config.remove(BLANK_LINES_KEY);
-            // Remove the link ops enabled value, since that's in the preference node
-        config.remove(ENABLE_LINK_OPS_KEY);
-            // Remove the hidden link ops enabled value, since that's in the preference node
-        config.remove(ENABLE_HIDDEN_LINK_OPS_KEY);
-            // Remove the database file change operation value, since that's in the preference node
-        config.remove(DATABASE_FILE_CHANGE_OPERATION_KEY);
-            // Remove the autosave frequency index, since that's in the preference node
-        config.remove(AUTOSAVE_FREQUENCY_KEY);
-            // Remove the auto-hide wait duration index, since that's in the preference node
-        config.remove(AUTO_HIDE_WAIT_DURATION_KEY);
-            // Remove the search match case value, since that's in the preference node
-        config.remove(SEARCH_MATCH_CASE_KEY);
-            // Remove the search match spaces value, since that's in the preference node
-        config.remove(SEARCH_MATCH_SPACES_KEY);
-            // Remove the search wrap around value, since that's in the preference node
-        config.remove(SEARCH_WRAP_AROUND_KEY);
-            // Remove the search text, since that's in the preference node
-        config.remove(SEARCH_TEXT_KEY);
-            // Remove the entered link text, since that's in the preference node
-        config.remove(ENTERED_LINK_TEXT_KEY);
-            // Remove the hidden lists are shown value, since that's in the preference node
-        config.remove(HIDDEN_LISTS_ARE_SHOWN_KEY);
-            // Remove the database error details are shown value, since that's in the preference node
-        config.remove(SHOW_DETAILED_DATABASE_ERRORS);
-            // Remove the database sync value, since that's in the preference node
-        config.remove(SYNC_DATABASE_KEY);
-            // Remove the dropbox database file path, since that's in the preference node
-        config.remove(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY);
     }
     /**
      * 
