@@ -7,6 +7,7 @@ package manager.config;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.nio.*;
 import java.util.Objects;
 
 /**
@@ -216,6 +217,44 @@ public class ConfigUtilities {
      */
     public static char toCharacter(byte[] value, int offset){
         return (char) toShort(value,offset);
+    }
+    /**
+     * 
+     * @param header
+     * @param values
+     * @return 
+     */
+    private static byte[] toByteArray(short header, int... values){
+            // This will get a byte array representation of the given integers
+        byte[] arr = new byte[Short.BYTES+(Integer.BYTES*values.length)];
+            // Wrap the byte array with a byte buffer to write to it
+        ByteBuffer buffer = ByteBuffer.wrap(arr);
+            // Add the given header to the buffer. This will signify what type 
+            // of data this byte array represents.
+        buffer.putShort(header);
+            // Go through the integers in the given array
+        for (int i : values){
+                // Add the current integer to the buffer
+            buffer.putInt(i);
+        }
+        return arr;
+    }
+    /**
+     * 
+     * @param header
+     * @param value
+     * @return 
+     */
+    private static IntBuffer toIntBuffer(short header, byte[] value){
+            // Wrap the byte array with a read only byte buffer to read from to 
+        ByteBuffer buffer = ByteBuffer.wrap(value).asReadOnlyBuffer();  // it
+        try{    // If the byte array's header matches the given header
+            if (buffer.getShort() == header){
+                    // Return the byte buffer as an IntBuffer
+                return buffer.asIntBuffer();
+            }
+        } catch (BufferUnderflowException ex){ }
+        return null;
     }
     /**
      * 
