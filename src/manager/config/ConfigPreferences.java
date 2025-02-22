@@ -432,6 +432,9 @@ public class ConfigPreferences extends Preferences{
      * 
      * @param key
      * @param value 
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given key is null.
      * @see #getDimension(String, Dimension) 
      * @see #get(String, String) 
      * @see #getByteArray(String, byte[]) 
@@ -446,6 +449,9 @@ public class ConfigPreferences extends Preferences{
      * @param key
      * @param def
      * @return 
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given key is null.
      * @see #putDimension(String, Dimension) 
      * @see #get(String, String) 
      * @see #getByteArray(String, byte[]) 
@@ -464,6 +470,9 @@ public class ConfigPreferences extends Preferences{
      * 
      * @param key
      * @param value 
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given key is null.
      * @see #getPoint(String, Point) 
      * @see #get(String, String) 
      * @see #getByteArray(String, byte[]) 
@@ -478,6 +487,9 @@ public class ConfigPreferences extends Preferences{
      * @param key
      * @param def
      * @return 
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given key is null.
      * @see #putPoint(String, Point) 
      * @see #get(String, String) 
      * @see #getByteArray(String, byte[]) 
@@ -496,6 +508,9 @@ public class ConfigPreferences extends Preferences{
      * 
      * @param key
      * @param value 
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given key is null.
      * @see #getRectangle(String, Rectangle) 
      * @see #get(String, String) 
      * @see #getByteArray(String, byte[]) 
@@ -510,6 +525,9 @@ public class ConfigPreferences extends Preferences{
      * @param key
      * @param def
      * @return 
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given key is null.
      * @see #putRectangle(String, Rectangle) 
      * @see #get(String, String) 
      * @see #getByteArray(String, byte[]) 
@@ -528,8 +546,12 @@ public class ConfigPreferences extends Preferences{
     /**
      * 
      * @param map 
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given map is null or contains a null 
+     * key.
      */
-    public synchronized void putAll(Map<?, ?> map){
+    public void putAll(Map<?, ?> map){
             // Go through the entries in the map
         for (Map.Entry<?, ?> entry : map.entrySet()){
                 // Put the entry into the preference node
