@@ -1009,20 +1009,6 @@ public class LinkManagerConfig {
      * 
      * @param fileName 
      */
-    public void setDefaultDatabaseFileName(String fileName){
-        setFilePathProperty(DATABASE_FILE_PATH_KEY,fileName,getDefaults());
-    }
-    /**
-     * 
-     * @return 
-     */
-    public String getDefaultDatabaseFileName(){
-        return getFilePathProperty(DATABASE_FILE_PATH_KEY,null,getDefaults());
-    }
-    /**
-     * 
-     * @param fileName 
-     */
     public void setDatabaseFileName(String fileName){
         setFilePathPreference(DATABASE_FILE_PATH_KEY,fileName,getPreferences());
     }

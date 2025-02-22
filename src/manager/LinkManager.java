@@ -712,9 +712,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // TODO: Uncomment this when Dropbox token encryption is implemented
 //        config = new LinkManagerConfig(node,Obfuscator.getInstance());
         config = new LinkManagerConfig(node);
-            // Initialize the defaults that are not dependent on the UI
-        config.setDefaultDatabaseFileName(LINK_DATABASE_FILE);
-        config.setPrivateDefault(EXTERNAL_DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
         
         loadDbxUtils();
         
