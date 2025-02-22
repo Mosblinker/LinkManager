@@ -157,6 +157,50 @@ public class ConfigUtilities {
     public static int toInteger(byte[] value, int offset){
         return toNumber(value,offset,Integer.BYTES).intValue();
     }
+    /**
+     * 
+     * @param value
+     * @param offset
+     * @return 
+     */
+    public static short toShort(byte[] value, int offset){
+        return toNumber(value,offset,Short.BYTES).shortValue();
+    }
+    /**
+     * 
+     * @param value
+     * @param offset
+     * @return 
+     */
+    public static long toLong(byte[] value, int offset){
+        return toNumber(value,offset,Long.BYTES).longValue();
+    }
+    /**
+     * 
+     * @param value
+     * @param offset
+     * @return 
+     */
+    public static float toFloat(byte[] value, int offset){
+        return Float.intBitsToFloat(toInteger(value,offset));
+    }
+    /**
+     * 
+     * @param value
+     * @param offset
+     * @return 
+     */
+    public static double toDouble(byte[] value, int offset){
+        return Double.longBitsToDouble(toLong(value, offset));
+    }
+    /**
+     * 
+     * @param value
+     * @param offset
+     * @return 
+     */
+    public static char toCharacter(byte[] value, int offset){
+        return (char) toShort(value,offset);
     }
     /**
      * 
