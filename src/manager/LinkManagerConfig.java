@@ -1264,20 +1264,6 @@ public class LinkManagerConfig {
      * @param value
      * @param prop 
      */
-    protected void setProperty(String key, Object value, Properties prop){
-            // If the value is null
-        if (value == null)
-                // Remove the key from the properties
-            prop.remove(key);
-        else    // Set the value as a String
-            prop.setProperty(key, value.toString());
-    }
-    /**
-     * 
-     * @param key
-     * @param value
-     * @param prop 
-     */
     protected void setFilePathProperty(String key,String value,
             ConfigProperties prop){
             // Format the file path and set it
