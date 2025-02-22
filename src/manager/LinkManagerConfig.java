@@ -1869,4 +1869,52 @@ public class LinkManagerConfig {
     public boolean getDatabaseWillSync(boolean defaultValue){
         return getPreferences().getBoolean(SYNC_DATABASE_KEY,defaultValue);
     }
+    /**
+     * 
+     * @param comp
+     * @param value 
+     */
+    public void setDefaultComponentSize(Component comp, Dimension value){
+        setDefaultSizeProperty(comp, value);
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Dimension getDefaultComponentSize(Component comp){
+        return getDefaultSizeProperty(comp);
+    }
+    /**
+     * 
+     * @param comp
+     * @param value 
+     */
+    public void setComponentSize(Component comp, Dimension value){
+        setSizeProperty(comp,value);
+    }
+    /**
+     * 
+     * @param comp 
+     */
+    public void setComponentSize(Component comp){
+        setComponentSize(comp,comp.getSize());
+    }
+    /**
+     * 
+     * @param comp
+     * @param defaultValue
+     * @return 
+     */
+    public Dimension getComponentSize(Component comp, Dimension defaultValue){
+        return getSizeProperty(comp, defaultValue);
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Dimension getComponentSize(Component comp){
+        return getComponentSize(comp,null);
+    }
 }
