@@ -202,8 +202,6 @@ public class LinkManagerConfig {
         config = new Properties(defaultConfig);
         defaultPrivateConfig = new Properties();
         privateConfig = new Properties(defaultPrivateConfig);
-        localDefaults = new ConfigProperties();
-        privateDefaults = new ConfigProperties();
         compKeyMap = new HashMap<>();
             // If the given SQLite config properties is not null
         if(sqlProp != null)
@@ -211,6 +209,8 @@ public class LinkManagerConfig {
         else
             sqlConfig = new SQLiteConfig();
         programNode = node;
+        localDefaults = new ConfigProperties();
+        privateDefaults = new ConfigProperties();
     }
     /**
      * 
@@ -393,6 +393,25 @@ public class LinkManagerConfig {
         return id;
     }
     /**
+     * This returns the SQLite configuration for the database used by 
+     * LinkManager.
+     * @return The SQLite configuration.
+     */
+    public SQLiteConfig getSQLiteConfig(){
+        return sqlConfig;
+    }
+    /**
+     * This returns a map used to map components in LinkManager to the prefixes 
+     * for properties that relate to that component. For example, the properties 
+     * for which these are prefixes for may be for the size of a component or 
+     * the selected file for a file chooser.
+     * @return A map that maps components to the prefixes for their respective 
+     * properties.
+     */
+    public Map<Component, String> getComponentPrefixMap(){
+        return compKeyMap;
+    }
+    /**
      * This returns the properties map that stores the configuration for 
      * LinkManager.
      * @return The properties map.
@@ -425,25 +444,6 @@ public class LinkManagerConfig {
      */
     public Properties getDefaultPrivateProperties(){
         return defaultPrivateConfig;
-    }
-    /**
-     * This returns the SQLite configuration for the database used by 
-     * LinkManager.
-     * @return The SQLite configuration.
-     */
-    public SQLiteConfig getSQLiteConfig(){
-        return sqlConfig;
-    }
-    /**
-     * This returns a map used to map components in LinkManager to the prefixes 
-     * for properties that relate to that component. For example, the properties 
-     * for which these are prefixes for may be for the size of a component or 
-     * the selected file for a file chooser.
-     * @return A map that maps components to the prefixes for their respective 
-     * properties.
-     */
-    public Map<Component, String> getComponentPrefixMap(){
-        return compKeyMap;
     }
     /**
      * This sets the property in the given {@code config} Properties for the 
