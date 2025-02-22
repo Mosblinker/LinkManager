@@ -616,7 +616,7 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
         }
     }
     
-    public void setModels(List<LinksListModel> models){
+    public void setModels(List<LinksListModel> models, boolean restoreSelected){
             // Check if the given list is null
         Objects.requireNonNull(models);
             // Check if the given list contains null
@@ -655,7 +655,8 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
                 // If the panel's model's listID is not null
             if (model.getListID() != null)
                 modelIDs.put(model.getListID(), model);
-            selValues.put(model, panel.getSelectedValue());
+            if (restoreSelected)
+                selValues.put(model, panel.getSelectedValue());
             visibleRects.put(model, panel.getList().getVisibleRect());
         }
         int index = 0;
@@ -691,6 +692,10 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
         if (selIndex >= 0)
             setSelectedIndex(selIndex);
         setStructureEdited(!noChange);
+    }
+    
+    public void setModels(List<LinksListModel> models){
+        setModels(models,false);
     }
     
     public int getTabCount(){
