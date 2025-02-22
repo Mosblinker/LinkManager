@@ -180,13 +180,15 @@ public class LinkManagerConfig {
     /**
      * This is the suffix for the keys relating to list types when importing or 
      * exporting the settings. This is suppose to have a list type appended to 
-     * the end.
+     * the end. The list type is appended to the end of this to get the 
+     * properties key specific for that list type.
      */
     public static final String LIST_TYPE_PROPERTY_KEY_SUFFIX = "ForType";
     /**
      * This is the suffix for the keys relating to lists when importing or 
      * exporting the settings. This is suppose to have a list ID appended to 
-     * the end.
+     * the end. The list's listID is appended to the end of this to get the 
+     * properties key specific for that list.
      */
     public static final String LIST_ID_PROPERTY_KEY_SUFFIX = "ForList";
     /**
@@ -221,12 +223,15 @@ public class LinkManagerConfig {
     public static final String DROPBOX_PREFERENCE_NODE_NAME = "dropbox";
     /**
      * This is the prefix for the name of the preference nodes used to store 
-     * the settings relating to a specific type of list.
+     * the settings relating to a specific type of list. The list type is 
+     * appended to the end of this to get the preference node specific for that 
+     * list type.
      */
     public static final String LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX="listType=";
     /**
      * This is the prefix for the name of the preference nodes used to store 
-     * the settings relating to a specific list.
+     * the settings relating to a specific list. The list's listID is appended 
+     * to the end of this to get the preference node specific for that list.
      */
     public static final String LIST_ID_PREFERENCE_NODE_NAME_PREFIX = "listID=";
     /**
