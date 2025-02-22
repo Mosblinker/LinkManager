@@ -1865,7 +1865,7 @@ public class LinkManagerConfig {
      * @param comp 
      */
     public void setComponentSize(Component comp){
-        setComponentSize(comp,comp.getSize());
+        setComponentSize(comp,comp.getWidth(),comp.getHeight());
     }
     /**
      * 
@@ -1937,7 +1937,7 @@ public class LinkManagerConfig {
      * @param comp 
      */
     public void setComponentLocation(Component comp){
-        setComponentLocation(comp,comp.getLocation());
+        setComponentLocation(comp,comp.getX(),comp.getY());
     }
     /**
      * 
@@ -2033,7 +2033,8 @@ public class LinkManagerConfig {
      * @param comp 
      */
     public void setComponentBounds(Component comp){
-        setComponentBounds(comp,comp.getBounds());
+        setComponentBounds(comp,comp.getX(),comp.getY(),
+                comp.getWidth(),comp.getHeight());
     }
     /**
      * 
