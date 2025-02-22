@@ -983,6 +983,62 @@ public class LinkManagerConfig {
                 // Remove the component bounds, since that's in the preference node
             config.remove(entry.getValue()+COMPONENT_BOUNDS_KEY_SUFFIX);
         }
+            // This maps the list types to the listID of the selected list for 
+            // that list type
+        Map<Integer,Integer> selListIDMap = new HashMap<>();
+            // This maps the list types to the selected index of the tab for 
+            // that list type
+        Map<Integer,Integer> selListMap = new HashMap<>();
+            // This gets a set of keys for the properties that deal with lists
+        Set<String> listKeys = new HashSet<>(cProp.stringPropertyNames());
+            // Remove any null keys and keys that aren't prefixed keys for the 
+            // selection
+        listKeys.removeIf((String t) -> {
+            return t == null || !isPrefixedListKey(t);
+        });
+            // Go through the property keys that deal with lists
+        for (String key : listKeys){
+            String keyPrefix;   // Get the prefix for the current key
+            String keySuffix;   // The suffix for the property version of the key
+                // If the key starts with the current tab listID key
+            if (key.startsWith(CURRENT_TAB_LIST_ID_KEY)){
+                keyPrefix = CURRENT_TAB_LIST_ID_KEY;
+                keySuffix = LIST_TYPE_PROPERTY_KEY_SUFFIX;
+            }   // If the key starts with the current tab index key
+            else if (key.startsWith(CURRENT_TAB_INDEX_KEY)){
+                keyPrefix = CURRENT_TAB_INDEX_KEY;
+                keySuffix = LIST_TYPE_PROPERTY_KEY_SUFFIX;
+            } else  // Skip this key
+                continue;
+            try{    // Get the list or tabs panel that this key is for
+                int type = Integer.parseInt(key.substring(keyPrefix.length()+
+                        keySuffix.length()));
+                    // Determine which key this is based off the prefix
+                switch(keyPrefix){
+                        // If this is the current tab listID key
+                    case(CURRENT_TAB_LIST_ID_KEY):
+                        selListIDMap.put(type, cProp.getIntProperty(key));
+                        break;
+                        // If this is the current tab index key
+                    case(CURRENT_TAB_INDEX_KEY):
+                        selListMap.put(type, cProp.getIntProperty(key));
+                }
+            } catch(NumberFormatException ex){ }
+            
+                // TODO: Remove this once the config properties map is removed or 
+                // repurposed.
+                // Remove this key since it'll soon be in the preference node
+            config.remove(key);
+        }
+            // Remove all null values from the current tab listIDs
+        selListIDMap.values().removeIf((Integer t) -> t == null);
+            // Remove all null values from the current tab indexes
+        selListMap.values().removeIf((Integer t) -> t == null);
+        
+            // Add all the values for the current tab listIDs 
+        getCurrentTabListIDMap().putAll(selListIDMap);
+            // Add all the values for the current tab indexes
+        getCurrentTabIndexMap().putAll(selListMap);
         
             // TODO: Remove this once the config properties map is removed or 
             // repurposed.
@@ -1617,6 +1673,29 @@ public class LinkManagerConfig {
      */
     public Integer getCurrentTabListID(int listType){
         return getCurrentTabValue(listType, CURRENT_TAB_LIST_ID_KEY);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<Integer, Integer> getCurrentTabListIDMap(){
+        if (currTabIDMap == null){
+            currTabIDMap = new ListConfigDataMap<>(){
+                @Override
+                protected Integer getValue(int key) {
+                    return getCurrentTabListID(key);
+                }
+                @Override
+                protected void putValue(int key, Integer value) {
+                    setCurrentTabListID(key,value);
+                }
+                @Override
+                protected String getPrefixForNodes() {
+                    return LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX;
+                }
+            };
+        }
+        return currTabIDMap;
     }
     /**
      * 
