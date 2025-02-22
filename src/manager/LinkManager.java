@@ -4090,6 +4090,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void listsTabsPanelStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_listsTabsPanelStateChanged
         updateButtons();
+            // This is the index for the list tabs panel
+        int type = -1;
+            // Go through the list tabs panels
+        for (int i = 0; i < listsTabPanels.length && type < 0; i++){
+                // If the event source is the current list tabs panel
+            if (evt.getSource() == listsTabPanels[i])
+                type = i;
+        }   // If the event source is found in the list tabs panel array (it 
+        if (type >= 0)  // should be)
+            config.setCurrentTab(type, listsTabPanels[type]);
+            // If the program is in debug mode
+        else if (isInDebug())
+            System.out.println("Not found in list tabs panels: " +evt.getSource());
     }//GEN-LAST:event_listsTabsPanelStateChanged
     /**
      * This processes a change to the selection in the currently selected list.
@@ -5874,18 +5887,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // Set whether the selected link is visible
                     config.setProperty(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX+listID,
                             panel.isIndexVisible(panel.getSelectedIndex()));
-            }   // Go through the list tabs panels
-            for (int i = 0; i < listsTabPanels.length; i++){
-                    // Set the selected listID for the tabs panel
-                config.setProperty(CURRENT_TAB_LIST_ID_KEY_PREFIX+i,
-                        listsTabPanels[i].getSelectedListID());
-                    // Set the selected index for the tabs panel
-                config.setProperty(CURRENT_TAB_INDEX_KEY_PREFIX+i,
-                            // If the tabs panel has nothing selected, set 
-                            // the property to null. Otherwise, set it to 
-                            // the selected index
-                        (listsTabPanels[i].isSelectionEmpty())?null:
-                        listsTabPanels[i].getSelectedIndex());
             }
         }   // Set the search text in the configuration
         config.setSearchText(searchPanel.getSearchText());
@@ -6041,10 +6042,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         Map<Integer,Integer> firstVisMap = new HashMap<>();
             // This maps the tabs panel indexes to the listID of the selected 
             // list for that tabs panel
-        Map<Integer,Integer> selListIDMap = new HashMap<>();
+        Map<Integer,Integer> selListIDMap = config.getCurrentTabListIDMap();
             // This maps the tabs panel indexes to the selected index of the 
             // tab for that tabs panel
-        Map<Integer,Integer> selListMap = new HashMap<>();
+        Map<Integer,Integer> selListMap = config.getCurrentTabIndexMap();
             // This gets a set of keys for the properties
         Set<String> keys = new HashSet<>(config.getProperties().stringPropertyNames());
             // Remove any null keys and keys that aren't prefixed keys for the 
@@ -6064,12 +6065,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // If the key starts with the first visible index key prefix
             else if (key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX))
                 keyPrefix = FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX;
-                // If the key starts with the current tab listID key prefix
-            else if (key.startsWith(CURRENT_TAB_LIST_ID_KEY_PREFIX))
-                keyPrefix = CURRENT_TAB_LIST_ID_KEY_PREFIX;
-                // If the key starts with the current tab index key prefix
-            else if (key.startsWith(CURRENT_TAB_INDEX_KEY_PREFIX))
-                keyPrefix = CURRENT_TAB_INDEX_KEY_PREFIX;
             else // Skip this key
                 continue;
                 // Get the value for this key
@@ -6092,14 +6087,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // If this is the first visible index key
                     case(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX):
                         firstVisMap.put(type, Integer.valueOf(value));
-                        break;
-                        // If this is the current tab listID key
-                    case(CURRENT_TAB_LIST_ID_KEY_PREFIX):
-                        selListIDMap.put(type, Integer.valueOf(value));
-                        break;
-                        // If this is the current tab index key
-                    case(CURRENT_TAB_INDEX_KEY_PREFIX):
-                        selListMap.put(type, Integer.valueOf(value));
                 }
             } catch(NumberFormatException ex){ }
         }   // Go through the list tabs panels
