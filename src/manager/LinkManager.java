@@ -250,48 +250,42 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         CURRENT_TAB_INDEX_KEY_PREFIX
     };
     
-    private static final String LIST_MANAGER_KEY_PREFIX = "ListManager";
+    private static final String LIST_MANAGER_NAME = "ListManager";
     
-    private static final String LIST_TABS_MANAGER_KEY_PREFIX = 
-            "ListTabsManager";
+    private static final String LIST_TABS_MANAGER_NAME = "ListTabsManager";
     
-    private static final String ADD_LINKS_PANEL_KEY_PREFIX = 
-            "AddLinksPanel";
+    private static final String ADD_LINKS_PANEL_NAME = "AddLinksPanel";
     
-    private static final String COPY_OR_MOVE_LINKS_PANEL_KEY_PREFIX = 
+    private static final String COPY_OR_MOVE_LINKS_PANEL_NAME = 
             "CopyOrMoveLinksPanel";
     
-    private static final String OPEN_FILE_CHOOSER_KEY_PREFIX = 
-            "OpenFileChooser";
+    private static final String OPEN_FILE_CHOOSER_NAME = "OpenFileChooser";
     
-    private static final String SAVE_FILE_CHOOSER_KEY_PREFIX = 
-            "SaveFileChooser";
+    private static final String SAVE_FILE_CHOOSER_NAME = "SaveFileChooser";
     
-    private static final String CONFIG_FILE_CHOOSER_KEY_PREFIX = 
-            "ConfigFileChooser";
+    private static final String CONFIG_FILE_CHOOSER_NAME = "ConfigFileChooser";
     
-    private static final String EXPORT_FILE_CHOOSER_KEY_PREFIX = 
-            "ExportFileChooser";
+    private static final String EXPORT_FILE_CHOOSER_NAME = "ExportFileChooser";
     
-    private static final String DATABASE_FILE_CHOOSER_KEY_PREFIX = 
+    private static final String DATABASE_FILE_CHOOSER_NAME = 
             "DatabaseFileChooser";
     
-    private static final String DATABASE_LOCATION_DIALOG_KEY_PREFIX = 
+    private static final String DATABASE_LOCATION_DIALOG_NAME = 
             "SetDatabaseLocation";
     
-    private static final String LINK_MANAGER_KEY_PREFIX = "LinkManager";
+    private static final String LINK_MANAGER_NAME = "LinkManager";
     
     private static final String LINK_MANAGER_X_KEY = 
-            LINK_MANAGER_KEY_PREFIX+"X";
+            LINK_MANAGER_NAME+"X";
     
     private static final String LINK_MANAGER_Y_KEY = 
-            LINK_MANAGER_KEY_PREFIX+"Y";
+            LINK_MANAGER_NAME+"Y";
     /**
      * 
      * @todo Implement the storing of the window state.
      */
     private static final String LINK_MANAGER_WINDOW_STATE_KEY = 
-            LINK_MANAGER_KEY_PREFIX+"WindowState";
+            LINK_MANAGER_NAME+"WindowState";
     /**
      * This is the configuration key for the encrypted access token for the 
      * Dropbox account to use to access the database file if the database file 
@@ -1103,18 +1097,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         searchMenu.add(searchPanel.getFindPreviousAction());
         
             // Set up the component key prefix map
-        config.getComponentPrefixMap().put(listManipulator, LIST_MANAGER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(listTabsManipulator, LIST_TABS_MANAGER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(addLinksPanel, ADD_LINKS_PANEL_KEY_PREFIX);
+        config.getComponentPrefixMap().put(listManipulator, LIST_MANAGER_NAME);
+        config.getComponentPrefixMap().put(listTabsManipulator, LIST_TABS_MANAGER_NAME);
+        config.getComponentPrefixMap().put(addLinksPanel, ADD_LINKS_PANEL_NAME);
         config.getComponentPrefixMap().put(copyOrMoveListSelector, 
-                COPY_OR_MOVE_LINKS_PANEL_KEY_PREFIX);
-        config.getComponentPrefixMap().put(openFC, OPEN_FILE_CHOOSER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(saveFC, SAVE_FILE_CHOOSER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(configFC, CONFIG_FILE_CHOOSER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(exportFC, EXPORT_FILE_CHOOSER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(databaseFC, DATABASE_FILE_CHOOSER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(LinkManager.this, LINK_MANAGER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(setLocationDialog, DATABASE_LOCATION_DIALOG_KEY_PREFIX);
+                COPY_OR_MOVE_LINKS_PANEL_NAME);
+        config.getComponentPrefixMap().put(openFC, OPEN_FILE_CHOOSER_NAME);
+        config.getComponentPrefixMap().put(saveFC, SAVE_FILE_CHOOSER_NAME);
+        config.getComponentPrefixMap().put(configFC, CONFIG_FILE_CHOOSER_NAME);
+        config.getComponentPrefixMap().put(exportFC, EXPORT_FILE_CHOOSER_NAME);
+        config.getComponentPrefixMap().put(databaseFC, DATABASE_FILE_CHOOSER_NAME);
+        config.getComponentPrefixMap().put(LinkManager.this, LINK_MANAGER_NAME);
+        config.getComponentPrefixMap().put(setLocationDialog, DATABASE_LOCATION_DIALOG_NAME);
         
             // Initialize the defaults that are dependent on the UI
         config.setPropertyDefault(LINK_MANAGER_X_KEY, 0);
