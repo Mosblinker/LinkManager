@@ -296,16 +296,12 @@ public class ConfigPreferences extends Preferences{
      */
     @Override
     public boolean getBoolean(String key, boolean def) {
-            // Get the value set for the given key, as a String, and defaulting 
-            // to null if it's not set
-        String value = get(key, null);
-            // If the value is equal to the word "true", ignoring case
-        if ("true".equalsIgnoreCase(value))
-            return true;
-            // If the value is equal to the word "false", ignoring case
-        else if ("false".equalsIgnoreCase(value))
-            return false;
-        return def;
+            // Get the value set for the given key, defaulting to null if it's 
+            // not set or is not either "true" or "false", ignoring case
+        Boolean value = booleanValueOf(get(key, null));
+            // If the value is not null, return it. Otherwise, return the given 
+            // default value
+        return (value != null) ? value : def;
     }
     /**
      * {@inheritDoc }

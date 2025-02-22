@@ -197,4 +197,19 @@ public class ConfigUtilities {
             // Create and return a new Rectangle object with the 4 integers
         return new Rectangle(arr[0],arr[1],arr[2],arr[3]);
     }
+    /**
+     * 
+     * @param value
+     * @return 
+     */
+    public static Boolean booleanValueOf(String value){
+            // If the value is equal to the word "true", ignoring case
+        if ("true".equalsIgnoreCase(value))
+            return true;
+            // If the value is equal to the word "false", ignoring case
+        else if ("false".equalsIgnoreCase(value))
+            return false;
+        return null;
+    }
+    
 }

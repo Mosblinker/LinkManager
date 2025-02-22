@@ -8,7 +8,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.util.*;
 import java.util.prefs.*;
-import manager.config.ConfigPreferences;
+import manager.config.*;
 import org.sqlite.SQLiteConfig;
 
 /**
@@ -1340,15 +1340,8 @@ public class LinkManagerConfig {
      * @return 
      */
     protected Boolean getBooleanProperty(String key, Properties prop){
-            // Get the value from the properties, as a String
-        String value = prop.getProperty(key);
-            // If the value is equal to the word "true", ignoring case
-        if ("true".equalsIgnoreCase(value))
-            return true;
-            // If the value is equal to the word "false", ignoring case
-        else if ("false".equalsIgnoreCase(value))
-            return false;
-        return null;
+            // Get the value from the properties
+        return ConfigUtilities.booleanValueOf(prop.getProperty(key));
     }
     /**
      * 
