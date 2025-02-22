@@ -47,7 +47,7 @@ public class ConfigUtilities {
      * @param offset
      * @return 
      */
-    public static byte[] intToBytes(int value, byte[] arr, int offset){
+    public static byte[] toByteArray(int value, byte[] arr, int offset){
             // If the offset into the array is negative
         if (offset < 0)
             throw new IndexOutOfBoundsException("Array offset cannot be negative ("+
