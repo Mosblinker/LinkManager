@@ -685,11 +685,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
                 @Override
                 public Long getTokenExpiresAt() {
-                    return config.getPrivateLongProperty(DROPBOX_TOKEN_EXPIRATION_KEY);
+                    return config.getPrivateProperties().getLongProperty(DROPBOX_TOKEN_EXPIRATION_KEY);
                 }
                 @Override
                 public void setTokenExpiresAt(Long time) {
-                    config.setPrivateProperty(DROPBOX_TOKEN_EXPIRATION_KEY,time);
+                    config.getPrivateProperties().setProperty(DROPBOX_TOKEN_EXPIRATION_KEY,time);
                 }
                 @Override
                 public DbxAppInfo getAppInfo(){
