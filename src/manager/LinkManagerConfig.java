@@ -1821,11 +1821,20 @@ public class LinkManagerConfig {
      * @param tabsPanel 
      */
     public void setCurrentTab(int listType, LinksListTabsPanel tabsPanel){
-        setCurrentTabListID(listType,tabsPanel.getSelectedListID());
-            // If the tabs panel has nothing selected, set the index to null.
-            // Otherwise, set it to the selected index
-        setCurrentTabIndex(listType, (tabsPanel.isSelectionEmpty()) ? null :
-                tabsPanel.getSelectedIndex());
+            // The listID of the current tab
+        Integer listID = null;
+            // The index of the current tab
+        Integer index = null;
+            // If the given panel is not null
+        if (tabsPanel != null){
+            listID = tabsPanel.getSelectedListID();
+                // If the tabs panel has nothing selected, use null as the 
+                // index. Otherwise, use the selected index
+            index = (tabsPanel.isSelectionEmpty()) ? null :
+                    tabsPanel.getSelectedIndex();
+        }
+        setCurrentTabListID(listType,listID);
+        setCurrentTabIndex(listType, index);
     }
     /**
      * 
