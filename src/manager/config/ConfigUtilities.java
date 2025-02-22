@@ -20,6 +20,28 @@ public class ConfigUtilities {
     private ConfigUtilities() {}
     /**
      * 
+     * @param arr
+     * @param length
+     * @return 
+     */
+    public static byte[] expandByteArray(byte[] arr, int length){
+            // If the given byte array is null
+        if (arr == null)
+                // Create a new array with the correct length
+            arr = new byte[length];
+            // If the given byte array is too short
+        else if (arr.length < length){
+                // Store the array in a temporary variable
+            byte[] temp = arr;
+                // Create a new array with the correct length
+            arr = new byte[length];
+                // Copy the contents of the old array into the new array
+            System.arraycopy(temp, 0, arr, 0, temp.length);
+        }
+        return arr;
+    }
+    /**
+     * 
      * @param value
      * @param arr
      * @param offset
@@ -30,21 +52,9 @@ public class ConfigUtilities {
         if (offset < 0)
             throw new IndexOutOfBoundsException("Array offset cannot be negative ("+
                     offset+")");
-            // This is the minimum length that the array needs to be
-        int len = offset+Integer.BYTES;
-            // If the given byte array is null
-        if (arr == null)
-                // Create a new array with the correct length
-            arr = new byte[len];
-            // If the given byte array is too short
-        else if (arr.length < len){
-                // Store the array in a temporary variable
-            byte[] temp = arr;
-                // Create a new array with the correct length
-            arr = new byte[len];
-                // Copy the contents of the old array into the new array
-            System.arraycopy(temp, 0, arr, 0, temp.length);
-        }   // A for loop to go through the bytes of the given value
+            // Expand the byte array if it's too small (or create it if it's 
+        arr = expandByteArray(arr, offset+Integer.BYTES);   // null)
+            // A for loop to go through the bytes of the given value
         for (int i = 0; i < Integer.BYTES && value != 0; i++){
                 // Add the current least significant byte to the array
             arr[offset+i] = (byte)(value & 0xFF);
