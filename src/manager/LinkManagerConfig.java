@@ -1888,6 +1888,15 @@ public class LinkManagerConfig {
     /**
      * 
      * @param comp
+     * @return 
+     */
+    public boolean isComponentSizeSet(Component comp){
+        return getPreferences().isKeySet(getComponentName(comp)+
+                COMPONENT_SIZE_KEY_SUFFIX);
+    }
+    /**
+     * 
+     * @param comp
      * @param x
      * @param y 
      */
@@ -1956,6 +1965,15 @@ public class LinkManagerConfig {
      */
     public Point getComponentLocation(Component comp){
         return getComponentLocation(comp,null);
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public boolean isComponentLocationSet(Component comp){
+        return getPreferences().isKeySet(getComponentName(comp)+
+                COMPONENT_LOCATION_KEY_SUFFIX);
     }
     /**
      * 
@@ -2053,5 +2071,14 @@ public class LinkManagerConfig {
      */
     public Rectangle getComponentBounds(Component comp){
         return getComponentBounds(comp,null);
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public boolean isComponentBoundsSet(Component comp){
+        return getPreferences().isKeySet(getComponentName(comp)+
+                COMPONENT_BOUNDS_KEY_SUFFIX);
     }
 }
