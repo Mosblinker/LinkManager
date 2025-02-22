@@ -114,6 +114,20 @@ public class ConfigProperties extends Properties{
     }
     /**
      * 
+     * @param map 
+     */
+    public synchronized void addProperties(Map<?,?> map){
+            // Make sure the map isn't null
+        if (map == null)
+            throw new NullPointerException();
+            // Go through the entries in the map
+        for (Map.Entry<?,?> entry : map.entrySet()){
+                // Set the property for that entry
+            setProperty(entry.getKey().toString(),entry.getValue());
+        }
+    }
+    /**
+     * 
      * @param key
      * @param defaultValue
      * @return 
