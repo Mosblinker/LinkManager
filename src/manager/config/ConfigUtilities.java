@@ -346,9 +346,7 @@ public class ConfigUtilities {
      * @return 
      */
     public static byte[] pointToByteArray(int x, int y){
-            // Put the two integers into an array of integers, and convert that 
-            // into an array of bytes
-        return intArrayToBytes(new int[]{x,y},null,0);
+        return intArraytoByteArray(POINT_BYTE_ARRAY_HEADER,x,y);
     }
     /**
      * 
@@ -368,13 +366,16 @@ public class ConfigUtilities {
      * @return 
      */
     public static Point pointFromByteArray(byte[] value, Point defaultValue){
-            // If the given array is null or the array is not two integers long
-        if (value == null || value.length != Integer.BYTES*2)
+            // If the given array is null
+        if (value == null)
             return defaultValue;
-            // Convert the array of bytes into two integers
-        int[] arr = intArrayFromBytes(value,0,2);
-            // Create and return a new Point object with the two integers
-        return new Point(arr[0],arr[1]);
+            // Get an integer buffer to get the values for the point
+        IntBuffer buffer = toIntBuffer(POINT_BYTE_ARRAY_HEADER,value);
+            // If the buffer is null (did not match the header) or there aren't 
+            // 2 integers in the buffer
+        if (buffer == null || buffer.remaining() != 2)
+            return defaultValue;
+        return new Point(buffer.get(),buffer.get());
     }
     /**
      * 
@@ -393,9 +394,7 @@ public class ConfigUtilities {
      * @return 
      */
     public static byte[] rectangleToByteArray(int x,int y,int width,int height){
-            // Put the 4 integers into an array of integers, and convert that 
-            // into an array of bytes
-        return intArrayToBytes(new int[]{x,y,width,height},null,0);
+        return intArraytoByteArray(RECTANGLE_BYTE_ARRAY_HEADER,x,y,width,height);
     }
     /**
      * 
@@ -427,20 +426,22 @@ public class ConfigUtilities {
      */
     public static Rectangle rectangleFromByteArray(byte[] value, 
             Rectangle defaultValue){
-            // If the given array is null or the given array is neither 2 or 4 
-            // integers long
-        if (value == null || !(value.length == Integer.BYTES*2 || 
-                value.length == Integer.BYTES*4))
+            // If the given array is null
+        if (value == null)
             return defaultValue;
-            // Convert the array of bytes into 4 integers
-        int[] arr = intArrayFromBytes(value,0,4);
-            // If there were actually only 2 integers in the byte array
-        if (value.length <= Integer.BYTES*2)
-                // Create and return a new Rectangle object with the 2 integers 
-                // as the size of the rectangle
-            return new Rectangle(arr[0],arr[1]);
-            // Create and return a new Rectangle object with the 4 integers
-        return new Rectangle(arr[0],arr[1],arr[2],arr[3]);
+            // Get an integer buffer to get the values for the rectangle
+        IntBuffer buffer = toIntBuffer(RECTANGLE_BYTE_ARRAY_HEADER,value);
+            // If the buffer is not null (the byte array matched the header)
+        if (buffer != null){
+                // If there are two integers in the buffer
+            if (buffer.remaining() == 2)
+                return new Rectangle(buffer.get(),buffer.get());
+                // If there are four integers in the buffer
+            else if (buffer.remaining() == 4)
+                return new Rectangle(buffer.get(),buffer.get(),
+                        buffer.get(),buffer.get());
+        }
+        return defaultValue;
     }
     /**
      * 
