@@ -475,10 +475,12 @@ public class LinkManagerConfig {
             // Check if the key is null
         Objects.requireNonNull(key, "The key for the property cannot be null");
             // If the value is null
-        if (value == null)
-                // Remove it from the configuration and return its value
-            return removeConfigProperty(key,config);
-        else{   // Get the value as a String
+        if (value == null){
+                // Remove it from the configuration and get its value
+            Object old = config.remove(key);
+                // If it's not null, return it as a string. Otherwise, return null
+            return (old != null) ? old.toString() : null;
+        }else{   // Get the value as a String
             String valueStr = Objects.toString(value);
                 // This gets the default value for the property to be set, or 
                 // null if there is no default value (or no defaultConfig was 
@@ -631,50 +633,6 @@ public class LinkManagerConfig {
      */
     public synchronized void addDefaultPrivateProperties(Map<?, ?> map){
         addConfigProperties(map, getDefaultPrivateProperties(), null);
-    }
-    /**
-     * 
-     * @param key
-     * @param config
-     * @return 
-     */
-    protected synchronized String removeConfigProperty(String key, Properties config){
-            // Remove the value from the config
-        Object value = config.remove(key);
-            // If the value is not null, return it as a String. Otherwise, 
-        return (value != null) ? value.toString() : null;   // return null
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    public synchronized String removeProperty(String key){
-        return removeConfigProperty(key, getProperties());
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    public synchronized String removeDefaultProperty(String key){
-        return removeConfigProperty(key, getDefaultProperties());
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    public synchronized String removePrivateProperty(String key){
-        return removeConfigProperty(key, getPrivateProperties());
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    public synchronized String removeDefaultPrivate(String key){
-        return removeConfigProperty(key, getDefaultPrivateProperties());
     }
     /**
      * 
