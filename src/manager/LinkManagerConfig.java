@@ -210,17 +210,6 @@ public class LinkManagerConfig {
      */
     private final Properties defaultConfig;
     /**
-     * This is a properties map that stores the private configuration data for 
-     * LinkManager. This is used to store things like passwords and such.
-     */
-    private final ConfigProperties privateConfig;
-    /**
-     * This is a properties map that stores the default configuration for 
-     * private configuration for LinkManager, and which serves as the default 
-     * properties map for {@code privateConfig}.
-     */
-    private final Properties defaultPrivateConfig;
-    /**
      * This is the SQLite configuration to use for the database.
      */
     private final SQLiteConfig sqlConfig;
@@ -247,8 +236,6 @@ public class LinkManagerConfig {
             Obfuscator obfuscator){
         defaultConfig = new Properties();
         config = new ConfigProperties(defaultConfig);
-        defaultPrivateConfig = new Properties();
-        privateConfig = new ConfigProperties(defaultPrivateConfig);
         compNameMap = new HashMap<>();
             // If the given SQLite config properties is not null
         if(sqlProp != null)
@@ -284,9 +271,7 @@ public class LinkManagerConfig {
         this(linkConfig.sqlConfig.toProperties(), linkConfig.programNode,
                 linkConfig.obfuscator);
         this.defaultConfig.putAll(linkConfig.defaultConfig);
-        this.defaultPrivateConfig.putAll(linkConfig.defaultPrivateConfig);
         this.config.putAll(linkConfig.config);
-        this.privateConfig.putAll(linkConfig.privateConfig);
         this.compNameMap.putAll(linkConfig.compNameMap);
         this.localDefaults.addProperties(linkConfig.localDefaults);
         this.privateDefaults.addProperties(linkConfig.privateDefaults);
@@ -497,24 +482,6 @@ public class LinkManagerConfig {
         return defaultConfig;
     }
     /**
-     * This returns the properties map that stores the private configuration 
-     * data for LinkManager. This is used to store things like passwords.
-     * @return The properties map for private data.
-     */
-    public ConfigProperties getPrivateProperties(){
-        return privateConfig;
-    }
-    /**
-     * This returns the properties map that stores the default configuration for 
-     * private configuration for LinkManager. This serves as the defaults for 
-     * {@link #getPrivateProperties}, which is used to store things like 
-     * passwords.
-     * @return The default properties map for private data.
-     */
-    public Properties getDefaultPrivateProperties(){
-        return defaultPrivateConfig;
-    }
-    /**
      * This sets the property in the given {@code config} Properties for the 
      * given key to the given value, and returning the old value. If the given 
      * value is null, then the property for the given key will be reset to its 
@@ -584,25 +551,6 @@ public class LinkManagerConfig {
     /**
      * 
      * @param key
-     * @param value
-     * @return 
-     */
-    public synchronized String setPrivateProperty(String key, Object value){
-        return setConfigProperty(key,value,getPrivateProperties(),
-                getDefaultPrivateProperties());
-    }
-    /**
-     * 
-     * @param key
-     * @param value
-     * @return 
-     */
-    public synchronized String setPrivateDefault(String key, Object value){
-        return setConfigProperty(key,value,getDefaultPrivateProperties(),null);
-    }
-    /**
-     * 
-     * @param key
      * @return 
      */
     public String getProperty(String key){
@@ -622,33 +570,8 @@ public class LinkManagerConfig {
      * @param key
      * @return 
      */
-    public String getPrivateProperty(String key){
-        return getPrivateProperties().getProperty(key);
-    }
-    /**
-     * 
-     * @param key
-     * @param defaultValue
-     * @return 
-     */
-    public String getPrivateProperty(String key, String defaultValue){
-        return getPrivateProperties().getProperty(key, defaultValue);
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
     public String getPropertyDefault(String key){
         return getDefaultProperties().getProperty(key);
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    public String getPrivateDefault(String key){
-        return getDefaultPrivateProperties().getProperty(key);
     }
     /**
      * 
@@ -696,29 +619,11 @@ public class LinkManagerConfig {
     /**
      * 
      * @param key
-     * @return 
-     */
-    public String getPrivateFilePathProperty(String key){
-        return getConfigFilePathProperty(key,getPrivateProperties(),
-                getDefaultPrivateProperties());
-    }
-    /**
-     * 
-     * @param key
      * @param value
      * @return 
      */
     public String setFilePathProperty(String key, String value){
         return setProperty(key,formatFilePath(value));
-    }
-    /**
-     * 
-     * @param key
-     * @param value
-     * @return 
-     */
-    public String setPrivateFilePathProperty(String key, String value){
-        return setPrivateProperty(key,formatFilePath(value));
     }
     
     
