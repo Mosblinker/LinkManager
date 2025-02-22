@@ -70,11 +70,26 @@ public class ConfigProperties extends Properties{
     /**
      * 
      * @param key
+     * @param width
+     * @param height
+     * @return 
+     */
+    public synchronized Object setDimensionProperty(String key, int width, int height){
+        return setProperty(key,ConfigUtilities.dimensionToByteArray(width, height));
+    }
+    /**
+     * 
+     * @param key
      * @param value
      * @return 
      */
     public synchronized Object setDimensionProperty(String key,Dimension value){
-        return setProperty(key,dimensionToByteArray(value));
+            // If the new value is null
+        if (value == null)
+                // Remove the value from the map
+            return remove(key);
+            // Set the dimension property
+        return setDimensionProperty(key,value.width,value.height);
     }
     /**
      * 

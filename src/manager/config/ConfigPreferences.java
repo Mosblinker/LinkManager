@@ -438,18 +438,39 @@ public class ConfigPreferences extends Preferences{
     /**
      * 
      * @param key
+     * @param width
+     * @param height 
+     * @throws IllegalStateException If this node (or an ancestor) has been 
+     * removed with the {@link #removeNode() removeNode()} method.
+     * @throws NullPointerException If the given key is null.
+     * @see #putDimension(String, Dimension) 
+     * @see #getDimension(String, Dimension) 
+     * @see #get(String, String) 
+     */
+    public void putDimension(String key, int width, int height){
+            // Store the integers into the preference node
+        putByteArray(key,ConfigUtilities.dimensionToByteArray(width, height));
+    }
+    /**
+     * 
+     * @param key
      * @param value 
      * @throws IllegalStateException If this node (or an ancestor) has been 
      * removed with the {@link #removeNode() removeNode()} method.
      * @throws NullPointerException If the given key is null.
+     * @see #putDimension(String, int, int) 
      * @see #getDimension(String, Dimension) 
      * @see #get(String, String) 
      * @see #getByteArray(String, byte[]) 
      * @see #putByteArray(String, byte[]) 
      */
     public void putDimension(String key, Dimension value){
-            // Convert the dimension object into an array of bytes and store it
-        putByteArray(key,dimensionToByteArray(value));
+            // If the value is null
+        if (value == null)
+                // Remove the value for the key, resetting it to default
+            remove(key);
+        else    // Store the dimension object
+            putDimension(key,value.width,value.height);
     }
     /**
      * 
@@ -459,19 +480,17 @@ public class ConfigPreferences extends Preferences{
      * @throws IllegalStateException If this node (or an ancestor) has been 
      * removed with the {@link #removeNode() removeNode()} method.
      * @throws NullPointerException If the given key is null.
+     * @see #putDimension(String, int, int) 
      * @see #putDimension(String, Dimension) 
      * @see #get(String, String) 
      * @see #getByteArray(String, byte[]) 
      * @see #putByteArray(String, byte[]) 
      */
     public Dimension getDimension(String key, Dimension def){
-            // Get the dimensions as a byte array, defaulting to null
-        byte[] arr = getByteArray(key,null);
-            // If the byte array is not null and is 2 integers long
-        if (arr != null && arr.length == Integer.BYTES*2)
-                // Convert the byte array into a dimension object
-            return dimensionFromByteArray(arr);
-        return def;
+            // Get the dimensions as a byte array, defaulting to null. Then 
+            // convert the byte array into a dimension object, defaulting to the 
+            // given default value if null
+        return ConfigUtilities.dimensionFromByteArray(getByteArray(key,null),def);
     }
     /**
      * 
