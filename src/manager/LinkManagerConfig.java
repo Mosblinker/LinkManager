@@ -160,6 +160,18 @@ public class LinkManagerConfig {
      */
     public static final String DROPBOX_PROPERTY_KEY_PREFIX = "Dropbox";
     /**
+     * This is the suffix for the keys relating to list types when importing or 
+     * exporting the settings. This is suppose to have a list type appended to 
+     * the end.
+     */
+    public static final String LIST_TYPE_PROPERTY_KEY_SUFFIX = "ForType";
+    /**
+     * This is the suffix for the keys relating to lists when importing or 
+     * exporting the settings. This is suppose to have a list ID appended to 
+     * the end.
+     */
+    public static final String LIST_ID_PROPERTY_KEY_SUFFIX = "ForList";
+    /**
      * This is the start of the path for the preference node used to store the 
      * configuration data for an instance of the program.
      */
@@ -174,6 +186,18 @@ public class LinkManagerConfig {
      * Dropbox.
      */
     private static final String DROPBOX_PREFERENCE_NODE_NAME = "dropbox";
+    /**
+     * This is the prefix for the name of the preference nodes used to store 
+     * the settings relating to a specific type of list.
+     */
+    private static final String LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX = 
+            "listType=";
+    /**
+     * This is the prefix for the name of the preference nodes used to store 
+     * the settings relating to a specific list.
+     */
+    private static final String LIST_ID_PREFERENCE_NODE_NAME_PREFIX = 
+            "listID=";
     /**
      * This is the preference node containing all the preferences for 
      * LinkManager. This is the parent preference node for all other nodes, and 
@@ -331,6 +355,22 @@ public class LinkManagerConfig {
      */
     public Preferences getPrivateDropboxPreferences(){
         return getPrivatePreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
+    }
+    /**
+     * 
+     * @param type The list type
+     * @return 
+     */
+    public Preferences getListTypePreferences(int type){
+        return getPreferences().node(LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX+type);
+    }
+    /**
+     * 
+     * @param listID The list ID
+     * @return 
+     */
+    public Preferences getListPreferences(int listID){
+        return getPreferences().node(LIST_ID_PREFERENCE_NODE_NAME_PREFIX+listID);
     }
     /**
      * This gets a preference node relative to the program preference node with 
