@@ -1948,6 +1948,16 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @param listID 
+     */
+    public void removeListPreferences(int listID){
+            // If the list preference node for the given listID exists
+        if (nodeExists(getPreferences(),LIST_ID_PREFERENCE_NODE_NAME_PREFIX+listID))
+                // Remove it
+            removeNode(getListPreferences(listID));
+    }
+    /**
+     * 
      * @param value 
      */
     public void setDropboxDatabaseFileName(String value){
