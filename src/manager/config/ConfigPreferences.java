@@ -19,6 +19,17 @@ import static manager.config.ConfigUtilities.*;
  */
 public class ConfigPreferences extends Preferences{
     /**
+     * This is the maximum length of a byte array as a value. This is because 
+     * the byte array is encoded as a Base64 encoded String, and the byte array 
+     * length is limited to three quarters of {@link 
+     * Preferences#MAX_VALUE_LENGTH MAX_VALUE_LENGTH} so that the Base64 encoded 
+     * String does not exceed {@code MAX_VALUE_LENGTH}.
+     * @see Preferences#MAX_VALUE_LENGTH
+     * @see #putByteArray(String, byte[]) 
+     */
+    public static final int MAX_BYTE_ARRAY_LENGTH = 
+            (Preferences.MAX_VALUE_LENGTH * 3) / 4;
+    /**
      * This is the preference node that actually stores the values.
      */
     protected final Preferences node;
@@ -395,9 +406,9 @@ public class ConfigPreferences extends Preferences{
             remove(key);
             return;
         }   // If the byte array's length exceeds 3/4ths of the max value length
-        if (value.length > Preferences.MAX_VALUE_LENGTH*(3/4))
+        if (value.length > MAX_BYTE_ARRAY_LENGTH)
             throw new IllegalArgumentException("Byte array is too long ("+
-                    value.length+" > "+(Preferences.MAX_VALUE_LENGTH*(3/4))+")");
+                    value.length+" > "+MAX_BYTE_ARRAY_LENGTH+")");
             // Encode the byte array in Base64 and store it
         put(key,Base64.getEncoder().encodeToString(value));
     }
