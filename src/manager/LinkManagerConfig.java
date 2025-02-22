@@ -1416,113 +1416,124 @@ public class LinkManagerConfig {
      * @param prop 
      */
     public void importProperties(Properties prop){
+            // Make sure the Properties object is not null
+        Objects.requireNonNull(prop);
+            // This will get a ConfigProperties version of the given Properties 
+        ConfigProperties cProp;     // object
+            // If the given Properties object is already a ConfigProperties
+        if (prop instanceof ConfigProperties)
+            cProp = (ConfigProperties) prop;
+        else    // Create a new ConfigProperties with the given Properties 
+                // object as its defaults. This should be okay since we won't be 
+                // writing to it, only reading from it.
+            cProp = new ConfigProperties(prop);
             // Get the value for the database file path from the properties
-        String str = prop.getProperty(DATABASE_FILE_PATH_KEY);
+        String str = cProp.getProperty(DATABASE_FILE_PATH_KEY);
             // If the properties has the database file path
         if (str != null)
                 // Set the database file path from the properties
             setDatabaseFileName(str);
             // Get the value for the progress display from the properties
-        Integer i = getIntProperty(PROGRESS_DISPLAY_KEY,prop);
+        Integer i = cProp.getIntProperty(PROGRESS_DISPLAY_KEY);
             // If the properties has the progress display settings
         if (i != null)
                 // Set the progress display settings from the properties
             setProgressDisplaySetting(i);
             // Get the value for the always on top setting from the properties
-        Boolean b = getBooleanProperty(ALWAYS_ON_TOP_KEY,prop);
+        Boolean b = cProp.getBooleanProperty(ALWAYS_ON_TOP_KEY);
             // If the properties has the always on top setting
         if (b != null)
                 // Set the always on top settings from the properties
             setAlwaysOnTop(b);
             // Get the value for the add blank lines setting from the properties
-        b = getBooleanProperty(BLANK_LINES_KEY,prop);
+        b = cProp.getBooleanProperty(BLANK_LINES_KEY);
             // If the properties has the add blank lines setting
         if (b != null)
                 // Set the add blank lines settings from the properties
             setAddBlankLines(b);
             // Get the value for the link operations enabled from the properties
-        b = getBooleanProperty(ENABLE_LINK_OPS_KEY,prop);
+        b = cProp.getBooleanProperty(ENABLE_LINK_OPS_KEY);
             // If the properties has the link operations enabled value
         if (b != null)
                 // Set the link operations enabled from the properties
             setLinkOperationsEnabled(b);
             // Get the value for the hidden link operations enabled from the 
             // properties
-        b = getBooleanProperty(ENABLE_HIDDEN_LINK_OPS_KEY,prop);
+        b = cProp.getBooleanProperty(ENABLE_HIDDEN_LINK_OPS_KEY);
             // If the properties has the hidden link operations enabled value
         if (b != null)
                 // Set the hidden link operations enabled from the properties
             setHiddenLinkOperationsEnabled(b);
             // Get the value for the database file change operation from the 
             // properties
-        i = getIntProperty(DATABASE_FILE_CHANGE_OPERATION_KEY,prop);
+        i = cProp.getIntProperty(DATABASE_FILE_CHANGE_OPERATION_KEY);
             // If the properties has the database file change operation
         if (i != null)
                 // Set the database file change operation from the properties
             setDatabaseFileChangeOperation(i);
             // Get the value for the autosave frequency index from the 
             // properties
-        i = getIntProperty(AUTOSAVE_FREQUENCY_KEY,prop);
+        i = cProp.getIntProperty(AUTOSAVE_FREQUENCY_KEY);
             // If the properties has the autosave frequency index
         if (i != null)
                 // Set the autosave frequency index from the properties
             setAutosaveFrequencyIndex(i);
             // Get the value for the auto-hide wait duration index from the 
             // properties
-        i = getIntProperty(AUTO_HIDE_WAIT_DURATION_KEY,prop);
+        i = cProp.getIntProperty(AUTO_HIDE_WAIT_DURATION_KEY);
             // If the properties has the auto-hide wait duration index
         if (i != null)
                 // Set the auto-hide wait duration index from the properties
             setAutoHideWaitDurationIndex(i);
             // Get the value for the search match case setting from the 
             // properties
-        b = getBooleanProperty(SEARCH_MATCH_CASE_KEY,prop);
+        b = cProp.getBooleanProperty(SEARCH_MATCH_CASE_KEY);
             // If the properties has the search match case setting
         if (b != null)
                 // Set the search match case setting from the properties
             setSearchMatchCase(b);
             // Get the value for the search match spaces setting from the 
             // properties
-        b = getBooleanProperty(SEARCH_MATCH_SPACES_KEY,prop);
+        b = cProp.getBooleanProperty(SEARCH_MATCH_SPACES_KEY);
             // If the properties has the search match spaces setting
         if (b != null)
                 // Set the search match spaces setting from the properties
             setSearchMatchSpaces(b);
             // Get the value for the search wrap around setting from the 
             // properties
-        b = getBooleanProperty(SEARCH_WRAP_AROUND_KEY,prop);
+        b = cProp.getBooleanProperty(SEARCH_WRAP_AROUND_KEY);
             // If the properties has the search wrap around setting
         if (b != null)
                 // Set the search wrap around setting from the properties
             setSearchWrapAround(b);
             // Get the value for the search text from the properties
-        str = prop.getProperty(SEARCH_TEXT_KEY);
+        str = cProp.getProperty(SEARCH_TEXT_KEY);
             // If the properties has the search text
         if (str != null)
                 // Set the search text from the properties
             setSearchText(str);
             // Get the value for the entered link text from the properties
-        str = prop.getProperty(ENTERED_LINK_TEXT_KEY);
+        str = cProp.getProperty(ENTERED_LINK_TEXT_KEY);
             // If the properties has the entered link text
         if (str != null)
                 // Set the entrered link text from the properties
             setEnteredLinkText(str);
             // Get the value for the hidden lists are shown setting from the 
             // properties
-        b = getBooleanProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,prop);
+        b = cProp.getBooleanProperty(HIDDEN_LISTS_ARE_SHOWN_KEY);
             // If the properties has the hidden lists are shown setting
         if (b != null)
                 // Set the hidden lists are shown setting from the properties
             setHiddenListsAreShown(b);
             // Get the value for the database error details are shown setting 
             // from the properties
-        b = getBooleanProperty(SHOW_DETAILED_DATABASE_ERRORS,prop);
+        b = cProp.getBooleanProperty(SHOW_DETAILED_DATABASE_ERRORS);
             // If the properties has the database error details are shown value
         if (b != null)
                 // Set whether database error details are shown from the properties
             setDatabaseErrorDetailsAreShown(b);
             // Get the value for the database sync setting from the properties
-        b = getBooleanProperty(SYNC_DATABASE_KEY,prop);
+        b = cProp.getBooleanProperty(SYNC_DATABASE_KEY);
             // If the properties has the database sync setting
         if (b != null)
                 // Set whether database will sync from the properties
