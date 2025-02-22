@@ -28,6 +28,8 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.*;
 import java.awt.event.*;
@@ -1111,14 +1113,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config.getComponentNames().put(setLocationDialog, DATABASE_LOCATION_DIALOG_NAME);
         
             // Initialize the defaults that are dependent on the UI
-        config.setPropertyDefault(LINK_MANAGER_X_KEY, 0);
-        config.setPropertyDefault(LINK_MANAGER_Y_KEY, 0);
         
             // Go through the components to store their preferred sizes
         for (Component comp : config.getComponentNames().keySet()){
-                // Use the preferred size of the current component as its 
-                // default size
-            config.setDefaultComponentSize(comp,comp.getPreferredSize());
+                // Get the prefered size of the current component
+            Dimension size = comp.getPreferredSize();
+                // If the current component is this component
+            if (comp == LinkManager.this){
+                    // Use the preferred size of the component as it's 
+                    // default size for its bounds
+                config.setDefaultComponentBounds(comp, size.width,size.height);
+            } else {// Use the preferred size of the current component as its 
+                    // default size
+                config.setDefaultComponentSize(comp,size);
+            }
         }
         
             // Set the SQLite config to enforce the foreign keys
@@ -4639,13 +4647,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         loader = new LoadDatabaseViewer(true);
         loader.execute();
     }//GEN-LAST:event_dbRemoveDuplDataButtonActionPerformed
-
+    
     private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
 //        System.out.println(evt);
             // If the window is not maximized
         if (!isMaximized())
                 // Set the windows's size in the config
-            config.setComponentSize(this);
+            config.setComponentBounds(this);
     }//GEN-LAST:event_formComponentResized
 
     private void formWindowStateChanged(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowStateChanged
@@ -4919,8 +4927,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 //        System.out.println("Moved: " + evt);
             // If the window is not maximized
         if (!isMaximized()){
-            config.setProperty(LINK_MANAGER_X_KEY,getX());
-            config.setProperty(LINK_MANAGER_Y_KEY,getY());
+            config.setComponentBounds(this);
         }
     }//GEN-LAST:event_formComponentMoved
     /**
@@ -6277,32 +6284,48 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             linkTextField.setText(config.getEnteredLinkText());
                 // Go through the components with sizes saved to config
             for (Component comp : config.getComponentNames().keySet()){
-                    // Get the size from the config for the component
+                    // Get the size for the component from the config
                 Dimension dim = config.getComponentSize(comp);
-                    // If the size for the component is null
-                if (dim == null)
-                    continue;
-                    // Get the minimum size for the component
-                Dimension min = comp.getMinimumSize();
-                    // Make sure the width and height are within range
-                dim.width = Math.max(dim.width, min.width);
-                dim.height = Math.max(dim.height, min.height);
-                    // If the current component is this program
-                if (comp == this){
-                        // Set the size of the program window
-                    setSize(dim);
-                } else {
-                        // Set the size of the current component
-                    comp.setPreferredSize(dim);
+                    // Get the location for the component from the config
+                Point point = config.getComponentLocation(comp);
+                    // Get the bounds for the component from the config
+                Rectangle rect = config.getComponentBounds(comp);
+                    // If the size for the component is not null
+                if (dim != null){
+                        // Get the minimum size for the component
+                    Dimension min = comp.getMinimumSize();
+                        // Make sure the width and height are within range
+                    dim.width = Math.max(dim.width, min.width);
+                    dim.height = Math.max(dim.height, min.height);
+                        // If the current component is this program
+                    if (comp == this){
+                            // Set the size of the program window
+                        setSize(dim);
+                    } else {
+                            // Set the size of the current component
+                        comp.setPreferredSize(dim);
+                    }
+                }   // If the location for the component is not null
+                if (point != null)
+                        // Set the location for the component
+                    comp.setLocation(point);
+                    // If the bounds for the component are not null
+                if (rect != null){
+                        // If the current component is this program
+                    if (comp == this){
+                            // If the component bounds are not set
+                        if (!config.isComponentBoundsSet(comp))
+                            continue;
+                    }   // Get the minimum size for the component
+                    Dimension min = comp.getMinimumSize();
+                        // Set the bounds for the component
+                    comp.setBounds(rect.x, rect.y, 
+                                // Make sure the width is within range
+                            Math.max(rect.width, min.width), 
+                                // Make sure the height is within range
+                            Math.max(rect.height, min.height));
                 }
             }
-                // Get the x-coordinate from the config
-            Integer x = config.getIntProperty(LINK_MANAGER_X_KEY);
-                // Get the y-coordinate from the config
-            Integer y = config.getIntProperty(LINK_MANAGER_Y_KEY);
-                // If both the x and y coordinates are not null
-            if (x != null && y != null)
-                this.setLocation(x, y);
         }
     }
     /**
