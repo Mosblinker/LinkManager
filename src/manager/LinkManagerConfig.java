@@ -238,9 +238,20 @@ public class LinkManagerConfig {
      * This returns the preference node used to store the shared configuration 
      * data for all instances of LinkManager.
      * @return The shared configuration preference node.
+     * @see #getSharedDefaults() 
      */
     public ConfigPreferences getSharedPreferences(){
         return programNode;
+    }
+    /**
+     * This returns the properties map that stores the default values for the 
+     * {@link #getSharedPreferences() shared preference node}.
+     * @return The properties map with the defaults for the shared preference 
+     * node.
+     * @see #getSharedPreferences() 
+     */
+    public ConfigProperties getSharedDefaults(){
+        return (ConfigProperties) getSharedPreferences().getDefaults();
     }
     /**
      * This returns the preference node used to store the configuration for 
