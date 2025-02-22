@@ -355,16 +355,25 @@ public class ConfigUtilities {
     /**
      * 
      * @param value
+     * @param defaultValue
      * @return 
      */
-    public static Point pointFromByteArray(byte[] value){
+    public static Point pointFromByteArray(byte[] value, Point defaultValue){
             // If the given array is null
         if (value == null)
-            return null;
+            return defaultValue;
             // Convert the array of bytes into two integers
         int[] arr = intArrayFromBytes(value,0,2);
             // Create and return a new Point object with the two integers
         return new Point(arr[0],arr[1]);
+    }
+    /**
+     * 
+     * @param value
+     * @return 
+     */
+    public static Point pointFromByteArray(byte[] value){
+        return pointFromByteArray(value,null);
     }
     /**
      * 
@@ -383,12 +392,14 @@ public class ConfigUtilities {
     /**
      * 
      * @param value
+     * @param defaultValue
      * @return 
      */
-    public static Rectangle rectangleFromByteArray(byte[] value){
+    public static Rectangle rectangleFromByteArray(byte[] value, 
+            Rectangle defaultValue){
             // If the given array is null
         if (value == null)
-            return null;
+            return defaultValue;
             // Convert the array of bytes into 4 integers
         int[] arr = intArrayFromBytes(value,0,4);
             // If there were actually only 2 integers in the byte array
@@ -398,6 +409,14 @@ public class ConfigUtilities {
             return new Rectangle(arr[0],arr[1]);
             // Create and return a new Rectangle object with the 4 integers
         return new Rectangle(arr[0],arr[1],arr[2],arr[3]);
+    }
+    /**
+     * 
+     * @param value
+     * @return 
+     */
+    public static Rectangle rectangleFromByteArray(byte[] value){
+        return rectangleFromByteArray(value,null);
     }
     /**
      * 
