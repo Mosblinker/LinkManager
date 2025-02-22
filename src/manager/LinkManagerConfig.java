@@ -1571,7 +1571,7 @@ public class LinkManagerConfig {
      * 
      * @param key 
      */
-    private void removeDropboxPreference(String key){
+    private void removePrivateDropboxPreference(String key){
         try{    // If the preference node exists
             if (getPrivatePreferences().nodeExists(DROPBOX_PREFERENCE_NODE_NAME))
                     // Remove the key from it
@@ -1589,7 +1589,7 @@ public class LinkManagerConfig {
             // If the token is null
         if (token == null)
                 // Remove the key from the Dropbox preference node
-            removeDropboxPreference(key);
+            removePrivateDropboxPreference(key);
         else    // Get the private Dropbox preference node and put the token in 
             getPrivateDropboxPreferences().put(key, token);     // it
     }
@@ -1639,7 +1639,7 @@ public class LinkManagerConfig {
             // If the given time is null
         if (time == null)
                 // Remove the value set for the time
-            removeDropboxPreference(DROPBOX_TOKEN_EXPIRATION_KEY);
+            removePrivateDropboxPreference(DROPBOX_TOKEN_EXPIRATION_KEY);
         else    // Set the value for the time
             getPrivateDropboxPreferences().putLong(DROPBOX_TOKEN_EXPIRATION_KEY,
                     time);
