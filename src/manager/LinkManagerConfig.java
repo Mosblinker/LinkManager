@@ -7,6 +7,7 @@ package manager;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.*;
 import java.util.prefs.*;
 import manager.config.*;
@@ -1463,6 +1464,13 @@ public class LinkManagerConfig {
             if (point != null)
                     // Set the component's location from the properties
                 setComponentLocation(entry.getKey(),point);
+                // Get the bounds for the component from the properties
+            Rectangle rect = cProp.getRectangleProperty(entry.getValue()+
+                    COMPONENT_BOUNDS_KEY_SUFFIX);
+                // If the properties has bounds for the component
+            if (rect != null)
+                    // Set the component's bounds from the properties
+                setComponentBounds(entry.getKey(),rect);
             
                 // TODO: Remove this once the config properties map is removed or 
                 // repurposed.
@@ -1470,6 +1478,8 @@ public class LinkManagerConfig {
             config.remove(entry.getValue()+COMPONENT_SIZE_KEY_SUFFIX);
                 // Remove the component location, since that's in the preference node
             config.remove(entry.getValue()+COMPONENT_LOCATION_KEY_SUFFIX);
+                // Remove the component bounds, since that's in the preference node
+            config.remove(entry.getValue()+COMPONENT_BOUNDS_KEY_SUFFIX);
         }
         
             // TODO: Remove this once the config properties map is removed or 
@@ -1946,5 +1956,101 @@ public class LinkManagerConfig {
      */
     public Point getComponentLocation(Component comp){
         return getComponentLocation(comp,null);
+    }
+    /**
+     * 
+     * @param comp
+     * @param x
+     * @param y
+     * @param width
+     * @param height 
+     */
+    public void setDefaultComponentBounds(Component comp,int x,int y,int width,
+            int height){
+        getDefaults().setRectangleProperty(getComponentName(comp)+
+                COMPONENT_BOUNDS_KEY_SUFFIX,x,y,width,height);
+    }
+    /**
+     * 
+     * @param comp
+     * @param width
+     * @param height 
+     */
+    public void setDefaultComponentBounds(Component comp,int width,int height){
+        setDefaultComponentBounds(comp,0,0,width,height);
+    }
+    /**
+     * 
+     * @param comp
+     * @param value 
+     */
+    public void setDefaultComponentBounds(Component comp, Rectangle value){
+        getDefaults().setRectangleProperty(getComponentName(comp)+
+                COMPONENT_BOUNDS_KEY_SUFFIX, value);
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Rectangle getDefaultComponentBounds(Component comp){
+        return getDefaults().getRectangleProperty(getComponentName(comp)+
+                COMPONENT_BOUNDS_KEY_SUFFIX);
+    }
+    /**
+     * 
+     * @param comp
+     * @param x
+     * @param y
+     * @param width
+     * @param height 
+     */
+    public void setComponentBounds(Component comp,int x,int y,int width,
+            int height){
+        getPreferences().putRectangle(getComponentName(comp)+
+                COMPONENT_BOUNDS_KEY_SUFFIX,x,y,width,height);
+    }
+    /**
+     * 
+     * @param comp
+     * @param width
+     * @param height 
+     */
+    public void setComponentBounds(Component comp,int width,int height){
+        setComponentBounds(comp,0,0,width,height);
+    }
+    /**
+     * 
+     * @param comp
+     * @param value 
+     */
+    public void setComponentBounds(Component comp, Rectangle value){
+        getPreferences().putRectangle(getComponentName(comp)+
+                COMPONENT_BOUNDS_KEY_SUFFIX, value);
+    }
+    /**
+     * 
+     * @param comp 
+     */
+    public void setComponentBounds(Component comp){
+        setComponentBounds(comp,comp.getBounds());
+    }
+    /**
+     * 
+     * @param comp
+     * @param defaultValue
+     * @return 
+     */
+    public Rectangle getComponentBounds(Component comp, Rectangle defaultValue){
+        return getPreferences().getRectangle(getComponentName(comp)+
+                COMPONENT_BOUNDS_KEY_SUFFIX, defaultValue);
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Rectangle getComponentBounds(Component comp){
+        return getComponentBounds(comp,null);
     }
 }
