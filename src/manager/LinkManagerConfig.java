@@ -282,12 +282,6 @@ public class LinkManagerConfig {
      */
     private final ConfigProperties config;
     /**
-     * This is a properties map that stores the default configuration for 
-     * LinkManager, and which serves as the default properties map for {@code 
-     * config}.
-     */
-    private final Properties defaultConfig;
-    /**
      * This is the SQLite configuration to use for the database.
      */
     private final SQLiteConfig sqlConfig;
@@ -342,8 +336,7 @@ public class LinkManagerConfig {
      */
     private LinkManagerConfig(Properties sqlProp, ConfigPreferences node,
             Obfuscator obfuscator){
-        defaultConfig = new Properties();
-        config = new ConfigProperties(defaultConfig);
+        config = new ConfigProperties();
         compNameMap = new HashMap<>();
             // If the given SQLite config properties is not null
         if(sqlProp != null)
@@ -377,7 +370,6 @@ public class LinkManagerConfig {
     public LinkManagerConfig(LinkManagerConfig linkConfig){
         this(linkConfig.sqlConfig.toProperties(), linkConfig.programNode,
                 linkConfig.obfuscator);
-        this.defaultConfig.putAll(linkConfig.defaultConfig);
         this.config.putAll(linkConfig.config);
         this.compNameMap.putAll(linkConfig.compNameMap);
         this.localDefaults.addProperties(linkConfig.localDefaults);
@@ -586,106 +578,6 @@ public class LinkManagerConfig {
         return config;
     }
     /**
-     * This returns the properties map that stores the default configuration for 
-     * LinkManager. This serves as the defaults for {@link #getProperties}.
-     * @return The default properties map.
-     */
-    public Properties getDefaultProperties(){
-        return defaultConfig;
-    }
-    /**
-     * This sets the property in the given {@code config} Properties for the 
-     * given key to the given value, and returning the old value. If the given 
-     * value is null, then the property for the given key will be reset to its 
-     * default.
-     * @param key The key for the property to set (cannot be null).
-     * @param value The new value for the property, or null to reset the 
-     * property to its default value.
-     * @param config The Properties object to set the property of (cannot be 
-     * null).
-     * @param defaultConfig The Properties object containing the defaults for 
-     * {@code config}, or null.
-     * @return The old value set for the property, or null if no value was set.
-     * @throws NullPointerException If either {@code key} or {@code config} are 
-     * null.
-     */
-    protected synchronized String setConfigProperty(String key, Object value,
-            Properties config, Properties defaultConfig){
-            // Check if the key is null
-        Objects.requireNonNull(key, "The key for the property cannot be null");
-            // If the value is null
-        if (value == null){
-                // Remove it from the configuration and get its value
-            Object old = config.remove(key);
-                // If it's not null, return it as a string. Otherwise, return null
-            return (old != null) ? old.toString() : null;
-        }else{   // Get the value as a String
-            String valueStr = Objects.toString(value);
-                // This gets the default value for the property to be set, or 
-                // null if there is no default value (or no defaultConfig was 
-            String defValue = null;     // provided)
-                // If a default Properties map was provided
-            if (defaultConfig != null)
-                    // Get the default value for the property
-                defValue = defaultConfig.getProperty(key);
-                // If the config currently has a value set for the given key or 
-                // if the given value does not match the default value (prevents 
-                // needlessly setting the value to its default unless it was 
-                // previously set to something else)
-            if (config.containsKey(key) || !valueStr.equals(defValue)){
-                    // Set the value in the config and get its old value
-                Object oldValue = config.setProperty(key, valueStr);
-                    // If the old value is null, return null. Otherwise, return 
-                    // the value as a string
-                return (oldValue == null) ? null : oldValue.toString();
-            } else  // Return the default value
-                return defValue;
-        }
-    }
-    /**
-     * This sets the 
-     * @param key
-     * @param value
-     * @return 
-     */
-    public synchronized String setProperty(String key, Object value){
-        return setConfigProperty(key,value,getProperties(),getDefaultProperties());
-    }
-    /**
-     * 
-     * @param key
-     * @param value
-     * @return 
-     */
-    public synchronized String setPropertyDefault(String key, Object value){
-        return setConfigProperty(key,value,getDefaultProperties(),null);
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    public String getProperty(String key){
-        return getProperties().getProperty(key);
-    }
-    /**
-     * 
-     * @param key
-     * @param defaultValue
-     * @return 
-     */
-    public String getProperty(String key, String defaultValue){
-        return getProperties().getProperty(key, defaultValue);
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    public String getPropertyDefault(String key){
-        return getDefaultProperties().getProperty(key);
-    }
-    /**
      * 
      * @param value
      * @return 
@@ -696,50 +588,6 @@ public class LinkManagerConfig {
             return value.trim();
         return null;
     }
-    /**
-     * 
-     * @param key
-     * @param config
-     * @param defaultConfig
-     * @return 
-     */
-    protected String getConfigFilePathProperty(String key, Properties config, 
-            Properties defaultConfig){
-            // Get the value of the property from the config map and format it
-        String value = formatFilePath(config.getProperty(key));
-            // If the value is not null
-        if (value != null)
-            return value;
-            // If there was default config map provided
-        if (defaultConfig != null){
-                // Get the value from the default config map and format it
-            value = formatFilePath(defaultConfig.getProperty(key));
-                // If the value is not null
-            if (value != null)
-                return value;
-        }
-        return null;
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    public String getFilePathProperty(String key){
-        return getConfigFilePathProperty(key,getProperties(),getDefaultProperties());
-    }
-    /**
-     * 
-     * @param key
-     * @param value
-     * @return 
-     */
-    public String setFilePathProperty(String key, String value){
-        return setProperty(key,formatFilePath(value));
-    }
-    
-    
-    
     /**
      * 
      * @param key

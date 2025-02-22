@@ -920,7 +920,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // TODO: This is temporarily being loaded from the config
             
             // Get the program ID as a String
-        String programIDStr = config.getProperty(PROGRAM_ID_KEY);
+        String programIDStr = config.getProperties().getProperty(PROGRAM_ID_KEY);
             // This gets the program ID
         UUID programID = null;
             // If there is a program ID set
@@ -933,7 +933,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             config.setProgramID(programID);
         else{
                 // Set and store a random program ID
-            config.setProperty(PROGRAM_ID_KEY, config.setRandomProgramID());
+            config.getProperties().setProperty(PROGRAM_ID_KEY, config.setRandomProgramID());
         }
             // TODO: Temporarily import the property list to the config
         config.importProperties(config.getProperties());
@@ -9096,7 +9096,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             addConfigRows("SQLiteConfig",config.getSQLiteConfig().toProperties(),
                     new SQLiteConfig().toProperties(),true);
                 // Add all the properties for this program
-            addConfigRows("Properties",config.getProperties(),config.getDefaultProperties());
+            addConfigRows("Properties",config.getProperties(),null);
                 // Add all the shared preferences for this program
             addConfigRows("Shared Preferences",config.getSharedPreferences());
                 // Add all the local preferences for this program
