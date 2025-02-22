@@ -392,14 +392,14 @@ public class LinkManagerConfig {
      * This returns the preference node used to store the Dropbox settings.
      * @return 
      */
-    public Preferences getDropboxPreferences(){
+    public ConfigPreferences getDropboxPreferences(){
         return getPreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
     }
     /**
      * This returns the preference node used to store the Dropbox access tokens.
      * @return 
      */
-    public Preferences getPrivateDropboxPreferences(){
+    public ConfigPreferences getPrivateDropboxPreferences(){
         return getPrivatePreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
     }
     /**
@@ -407,7 +407,7 @@ public class LinkManagerConfig {
      * @param type The list type
      * @return 
      */
-    public Preferences getListTypePreferences(int type){
+    public ConfigPreferences getListTypePreferences(int type){
         return getPreferences().node(LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX+type);
     }
     /**
@@ -415,7 +415,7 @@ public class LinkManagerConfig {
      * @param listID The list ID
      * @return 
      */
-    public Preferences getListPreferences(int listID){
+    public ConfigPreferences getListPreferences(int listID){
         return getPreferences().node(LIST_ID_PREFERENCE_NODE_NAME_PREFIX+listID);
     }
     /**
@@ -443,7 +443,7 @@ public class LinkManagerConfig {
      * @see #getProgramIDNode(String, Properties) 
      */
     protected ConfigPreferences getNode(String pathName, Properties defaults){
-        return new ConfigPreferences(programNode.node(pathName),defaults);
+        return programNode.node(pathName,defaults);
     }
     /**
      * This returns a preference node that is relative to the program preference 
@@ -705,15 +705,9 @@ public class LinkManagerConfig {
      * @param node 
      */
     protected void setFilePathPreference(String key, String value, 
-            Preferences node){
-            // Format the file path
-        value = formatFilePath(value);
-            // If the value is null
-        if (value == null)
-                // Remove the key from the node
-            node.remove(key);
-        else    // Put the value into the node
-            node.put(key,value);
+            ConfigPreferences node){
+            // Format the file path and set it
+        node.put(key,formatFilePath(value));
     }
     /**
      * 
@@ -1636,32 +1630,16 @@ public class LinkManagerConfig {
      * 
      * @param listType
      * @param key
-     * @param value 
-     */
-    private void setCurrentTabValue(int listType, String key, Integer value){
-            // Get the preference node for the list type
-        Preferences node = getListTypePreferences(listType);
-            // If the value is null
-        if (value == null)
-                // Remove the value from the preference node
-            node.remove(key);
-        else
-            node.putInt(key, value);
-    }
-    /**
-     * 
-     * @param listType
-     * @param key
      * @return 
      */
     private Integer getCurrentTabValue(int listType, String key){
             // Get the preference node for the list type
-        Preferences node = getListTypePreferences(listType);
+        ConfigPreferences node = getListTypePreferences(listType);
             // Get whether the node contains the key
-        if (node.get(key, null) == null)
-            return null;
-            // Get the value for the given key
-        return node.getInt(key, 0);
+        if (node.containsKey(key))
+                // Get the value for the given key
+            return node.getInt(key, 0);
+        return null;
     }
     /**
      * 
@@ -1669,7 +1647,8 @@ public class LinkManagerConfig {
      * @param listID 
      */
     public void setCurrentTabListID(int listType, Integer listID){
-        setCurrentTabValue(listType, CURRENT_TAB_LIST_ID_KEY, listID);
+        getListTypePreferences(listType).putObject(CURRENT_TAB_LIST_ID_KEY, 
+                listID);
     }
     /**
      * 
@@ -1708,7 +1687,7 @@ public class LinkManagerConfig {
      * @param index 
      */
     public void setCurrentTabIndex(int listType, Integer index){
-        setCurrentTabValue(listType, CURRENT_TAB_INDEX_KEY, index);
+        getListTypePreferences(listType).putObject(CURRENT_TAB_INDEX_KEY,index);
     }
     /**
      * 
@@ -1766,24 +1745,8 @@ public class LinkManagerConfig {
      * @return 
      */
     public String getDropboxDatabaseFileName(){
-            // Get the value from the Dropbox preference node, defaulting to 
-            // the link database file name, and format it
-        String value = formatFilePath(getDropboxPreferences().get(
-                DATABASE_FILE_PATH_KEY, LinkManager.LINK_DATABASE_FILE));
-            // If the value for the file name is not null, return it. Otherwise, 
-            // return the link database file name
-        return (value != null) ? value : LinkManager.LINK_DATABASE_FILE;
-    }
-    /**
-     * 
-     * @param key 
-     */
-    private void removePrivateDropboxPreference(String key){
-        try{    // If the preference node exists
-            if (getPrivatePreferences().nodeExists(DROPBOX_PREFERENCE_NODE_NAME))
-                    // Remove the key from it
-                getPrivateDropboxPreferences().remove(key);
-        } catch (BackingStoreException ex) {}
+        return getFilePathPreference(DATABASE_FILE_PATH_KEY,
+                LinkManager.LINK_DATABASE_FILE,getDropboxPreferences());
     }
     /**
      * 
@@ -1793,12 +1756,8 @@ public class LinkManagerConfig {
      * @param token 
      */
     private void setDropboxToken(String key, String token){
-            // If the token is null
-        if (token == null)
-                // Remove the key from the Dropbox preference node
-            removePrivateDropboxPreference(key);
-        else    // Get the private Dropbox preference node and put the token in 
-            getPrivateDropboxPreferences().put(key, token);     // it
+            // Get the private Dropbox preference node and put the token in it
+        getPrivateDropboxPreferences().put(key, token);
     }
     /**
      * 
@@ -1843,13 +1802,9 @@ public class LinkManagerConfig {
      * @param time 
      */
     public void setDropboxTokenExpiresAt(Long time){
-            // If the given time is null
-        if (time == null)
-                // Remove the value set for the time
-            removePrivateDropboxPreference(DROPBOX_TOKEN_EXPIRATION_KEY);
-        else    // Set the value for the time
-            getPrivateDropboxPreferences().putLong(DROPBOX_TOKEN_EXPIRATION_KEY,
-                    time);
+            // Set the value for the time
+        getPrivateDropboxPreferences().putObject(DROPBOX_TOKEN_EXPIRATION_KEY,
+                time);
     }
     /**
      * 
@@ -1857,11 +1812,11 @@ public class LinkManagerConfig {
      */
     public Long getDropboxTokenExpiresAt(){
             // Get the private Dropbox preference node
-        Preferences node = getPrivateDropboxPreferences();
+        ConfigPreferences node = getPrivateDropboxPreferences();
             // Get whether the node contains the dropbox token expire time
-        if (node.get(DROPBOX_TOKEN_EXPIRATION_KEY, null) == null)
-            return null;
-        return node.getLong(DROPBOX_TOKEN_EXPIRATION_KEY, 0);
+        if (node.containsKey(DROPBOX_TOKEN_EXPIRATION_KEY))
+            return node.getLong(DROPBOX_TOKEN_EXPIRATION_KEY, 0);
+        return null;
     }
     /**
      * 
