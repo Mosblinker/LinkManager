@@ -490,7 +490,8 @@ public class ConfigPreferences extends Preferences{
             // Get the dimensions as a byte array, defaulting to null. Then 
             // convert the byte array into a dimension object, defaulting to the 
             // given default value if null
-        return ConfigUtilities.dimensionFromByteArray(getByteArray(key,null),def);
+        return ConfigUtilities.dimensionFromByteArray(getByteArray(key,null),
+                def);
     }
     /**
      * 
@@ -522,13 +523,10 @@ public class ConfigPreferences extends Preferences{
      * @see #putByteArray(String, byte[]) 
      */
     public Point getPoint(String key, Point def){
-            // Get the point as a byte array, defaulting to null
-        byte[] arr = getByteArray(key,null);
-            // If the byte array is not null and is 2 integers long
-        if (arr != null && arr.length == Integer.BYTES*2)
-                // Convert the byte array into a point object
-            return pointFromByteArray(arr);
-        return def;
+            // Get the point as a byte array, defaulting to null. Then convert 
+            // the byte array into a point object, defaulting to the given 
+            // default value if null
+        return ConfigUtilities.pointFromByteArray(getByteArray(key,null), def);
     }
     /**
      * 
@@ -560,14 +558,11 @@ public class ConfigPreferences extends Preferences{
      * @see #putByteArray(String, byte[]) 
      */
     public Rectangle getRectangle(String key, Rectangle def){
-            // Get the rectangle as a byte array, defaulting to null
-        byte[] arr = getByteArray(key,null);
-            // If the byte array is not null and is either 2 or 4 integers long
-        if (arr != null && (arr.length == Integer.BYTES*2 || 
-                arr.length == Integer.BYTES*4))
-                // Convert the byte array into a rectangle object
-            return rectangleFromByteArray(arr);
-        return def;
+            // Get the rectangle as a byte array, defaulting to null. Then 
+            // convert the byte array into a rectangle object, defaulting to the 
+            // given default value if null
+        return ConfigUtilities.rectangleFromByteArray(getByteArray(key,null),
+                def);
     }
     /**
      * 

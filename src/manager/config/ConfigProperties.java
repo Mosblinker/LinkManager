@@ -301,13 +301,11 @@ public class ConfigProperties extends Properties{
      * @return 
      */
     public Dimension getDimensionProperty(String key, Dimension defaultValue){
-            // Get the dimensions as a byte array
-        byte[] arr = getByteArrayProperty(key);
-            // If the byte array is not null and is 2 integers long
-        if (arr != null && arr.length == Integer.BYTES*2)
-                // Convert the byte array into a dimension object
-            return dimensionFromByteArray(arr);
-        return defaultValue;
+            // Get the dimensions as a byte array. Then convert the byte array 
+            // into a dimension object, defaulting to the given default value 
+            // if null
+        return ConfigUtilities.dimensionFromByteArray(getByteArrayProperty(key),
+                defaultValue);
     }
     /**
      * 
@@ -324,13 +322,10 @@ public class ConfigProperties extends Properties{
      * @return 
      */
     public Point getPointProperty(String key, Point defaultValue){
-            // Get the point as a byte array
-        byte[] arr = getByteArrayProperty(key);
-            // If the byte array is not null and is 2 integers long
-        if (arr != null && arr.length == Integer.BYTES*2)
-                // Convert the byte array into a point object
-            return pointFromByteArray(arr);
-        return defaultValue;
+            // Get the point as a byte array. Then convert the byte array into a 
+            // point object, defaulting to the given default value if null
+        return ConfigUtilities.pointFromByteArray(getByteArrayProperty(key),
+                defaultValue);
     }
     /**
      * 
@@ -347,14 +342,11 @@ public class ConfigProperties extends Properties{
      * @return 
      */
     public Rectangle getRectangleProperty(String key, Rectangle defaultValue){
-            // Get the rectangle as a byte array
-        byte[] arr = getByteArrayProperty(key);
-            // If the byte array is not null and is either 2 or 4 integers long
-        if (arr != null && (arr.length == Integer.BYTES*2 || 
-                arr.length == Integer.BYTES*4))
-                // Convert the byte array into a rectangle object
-            return rectangleFromByteArray(arr);
-        return defaultValue;
+            // Get the rectangle as a byte array. Then convert the byte array 
+            // into a rectangle object, defaulting to the given default value if 
+            // null
+        return ConfigUtilities.rectangleFromByteArray(getByteArrayProperty(key),
+                defaultValue);
     }
     /**
      * 
