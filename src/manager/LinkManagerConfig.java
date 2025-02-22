@@ -1449,8 +1449,8 @@ public class LinkManagerConfig {
             // Go through the entries in the component name map
         for (Map.Entry<Component,String> entry:getComponentNames().entrySet()){
                 // Get the dimension for the component from the properties
-            Dimension dim = cProp.getDimensionProperty(
-                    entry.getValue()+COMPONENT_SIZE_KEY_SUFFIX);
+            Dimension dim = cProp.getDimensionProperty(entry.getValue()+
+                    COMPONENT_SIZE_KEY_SUFFIX);
                 // If the properties has a size for the component
             if (dim != null)
                     // Set the component's size from the properties
@@ -1800,8 +1800,8 @@ public class LinkManagerConfig {
      * @param height 
      */
     public void setDefaultComponentSize(Component comp, int width, int height){
-        getDefaults().setDimensionProperty(
-                getComponentName(comp)+COMPONENT_SIZE_KEY_SUFFIX, width,height);
+        getDefaults().setDimensionProperty(getComponentName(comp)+
+                COMPONENT_SIZE_KEY_SUFFIX, width,height);
     }
     /**
      * 
@@ -1809,8 +1809,8 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setDefaultComponentSize(Component comp, Dimension value){
-        getDefaults().setDimensionProperty(
-                getComponentName(comp)+COMPONENT_SIZE_KEY_SUFFIX, value);
+        getDefaults().setDimensionProperty(getComponentName(comp)+
+                COMPONENT_SIZE_KEY_SUFFIX, value);
     }
     /**
      * 
@@ -1818,8 +1818,8 @@ public class LinkManagerConfig {
      * @return 
      */
     public Dimension getDefaultComponentSize(Component comp){
-        return getDefaults().getDimensionProperty(
-                getComponentName(comp)+COMPONENT_SIZE_KEY_SUFFIX);
+        return getDefaults().getDimensionProperty(getComponentName(comp)+
+                COMPONENT_SIZE_KEY_SUFFIX);
     }
     /**
      * 
@@ -1828,8 +1828,8 @@ public class LinkManagerConfig {
      * @param height 
      */
     public void setComponentSize(Component comp, int width, int height){
-        getPreferences().putDimension(
-                getComponentName(comp)+COMPONENT_SIZE_KEY_SUFFIX, width,height);
+        getPreferences().putDimension(getComponentName(comp)+
+                COMPONENT_SIZE_KEY_SUFFIX, width,height);
     }
     /**
      * 
@@ -1837,8 +1837,8 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setComponentSize(Component comp, Dimension value){
-        getPreferences().putDimension(
-                getComponentName(comp)+COMPONENT_SIZE_KEY_SUFFIX, value);
+        getPreferences().putDimension(getComponentName(comp)+
+                COMPONENT_SIZE_KEY_SUFFIX, value);
     }
     /**
      * 
@@ -1854,8 +1854,8 @@ public class LinkManagerConfig {
      * @return 
      */
     public Dimension getComponentSize(Component comp, Dimension defaultValue){
-        return getPreferences().getDimension(
-                getComponentName(comp)+COMPONENT_SIZE_KEY_SUFFIX, defaultValue);
+        return getPreferences().getDimension(getComponentName(comp)+
+                COMPONENT_SIZE_KEY_SUFFIX, defaultValue);
     }
     /**
      * 
