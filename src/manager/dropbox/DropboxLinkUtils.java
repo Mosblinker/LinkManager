@@ -15,13 +15,12 @@ import java.util.Objects;
  * @author Milo Steier
  */
 public abstract class DropboxLinkUtils {
-    
+    /**
+     * 
+     */
     public DropboxLinkUtils(){
         
     }
-    
-    
-    
     /**
      * 
      * @return 

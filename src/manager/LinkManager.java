@@ -28,6 +28,8 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.*;
 import java.awt.event.*;
@@ -40,6 +42,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.prefs.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
@@ -47,6 +50,8 @@ import javax.swing.table.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 import javax.swing.tree.*;
+import static manager.LinkManagerConfig.*;
+import manager.config.ConfigPreferences;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
@@ -100,14 +105,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public static final String LINK_DATABASE_FILE = "LinkManager.db";
     /**
+     * This is the name of the preference node used to store the settings for 
+     * this program.
+     */
+    private static final String PREFERENCE_NODE_NAME = "milo/link/LinkManager";
+    /**
      * This is the name of the file used to store the configuration.
      */
     public static final String CONFIG_FILE = "LinkManager.cfg";
-    /**
-     * This is the name of the file used to store the private configuration. 
-     * This is used to store things like passwords and credentials.
-     */
-    private static final String PRIVATE_CONFIG_FILE = "LinkManagerPrivate.cfg";
     /**
      * This is the name of the file used to store the dropbox API keys.
      */
@@ -118,153 +123,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String GENERAL_CONFIG_FLAG = "[LinkManager Config]";
     /**
-     * This is the header flag for the private settings in the configuration 
-     * file.
+     * This is the configuration key for the program ID. This is used to
+     * determine what preference node to use for the program.
      */
-    private static final String PRIVATE_CONFIG_FLAG = 
-            "[LinkManager Private Config]";
-    /**
-     * This is the configuration key for the database folder setting. This key 
-     * has been deprecated in favor of storing the database file name in a 
-     * single String.
-     */
-    @Deprecated
-    private static final String DATABASE_FOLDER_KEY = "DatabaseFolder";
-    /**
-     * This is the configuration key for the database file setting. This key 
-     * has been deprecated in favor of storing the database file name in a 
-     * single String.
-     */
-    @Deprecated
-    private static final String DATABASE_FILE_KEY = "DatabaseFile";
-    /**
-     * This is the configuration key for the listID of the currently selected 
-     * list if a list with a listID is selected. This is for the 
-     */
-    @Deprecated
-    private static final String CURRENT_TAB_LIST_ID_KEY = "CurrentTabListID";
-    /**
-     * This is the configuration key for the index of the currently selected 
-     * tab if a tab is selected. This value is used as a fallback value to be 
-     * used when the value for {@link CURRENT_TAB_LIST_ID_KEY} is unavailable 
-     * either due to the currently selected list not having a listID, no lists 
-     * have the selected listID, or the current tab is not a list. The value for 
-     * {@code CURRENT_TAB_LIST_ID_KEY} takes priority over this value due to 
-     * the listIDs staying more or less constant for any given list saved to or 
-     * loaded from the database, whereas the index for any given list may vary 
-     * between instances of the program.
-     */
-    @Deprecated
-    private static final String CURRENT_TAB_INDEX_KEY = "CurrentTabIndex";
-    /**
-     * This is the configuration key for the listID of the currently selected 
-     * list if a list with a listID is selected. This is for the 
-     */
-    @Deprecated
-    private static final String SHOWN_CURRENT_TAB_LIST_ID_KEY = 
-            "ShownCurrentTabListID";
-    /**
-     * This is the configuration key for the index of the currently selected 
-     * tab if a tab is selected. This value is used as a fallback value to be 
-     * used when the value for {@link CURRENT_TAB_LIST_ID_KEY} is unavailable 
-     * either due to the currently selected list not having a listID, no lists 
-     * have the selected listID, or the current tab is not a list. The value for 
-     * {@code CURRENT_TAB_LIST_ID_KEY} takes priority over this value due to 
-     * the listIDs staying more or less constant for any given list saved to or 
-     * loaded from the database, whereas the index for any given list may vary 
-     * between instances of the program.
-     */
-    @Deprecated
-    private static final String SHOWN_CURRENT_TAB_INDEX_KEY = 
-            "ShownCurrentTabIndex";
-    /**
-     * This is the configuration key for the progress display setting.
-     */
-    private static final String PROGRESS_DISPLAY_KEY = "DisplayProgress";
-    /**
-     * This is the configuration key for the always on top setting.
-     */
-    private static final String ALWAYS_ON_TOP_KEY = "AlwaysOnTop";
-    /**
-     * This is the configuration key for the blank lines setting.
-     */
-    private static final String BLANK_LINES_KEY = "AddBlankLines";
-    /**
-     * This is the configuration key for the setting that enables link 
-     * operations.
-     */
-    private static final String ENABLE_LINK_OPS_KEY = "EnableLinkOperations";
-    /**
-     * This is the configuration key for the setting that enables link 
-     * operations for hidden lists.
-     */
-    private static final String ENABLE_HIDDEN_LINK_OPS_KEY = 
-            "EnableHiddenLinkOperations";
-    /**
-     * This is the configuration key for the database file path.
-     */
-    private static final String DATABASE_FILE_PATH_KEY = "DatabaseFilePath";
-    /**
-     * This is the configuration key for how to handle changing where the 
-     * database file is located.
-     */
-    private static final String DATABASE_FILE_CHANGE_OPERATION_KEY = 
-            "DatabaseFileChangeOperation";
-    /**
-     * This is the configuration key for the autosave frequency setting.
-     */
-    private static final String AUTOSAVE_FREQUENCY_KEY = 
-            "AutosaveFrequencyIndex";
-    /**
-     * This is the configuration key for the auto-hide wait duration setting.
-     */
-    private static final String AUTO_HIDE_WAIT_DURATION_KEY = 
-            "AutoHideWaitDurationIndex";
-    /**
-     * This is the configuration key for the setting that determines if the 
-     * search factors in capitalization.
-     */
-    private static final String SEARCH_MATCH_CASE_KEY = "MatchCase";
-    /**
-     * This is the configuration key for the setting that determines if the 
-     * search factors in white spaces.
-     */
-    private static final String SEARCH_MATCH_SPACES_KEY = "MatchWhiteSpaces";
-    /**
-     * This is the configuration key for the setting that determines if the 
-     * search wraps around when it reaches the end of the list.
-     */
-    private static final String SEARCH_WRAP_AROUND_KEY = "SearchWrapAround";
-    /**
-     * This is the configuration key for the text to search for.
-     */
-    private static final String SEARCH_TEXT_KEY = "SearchText";
-    /**
-     * This is the configuration key for the listID of the currently selected 
-     * list if a list with a listID is selected. This is for the 
-     */
-    private static final String CURRENT_TAB_LIST_ID_KEY_PREFIX = 
-            "CurrentTabListIDForType";
-    /**
-     * This is the configuration key for the index of the currently selected 
-     * tab if a tab is selected. This value is used as a fallback value to be 
-     * used when the value for {@link CURRENT_TAB_LIST_ID_KEY} is unavailable 
-     * either due to the currently selected list not having a listID, no lists 
-     * have the selected listID, or the current tab is not a list. The value for 
-     * {@code CURRENT_TAB_LIST_ID_KEY} takes priority over this value due to 
-     * the listIDs staying more or less constant for any given list saved to or 
-     * loaded from the database, whereas the index for any given list may vary 
-     * between instances of the program.
-     */
-    private static final String CURRENT_TAB_INDEX_KEY_PREFIX = 
-            "CurrentTabIndexForType";
-    /**
-     * This is the prefix for the configuration key for the currently selected 
-     * link in a list with a listID. The list's listID is appended to the end of 
-     * this to get the configuration key specific for that list.
-     */
-    private static final String SELECTED_LINK_FOR_LIST_KEY_PREFIX = 
-            "SelectedLinkForList";
+    private static final String PROGRAM_ID_KEY = "ProgramID";
     /**
      * This is the prefix for the configuration key for whether the currently 
      * selected link in a list is visible (i.e. whether this should scroll to 
@@ -285,122 +147,35 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * use a prefix instead of a defined value.
      */
     private static final String[] PREFIXED_CONFIG_KEYS = {
-        SELECTED_LINK_FOR_LIST_KEY_PREFIX,
         SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX,
         FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX,
-        LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX,
-        CURRENT_TAB_LIST_ID_KEY_PREFIX,
-        CURRENT_TAB_INDEX_KEY_PREFIX
+        LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX
     };
-    /**
-     * This is the configuration key for the text in the link text field. This 
-     * is only loaded when the program first starts, and does not get set when 
-     * the user loads a configuration file.
-     */
-    private static final String ENTERED_LINK_TEXT_KEY = "EnteredLink";
-    /**
-     * This is the configuration key for whether the exception and error codes 
-     * will be included in any error popups related to the database when not in 
-     * debug mode. The exception and error code will be shown regardless of this 
-     * setting when in debug mode.
-     */
-    private static final String SHOW_DETAILED_DATABASE_ERRORS = 
-            "ShowDetailedDatabaseErrors";
-    /**
-     * This is the configuration key for whether lists set to hidden should be 
-     * made visible or not.
-     */
-    private static final String HIDDEN_LISTS_ARE_SHOWN_KEY = 
-            "HiddenListsAreShown";
-    /**
-     * This is the configuration key for whether outdated lists should be 
-     * overwritten when saving the lists to the database. {@code 0} for no, 
-     * {@code 1} for yes, and {@code 2} for ask before saving.
-     * 
-     * @todo Implement this feature.
-     */
-    private static final String REPLACE_OUTDATED_LISTS_KEY = 
-            "ReplaceOutdatedLists";
     
-    private static final String SYNC_DATABASE_KEY = "SyncDatabase";
+    private static final String LIST_MANAGER_NAME = "ListManager";
     
-    private static final String LIST_MANAGER_KEY_PREFIX = "ListManager";
+    private static final String LIST_TABS_MANAGER_NAME = "ListTabsManager";
     
-    private static final String LIST_TABS_MANAGER_KEY_PREFIX = 
-            "ListTabsManager";
+    private static final String ADD_LINKS_PANEL_NAME = "AddLinksPanel";
     
-    private static final String ADD_LINKS_PANEL_KEY_PREFIX = 
-            "AddLinksPanel";
-    
-    private static final String COPY_OR_MOVE_LINKS_PANEL_KEY_PREFIX = 
+    private static final String COPY_OR_MOVE_LINKS_PANEL_NAME = 
             "CopyOrMoveLinksPanel";
     
-    private static final String OPEN_FILE_CHOOSER_KEY_PREFIX = 
-            "OpenFileChooser";
+    private static final String OPEN_FILE_CHOOSER_NAME = "OpenFileChooser";
     
-    private static final String SAVE_FILE_CHOOSER_KEY_PREFIX = 
-            "SaveFileChooser";
+    private static final String SAVE_FILE_CHOOSER_NAME = "SaveFileChooser";
     
-    private static final String CONFIG_FILE_CHOOSER_KEY_PREFIX = 
-            "ConfigFileChooser";
+    private static final String CONFIG_FILE_CHOOSER_NAME = "ConfigFileChooser";
     
-    private static final String EXPORT_FILE_CHOOSER_KEY_PREFIX = 
-            "ExportFileChooser";
+    private static final String EXPORT_FILE_CHOOSER_NAME = "ExportFileChooser";
     
-    private static final String DATABASE_FILE_CHOOSER_KEY_PREFIX = 
+    private static final String DATABASE_FILE_CHOOSER_NAME = 
             "DatabaseFileChooser";
     
-    private static final String DATABASE_LOCATION_DIALOG_KEY_PREFIX = 
+    private static final String DATABASE_LOCATION_DIALOG_NAME = 
             "SetDatabaseLocation";
     
-    private static final String LINK_MANAGER_KEY_PREFIX = "LinkManager";
-    
-    private static final String LINK_MANAGER_X_KEY = 
-            LINK_MANAGER_KEY_PREFIX+"X";
-    
-    private static final String LINK_MANAGER_Y_KEY = 
-            LINK_MANAGER_KEY_PREFIX+"Y";
-    /**
-     * 
-     * @todo Implement the storing of the window state.
-     */
-    private static final String LINK_MANAGER_WINDOW_STATE_KEY = 
-            LINK_MANAGER_KEY_PREFIX+"WindowState";
-    /**
-     * This is the configuration key for the encrypted access token for the 
-     * Dropbox account to use to access the database file if the database file 
-     * is stored in a Dropbox account. Notice that the access token is 
-     * encrypted so as to prevent malicious actors from retrieving the access 
-     * token from the private configuration file. This value also contains a 
-     * checksum, a public key, and is encoded in base 64.
-     * 
-     * @todo Implement the encryption of the Dropbox access token.
-     */
-    private static final String DROPBOX_ACCESS_TOKEN_KEY = "DropboxAccessToken";
-    /**
-     * This is the configuration key for the encrypted refresh token for the 
-     * Dropbox account to use to access the database file if the database file 
-     * is stored in a Dropbox account. Notice that the refresh token is 
-     * encrypted so as to prevent malicious actors from retrieving the refresh 
-     * token from the private configuration file. This value also contains a 
-     * checksum, a public key, and is encoded in base 64. 
-     * 
-     * @todo Implement the encryption of the Dropbox access token.
-     */
-    private static final String DROPBOX_REFRESH_TOKEN_KEY="DropboxRefreshToken";
-    /**
-     * This is the configuration key for the expiration time for the Dropbox 
-     * access token for the Dropbox account used to access the database file if 
-     * the database file is stored in a Dropbox account.
-     */
-    private static final String DROPBOX_TOKEN_EXPIRATION_KEY = 
-            "DropboxTokenExpiresAt";
-    /**
-     * This is the configuration key for the database file path when stored 
-     * externally if the database file is stored externally.
-     */
-    private static final String EXTERNAL_DATABASE_FILE_PATH_KEY = 
-            "External"+DATABASE_FILE_PATH_KEY;
+    private static final String LINK_MANAGER_NAME = "LinkManager";
     /**
      * This is a collection storing the required Dropbox scope for the program. 
      * If this is null, then the program does not specify the scope it requires. 
@@ -669,50 +444,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return getRelativeFile(CONFIG_FILE);
     }
     /**
-     * This returns the file used to store the private configuration of the 
-     * program.
-     * @return The configuration file storing private settings.
-     */
-    private File getPrivateConfigFile(){
-        return getRelativeFile(PRIVATE_CONFIG_FILE);
-    }
-    /**
      * This returns the file containing the Dropbox API keys for this program.
      * @return The dropbox API key file.
      */
     private File getDropboxAPIFile(){
         return new File(getProgramDirectory(),DROPBOX_API_KEY_FILE);
-    }
-    /**
-     * This returns the name for the file that stores the database for the 
-     * program.
-     * @return The name of the file containing the database.
-     */
-    private String getDatabaseFileName(){
-        return config.getFilePathProperty(DATABASE_FILE_PATH_KEY);
-    }
-    /**
-     * 
-     * @param fileName
-     * @return 
-     */
-    private String setDatabaseFileName(String fileName){
-        return config.setFilePathProperty(DATABASE_FILE_PATH_KEY, fileName);
-    }
-    /**
-     * 
-     * @return 
-     */
-    private String getExternalDatabaseFileName(){
-        return config.getPrivateFilePathProperty(EXTERNAL_DATABASE_FILE_PATH_KEY);
-    }
-    /**
-     * 
-     * @param fileName
-     * @return 
-     */
-    private String setExternalDatabaseFileName(String fileName){
-        return config.setPrivateFilePathProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, fileName);
     }
     /**
      * 
@@ -735,14 +471,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return The database file.
      */
     private File getDatabaseFile(){
-        return getDatabaseFile(getDatabaseFileName());
+        return getDatabaseFile(config.getDatabaseFileName());
     }
     /**
      * 
      */
     private void updateDatabaseFileFields(){
             // Get the database file from the config
-        dbFileNameField.setText(getDatabaseFileName());
+        dbFileNameField.setText(config.getDatabaseFileName());
     }
     /**
      * This creates and returns a connection to the database file located at 
@@ -763,26 +499,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private LinkDatabaseConnection connect(File file) throws SQLException{
         return connect(file.toString());
-    }
-    /**
-     * 
-     * @todo Add decryption of the Dropbox token.
-     * 
-     * @param key
-     * @return 
-     */
-    private String getDropboxToken(String key){
-        return config.getPrivateProperty(key);
-    }
-    /**
-     * 
-     * @todo Add encryption of the Dropbox token.
-     * 
-     * @param key
-     * @param token 
-     */
-    private void setDropboxToken(String key, String token){
-        config.setPrivateProperty(key, token);
     }
     /**
      * This returns whether the program is logged in to Dropbox.
@@ -815,7 +531,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     System.out.println("Error Reading File: " + ex);
                 return null;
             }
-            dbxUtils = new DropboxLinkUtils(){
+            dbxUtils = config.new DropboxLinkUtilsConfig(){
                 DbxAppInfo info = appInfo;
                 @Override
                 public String getAppKey() {
@@ -832,30 +548,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 @Override
                 public String getClientID() {
                     return DROPBOX_CLIENT_ID;
-                }
-                @Override
-                public String getAccessToken() {
-                    return getDropboxToken(DROPBOX_ACCESS_TOKEN_KEY);
-                }
-                @Override
-                public void setAccessToken(String token) {
-                    setDropboxToken(DROPBOX_ACCESS_TOKEN_KEY,token);
-                }
-                @Override
-                public String getRefreshToken() {
-                    return getDropboxToken(DROPBOX_REFRESH_TOKEN_KEY);
-                }
-                @Override
-                public void setRefreshToken(String token) {
-                    setDropboxToken(DROPBOX_REFRESH_TOKEN_KEY,token);
-                }
-                @Override
-                public Long getTokenExpiresAt() {
-                    return config.getPrivateLongProperty(DROPBOX_TOKEN_EXPIRATION_KEY);
-                }
-                @Override
-                public void setTokenExpiresAt(Long time) {
-                    config.setPrivateProperty(DROPBOX_TOKEN_EXPIRATION_KEY,time);
                 }
                 @Override
                 public DbxAppInfo getAppInfo(){
@@ -940,13 +632,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         undoCommands = new HashMap<>();
         textPopupMenus = new HashMap<>();
         
-        config = new LinkManagerConfig();
-            // Initialize the defaults that are not dependent on the UI
-        config.setPropertyDefault(DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
-        config.setPrivateDefault(EXTERNAL_DATABASE_FILE_PATH_KEY, LINK_DATABASE_FILE);
+            // This will get the preference node for the program
+        Preferences node = null;
+        try{    // Try to get the preference node used for the program
+            node = Preferences.userRoot().node(PREFERENCE_NODE_NAME);
+        } catch (SecurityException | IllegalStateException ex){
+            System.out.println("Unable to load preference node: " +ex);
+        }
         
-        // TODO: Uncomment this when Dropbox token encryption is implemented
-//        obfuscator = Obfuscator.getInstance();
+            // TODO: Uncomment this when Dropbox token encryption is implemented
+//        config = new LinkManagerConfig(node,Obfuscator.getInstance());
+        config = new LinkManagerConfig(node);
         
         loadDbxUtils();
         
@@ -1191,47 +887,38 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         searchMenu.add(searchPanel.getFindPreviousAction());
         
             // Set up the component key prefix map
-        config.getComponentPrefixMap().put(listManipulator, LIST_MANAGER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(listTabsManipulator, LIST_TABS_MANAGER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(addLinksPanel, ADD_LINKS_PANEL_KEY_PREFIX);
-        config.getComponentPrefixMap().put(copyOrMoveListSelector, 
-                COPY_OR_MOVE_LINKS_PANEL_KEY_PREFIX);
-        config.getComponentPrefixMap().put(openFC, OPEN_FILE_CHOOSER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(saveFC, SAVE_FILE_CHOOSER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(configFC, CONFIG_FILE_CHOOSER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(exportFC, EXPORT_FILE_CHOOSER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(databaseFC, DATABASE_FILE_CHOOSER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(LinkManager.this, LINK_MANAGER_KEY_PREFIX);
-        config.getComponentPrefixMap().put(setLocationDialog, DATABASE_LOCATION_DIALOG_KEY_PREFIX);
+        config.getComponentNames().put(listManipulator, LIST_MANAGER_NAME);
+        config.getComponentNames().put(listTabsManipulator, LIST_TABS_MANAGER_NAME);
+        config.getComponentNames().put(addLinksPanel, ADD_LINKS_PANEL_NAME);
+        config.getComponentNames().put(copyOrMoveListSelector, 
+                COPY_OR_MOVE_LINKS_PANEL_NAME);
+        config.getComponentNames().put(openFC, OPEN_FILE_CHOOSER_NAME);
+        config.getComponentNames().put(saveFC, SAVE_FILE_CHOOSER_NAME);
+        config.getComponentNames().put(configFC, CONFIG_FILE_CHOOSER_NAME);
+        config.getComponentNames().put(exportFC, EXPORT_FILE_CHOOSER_NAME);
+        config.getComponentNames().put(databaseFC, DATABASE_FILE_CHOOSER_NAME);
+        config.getComponentNames().put(LinkManager.this, LINK_MANAGER_NAME);
+        config.getComponentNames().put(setLocationDialog, DATABASE_LOCATION_DIALOG_NAME);
         
             // Initialize the defaults that are dependent on the UI
-        config.setPropertyDefault(PROGRESS_DISPLAY_KEY, progressDisplay.getDisplaySettings());
-        config.setPropertyDefault(ALWAYS_ON_TOP_KEY, alwaysOnTopToggle.isSelected());
-        config.setPropertyDefault(BLANK_LINES_KEY, doubleNewLinesToggle.isSelected());
-        config.setPropertyDefault(ENABLE_LINK_OPS_KEY, linkOperationToggle.isSelected());
-        config.setPropertyDefault(ENABLE_HIDDEN_LINK_OPS_KEY, hiddenLinkOperationToggle.isSelected());
-        config.setPropertyDefault(AUTOSAVE_FREQUENCY_KEY, autosaveMenu.getFrequencyIndex());
-        config.setPropertyDefault(AUTO_HIDE_WAIT_DURATION_KEY, autoHideMenu.getDurationIndex());
-        config.setPropertyDefault(SEARCH_MATCH_CASE_KEY, searchPanel.getMatchCase());
-        config.setPropertyDefault(SEARCH_MATCH_SPACES_KEY, searchPanel.getMatchSpaces());
-        config.setPropertyDefault(SEARCH_WRAP_AROUND_KEY, searchPanel.getWrapAround());
-        config.setPropertyDefault(HIDDEN_LISTS_ARE_SHOWN_KEY, showHiddenListsToggle.isSelected());
-        config.setPropertyDefault(REPLACE_OUTDATED_LISTS_KEY, 2);
-        config.setPropertyDefault(SHOW_DETAILED_DATABASE_ERRORS, showDBErrorDetailsToggle.isSelected());
-        config.setPropertyDefault(LINK_MANAGER_X_KEY, 0);
-        config.setPropertyDefault(LINK_MANAGER_Y_KEY, 0);
-            // TODO: Implement the window state key
-//        config.setPropertyDefault(LINK_MANAGER_WINDOW_STATE_KEY, JFrame.NORMAL);
-        config.setPropertyDefault(DATABASE_FILE_CHANGE_OPERATION_KEY, dbFileChangeCombo.getSelectedIndex());
-        config.setPropertyDefault(SYNC_DATABASE_KEY, syncDBToggle.isSelected());
-        config.getSQLiteConfig().enforceForeignKeys(foreignKeysToggle.isSelected());
         
             // Go through the components to store their preferred sizes
-        for (Component comp : config.getComponentPrefixMap().keySet()){
-                // Use the preferred size of the current component as its 
-                // default size
-            config.setDefaultSizeProperty(comp,comp.getPreferredSize());
+        for (Component comp : config.getComponentNames().keySet()){
+                // Get the prefered size of the current component
+            Dimension size = comp.getPreferredSize();
+                // If the current component is this component
+            if (comp == LinkManager.this){
+                    // Use the preferred size of the component as it's 
+                    // default size for its bounds
+                config.setDefaultComponentBounds(comp, size.width,size.height);
+            } else {// Use the preferred size of the current component as its 
+                    // default size
+                config.setDefaultComponentSize(comp,size);
+            }
         }
+        
+            // Set the SQLite config to enforce the foreign keys
+        config.getSQLiteConfig().enforceForeignKeys(foreignKeysToggle.isSelected());
         
         listContentsObserver = (Integer index, Integer size) -> {
                 // If the size is null (indicates whether this is to toggle 
@@ -1253,7 +940,28 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // TODO: Error message window
             }
         }
-        loadPrivateConfig(config.getPrivateProperties());
+        
+            // TODO: This is temporarily being loaded from the config
+            
+            // Get the program ID as a String
+        String programIDStr = config.getProperty(PROGRAM_ID_KEY);
+            // This gets the program ID
+        UUID programID = null;
+            // If there is a program ID set
+        if (programIDStr != null){
+            try{    // Try to get the program ID
+                programID = UUID.fromString(programIDStr);
+            } catch (IllegalArgumentException ex){}
+        }   // If there is a program ID to use
+        if (programID != null)
+            config.setProgramID(programID);
+        else{
+                // Set and store a random program ID
+            config.setProperty(PROGRAM_ID_KEY, config.setRandomProgramID());
+        }
+            // TODO: Temporarily import the property list to the config
+        config.importProperties(config.getProperties());
+        
         System.gc();        // Run the garbage collector
         configureProgram();
         if (ENABLE_INITIAL_LOAD_AND_SAVE){
@@ -1387,8 +1095,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             autoHideMenu.stopAutoHide();
         setVisibleTabsPanel(getSelectedTabsPanel());
         hiddenLinkOperationToggle.setVisible(showHiddenListsToggle.isSelected());
-            // Set whether hidden lists are shown
-        config.setProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,showHiddenListsToggle.isSelected());
     }
     /**
      * 
@@ -1547,6 +1253,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         shownTotalSizeLabel = new javax.swing.JLabel();
         javax.swing.JLabel allTotalSizeTextLabel = new javax.swing.JLabel();
         allTotalSizeLabel = new javax.swing.JLabel();
+        programIDTextLabel = new javax.swing.JLabel();
+        programIDLabel = new javax.swing.JLabel();
         filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
         dbUpdateLastModButton = new javax.swing.JButton();
         dbPrefixesPanel = new javax.swing.JPanel();
@@ -2367,9 +2075,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
         gridBagConstraints.insets = new java.awt.Insets(0, 6, 6, 0);
         dbPropPanel.add(allTotalSizeLabel, gridBagConstraints);
+
+        programIDTextLabel.setText("Program ID:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        dbPropPanel.add(programIDTextLabel, gridBagConstraints);
+
+        programIDLabel.setText("N/A");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 6, 6, 0);
+        dbPropPanel.add(programIDLabel, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
         gridBagConstraints.weighty = 0.9;
@@ -3555,7 +3281,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void progressDisplayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_progressDisplayActionPerformed
         progressDisplay.updateProgressString(progressBar);
-        config.setProperty(PROGRESS_DISPLAY_KEY, progressDisplay.getDisplaySettings());
+        config.setProgressDisplaySetting(progressDisplay.getDisplaySettings());
     }//GEN-LAST:event_progressDisplayActionPerformed
     /**
      * This toggles whether the program is set to be always on top.
@@ -3563,7 +3289,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void alwaysOnTopToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_alwaysOnTopToggleActionPerformed
         super.setAlwaysOnTop(alwaysOnTopToggle.isSelected());
-        config.setProperty(ALWAYS_ON_TOP_KEY,alwaysOnTopToggle.isSelected());
+        config.setAlwaysOnTop(alwaysOnTopToggle.isSelected());
     }//GEN-LAST:event_alwaysOnTopToggleActionPerformed
     /**
      * This toggles whether blank lines will be added to text files generated by 
@@ -3571,7 +3297,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void doubleNewLinesToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_doubleNewLinesToggleActionPerformed
-        config.setProperty(BLANK_LINES_KEY,doubleNewLinesToggle.isSelected());
+        config.setAddBlankLines(doubleNewLinesToggle.isSelected());
     }//GEN-LAST:event_doubleNewLinesToggleActionPerformed
     /**
      * This toggles whether the copy and open buttons are enabled.
@@ -3580,7 +3306,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void linkOperationToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_linkOperationToggleActionPerformed
         updateSelectedLink();
         hiddenLinkOperationToggle.setEnabled(linkOperationToggle.isSelected());
-        config.setProperty(ENABLE_LINK_OPS_KEY,linkOperationToggle.isSelected());
+        config.setLinkOperationsEnabled(linkOperationToggle.isSelected());
     }//GEN-LAST:event_linkOperationToggleActionPerformed
     /**
      * This tests enabling and disabling the input.
@@ -3597,8 +3323,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.out.println("Is Input Enabled: " + isInputEnabled());
         System.out.println("Is Loading Files: " + isLoadingFiles());
         System.out.println("Is Saving Files: " + isSavingFiles());
+        System.out.println("Program ID: " + config.getProgramID());
         System.out.println("Config File: " + getConfigFile());
-        System.out.println("Database File Name: " + getDatabaseFileName());
+        System.out.println("Database File Name: " + config.getDatabaseFileName());
         File file = getDatabaseFile();
         System.out.println("Database File: " + file);
         System.out.print("Canonical Database File: ");
@@ -3858,12 +3585,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_executeQueryActionPerformed
     
     private void setDBFileNameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBFileNameButtonActionPerformed
-        setDatabaseFileName(dbFileNameField.getText());
+        config.setDatabaseFileName(dbFileNameField.getText());
         updateDatabaseFileFields();
     }//GEN-LAST:event_setDBFileNameButtonActionPerformed
 
     private void resetDBFilePathButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetDBFilePathButtonActionPerformed
-        setDatabaseFileName(null);
+        config.setDatabaseFileName(null);
         updateDatabaseFileFields();
     }//GEN-LAST:event_resetDBFilePathButtonActionPerformed
 
@@ -3877,7 +3604,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent
      */
     private void printDBButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_printDBButtonActionPerformed
-        System.out.println("Database File Name: " + getDatabaseFileName());
+        System.out.println("Database File Name: " + config.getDatabaseFileName());
         System.out.println("Database File: " + getDatabaseFile());
             // Try to connect to the database and create an SQL statement for it
         try(LinkDatabaseConnection conn = connect(getDatabaseFile());
@@ -3984,7 +3711,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_updateDBFileButtonActionPerformed
     
     private void showDBErrorDetailsToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showDBErrorDetailsToggleActionPerformed
-        config.setProperty(SHOW_DETAILED_DATABASE_ERRORS,showDBErrorDetailsToggle.isSelected());
+        config.setDatabaseErrorDetailsAreShown(showDBErrorDetailsToggle.isSelected());
     }//GEN-LAST:event_showDBErrorDetailsToggleActionPerformed
     /**
      * This is an action performed by all the file choosers when the user 
@@ -4037,13 +3764,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void searchPanelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_searchPanelPropertyChange
         switch(evt.getPropertyName()){
             case(LinkSearchPanel.MATCH_SPACES_PROPERTY_CHANGED):
-                config.setProperty(SEARCH_MATCH_SPACES_KEY,searchPanel.getMatchSpaces());
+                config.setSearchMatchSpaces(searchPanel.getMatchSpaces());
                 return;
             case(LinkSearchPanel.MATCH_CASE_PROPERTY_CHANGED):
-                config.setProperty(SEARCH_MATCH_CASE_KEY,searchPanel.getMatchCase());
+                config.setSearchMatchCase(searchPanel.getMatchCase());
                 return;
             case(LinkSearchPanel.WRAP_AROUND_PROPERTY_CHANGED):
-                config.setProperty(SEARCH_WRAP_AROUND_KEY,searchPanel.getWrapAround());
+                config.setSearchWrapAround(searchPanel.getWrapAround());
         }
     }//GEN-LAST:event_searchPanelPropertyChange
     /**
@@ -4137,7 +3864,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             beep();
         listManipulator.setPreferredSize(listManipulator.getSize());
             // Set the list manipulator panel's size in the config
-        config.setSizeProperty(listManipulator);
+        config.setComponentSize(listManipulator);
         linkTextField.grabFocus();
     }//GEN-LAST:event_manageLinksButtonActionPerformed
     /**
@@ -4258,7 +3985,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void autosaveMenuPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_autosaveMenuPropertyChange
         switch(evt.getPropertyName()){
             case(AutosaveMenu.AUTOSAVE_FREQUENCY_PROPERTY_CHANGED):
-                config.setProperty(AUTOSAVE_FREQUENCY_KEY,autosaveMenu.getFrequencyIndex());
+                config.setAutosaveFrequencyIndex(autosaveMenu.getFrequencyIndex());
             case(AutosaveMenu.AUTOSAVE_PAUSED_PROPERTY_CHANGED):
             case(AutosaveMenu.AUTOSAVE_RUNNING_PROPERTY_CHANGED):
             case("enabled"):
@@ -4334,16 +4061,58 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void listsTabsPanelStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_listsTabsPanelStateChanged
         updateButtons();
+            // If the program has fully loaded
+        if (fullyLoaded){
+                // This is the index for the list tabs panel
+            int type = -1;
+                // Go through the list tabs panels
+            for (int i = 0; i < listsTabPanels.length && type < 0; i++){
+                    // If the event source is the current list tabs panel
+                if (evt.getSource() == listsTabPanels[i])
+                    type = i;
+            }   // If the event source is found in the list tabs panel array (it 
+            if (type >= 0)  // should be)
+                config.setCurrentTab(type, listsTabPanels[type]);
+                // If the program is in debug mode
+            else if (isInDebug())
+                System.out.println("Not found in list tabs panels: " +evt.getSource());
+        }
     }//GEN-LAST:event_listsTabsPanelStateChanged
     /**
      * This processes a change to the selection in the currently selected list.
      * @param evt The ListSelectionEvent.
      */
     private void listsTabsPanelValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listsTabsPanelValueChanged
-            // If the selection is not currently being adjusted and the source 
-            // of the change is the currently selected list
-        if (!evt.getValueIsAdjusting() && Objects.equals(getSelectedList(),evt.getSource())){
-            updateSelectedLink(); 
+            // If the selection is not currently being adjusted
+        if (!evt.getValueIsAdjusting()){
+                // If the source of the change is the currently selected list
+            if (Objects.equals(getSelectedList(),evt.getSource())){
+                updateSelectedLink(); 
+            }   // If the program has fully loaded
+            if (fullyLoaded){
+                    // This will get the listID of the list that the selection 
+                Integer listID;     // changed
+                    // This will get the newly selected value
+                String selValue;
+                    // If the source of the event is a LinksListPanel
+                if (evt.getSource() instanceof LinksListPanel){
+                        // Get the source as a panel
+                    LinksListPanel panel = (LinksListPanel)evt.getSource();
+                    listID = panel.getListID();
+                    selValue = panel.getSelectedValue();
+                    // If the source of the event is a LinksListModel
+                } else if (evt.getSource() instanceof LinksListModel){
+                        // Get the source as a model
+                    LinksListModel model = (LinksListModel)evt.getSource();
+                    listID = model.getListID();
+                    selValue = model.getSelectedValue();
+                } else
+                    return;
+                    // If the listID for this list is not null
+                if (listID != null)
+                        // Set the selected link for the list
+                    config.setSelectedLink(listID, selValue);
+            }
         }
     }//GEN-LAST:event_listsTabsPanelValueChanged
 
@@ -4406,7 +4175,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         listTabsManipulator.setPreferredSize(listTabsManipulator.getSize());
             // Set the list tabs manipulator panel's size in the config
-        config.setSizeProperty(listTabsManipulator);
+        config.setComponentSize(listTabsManipulator);
         System.gc();
     }//GEN-LAST:event_manageListsItemActionPerformed
     /**
@@ -4437,7 +4206,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }   // If this will sync the database to the cloud and the user is 
             // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            saver = new DbxDownloader(file,"/"+getExternalDatabaseFileName(),loadFlags);
+            saver = new DbxDownloader(file,config.getDropboxDatabaseFileName(),loadFlags);
             saver.execute();
         } else {
             loader = new DatabaseLoader(setFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG,false));
@@ -4527,7 +4296,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void hiddenLinkOperationToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hiddenLinkOperationToggleActionPerformed
         updateSelectedLink();
-        config.setProperty(ENABLE_HIDDEN_LINK_OPS_KEY,hiddenLinkOperationToggle.isSelected());
+        config.setHiddenLinkOperationsEnabled(hiddenLinkOperationToggle.isSelected());
     }//GEN-LAST:event_hiddenLinkOperationToggleActionPerformed
     
     private void setAllListVisible(boolean value){
@@ -4591,7 +4360,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void autoHideMenuPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_autoHideMenuPropertyChange
         switch(evt.getPropertyName()){
             case(AutoHideMenu.AUTO_HIDE_WAIT_DURATION_PROPERTY_CHANGED):
-                config.setProperty(AUTO_HIDE_WAIT_DURATION_KEY,autoHideMenu.getDurationIndex());
+                config.setAutoHideWaitDurationIndex(autoHideMenu.getDurationIndex());
             case(AutoHideMenu.AUTO_HIDE_PAUSED_PROPERTY_CHANGED):
             case(AutoHideMenu.AUTO_HIDE_RUNNING_PROPERTY_CHANGED):
             case("enabled"):
@@ -4707,13 +4476,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         loader = new LoadDatabaseViewer(true);
         loader.execute();
     }//GEN-LAST:event_dbRemoveDuplDataButtonActionPerformed
-
+    
     private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
 //        System.out.println(evt);
             // If the window is not maximized
         if (!isMaximized())
                 // Set the windows's size in the config
-            config.setSizeProperty(this);
+            config.setComponentBounds(this);
     }//GEN-LAST:event_formComponentResized
 
     private void formWindowStateChanged(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowStateChanged
@@ -4773,21 +4542,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // This will be true if the database location dialog has not been opened before
         if (setLocationDialog.isLocationByPlatform())
             setLocationDialog.setLocationRelativeTo(this);
-        setDatabaseFileLocationFields(getDatabaseFileName());
-        setExternalDatabaseFileLocationFields(getExternalDatabaseFileName());
+        setDatabaseFileFields(config.getDatabaseFileName());
+        setDropboxDatabaseFileFields(config.getDropboxDatabaseFileName());
         loadExternalAccountData();
         updateDBLocationEnabled();
         setLocationDialog.setVisible(true);
     }//GEN-LAST:event_setDBLocationItemActionPerformed
     
-    private void setDatabaseFileLocationFields(String fileName){
+    private void setDatabaseFileFields(String fileName){
         File file = getDatabaseFile(fileName);
         dbFileField.setText(fileName);
         databaseFC.setCurrentDirectory(file);
     }
     
-    private void setExternalDatabaseFileLocationFields(String fileName){
-        dbxDbFileField.setText(fileName);
+    private void setDropboxDatabaseFileFields(String fileName){
+        dbxDbFileField.setText(formatDropboxPath(fileName));
     }
     
     private void setDBCancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBCancelButtonActionPerformed
@@ -4813,7 +4582,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Get the operation to perform on the old file
         int op = dbFileChangeCombo.getSelectedIndex();
             // Check if the new file name is the same as the old file name
-        if (Objects.equals(fileName, getDatabaseFileName())){
+        if (Objects.equals(fileName, config.getDatabaseFileName())){
                 // No change will occur
             setLocationDialog.setVisible(false);
             return;
@@ -4867,7 +4636,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 try {    // If the new file is the same as the old file
                     if (Files.isSameFile(newPath, oldFile.toPath())){
                             // Set the path in the config
-                        setDatabaseFileName(fileName);
+                        config.setDatabaseFileName(fileName);
                             // No change will occur to the file itself
                         setLocationDialog.setVisible(false);
                         return;
@@ -4919,14 +4688,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             saver = new DatabaseFileChanger(op,oldFile,fileName);
             saver.execute();
         } else {
-            setDatabaseFileName(fileName);
+            config.setDatabaseFileName(fileName);
             setLocationDialog.setVisible(false);
         }
     }//GEN-LAST:event_setDBAcceptButtonActionPerformed
 
     private void setDBResetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBResetButtonActionPerformed
-        setDatabaseFileLocationFields(config.getPropertyDefault(DATABASE_FILE_PATH_KEY));
-        setExternalDatabaseFileLocationFields(config.getPrivateDefault(EXTERNAL_DATABASE_FILE_PATH_KEY));
+        setDatabaseFileFields(LINK_DATABASE_FILE);
+        setDropboxDatabaseFileFields(LINK_DATABASE_FILE);
     }//GEN-LAST:event_setDBResetButtonActionPerformed
     
     private void dbFileBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileBrowseButtonActionPerformed
@@ -4947,7 +4716,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbFileBrowseButtonActionPerformed
 
     private void dbFileChangeComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileChangeComboActionPerformed
-        config.setProperty(DATABASE_FILE_CHANGE_OPERATION_KEY,dbFileChangeCombo.getSelectedIndex());
+        config.setDatabaseFileChangeOperation(dbFileChangeCombo.getSelectedIndex());
     }//GEN-LAST:event_dbFileChangeComboActionPerformed
 
     private void dbFileRelativeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileRelativeButtonActionPerformed
@@ -4987,8 +4756,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 //        System.out.println("Moved: " + evt);
             // If the window is not maximized
         if (!isMaximized()){
-            config.setProperty(LINK_MANAGER_X_KEY,getX());
-            config.setProperty(LINK_MANAGER_Y_KEY,getY());
+            config.setComponentBounds(this);
         }
     }//GEN-LAST:event_formComponentMoved
     /**
@@ -4997,7 +4765,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void setLocationDialogComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_setLocationDialogComponentResized
             // Set the dialog's size in the config if it's saved
-        config.setSizeProperty(setLocationDialog);
+        config.setComponentSize(setLocationDialog);
     }//GEN-LAST:event_setLocationDialogComponentResized
 
     private void dbxPrintButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxPrintButtonActionPerformed
@@ -5010,18 +4778,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void dbxLogOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogOutButtonActionPerformed
         dbxUtils.clearCredentials();
-        // TODO: Figure out how to properly deal with logging out from this program
-        saver = new PrivateConfigSaver(){
-            @Override
-            protected void done(){
-                super.done();
-                JOptionPane.showMessageDialog(setLocationDialog, 
-                        "Don't forget to disconnect this "
-                        + "app from your Dropbox account.","Dropbox Log out",
-                        JOptionPane.INFORMATION_MESSAGE);
-            }
-        };
-        saver.execute();
+        // TODO: Figure out how to properly deal with logging out of dropbox
     }//GEN-LAST:event_dbxLogOutButtonActionPerformed
 
     private void dbxLogInButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogInButtonActionPerformed
@@ -5070,14 +4827,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     JOptionPane.showMessageDialog(setLocationDialog,message,
                             "Missing Permissions",JOptionPane.ERROR_MESSAGE);
                     dbxUtils.clearCredentials();
-                    saver = new PrivateConfigSaver();
-                    saver.execute();
                     return;
                 }
             }
             dbxUtils.setCredentials(authFinish);
-            saver = new PrivateConfigSaver();
-            saver.execute();
         } catch (DbxException ex){
             if (isInDebug())
                 System.out.println("Error: " + ex);
@@ -5102,13 +4855,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     protected void done(){
                         super.done();
                         if (!getExitAfterSaving()){
-                            saver = new DbxUploader(getDatabaseFile(),"/"+getExternalDatabaseFileName());
+                            saver = new DbxUploader(getDatabaseFile(),config.getDropboxDatabaseFileName());
                             saver.execute();
                         }
                     }
                 };
             } else {
-                saver = new DbxUploader(getDatabaseFile(),"/"+getExternalDatabaseFileName());
+                saver = new DbxUploader(getDatabaseFile(),config.getDropboxDatabaseFileName());
             }
             saver.execute();
         }
@@ -5116,13 +4869,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void downloadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadDBItemActionPerformed
         if (isLoggedInToDropbox()){
-            saver = new DbxDownloader(getDatabaseFile(),"/"+getExternalDatabaseFileName());
+            saver = new DbxDownloader(getDatabaseFile(),config.getDropboxDatabaseFileName());
             saver.execute();
         }
     }//GEN-LAST:event_downloadDBItemActionPerformed
 
     private void syncDBToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_syncDBToggleActionPerformed
-        config.setProperty(SYNC_DATABASE_KEY,syncDBToggle.isSelected());
+        config.setDatabaseWillSync(syncDBToggle.isSelected());
     }//GEN-LAST:event_syncDBToggleActionPerformed
 
     private void dbUpdateLastModButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbUpdateLastModButtonActionPerformed
@@ -5194,7 +4947,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             throws DbxException{
         if (cred.aboutToExpire()){
             dbxUtils.refreshCredentials(client.refreshAccessToken());
-            savePrivateConfig();
         }
     }
     
@@ -5523,7 +5275,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 option = fc.showOpenDialog(this);
             fc.setPreferredSize(fc.getSize());
                 // Set the file chooser's size in the config if it's saved
-            config.setSizeProperty(fc);
+            config.setComponentSize(fc);
             if (option == JFileChooser.APPROVE_OPTION){
                 file = fc.getSelectedFile();
                 if (!file.exists()){
@@ -5557,7 +5309,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             option = fc.showSaveDialog(this);
         fc.setPreferredSize(fc.getSize());
             // Set the file chooser's size in the config if it's saved
-        config.setSizeProperty(fc);
+        config.setComponentSize(fc);
             // If the user wants to save the file
         if (option == JFileChooser.APPROVE_OPTION)
             return fc.getSelectedFile();
@@ -5622,10 +5374,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      */
     private DropboxLinkUtils dbxUtils = null;
-//    /**
-//     * 
-//     */
-//    private Obfuscator obfuscator;
     /**
      * This is used to format file sizes when displaying the size of a file.
      */
@@ -5813,6 +5561,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton printDBButton;
     private javax.swing.JMenuItem printDataItem;
     private javax.swing.JCheckBoxMenuItem printListPropChangeToggle;
+    private javax.swing.JLabel programIDLabel;
+    private javax.swing.JLabel programIDTextLabel;
     private javax.swing.JProgressBar progressBar;
     private components.progress.JProgressDisplayMenu progressDisplay;
     private javax.swing.JPopupMenu queryPopupMenu;
@@ -6057,61 +5807,329 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (!file.exists())
             return false;
         loadProperties(file,config);
-        
-        // TODO: These configuration keys are deprecated and are here for legacy 
-        // reasons
-        
-            // If the config does not have the database file key
-        if (!config.containsKey(DATABASE_FILE_PATH_KEY)){
-                // Check if the config is still using the old separate folder 
-                // and file name structure
-            if (config.containsKey(DATABASE_FOLDER_KEY) || 
-                    config.containsKey(DATABASE_FILE_KEY)){
-                    // Get the folder from the config
-                String folder = config.getProperty(DATABASE_FOLDER_KEY, ".");
-                    // If the folder is null or blank
-                if (folder == null || folder.isBlank())
-                        // File is relative to program
-                    folder = "";
-                else
-                    folder = folder.trim() + File.separator;
-                    // Get the file name from the config, defaulting to the 
-                    // default name if there isn't one
-                String fileName = config.getProperty(DATABASE_FILE_KEY, 
-                        LINK_DATABASE_FILE);
-                    // If the file name is null or blank
-                if (fileName == null || fileName.isBlank())
-                        // Use the default file name
-                    fileName = LINK_DATABASE_FILE;
-                    // Combine the folder and file name to get the full file path
-                fileName = folder + fileName.trim();
-                    // If the database file is not the default path
-                if (!LINK_DATABASE_FILE.equals(fileName))
-                        // Set the updated database file path value
-                    config.setProperty(DATABASE_FILE_PATH_KEY, fileName);
-            }
-        }
-        // These configuration keys are deprecated and should be removed
-            // Remove the old file name key
-        config.remove(DATABASE_FILE_KEY);
-            // Remove the old folder key
-        config.remove(DATABASE_FOLDER_KEY);
         return true;
     }
     /**
      * 
      * @param file
-     * @param config
+     * @param prop
      * @return 
      */
-    private boolean loadConfigFile(File file, Properties config){
+    private boolean loadConfigFile(File file, Properties prop){
         showHiddenListsToggle.setEnabled(false);
         try {
-            return loadConfiguration(file, config);
+            if (loadConfiguration(file, prop)){
+                config.importProperties(prop);
+                return true;
+            }
         } catch (IOException ex) {
             if (isInDebug())
                 System.out.println(ex);
+        }
+        return false;
+    }
+    /**
+     * 
+     * @param config
+     * @return 
+     */
+    private LinkManagerConfig createSaveConfig(LinkManagerConfig config){
+        return prepareSaveConfig(new LinkManagerConfig(config));
+    }
+    /**
+     * 
+     * @param config
+     * @return 
+     */
+    private LinkManagerConfig prepareSaveConfig(LinkManagerConfig config){
+            // If the program has fully loaded
+        if (fullyLoaded){
+                // Remove any keys from the config that are related to 
+                // selected tabs, selected links, or visible indexes
+            config.getProperties().keySet().removeIf((Object t) -> {
+                return t == null || isPrefixedConfigKey(t.toString());
+            });
+                // Map the list panels to their listIDs
+            Map<Integer,LinksListPanel> panels = new HashMap<>();
+                // Go through the list panels in the selected tabs panel
+            for (LinksListPanel panel : getSelectedTabsPanel()){
+                    // If the list panel's listID is not null
+                if (panel.getListID() != null)
+                    panels.put(panel.getListID(), panel);
+            }   // Go through the tabs panel
+            for (LinksListTabsPanel tabsPanel : listsTabPanels){
+                    // If the current tabs panel is the selected panel
+                if (tabsPanel == getSelectedTabsPanel())
+                    continue;
+                    // Go through the list panels in the current tabs panel
+                for (LinksListPanel panel : tabsPanel){
+                        // If the list panel's listID is not null
+                    if (panel.getListID() != null)
+                        panels.putIfAbsent(panel.getListID(), panel);
+                }
+            }   // Go through the list panels and their listIDs
+            for (Map.Entry<Integer,LinksListPanel> panelEntry : panels.entrySet()){
+                    // Get the listID for the panel
+                int listID = panelEntry.getKey();
+                    // Get the list panel
+                LinksListPanel panel = panelEntry.getValue();
+                    // Set the first visible index for the list
+                config.setProperty(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX+listID,
+                        panel.getList().getFirstVisibleIndex());
+                    // Set the last visible index for the list
+                config.setProperty(LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX+listID,
+                        panel.getList().getLastVisibleIndex());
+                    // If the panel's selection is not empty
+                if (!panel.isSelectionEmpty())
+                        // Set whether the selected link is visible
+                    config.setProperty(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX+listID,
+                            panel.isIndexVisible(panel.getSelectedIndex()));
+            }
+        }   // Set the search text in the configuration
+        config.setSearchText(searchPanel.getSearchText());
+            // Set the entered link text in the configuration
+        config.setEnteredLinkText(linkTextField.getText());
+        return config;
+    }
+    /**
+     * This attempts to save the given properties map to the given file.
+     * @param file The file to write to.
+     * @param config The properties map to save.
+     * @param header The header for the properties.
+     * @return If the file was successfully written.
+     */
+    private boolean saveConfiguration(File file, Properties config, String header){
+            // Try to create a PrintWriter to write to the file
+        try (PrintWriter writer = new PrintWriter(file)) {
+            setIndeterminate(true);
+                // Store the configuration
+            config.store(writer, header);
+        } catch (IOException ex) {
             return false;
+        }
+        return true;
+    }
+    /**
+     * This loads the configuration for the program from the configuration map.
+     */
+    private void configureProgram(){
+            // Get the progress display value from the config
+        int temp = config.getProgressDisplaySetting(0);
+            // If the progress display value is not zero
+        if (temp != 0)
+                // Set the progress display value
+            progressDisplay.setDisplaySettings(temp);
+            // Set the always on top from the config
+        alwaysOnTopToggle.setSelected(config.isAlwaysOnTop(
+                alwaysOnTopToggle.isSelected()));
+        super.setAlwaysOnTop(alwaysOnTopToggle.isSelected());
+            // Set the double new lines property from the config
+        doubleNewLinesToggle.setSelected(config.getAddBlankLines(
+                doubleNewLinesToggle.isSelected()));
+            // Set the link operations enabled property from the config
+        linkOperationToggle.setSelected(config.isLinkOperationsEnabled(
+                linkOperationToggle.isSelected()));
+            // Set the search matches spaces property from the config
+        searchPanel.setMatchSpaces(config.getSearchMatchSpaces(
+                searchPanel.getMatchSpaces()));
+            // Set the search matches case property from the config
+        searchPanel.setMatchCase(config.getSearchMatchCase(
+                searchPanel.getMatchCase()));
+            // Set the search matches wrap around property from the config
+        searchPanel.setWrapAround(config.getSearchWrapAround(
+                searchPanel.getWrapAround()));
+            // Set the search text from the config
+        searchPanel.setSearchText(config.getSearchText());
+            // Set the show hidden lists property from the config
+        showHiddenListsToggle.setSelected(config.getHiddenListsAreShown(
+                showHiddenListsToggle.isSelected()));
+            // Update the visible lists
+        updateVisibleTabsPanel();
+            // Enable the hidden lists link operation if link operations are 
+            // enabled
+        hiddenLinkOperationToggle.setEnabled(linkOperationToggle.isSelected());
+            // Set whether hidden lists link operations enabled property from 
+            // the config
+        hiddenLinkOperationToggle.setSelected(config.isLinkOperationsEnabled(
+                hiddenLinkOperationToggle.isSelected()));
+            // Set whether additional details are shown when an error occurs 
+            // with the database
+        showDBErrorDetailsToggle.setSelected(
+                config.getDatabaseErrorDetailsAreShown(
+                        showDBErrorDetailsToggle.isSelected()));
+            // Set whether the program syncs the database to an external source 
+            // upon saving or loading
+        syncDBToggle.setSelected(config.getDatabaseWillSync(
+                syncDBToggle.isSelected()));
+            // Set the operation to use when changing the location of the 
+            // database file
+        dbFileChangeCombo.setSelectedIndex(
+                config.getDatabaseFileChangeOperation(
+                        dbFileChangeCombo.getSelectedIndex()));
+        
+        updateDatabaseFileFields();
+            // Set the autosave frequency index
+        autosaveMenu.setFrequencyIndex(config.getAutosaveFrequencyIndex(
+                autosaveMenu.getFrequencyIndex()));
+            // Set the auto-hide wait duration index
+        autoHideMenu.setDurationIndex(config.getAutoHideWaitDurationIndex(
+                autoHideMenu.getDurationIndex()));
+            // If the program has fully loaded
+        if (fullyLoaded){
+                // Set the selection from the config
+            setSelectedFromConfig();
+        } else {    // Only load these settings when the program first starts up
+                // Set the entered link from the config
+            linkTextField.setText(config.getEnteredLinkText());
+                // Go through the components with sizes saved to config
+            for (Component comp : config.getComponentNames().keySet()){
+                    // Get the size for the component from the config
+                Dimension dim = config.getComponentSize(comp);
+                    // Get the location for the component from the config
+                Point point = config.getComponentLocation(comp);
+                    // Get the bounds for the component from the config
+                Rectangle rect = config.getComponentBounds(comp);
+                    // If the size for the component is not null
+                if (dim != null){
+                        // Get the minimum size for the component
+                    Dimension min = comp.getMinimumSize();
+                        // Make sure the width and height are within range
+                    dim.width = Math.max(dim.width, min.width);
+                    dim.height = Math.max(dim.height, min.height);
+                        // If the current component is this program
+                    if (comp == this){
+                            // Set the size of the program window
+                        setSize(dim);
+                    } else {
+                            // Set the size of the current component
+                        comp.setPreferredSize(dim);
+                    }
+                }   // If the location for the component is not null
+                if (point != null)
+                        // Set the location for the component
+                    comp.setLocation(point);
+                    // If the bounds for the component are not null
+                if (rect != null){
+                        // If the current component is this program
+                    if (comp == this){
+                            // If the component bounds are not set
+                        if (!config.isComponentBoundsSet(comp))
+                            continue;
+                    }   // Get the minimum size for the component
+                    Dimension min = comp.getMinimumSize();
+                        // Set the bounds for the component
+                    comp.setBounds(rect.x, rect.y, 
+                                // Make sure the width is within range
+                            Math.max(rect.width, min.width), 
+                                // Make sure the height is within range
+                            Math.max(rect.height, min.height));
+                }
+            }
+        }
+    }
+    /**
+     * 
+     */
+    private void setSelectedFromConfig(){
+            // This maps listIDs to the selected link for that list
+        Map<Integer,String> selMap = config.getSelectedLinkMap();
+            // This maps the listIDs to whether the selected link is visible for 
+        Map<Integer,Boolean> selVisMap = new HashMap<>();   // that list
+            // This maps the listIDs to the first visible index for that list
+        Map<Integer,Integer> firstVisMap = new HashMap<>();
+            // This maps the tabs panel indexes to the listID of the selected 
+            // list for that tabs panel
+        Map<Integer,Integer> selListIDMap = new HashMap<>(config.getCurrentTabListIDMap());
+            // This maps the tabs panel indexes to the selected index of the 
+            // tab for that tabs panel
+        Map<Integer,Integer> selListMap = config.getCurrentTabIndexMap();
+            // This gets a set of keys for the properties
+        Set<String> keys = new HashSet<>(config.getProperties().stringPropertyNames());
+            // Remove any null keys and keys that aren't prefixed keys for the 
+            // selection
+        keys.removeIf((String t) -> {
+            return t == null || !isPrefixedConfigKey(t);
+        });
+            // Go through the prefixed selection keys
+        for (String key : keys){
+            String keyPrefix;   // Get the prefix for the current key
+                // If the key starts with the selected link visible key prefix
+            if (key.startsWith(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX))
+                keyPrefix = SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX;
+                // If the key starts with the first visible index key prefix
+            else if (key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX))
+                keyPrefix = FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX;
+            else // Skip this key
+                continue;
+                // Get the value for this key
+            String value = config.getProperty(key);
+                // If the value is null
+            if (value == null)
+                continue;
+            try{    // Get the list or tabs panel that this key is for
+                int type = Integer.parseInt(key.substring(keyPrefix.length()));
+                    // Determine which key this is based off the prefix
+                switch(keyPrefix){
+                        // If this is the selected link is visible key
+                    case(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX):
+                        selVisMap.put(type, Boolean.valueOf(value));
+                        break;
+                        // If this is the first visible index key
+                    case(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX):
+                        firstVisMap.put(type, Integer.valueOf(value));
+                }
+            } catch(NumberFormatException ex){ }
+        }   // Go through the list tabs panels
+        for (LinksListTabsPanel tabsPanel : listsTabPanels){
+                // Go through the list panels in the current list tabs panel
+            for (LinksListPanel panel : tabsPanel){
+                    // If the current list panel does not have a listID
+                if (panel.getListID() == null)
+                    continue;
+                    // Get the current list panel's listID
+                int listID = panel.getListID();
+                    // Get the first visible index for the list
+                Integer firstVisible = firstVisMap.get(listID);
+                    // If there is a first visible index for the list
+                if (firstVisible != null)
+                        // Ensure the first visible index is visible
+                    panel.getList().ensureIndexIsVisible(firstVisible);
+                    // If the link selection map contains the listID for the list
+                if (selMap.containsKey(listID)){
+                        // Get the selected link for the list
+                    String selected = selMap.get(listID);
+                        // If the list does not contain the selected link
+                    if (!panel.getModel().contains(selected))
+                            // No link will be selected for the list
+                        selected = null;
+                        // Set the selected link for the list, scrolling to the 
+                        // link if it is meant to be visible
+                    panel.setSelectedValue(selected, 
+                            selVisMap.getOrDefault(listID, false));
+                }
+            }
+        }   // Replace the selected listIDs with the indexes for those listIDs
+        selListIDMap.replaceAll((Integer listType, Integer listID) -> {
+                // If the list type is not null and is a valid index in the 
+                // tabs panel array and the listID is not null
+            if (listType != null && listType >= 0 && 
+                    listType < listsTabPanels.length && listID != null)
+                    // Get the index of the listID
+                return listsTabPanels[listType].getListIDs().indexOf(listID);
+            return null;
+        }); 
+            // Remove any null and negative selected indexes for listIDs
+        selListIDMap.values().removeIf((Integer t) -> t == null || t < 0);
+            // Go through the tabs panel array
+        for (int i = 0; i < listsTabPanels.length; i++){
+                // Get the index of the selected list, prioritizing the index 
+                // for the selected listID (since listIDs don't typically change 
+                // between instances of the program), then the index of the 
+                // last selected index, and defaulting to -1 to clear the selection
+            int index = selListIDMap.getOrDefault(i, selListMap.getOrDefault(i,-1));
+                // If the selected index is in bounds or the selection should be 
+            if (index >= -1 && index<listsTabPanels[i].getTabCount()) // cleared
+                listsTabPanels[i].setSelectedIndex(index);
         }
     }
     /**
@@ -6226,11 +6244,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
         setIndeterminate(true);
-            // Update the list of all listIDs
-        writeTabsToDatabase(conn.getAllListIDs(),allListsTabsPanel);
-            // Update the list of shown listIDs
-        writeTabsToDatabase(conn.getShownListIDs(),shownListsTabsPanel);
-            // Remove any listIDs from the shown listIDs list that are hidden
+            // Go through the tab panels
+        for (int i = 0; i < listsTabPanels.length; i++){
+                // Update the list of the listIDs
+            writeTabsToDatabase(conn.getListIDs(i),listsTabPanels[i]);
+        }   // Remove any listIDs from the shown listIDs list that are hidden
         conn.getShownListIDs().removeIf((Integer t) -> {
                 // Get the model with the current listID
             LinksListModel model = allListsTabsPanel.getModelWithListID(t);
@@ -6297,400 +6315,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
-     * @param config
+     * @param path
      * @return 
      */
-    private LinkManagerConfig createSaveConfig(LinkManagerConfig config){
-        return prepareSaveConfig(new LinkManagerConfig(config));
-    }
-    /**
-     * 
-     * @param config
-     * @return 
-     */
-    private LinkManagerConfig prepareSaveConfig(LinkManagerConfig config){
-            // If the program has fully loaded
-        if (fullyLoaded){
-                // Remove any keys from the config that are related to 
-                // selected tabs, selected links, or visible indexes
-            config.getProperties().keySet().removeIf((Object t) -> {
-                return t == null || isPrefixedConfigKey(t.toString());
-            });
-                // Map the list panels to their listIDs
-            Map<Integer,LinksListPanel> panels = new HashMap<>();
-                // Go through the list panels in the selected tabs panel
-            for (LinksListPanel panel : getSelectedTabsPanel()){
-                    // If the list panel's listID is not null
-                if (panel.getListID() != null)
-                    panels.put(panel.getListID(), panel);
-            }   // Go through the tabs panel
-            for (LinksListTabsPanel tabsPanel : listsTabPanels){
-                    // If the current tabs panel is the selected panel
-                if (tabsPanel == getSelectedTabsPanel())
-                    continue;
-                    // Go through the list panels in the current tabs panel
-                for (LinksListPanel panel : tabsPanel){
-                        // If the list panel's listID is not null
-                    if (panel.getListID() != null)
-                        panels.putIfAbsent(panel.getListID(), panel);
-                }
-            }   // Go through the list panels and their listIDs
-            for (Map.Entry<Integer,LinksListPanel> panelEntry : panels.entrySet()){
-                    // Get the listID for the panel
-                int listID = panelEntry.getKey();
-                    // Get the list panel
-                LinksListPanel panel = panelEntry.getValue();
-                    // Set the selected link for the list
-                config.setProperty(SELECTED_LINK_FOR_LIST_KEY_PREFIX+listID,
-                        panel.getSelectedValue());
-                    // Set the first visible index for the list
-                config.setProperty(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX+listID,
-                        panel.getList().getFirstVisibleIndex());
-                    // Set the last visible index for the list
-                config.setProperty(LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX+listID,
-                        panel.getList().getLastVisibleIndex());
-                    // If the panel's selection is not empty
-                if (!panel.isSelectionEmpty())
-                        // Set whether the selected link is visible
-                    config.setProperty(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX+listID,
-                            panel.isIndexVisible(panel.getSelectedIndex()));
-            }   // Go through the list tabs panels
-            for (int i = 0; i < listsTabPanels.length; i++){
-                    // Set the selected listID for the tabs panel
-                config.setProperty(CURRENT_TAB_LIST_ID_KEY_PREFIX+i,
-                        listsTabPanels[i].getSelectedListID());
-                    // Set the selected index for the tabs panel
-                config.setProperty(CURRENT_TAB_INDEX_KEY_PREFIX+i,
-                            // If the tabs panel has nothing selected, set 
-                            // the property to null. Otherwise, set it to 
-                            // the selected index
-                        (listsTabPanels[i].isSelectionEmpty())?null:
-                        listsTabPanels[i].getSelectedIndex());
-            }
-
-            // TODO: These configuration keys are deprecated and should be 
-            // removed
-            config.removeProperty(CURRENT_TAB_LIST_ID_KEY);
-            config.removeProperty(CURRENT_TAB_INDEX_KEY);
-            config.removeProperty(SHOWN_CURRENT_TAB_LIST_ID_KEY);
-            config.removeProperty(SHOWN_CURRENT_TAB_INDEX_KEY);
-                // Remove the old file name
-            config.removeProperty(DATABASE_FILE_KEY);
-                // Remove the old folder
-            config.removeProperty(DATABASE_FOLDER_KEY);
-            
-        }   // Get the search text
-        String text = searchPanel.getSearchText();
-            // Set the search text in the configuration
-        config.setProperty(SEARCH_TEXT_KEY,
-                    // If the search text is not null and not empty, put it 
-                    // in the config. Otherwise, use null for the search text
-                (text!=null&&!text.isEmpty())?text:null);
-            // Get the entered link text
-        text = linkTextField.getText();
-            // Set the entered link text in the configuration
-        config.setProperty(ENTERED_LINK_TEXT_KEY,
-                    // If the entered link is not null and not empty, put it 
-                    // in the config. Otherwise, use null for the entered link
-                (text!=null&&!text.isBlank())?text:null);
-        return config;
-    }
-    /**
-     * This attempts to save the given properties map to the given file.
-     * @param file The file to write to.
-     * @param config The properties map to save.
-     * @param header The header for the properties.
-     * @return If the file was successfully written.
-     */
-    private boolean saveConfiguration(File file, Properties config, String header){
-            // Try to create a PrintWriter to write to the file
-        try (PrintWriter writer = new PrintWriter(file)) {
-            setIndeterminate(true);
-                // Store the configuration
-            config.store(writer, header);
-        } catch (IOException ex) {
-            return false;
-        }
-        return true;
-    }
-    /**
-     * 
-     * @param config 
-     */
-    private void updatePrivateConfig(Properties config){
-            // If the config does not have the external database file path 
-            // key but it does have the regular database file path key
-        if (!config.containsKey(EXTERNAL_DATABASE_FILE_PATH_KEY) &&
-                config.containsKey(DATABASE_FILE_PATH_KEY)){
-                // Set the external database file path key to the regular 
-                // database file path key
-            config.setProperty(EXTERNAL_DATABASE_FILE_PATH_KEY, 
-                    config.getProperty(DATABASE_FILE_PATH_KEY));
-        }   // Remove the regular database file path key
-        config.remove(DATABASE_FILE_PATH_KEY);
-    }
-    /**
-     * 
-     * @return 
-     */
-    private boolean savePrivateConfig(){
-        File file = getPrivateConfigFile();
-        if (!file.exists() && config.getPrivateProperties().isEmpty())
-            return true;
-        updatePrivateConfig(config.getPrivateProperties());
-        return saveConfiguration(file,config.getPrivateProperties(), PRIVATE_CONFIG_FLAG);
-    }
-    /**
-     * 
-     * @param config
-     * @return 
-     */
-    private boolean loadPrivateConfig(Properties config){
-        File file = getPrivateConfigFile();
-        if (!file.exists())
-            return false;
-        try {
-            loadProperties(file,config);
-            updatePrivateConfig(config);
-            return true;
-        } catch (IOException ex) {
-            return false;
-        }
-    }
-    /**
-     * This loads the configuration for the program from the configuration map.
-     */
-    private void configureProgram(){
-            // Get the progress display value from the config
-        Integer temp = config.getIntProperty(PROGRESS_DISPLAY_KEY);
-            // If the progress display value is not null and not zero
-        if (temp != null && temp != 0)
-                // Set the progress display value
-            progressDisplay.setDisplaySettings(temp);
-            // Set the always on top from the config
-        alwaysOnTopToggle.setSelected(config.getBooleanProperty(ALWAYS_ON_TOP_KEY));
-        super.setAlwaysOnTop(alwaysOnTopToggle.isSelected());
-            // Set the double new lines property from the config
-        doubleNewLinesToggle.setSelected(config.getBooleanProperty(BLANK_LINES_KEY));
-            // Set the link operations enabled property from the config
-        linkOperationToggle.setSelected(config.getBooleanProperty(ENABLE_LINK_OPS_KEY));
-            // Set the search matches spaces property from the config
-        searchPanel.setMatchSpaces(config.getBooleanProperty(SEARCH_MATCH_SPACES_KEY));
-            // Set the search matches case property from the config
-        searchPanel.setMatchCase(config.getBooleanProperty(SEARCH_MATCH_CASE_KEY));
-            // Set the search matches wrap around property from the config
-        searchPanel.setWrapAround(config.getBooleanProperty(SEARCH_WRAP_AROUND_KEY));
-            // Set the search text from the config
-        searchPanel.setSearchText(config.getProperty(SEARCH_TEXT_KEY));
-            // Set the show hidden lists property from the config
-        showHiddenListsToggle.setSelected(config.getBooleanProperty(HIDDEN_LISTS_ARE_SHOWN_KEY));
-            // Update the visible lists
-        updateVisibleTabsPanel();
-            // Enable the hidden lists link operation if link operations are 
-            // enabled
-        hiddenLinkOperationToggle.setEnabled(linkOperationToggle.isSelected());
-            // Set whether hidden lists link operations enabled property from 
-            // the config
-        hiddenLinkOperationToggle.setSelected(config.getBooleanProperty(ENABLE_HIDDEN_LINK_OPS_KEY));
-            // Set whether the program syncs the database to an external source 
-            // upon saving or loading
-        syncDBToggle.setSelected(config.getBooleanProperty(SYNC_DATABASE_KEY));
-            // Set the operation to use when changing the location of the 
-            // database file
-        dbFileChangeCombo.setSelectedIndex(config.getIntProperty(DATABASE_FILE_CHANGE_OPERATION_KEY, 
-                dbFileChangeCombo.getSelectedIndex()));
-        
-        updateDatabaseFileFields();
-            // Set the autosave frequency index
-        autosaveMenu.setFrequencyIndex(config.getIntProperty(AUTOSAVE_FREQUENCY_KEY, 
-                autosaveMenu.getFrequencyIndex()));
-            // Set the auto-hide wait duration index
-        autoHideMenu.setDurationIndex(config.getIntProperty(AUTO_HIDE_WAIT_DURATION_KEY,
-                autoHideMenu.getDurationIndex()));
-            // If the program has fully loaded
-        if (fullyLoaded){
-                // Set the selection from the config
-            setSelectedFromConfig();
-        } else {    // Only load these settings when the program first starts up
-                // Set the entered link from the config
-            linkTextField.setText(config.getProperty(ENTERED_LINK_TEXT_KEY));
-                // Go through the components with sizes saved to config
-            for (Component comp : config.getComponentPrefixMap().keySet()){
-                    // Get the size from the config for the component
-                Dimension dim = config.getSizeProperty(comp);
-                    // If the size for the component is null
-                if (dim == null)
-                    continue;
-                    // Get the minimum size for the component
-                Dimension min = comp.getMinimumSize();
-                    // Make sure the width and height are within range
-                dim.width = Math.max(dim.width, min.width);
-                dim.height = Math.max(dim.height, min.height);
-                    // If the current component is this program
-                if (comp == this){
-                        // Set the size of the program window
-                    setSize(dim);
-                } else {
-                        // Set the size of the current component
-                    comp.setPreferredSize(dim);
-                }
-            }
-                // Get the x-coordinate from the config
-            Integer x = config.getIntProperty(LINK_MANAGER_X_KEY);
-                // Get the y-coordinate from the config
-            Integer y = config.getIntProperty(LINK_MANAGER_Y_KEY);
-                // If both the x and y coordinates are not null
-            if (x != null && y != null)
-                this.setLocation(x, y);
-        }
-    }
-    /**
-     * 
-     */
-    private void setSelectedFromConfig(){
-            // This maps listIDs to the selected link for that list
-        Map<Integer,String> selMap = new HashMap<>();
-            // This maps the listIDs to whether the selected link is visible for 
-        Map<Integer,Boolean> selVisMap = new HashMap<>();   // that list
-            // This maps the listIDs to the first visible index for that list
-        Map<Integer,Integer> firstVisMap = new HashMap<>();
-            // This maps the tabs panel indexes to the listID of the selected 
-            // list for that tabs panel
-        Map<Integer,Integer> selListIDMap = new HashMap<>();
-            // This maps the tabs panel indexes to the selected index of the 
-            // tab for that tabs panel
-        Map<Integer,Integer> selListMap = new HashMap<>();
-            // This gets a set of keys for the properties
-        Set<String> keys = new HashSet<>(config.getProperties().stringPropertyNames());
-            // Remove any null keys and keys that aren't prefixed keys for the 
-            // selection
-        keys.removeIf((String t) -> {
-            return t == null || !isPrefixedConfigKey(t);
-        });
-        
-        // TODO: These four configuration keys will be deprecated later and are 
-        // here for legacy reasons
-            // This maps the legacy selected list keys to their integer values
-        Map<String,Integer> legacySelListMap = new HashMap<>();
-            // Go through the legacy selected list keys
-        for (String key : new String[]{
-            CURRENT_TAB_LIST_ID_KEY,CURRENT_TAB_INDEX_KEY,
-            SHOWN_CURRENT_TAB_LIST_ID_KEY,SHOWN_CURRENT_TAB_INDEX_KEY}){
-                // Get the value for that key from the config
-            Integer value = config.getIntProperty(key);
-                // If the value is not null
-            if (value != null)
-                legacySelListMap.put(key, value);
-        }   // Put the legacy values into the selected list maps
-        selListIDMap.put(0, legacySelListMap.get(CURRENT_TAB_LIST_ID_KEY));
-        selListIDMap.put(1, legacySelListMap.get(SHOWN_CURRENT_TAB_LIST_ID_KEY));
-        selListMap.put(0, legacySelListMap.get(CURRENT_TAB_INDEX_KEY));
-        selListMap.put(1, legacySelListMap.get(SHOWN_CURRENT_TAB_INDEX_KEY));
-        
-            // Go through the prefixed selection keys
-        for (String key : keys){
-            String keyPrefix;   // Get the prefix for the current key
-                // If the key starts with the selected link key prefix
-            if (key.startsWith(SELECTED_LINK_FOR_LIST_KEY_PREFIX))
-                keyPrefix = SELECTED_LINK_FOR_LIST_KEY_PREFIX;
-                // If the key starts with the selected link visible key prefix
-            else if (key.startsWith(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX))
-                keyPrefix = SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX;
-                // If the key starts with the first visible index key prefix
-            else if (key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX))
-                keyPrefix = FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX;
-                // If the key starts with the current tab listID key prefix
-            else if (key.startsWith(CURRENT_TAB_LIST_ID_KEY_PREFIX))
-                keyPrefix = CURRENT_TAB_LIST_ID_KEY_PREFIX;
-                // If the key starts with the current tab index key prefix
-            else if (key.startsWith(CURRENT_TAB_INDEX_KEY_PREFIX))
-                keyPrefix = CURRENT_TAB_INDEX_KEY_PREFIX;
-            else // Skip this key
-                continue;
-                // Get the value for this key
-            String value = config.getProperty(key);
-                // If the value is null
-            if (value == null)
-                continue;
-            try{    // Get the list or tabs panel that this key is for
-                int type = Integer.parseInt(key.substring(keyPrefix.length()));
-                    // Determine which key this is based off the prefix
-                switch(keyPrefix){
-                        // If this is the selected link key
-                    case(SELECTED_LINK_FOR_LIST_KEY_PREFIX):
-                        selMap.put(type, value);
-                        break;
-                        // If this is the selected link is visible key
-                    case(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX):
-                        selVisMap.put(type, Boolean.valueOf(value));
-                        break;
-                        // If this is the first visible index key
-                    case(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX):
-                        firstVisMap.put(type, Integer.valueOf(value));
-                        break;
-                        // If this is the current tab listID key
-                    case(CURRENT_TAB_LIST_ID_KEY_PREFIX):
-                        selListIDMap.put(type, Integer.valueOf(value));
-                        break;
-                        // If this is the current tab index key
-                    case(CURRENT_TAB_INDEX_KEY_PREFIX):
-                        selListMap.put(type, Integer.valueOf(value));
-                }
-            } catch(NumberFormatException ex){ }
-        }   // Go through the list tabs panels
-        for (LinksListTabsPanel tabsPanel : listsTabPanels){
-                // Go through the list panels in the current list tabs panel
-            for (LinksListPanel panel : tabsPanel){
-                    // If the current list panel does not have a listID
-                if (panel.getListID() == null)
-                    continue;
-                    // Get the current list panel's listID
-                int listID = panel.getListID();
-                    // Get the first visible index for the list
-                Integer firstVisible = firstVisMap.get(listID);
-                    // If there is a first visible index for the list
-                if (firstVisible != null)
-                        // Ensure the first visible index is visible
-                    panel.getList().ensureIndexIsVisible(firstVisible);
-                    // If the link selection map contains the listID for the list
-                if (selMap.containsKey(listID)){
-                        // Get the selected link for the list
-                    String selected = selMap.get(listID);
-                        // If the list does not contain the selected link
-                    if (!panel.getModel().contains(selected))
-                            // No link will be selected for the list
-                        selected = null;
-                        // Set the selected link for the list, scrolling to the 
-                        // link if it is meant to be visible
-                    panel.setSelectedValue(selected, 
-                            selVisMap.getOrDefault(listID, false));
-                }
-            }
-        }   // Remove any null selected tab indexes
-        selListMap.values().removeIf((Integer t) -> t == null);
-            // Replace the selected listIDs with the indexes for those listIDs
-        selListIDMap.replaceAll((Integer listType, Integer listID) -> {
-                // If the list type is not null and is a valid index in the 
-                // tabs panel array and the listID is not null
-            if (listType != null && listType >= 0 && 
-                    listType < listsTabPanels.length && listID != null)
-                    // Get the index of the listID
-                return listsTabPanels[listType].getListIDs().indexOf(listID);
-            return null;
-        }); 
-            // Remove any null and negative selected indexes for listIDs
-        selListIDMap.values().removeIf((Integer t) -> t == null || t < 0);
-            // Go through the tabs panel array
-        for (int i = 0; i < listsTabPanels.length; i++){
-                // Get the index of the selected list, prioritizing the index 
-                // for the selected listID (since listIDs don't typically change 
-                // between instances of the program), then the index of the 
-                // last selected index, and defaulting to -1 to clear the selection
-            int index = selListIDMap.getOrDefault(i, selListMap.getOrDefault(i,-1));
-                // If the selected index is in bounds or the selection should be 
-            if (index >= -1 && index<listsTabPanels[i].getTabCount()) // cleared
-                listsTabPanels[i].setSelectedIndex(index);
-        }
+    private String formatDropboxPath(String path){
+            // If the path does not start with a slash
+        if (!path.startsWith("/"))
+                // Add a slash to the start of the file name
+            return "/"+path;
+        return path;
     }
     /**
      * This is a LinksListTabAction that saves the links from a list to a 
@@ -6778,7 +6411,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             addLinksPanel.setPreferredSize(addLinksPanel.getSize());
                 // Set the add list panel's size in the config
-            config.setSizeProperty(addLinksPanel);
+            config.setComponentSize(addLinksPanel);
         }
         @Override
         protected String getNewActionName(LinksListPanel panel){
@@ -6858,7 +6491,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             copyOrMoveListSelector.setPreferredSize(
                     copyOrMoveListSelector.getSize());
                 // Set the copy or move selector panel's size in the config
-            config.setSizeProperty(copyOrMoveListSelector);
+            config.setComponentSize(copyOrMoveListSelector);
         }
         @Override
         protected String getNewActionName(LinksListPanel panel){
@@ -8297,7 +7930,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private class ConfigLoader extends FileLoader{
         
-//        private Properties loadedConfig = new Properties();
+        private Properties loadedConfig = new Properties();
 
         ConfigLoader(File file) {
             super(file,fullyLoaded);
@@ -8308,7 +7941,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean loadFile(File file) {
-            return loadConfigFile(file,config.getProperties());
+            return loadConfigFile(file,loadedConfig);
         }
         @Override
         protected void done(){
@@ -8347,7 +7980,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             LinkManagerConfig saveConfig = createSaveConfig(config);
             if (exitAfterSaving && autoHideMenu.getDurationIndex() != 0)
                     // Make sure hidden lists are hidden
-                saveConfig.setProperty(HIDDEN_LISTS_ARE_SHOWN_KEY,false);
+                saveConfig.setHiddenListsAreShown(false);
+            else    // Set whether hidden lists are shown
+                saveConfig.setHiddenListsAreShown(showHiddenListsToggle.isSelected());
             return saveConfiguration(file,saveConfig.getProperties(), GENERAL_CONFIG_FLAG);
         }
         @Override
@@ -8355,47 +7990,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return "Saving Configuration";
         }
         @Override
-        protected void exitProgram(){
-            saver = new PrivateConfigSaver(true);
-            saver.execute();
-        }
-        @Override
         protected void done(){
             super.done();
             showHiddenListsToggle.setEnabled(!exitAfterSaving);
-        }
-    }
-    /**
-     * 
-     */
-    private class PrivateConfigSaver extends FileSaver{
-        /**
-         * 
-         * @param exit 
-         */
-        public PrivateConfigSaver(boolean exit) {
-            super(getPrivateConfigFile(), exit);
-        }
-        /**
-         * 
-         */
-        public PrivateConfigSaver() {
-            super(getPrivateConfigFile());
-        }
-        @Override
-        public String getProgressString(){
-            return "Saving Configuration";
-        }
-        @Override
-        protected void showSuccessPrompt(File file){ }
-        @Override
-        protected boolean saveFile(File file) {
-            return savePrivateConfig();
-        }
-        @Override
-        protected void done(){
-            super.done();
-            loadExternalAccountData();
         }
     }
     /**
@@ -8731,7 +8328,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          */
         protected void uploadDatabase(){
-            saver = new DbxUploader(file,"/"+getExternalDatabaseFileName(),false,exitAfterSaving);
+            saver = new DbxUploader(file,config.getDropboxDatabaseFileName(),false,exitAfterSaving);
             saver.execute();
         }
         @Override
@@ -9508,6 +9105,54 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 Properties defaultConfig){
             addConfigRows(source,config,defaultConfig,false);
         }
+        /**
+         * 
+         * @param source
+         * @param node
+         */
+        private void addConfigRows(String source, ConfigPreferences node){
+                // If the preference node is null
+            if (node == null)
+                return;
+            try {   // If the node exists
+                if (node.nodeExists(""))
+                    addConfigRows(source,node.toProperties(),node.getDefaults());
+            } catch (BackingStoreException | IllegalStateException ex) {
+                    // If the program is in debug mode
+                if (isInDebug())
+                    System.out.println("Error: " + ex);
+            }
+        }
+        /**
+         * 
+         * @param source
+         * @param node 
+         */
+        private void addConfigRows(String source, Preferences node){
+            addConfigRows(source,new ConfigPreferences(node));
+        }
+        /**
+         * 
+         * @param sourceTemplate
+         * @param prefix 
+         */
+        private void addNodeChildConfigRows(String sourceTemplate, String prefix){
+            try{    // Get the children of the local preference node, as a 
+                    // tree set
+                TreeSet<String> childNodes = new TreeSet<>(Arrays.asList(
+                        config.getPreferences().childrenNames()));
+                    // Remove anything that doesn't have the given prefix
+                childNodes.removeIf((String t) -> t == null || 
+                        !t.startsWith(prefix));
+                    // Go through the child nodes
+                for (String child : childNodes){
+                        // Add all the values in the child node
+                    addConfigRows(String.format(sourceTemplate, 
+                            child.substring(prefix.length())), 
+                            config.getPreferences().node(child));
+                }
+            } catch (BackingStoreException ex) {}
+        }
         @Override
         protected boolean loadFile(File file){
             if (file.exists())  // If the database file exists
@@ -9524,8 +9169,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     new SQLiteConfig().toProperties(),true);
                 // Add all the properties for this program
             addConfigRows("Properties",config.getProperties(),config.getDefaultProperties());
-                // Add all the private properties for this program
-            addConfigRows("Private Properties",config.getPrivateProperties(),config.getDefaultPrivateProperties());
+                // Add all the shared preferences for this program
+            addConfigRows("Shared Preferences",config.getSharedPreferences());
+                // Add all the local preferences for this program
+            addConfigRows("Local Preferences",config.getPreferences());
+                // Add all the list type nodes
+            addNodeChildConfigRows("List Type %s Preferences",
+                    LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX);
+                // Add all the list ID nodes
+            addNodeChildConfigRows("List ID %s Preferences",
+                    LIST_ID_PREFERENCE_NODE_NAME_PREFIX);
+                // Add all the local Dropbox preferences for this program
+            addConfigRows("Dropbox Preferences",config.getDropboxPreferences());
             
             return null;
         }
@@ -9588,6 +9243,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             linkCountLabel.setText(Objects.toString(linkCount,"N/A"));
             shownTotalSizeLabel.setText(Objects.toString(shownTotalSize,"N/A"));
             allTotalSizeLabel.setText(Objects.toString(allTotalSize,"N/A"));
+            programIDLabel.setText(Objects.toString(config.getProgramID(), "N/A"));
             
             setTabEnabled(dbCreatePrefixScrollPane,createPrefixTestNode != null);
             if (createPrefixTestNode != null)
@@ -9952,7 +9608,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             if (success){
-                setDatabaseFileName(target);
+                config.setDatabaseFileName(target);
             }
             super.done();
             setLocationDialog.setVisible(false);
@@ -10441,7 +10097,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param loadFlags 
          */
         DbxDownloader(File file,String dbxPath,Integer loadFlags){
-            super(file,dbxPath,loadFlags);
+            super(file,formatDropboxPath(dbxPath),loadFlags);
         }
         /**
          * 
@@ -10449,7 +10105,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param dbxPath
          */
         DbxDownloader(File file,String dbxPath){
-            super(file,dbxPath);
+            super(file,formatDropboxPath(dbxPath));
         }
         @Override
         protected String getFileNotFoundMessage(File file, String path){
@@ -10515,7 +10171,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param exit 
          */
         DbxUploader(File file,String dbxPath,boolean showSuccess,boolean exit) {
-            super(file,dbxPath,showSuccess,exit);
+            super(file,formatDropboxPath(dbxPath),showSuccess,exit);
         }
         /**
          * 
@@ -10524,7 +10180,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param showSuccess 
          */
         DbxUploader(File file, String dbxPath, boolean showSuccess){
-            super(file,dbxPath,showSuccess);
+            super(file,formatDropboxPath(dbxPath),showSuccess);
         }
         /**
          * 
@@ -10532,7 +10188,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file 
          */
         DbxUploader(File file,String dbxPath){
-            super(file,dbxPath);
+            super(file,formatDropboxPath(dbxPath));
         }
         @Override
         protected String getExceptionMessage(File file, String path){
@@ -10760,8 +10416,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 setCard(setLocationPanel,setDropboxCard);
             } else if (!validAccount){
                 dbxUtils.clearCredentials();
-                saver = new PrivateConfigSaver();
-                saver.execute();
             } else {
                 setCard(setLocationPanel,setExternalCard);
             }
