@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.prefs.*;
 import manager.config.*;
 import manager.dropbox.DropboxLinkUtils;
+import manager.links.LinksListTabsPanel;
 import manager.security.Obfuscator;
 import org.sqlite.SQLiteConfig;
 
@@ -1619,6 +1620,18 @@ public class LinkManagerConfig {
             };
         }
         return currTabIndexMap;
+    }
+    /**
+     * 
+     * @param listType
+     * @param tabsPanel 
+     */
+    public void setCurrentTab(int listType, LinksListTabsPanel tabsPanel){
+        setCurrentTabListID(listType,tabsPanel.getSelectedListID());
+            // If the tabs panel has nothing selected, set the index to null.
+            // Otherwise, set it to the selected index
+        setCurrentTabIndex(listType, (tabsPanel.isSelectionEmpty()) ? null :
+                tabsPanel.getSelectedIndex());
     }
     /**
      * 
