@@ -311,6 +311,11 @@ public class LinkManagerConfig {
      * null and is initialized when first used.
      */
     private Map<Integer, String> selLinkMap = null;
+    /**
+     * This is a map view of whether the selected links are visible for the 
+     * lists. This is initially null and is initialized when first used.
+     */
+    private Map<Integer, Boolean> selLinkVisMap = null;
     
     /**
      * This is the ID for the program.
@@ -1059,6 +1064,9 @@ public class LinkManagerConfig {
                 // If the key starts with the selected link key
             if (key.startsWith(SELECTED_LINK_FOR_LIST_KEY))
                 keyPrefix = SELECTED_LINK_FOR_LIST_KEY;
+                // If the key starts with the selected link is visible key
+            else if (key.startsWith(SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
+                keyPrefix = SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY;
                 // If the key starts with the current tab listID key
             else if (key.startsWith(CURRENT_TAB_LIST_ID_KEY)){
                 keyPrefix = CURRENT_TAB_LIST_ID_KEY;
@@ -1118,6 +1126,8 @@ public class LinkManagerConfig {
         selListMap.values().removeIf((Integer t) -> t == null);
             // Add all the values for the selected links in the lists
         getSelectedLinkMap().putAll(selMap);
+            // Add all the values for the selected links are visible in the lists
+        getSelectedLinkIsVisibleMap().putAll(selVisMap);
         
             // Add all the values for the current tab listIDs 
         getCurrentTabListIDMap().putAll(selListIDMap);
@@ -1855,6 +1865,51 @@ public class LinkManagerConfig {
             };
         }
         return selLinkMap;
+    }
+    /**
+     * 
+     * @param listID
+     * @param value 
+     */
+    public void setSelectedLinkIsVisible(int listID, Boolean value){
+        getListPreferences(listID).putObject(
+                SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, value);
+    }
+    /**
+     * 
+     * @param listID
+     * @return 
+     */
+    public boolean getSelectedLinkIsVisible(int listID){
+        return getListPreferences(listID).getBoolean(
+                SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, false);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<Integer,Boolean> getSelectedLinkIsVisibleMap(){
+        if (selLinkVisMap == null){
+            selLinkVisMap = new ListConfigDataMap<>(){
+                @Override
+                protected Boolean getValue(int key) {
+                        // If the node contains the selected link is visible key
+                    if (getListPreferences(key).containsKey(
+                            SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
+                        return getSelectedLinkIsVisible(key);
+                    return null;
+                }
+                @Override
+                protected void putValue(int key, Boolean value) {
+                    setSelectedLinkIsVisible(key,value);
+                }
+                @Override
+                protected String getPrefixForNodes() {
+                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                }
+            };
+        }
+        return selLinkVisMap;
     }
     /**
      * 
