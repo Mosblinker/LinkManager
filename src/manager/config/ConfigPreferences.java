@@ -4,10 +4,14 @@
  */
 package manager.config;
 
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.*;
 import java.util.*;
 import java.util.prefs.*;
 import javax.swing.event.EventListenerList;
+import static manager.config.ConfigUtilities.*;
 
 /**
  *
@@ -417,6 +421,79 @@ public class ConfigPreferences extends Preferences{
                 return Base64.getDecoder().decode(value);
             } catch (IllegalArgumentException ex) {}
         }
+        return def;
+    }
+    /**
+     * 
+     * @param key
+     * @param value 
+     */
+    public void putDimension(String key, Dimension value){
+            // Convert the dimension object into an array of bytes and store it
+        putByteArray(key,dimensionToBytes(value));
+    }
+    /**
+     * 
+     * @param key
+     * @param def
+     * @return 
+     */
+    public Dimension getDimension(String key, Dimension def){
+            // Get the dimensions as a byte array, defaulting to null
+        byte[] arr = getByteArray(key,null);
+            // If the byte array is not null and is 2 integers long
+        if (arr != null && arr.length == Integer.BYTES*2)
+                // Convert the byte array into a dimension object
+            return dimensionFromBytes(arr);
+        return def;
+    }
+    /**
+     * 
+     * @param key
+     * @param value 
+     */
+    public void putPoint(String key, Point value){
+            // Convert the point object into an array of bytes and store it
+        putByteArray(key,pointToBytes(value));
+    }
+    /**
+     * 
+     * @param key
+     * @param def
+     * @return 
+     */
+    public Point getPoint(String key, Point def){
+            // Get the point as a byte array, defaulting to null
+        byte[] arr = getByteArray(key,null);
+            // If the byte array is not null and is 2 integers long
+        if (arr != null && arr.length == Integer.BYTES*2)
+                // Convert the byte array into a point object
+            return pointFromBytes(arr);
+        return def;
+    }
+    /**
+     * 
+     * @param key
+     * @param value 
+     */
+    public void putRectangle(String key, Rectangle value){
+            // Convert the rectangle object into an array of bytes and store it
+        putByteArray(key,rectangleToBytes(value));
+    }
+    /**
+     * 
+     * @param key
+     * @param def
+     * @return 
+     */
+    public Rectangle getRectangle(String key, Rectangle def){
+            // Get the rectangle as a byte array, defaulting to null
+        byte[] arr = getByteArray(key,null);
+            // If the byte array is not null and is either 2 or 4 integers long
+        if (arr != null && (arr.length == Integer.BYTES*2 || 
+                arr.length == Integer.BYTES*4))
+                // Convert the byte array into a rectangle object
+            return rectangleFromBytes(arr);
         return def;
     }
     /**
