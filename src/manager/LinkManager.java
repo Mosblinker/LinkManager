@@ -139,60 +139,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String PROGRAM_ID_KEY = "ProgramID";
     /**
-     * This is the configuration key for the database folder setting. This key 
-     * has been deprecated in favor of storing the database file name in a 
-     * single String.
-     */
-    @Deprecated
-    private static final String DATABASE_FOLDER_KEY = "DatabaseFolder";
-    /**
-     * This is the configuration key for the database file setting. This key 
-     * has been deprecated in favor of storing the database file name in a 
-     * single String.
-     */
-    @Deprecated
-    private static final String DATABASE_FILE_KEY = "DatabaseFile";
-    /**
-     * This is the configuration key for the listID of the currently selected 
-     * list if a list with a listID is selected. This is for the 
-     */
-    @Deprecated
-    private static final String CURRENT_TAB_LIST_ID_KEY = "CurrentTabListID";
-    /**
-     * This is the configuration key for the index of the currently selected 
-     * tab if a tab is selected. This value is used as a fallback value to be 
-     * used when the value for {@link CURRENT_TAB_LIST_ID_KEY} is unavailable 
-     * either due to the currently selected list not having a listID, no lists 
-     * have the selected listID, or the current tab is not a list. The value for 
-     * {@code CURRENT_TAB_LIST_ID_KEY} takes priority over this value due to 
-     * the listIDs staying more or less constant for any given list saved to or 
-     * loaded from the database, whereas the index for any given list may vary 
-     * between instances of the program.
-     */
-    @Deprecated
-    private static final String CURRENT_TAB_INDEX_KEY = "CurrentTabIndex";
-    /**
-     * This is the configuration key for the listID of the currently selected 
-     * list if a list with a listID is selected. This is for the 
-     */
-    @Deprecated
-    private static final String SHOWN_CURRENT_TAB_LIST_ID_KEY = 
-            "ShownCurrentTabListID";
-    /**
-     * This is the configuration key for the index of the currently selected 
-     * tab if a tab is selected. This value is used as a fallback value to be 
-     * used when the value for {@link CURRENT_TAB_LIST_ID_KEY} is unavailable 
-     * either due to the currently selected list not having a listID, no lists 
-     * have the selected listID, or the current tab is not a list. The value for 
-     * {@code CURRENT_TAB_LIST_ID_KEY} takes priority over this value due to 
-     * the listIDs staying more or less constant for any given list saved to or 
-     * loaded from the database, whereas the index for any given list may vary 
-     * between instances of the program.
-     */
-    @Deprecated
-    private static final String SHOWN_CURRENT_TAB_INDEX_KEY = 
-            "ShownCurrentTabIndex";
-    /**
      * This is the configuration key for the database file path when stored 
      * externally if the database file is stored externally.
      */
@@ -5986,45 +5932,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (!file.exists())
             return false;
         loadProperties(file,config);
-        
-        // TODO: These configuration keys are deprecated and are here for legacy 
-        // reasons
-        
-            // If the config does not have the database file key
-        if (!config.containsKey(DATABASE_FILE_PATH_KEY)){
-                // Check if the config is still using the old separate folder 
-                // and file name structure
-            if (config.containsKey(DATABASE_FOLDER_KEY) || 
-                    config.containsKey(DATABASE_FILE_KEY)){
-                    // Get the folder from the config
-                String folder = config.getProperty(DATABASE_FOLDER_KEY, ".");
-                    // If the folder is null or blank
-                if (folder == null || folder.isBlank())
-                        // File is relative to program
-                    folder = "";
-                else
-                    folder = folder.trim() + File.separator;
-                    // Get the file name from the config, defaulting to the 
-                    // default name if there isn't one
-                String fileName = config.getProperty(DATABASE_FILE_KEY, 
-                        LINK_DATABASE_FILE);
-                    // If the file name is null or blank
-                if (fileName == null || fileName.isBlank())
-                        // Use the default file name
-                    fileName = LINK_DATABASE_FILE;
-                    // Combine the folder and file name to get the full file path
-                fileName = folder + fileName.trim();
-                    // If the database file is not the default path
-                if (!LINK_DATABASE_FILE.equals(fileName))
-                        // Set the updated database file path value
-                    config.setProperty(DATABASE_FILE_PATH_KEY, fileName);
-            }
-        }
-        // These configuration keys are deprecated and should be removed
-            // Remove the old file name key
-        config.remove(DATABASE_FILE_KEY);
-            // Remove the old folder key
-        config.remove(DATABASE_FOLDER_KEY);
         return true;
     }
     /**
@@ -6118,18 +6025,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         (listsTabPanels[i].isSelectionEmpty())?null:
                         listsTabPanels[i].getSelectedIndex());
             }
-
-            // TODO: These configuration keys are deprecated and should be 
-            // removed
-            config.removeProperty(CURRENT_TAB_LIST_ID_KEY);
-            config.removeProperty(CURRENT_TAB_INDEX_KEY);
-            config.removeProperty(SHOWN_CURRENT_TAB_LIST_ID_KEY);
-            config.removeProperty(SHOWN_CURRENT_TAB_INDEX_KEY);
-                // Remove the old file name
-            config.removeProperty(DATABASE_FILE_KEY);
-                // Remove the old folder
-            config.removeProperty(DATABASE_FOLDER_KEY);
-            
         }   // Set the search text in the configuration
         config.setSearchText(searchPanel.getSearchText());
             // Set the entered link text in the configuration
@@ -6339,26 +6234,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         keys.removeIf((String t) -> {
             return t == null || !isPrefixedConfigKey(t);
         });
-        
-        // TODO: These four configuration keys will be deprecated later and are 
-        // here for legacy reasons
-            // This maps the legacy selected list keys to their integer values
-        Map<String,Integer> legacySelListMap = new HashMap<>();
-            // Go through the legacy selected list keys
-        for (String key : new String[]{
-            CURRENT_TAB_LIST_ID_KEY,CURRENT_TAB_INDEX_KEY,
-            SHOWN_CURRENT_TAB_LIST_ID_KEY,SHOWN_CURRENT_TAB_INDEX_KEY}){
-                // Get the value for that key from the config
-            Integer value = config.getIntProperty(key);
-                // If the value is not null
-            if (value != null)
-                legacySelListMap.put(key, value);
-        }   // Put the legacy values into the selected list maps
-        selListIDMap.put(0, legacySelListMap.get(CURRENT_TAB_LIST_ID_KEY));
-        selListIDMap.put(1, legacySelListMap.get(SHOWN_CURRENT_TAB_LIST_ID_KEY));
-        selListMap.put(0, legacySelListMap.get(CURRENT_TAB_INDEX_KEY));
-        selListMap.put(1, legacySelListMap.get(SHOWN_CURRENT_TAB_INDEX_KEY));
-        
             // Go through the prefixed selection keys
         for (String key : keys){
             String keyPrefix;   // Get the prefix for the current key
