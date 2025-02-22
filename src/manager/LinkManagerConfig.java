@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.prefs.*;
 import manager.config.*;
 import manager.dropbox.DropboxLinkUtils;
-import manager.links.LinksListTabsPanel;
+import manager.links.*;
 import manager.security.Obfuscator;
 import org.sqlite.SQLiteConfig;
 
@@ -1910,6 +1910,32 @@ public class LinkManagerConfig {
             };
         }
         return selLinkVisMap;
+    }
+    
+    /**
+     * 
+     * @param listID
+     * @param panel 
+     */
+    public void setVisibleSection(int listID, LinksListPanel panel){
+        
+            // This gets whether the selected index is visible
+        Boolean isSelVis = null;
+            // If the panel is not null and the panel's selection is not empty
+        if (panel != null && !panel.isSelectionEmpty())
+                // Get whether the selected indes is visible
+            isSelVis = panel.isIndexVisible(panel.getSelectedIndex());
+            // Set whether the selected link is visible
+        setSelectedLinkIsVisible(listID,isSelVis);
+    }
+    /**
+     * 
+     * @param panel 
+     */
+    public void setVisibleSection(LinksListPanel panel){
+            // If the panel is not null and has a non-null listID
+        if (panel != null && panel.getListID() != null)
+            setVisibleSection(panel.getListID(),panel);
     }
     /**
      * 
