@@ -1574,6 +1574,11 @@ public class LinkManagerConfig {
             if (dim != null)
                     // Set the component's size from the properties
                 setComponentSize(entry.getKey(),dim);
+            
+                // TODO: Remove this once the config properties map is removed or 
+                // repurposed.
+                // Remove the component size, since that's in the preference node
+            config.remove(entry.getValue()+COMPONENT_SIZE_KEY_SUFFIX);
         }
         
             // TODO: Remove this once the config properties map is removed or 
@@ -1913,7 +1918,8 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setDefaultComponentSize(Component comp, Dimension value){
-        setDefaultSizeProperty(comp, value);
+        getDefaults().setProperty(
+                getComponentName(comp)+COMPONENT_SIZE_KEY_SUFFIX, value);
     }
     /**
      * 
@@ -1921,7 +1927,8 @@ public class LinkManagerConfig {
      * @return 
      */
     public Dimension getDefaultComponentSize(Component comp){
-        return getDefaultSizeProperty(comp);
+        return getDefaults().getDimensionProperty(
+                getComponentName(comp)+COMPONENT_SIZE_KEY_SUFFIX);
     }
     /**
      * 
@@ -1929,7 +1936,8 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setComponentSize(Component comp, Dimension value){
-        setSizeProperty(comp,value);
+        getPreferences().putDimension(
+                getComponentName(comp)+COMPONENT_SIZE_KEY_SUFFIX, value);
     }
     /**
      * 
@@ -1945,7 +1953,8 @@ public class LinkManagerConfig {
      * @return 
      */
     public Dimension getComponentSize(Component comp, Dimension defaultValue){
-        return getSizeProperty(comp, defaultValue);
+        return getPreferences().getDimension(
+                getComponentName(comp)+COMPONENT_SIZE_KEY_SUFFIX, defaultValue);
     }
     /**
      * 
