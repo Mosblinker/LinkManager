@@ -818,6 +818,27 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @param parent
+     * @param path
+     * @return 
+     */
+    private boolean nodeExists(Preferences parent, String path){
+        try{
+            return parent.nodeExists(path);
+        } catch (BackingStoreException | IllegalStateException ex) { }
+        return false;
+    }
+    /**
+     * 
+     * @param node 
+     */
+    private void removeNode(Preferences node){
+        try {
+            node.removeNode();
+        } catch (BackingStoreException | IllegalStateException ex) { }
+    }
+    /**
+     * 
      * @param key
      * @return 
      */
@@ -1889,9 +1910,10 @@ public class LinkManagerConfig {
      * 
      */
     public void clearDropboxToken(){
-        try {
-            getPrivateDropboxPreferences().removeNode();
-        } catch (BackingStoreException ex) { }
+            // If the private Dropbox node exists
+        if (nodeExists(getPrivatePreferences(),DROPBOX_PREFERENCE_NODE_NAME))
+                // Remove it
+            removeNode(getPrivateDropboxPreferences());
     }
     /**
      * 
