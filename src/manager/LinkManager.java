@@ -944,8 +944,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Set and store a random program ID
             config.getProperties().setProperty(PROGRAM_ID_KEY, config.setRandomProgramID());
         }
-            // TODO: Temporarily import the property list to the config
-        config.importProperties(config.getProperties());
         
         System.gc();        // Run the garbage collector
         configureProgram();
