@@ -129,6 +129,12 @@ public class LinkManagerConfig {
      * component.
      */
     public static final String COMPONENT_BOUNDS_KEY_SUFFIX = "Bounds";
+    /**
+     * This is the suffix for the configuration keys for the window state of a 
+     * frame.
+     * @todo Implement the storing of the window state.
+     */
+    public static final String FRAME_WINDOW_STATE_KEY_SUFFIX = "WindowState";
     
     /**
      * This is the old suffix for configuration keys for the width component of 
