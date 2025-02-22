@@ -768,6 +768,16 @@ public class ConfigPreferences extends Preferences{
         return node.parent();
     }
     /**
+     * 
+     * @param pathName
+     * @param defaults The {@code Properties} map containing the defaults, or 
+     * null.
+     * @return 
+     */
+    public ConfigPreferences node(String pathName, Properties defaults){
+        return new ConfigPreferences(node.node(pathName),defaults);
+    }
+    /**
      * {@inheritDoc }
      * @param pathName {@inheritDoc }
      * @return {@inheritDoc }
@@ -777,8 +787,8 @@ public class ConfigPreferences extends Preferences{
      * @see #flush() 
      */
     @Override
-    public Preferences node(String pathName) {
-        return node.node(pathName);
+    public ConfigPreferences node(String pathName) {
+        return node(pathName,null);
     }
     /**
      * {@inheritDoc }
