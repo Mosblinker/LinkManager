@@ -1448,6 +1448,12 @@ public class LinkManagerConfig {
                 // object as its defaults. This should be okay since we won't be 
                 // writing to it, only reading from it.
             cProp = new ConfigProperties(prop);
+        
+            // TODO: Remove this once the config properties map is removed or 
+            // repurposed.
+            // Add all the properties to the config properties map
+        config.putAll(prop);
+        
             // Get the value for the database file path from the properties
         String str = cProp.getProperty(DATABASE_FILE_PATH_KEY);
             // If the properties has the database file path
@@ -1551,19 +1557,27 @@ public class LinkManagerConfig {
         b = cProp.getBooleanProperty(SHOW_DETAILED_DATABASE_ERRORS);
             // If the properties has the database error details are shown value
         if (b != null)
-                // Set whether database error details are shown from the properties
-            setDatabaseErrorDetailsAreShown(b);
+                // Set whether database error details are shown from the 
+            setDatabaseErrorDetailsAreShown(b);     // properties
             // Get the value for the database sync setting from the properties
         b = cProp.getBooleanProperty(SYNC_DATABASE_KEY);
             // If the properties has the database sync setting
         if (b != null)
                 // Set whether database will sync from the properties
             setDatabaseWillSync(b);
+            // Go through the entries in the component name map
+        for (Map.Entry<Component,String> entry:getComponentNames().entrySet()){
+                // Get the dimension for the component from the properties
+            Dimension dim = cProp.getDimensionProperty(
+                    entry.getValue()+COMPONENT_SIZE_KEY_SUFFIX);
+                // If the properties has a size for the component
+            if (dim != null)
+                    // Set the component's size from the properties
+                setComponentSize(entry.getKey(),dim);
+        }
         
             // TODO: Remove this once the config properties map is removed or 
             // repurposed.
-            // Add all the properties to the config properties map
-        config.putAll(prop);
             // Remove the database file path, since that's in the preference node
         config.remove(DATABASE_FILE_PATH_KEY);
             // Remove the progress display, since that's in the preference node
