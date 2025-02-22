@@ -127,15 +127,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * determine what preference node to use for the program.
      */
     private static final String PROGRAM_ID_KEY = "ProgramID";
-    /**
-     * This is the prefix for the configuration key for whether the currently 
-     * selected link in a list is visible (i.e. whether this should scroll to 
-     * the selected link when the program is first loading) with a listID. The 
-     * list's listID is appended to the end of this to get the configuration key 
-     * specific for that list.
-     */
-    private static final String SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX = 
-            "SelectedLinkVisibleForList";
     
     private static final String FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX = 
             "FirstVisibleIndexForList";
@@ -147,7 +138,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * use a prefix instead of a defined value.
      */
     private static final String[] PREFIXED_CONFIG_KEYS = {
-        SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX,
         FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX,
         LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX
     };
