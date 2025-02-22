@@ -190,6 +190,21 @@ public class LinkManagerConfig {
      */
     public static final String LIST_ID_PROPERTY_KEY_SUFFIX = "ForList";
     /**
+     * This is an array that contains the prefixes for the keys in properties 
+     * that deal with list types.
+     */
+    private static final String[] LIST_TYPE_PROPERTY_KEY_PREFIXES = {
+        CURRENT_TAB_LIST_ID_KEY,
+        CURRENT_TAB_INDEX_KEY
+    };
+    /**
+     * This is an array that contains the prefixes for the keys in properties 
+     * that deal with list IDs.
+     */
+    private static final String[] LIST_ID_PROPERTY_KEY_PREFIXES = {
+        
+    };
+    /**
      * This is the start of the path for the preference node used to store the 
      * configuration data for an instance of the program.
      */
@@ -773,6 +788,27 @@ public class LinkManagerConfig {
      */
     protected String getComponentName(Component comp){
         return getComponentNames().getOrDefault(comp, comp.getName());
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    private boolean isPrefixedListKey(String key){
+            // Go through the list of list type property prefixes
+        for (String prefix : LIST_TYPE_PROPERTY_KEY_PREFIXES){
+                // If the key matches the current prefix with the list type 
+                // property key suffix
+            if (key.startsWith(prefix+LIST_TYPE_PROPERTY_KEY_SUFFIX))
+                return true;
+        }   // Go through the list of list ID property prefixes
+        for (String prefix : LIST_ID_PROPERTY_KEY_PREFIXES){
+                // If the key matches the current prefix with the list ID 
+                // property key suffix
+            if (key.startsWith(prefix+LIST_ID_PROPERTY_KEY_SUFFIX))
+                return true;
+        }
+        return false;
     }
     /**
      * 
