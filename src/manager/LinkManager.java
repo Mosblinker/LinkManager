@@ -5880,11 +5880,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Set the last visible index for the list
                 config.setProperty(LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX+listID,
                         panel.getList().getLastVisibleIndex());
-                    // If the panel's selection is not empty
-                if (!panel.isSelectionEmpty())
-                        // Set whether the selected link is visible
-                    config.setProperty(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX+listID,
-                            panel.isIndexVisible(panel.getSelectedIndex()));
             }
         }
             // Update the program's configuration
@@ -5915,6 +5910,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * cover all possible ways of the value being set.
      */
     private void updateProgramConfig(){
+            // Map the list panels to their listIDs
+        Map<Integer,LinksListPanel> panels = new HashMap<>();
+            // Go through the list panels in the selected tabs panel
+        for (LinksListPanel panel : getSelectedTabsPanel()){
+                // If the list panel's listID is not null
+            if (panel.getListID() != null)
+                panels.put(panel.getListID(), panel);
+        }   // Go through the tabs panel
+        for (LinksListTabsPanel tabsPanel : listsTabPanels){
+                // If the current tabs panel is the selected panel
+            if (tabsPanel == getSelectedTabsPanel())
+                continue;
+                // Go through the list panels in the current tabs panel
+            for (LinksListPanel panel : tabsPanel){
+                    // If the list panel's listID is not null
+                if (panel.getListID() != null)
+                    panels.putIfAbsent(panel.getListID(), panel);
+            }
+        }   // Go through the list panels
+        for (LinksListPanel panel : panels.values()){
+                // Update the visible properties for the panel in the config
+            config.setVisibleSection(panel);
+        }
             // Set the search text in the configuration
         config.setSearchText(searchPanel.getSearchText());
             // Set the entered link text in the configuration
@@ -6045,7 +6063,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // This maps listIDs to the selected link for that list
         Map<Integer,String> selMap = config.getSelectedLinkMap();
             // This maps the listIDs to whether the selected link is visible for 
-        Map<Integer,Boolean> selVisMap = new HashMap<>();   // that list
+            // that list
+        Map<Integer,Boolean> selVisMap = config.getSelectedLinkIsVisibleMap();
             // This maps the listIDs to the first visible index for that list
         Map<Integer,Integer> firstVisMap = new HashMap<>();
             // This maps the tabs panel indexes to the listID of the selected 
@@ -6064,11 +6083,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Go through the prefixed selection keys
         for (String key : keys){
             String keyPrefix;   // Get the prefix for the current key
-                // If the key starts with the selected link visible key prefix
-            if (key.startsWith(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX))
-                keyPrefix = SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX;
                 // If the key starts with the first visible index key prefix
-            else if (key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX))
+            if (key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX))
                 keyPrefix = FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX;
             else // Skip this key
                 continue;
@@ -6081,10 +6097,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 int type = Integer.parseInt(key.substring(keyPrefix.length()));
                     // Determine which key this is based off the prefix
                 switch(keyPrefix){
-                        // If this is the selected link is visible key
-                    case(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX):
-                        selVisMap.put(type, Boolean.valueOf(value));
-                        break;
                         // If this is the first visible index key
                     case(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX):
                         firstVisMap.put(type, Integer.valueOf(value));
