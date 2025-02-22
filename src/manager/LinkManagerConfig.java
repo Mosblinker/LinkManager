@@ -134,6 +134,23 @@ public class LinkManagerConfig {
      */
     public static final String DROPBOX_TOKEN_EXPIRATION_KEY = "TokenExpiresAt";
     /**
+     * This is the configuration key for the listID of the currently selected 
+     * list if a list with a listID is selected.
+     */
+    public static final String CURRENT_TAB_LIST_ID_KEY = "CurrentTabListID";
+    /**
+     * This is the configuration key for the index of the currently selected 
+     * tab if a tab is selected. This value is used as a fallback value to be 
+     * used when the value for {@link CURRENT_TAB_LIST_ID_KEY} is unavailable 
+     * either due to the currently selected list not having a listID, no lists 
+     * have the selected listID, or the current tab is not a list. The value for 
+     * {@code CURRENT_TAB_LIST_ID_KEY} takes priority over this value due to 
+     * the listIDs staying more or less constant for any given list saved to or 
+     * loaded from the database, whereas the index for any given list may vary 
+     * between instances of the program.
+     */
+    public static final String CURRENT_TAB_INDEX_KEY = "CurrentTabIndex";
+    /**
      * This is the suffix for the configuration keys for the size of a 
      * component.
      */
@@ -875,6 +892,10 @@ public class LinkManagerConfig {
             setDatabaseErrorDetailsAreShown(b);     // properties
             // Get the value for the database sync setting from the properties
         b = cProp.getBooleanProperty(SYNC_DATABASE_KEY);
+            // If the properties has the database sync setting
+        if (b != null)
+                // Set whether database will sync from the properties
+            setDatabaseWillSync(b);
             // Get the value for the Dropbox database file path from the 
             // properties
         str = cProp.getProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY);    
@@ -882,10 +903,6 @@ public class LinkManagerConfig {
         if (str != null)
                 // Set the Dropbox database file path from the properties
             setDropboxDatabaseFileName(str);
-            // If the properties has the database sync setting
-        if (b != null)
-                // Set whether database will sync from the properties
-            setDatabaseWillSync(b);
             // Go through the entries in the component name map
         for (Map.Entry<Component,String> entry:getComponentNames().entrySet()){
                 // Get the dimension for the component from the properties
@@ -1509,6 +1526,69 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @param listType
+     * @param key
+     * @param value 
+     */
+    private void setCurrentTabValue(int listType, String key, Integer value){
+            // Get the preference node for the list type
+        Preferences node = getListTypePreferences(listType);
+            // If the value is null
+        if (value == null)
+                // Remove the value from the preference node
+            node.remove(key);
+        else
+            node.putInt(key, value);
+    }
+    /**
+     * 
+     * @param listType
+     * @param key
+     * @return 
+     */
+    private Integer getCurrentTabValue(int listType, String key){
+            // Get the preference node for the list type
+        Preferences node = getListTypePreferences(listType);
+            // Get whether the node contains the key
+        if (node.get(key, null) == null)
+            return null;
+            // Get the value for the given key
+        return node.getInt(key, 0);
+    }
+    /**
+     * 
+     * @param listType
+     * @param listID 
+     */
+    public void setCurrentTabListID(int listType, Integer listID){
+        setCurrentTabValue(listType, CURRENT_TAB_LIST_ID_KEY, listID);
+    }
+    /**
+     * 
+     * @param listType
+     * @return 
+     */
+    public Integer getCurrentTabListID(int listType){
+        return getCurrentTabValue(listType, CURRENT_TAB_LIST_ID_KEY);
+    }
+    /**
+     * 
+     * @param listType
+     * @param index 
+     */
+    public void setCurrentTabIndex(int listType, Integer index){
+        setCurrentTabValue(listType, CURRENT_TAB_INDEX_KEY, index);
+    }
+    /**
+     * 
+     * @param listType
+     * @return 
+     */
+    public Integer getCurrentTabIndex(int listType){
+        return getCurrentTabValue(listType, CURRENT_TAB_INDEX_KEY);
+    }
+    /**
+     * 
      * @param value 
      */
     public void setDropboxDatabaseFileName(String value){
@@ -1625,9 +1705,6 @@ public class LinkManagerConfig {
             getPrivateDropboxPreferences().removeNode();
         } catch (BackingStoreException ex) { }
     }
-    
-    
-    
     /**
      * 
      */
