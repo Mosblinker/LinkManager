@@ -982,6 +982,58 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @param listData
+     * @param keyPrefix
+     * @param prop 
+     */
+    private void addListDataToProperties(Map<Integer,?> listData,String keyPrefix, 
+            ConfigProperties prop){
+            // Go through the entries in the given map
+        for (Map.Entry<Integer, ?> entry : listData.entrySet()){
+                // Add the current entry to the properties map
+            prop.setProperty(keyPrefix+entry.getKey(), entry.getValue());
+        }
+    }
+    /**
+     * 
+     * @return 
+     */
+    public ConfigProperties exportProperties(){
+        try{    // This gets the preference node as a properties object
+            ConfigProperties prop = getPreferences().toProperties();
+                // If the local dropbox node exists
+            if (nodeExists(getPreferences(),DROPBOX_PREFERENCE_NODE_NAME)){
+                    // Set the value for the Dropbox database file path
+                prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY, 
+                        getDropboxDatabaseFileName());
+            }   // Add the current tab listID data to the properties
+            addListDataToProperties(getCurrentTabListIDMap(),
+                    CURRENT_TAB_LIST_ID_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
+                // Add the current tab index data to the properties
+            addListDataToProperties(getCurrentTabIndexMap(),
+                    CURRENT_TAB_INDEX_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
+                // Add the selected link data to the properties
+            addListDataToProperties(getSelectedLinkMap(),
+                    SELECTED_LINK_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,prop);
+                // Add the selected link visibility data to the properties
+            addListDataToProperties(getSelectedLinkIsVisibleMap(),
+                    SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY+
+                            LIST_ID_PROPERTY_KEY_SUFFIX,prop);
+                // Add the first visible index data to the properties
+            addListDataToProperties(getFirstVisibleIndexMap(),
+                    FIRST_VISIBLE_INDEX_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
+                    prop);
+                // Add the last visible index data to the properties
+            addListDataToProperties(getLastVisibleIndexMap(),
+                    LAST_VISIBLE_INDEX_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
+                    prop);
+            return prop;
+        } catch (BackingStoreException | IllegalStateException ex) {
+            return null;
+        }
+    }
+    /**
+     * 
      * @param fileName 
      */
     public void setDatabaseFileName(String fileName){
