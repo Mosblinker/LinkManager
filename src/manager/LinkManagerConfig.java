@@ -118,10 +118,10 @@ public class LinkManagerConfig {
      */
     public static final String COMPONENT_SIZE_KEY_SUFFIX = "Size";
     /**
-     * This is the suffix for the configuration keys for the position of a 
+     * This is the suffix for the configuration keys for the location of a 
      * component.
      */
-    public static final String COMPONENT_POSITION_KEY_SUFFIX = "Position";
+    public static final String COMPONENT_LOCATION_KEY_SUFFIX = "Location";
     /**
      * This is the suffix for the configuration keys for the bounds of a 
      * component.
