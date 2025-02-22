@@ -128,20 +128,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String PROGRAM_ID_KEY = "ProgramID";
     
-    private static final String FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX = 
-            "FirstVisibleIndexForList";
-    
-    private static final String LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX = 
-            "LastVisibleIndexForList";
-    /**
-     * This is an array that contains the prefixes for configuration keys that 
-     * use a prefix instead of a defined value.
-     */
-    private static final String[] PREFIXED_CONFIG_KEYS = {
-        FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX,
-        LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX
-    };
-    
     private static final String LIST_MANAGER_NAME = "ListManager";
     
     private static final String LIST_TABS_MANAGER_NAME = "ListTabsManager";
@@ -5762,18 +5748,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
-     * @param key
-     * @return 
-     */
-    private boolean isPrefixedConfigKey(String key){
-        for (String prefix : PREFIXED_CONFIG_KEYS){
-            if (key.startsWith(prefix))
-                return true;
-        }
-        return false;
-    }
-    /**
-     * 
      * @param file
      * @param config
      * @throws IOException 
@@ -5833,45 +5807,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private LinkManagerConfig prepareSaveConfig(LinkManagerConfig config){
-            // If the program has fully loaded
-        if (fullyLoaded){
-                // Remove any keys from the config that are related to 
-                // selected tabs, selected links, or visible indexes
-            config.getProperties().keySet().removeIf((Object t) -> {
-                return t == null || isPrefixedConfigKey(t.toString());
-            });
-                // Map the list panels to their listIDs
-            Map<Integer,LinksListPanel> panels = new HashMap<>();
-                // Go through the list panels in the selected tabs panel
-            for (LinksListPanel panel : getSelectedTabsPanel()){
-                    // If the list panel's listID is not null
-                if (panel.getListID() != null)
-                    panels.put(panel.getListID(), panel);
-            }   // Go through the tabs panel
-            for (LinksListTabsPanel tabsPanel : listsTabPanels){
-                    // If the current tabs panel is the selected panel
-                if (tabsPanel == getSelectedTabsPanel())
-                    continue;
-                    // Go through the list panels in the current tabs panel
-                for (LinksListPanel panel : tabsPanel){
-                        // If the list panel's listID is not null
-                    if (panel.getListID() != null)
-                        panels.putIfAbsent(panel.getListID(), panel);
-                }
-            }   // Go through the list panels and their listIDs
-            for (Map.Entry<Integer,LinksListPanel> panelEntry : panels.entrySet()){
-                    // Get the listID for the panel
-                int listID = panelEntry.getKey();
-                    // Get the list panel
-                LinksListPanel panel = panelEntry.getValue();
-                    // Set the first visible index for the list
-                config.setProperty(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX+listID,
-                        panel.getList().getFirstVisibleIndex());
-                    // Set the last visible index for the list
-                config.setProperty(LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX+listID,
-                        panel.getList().getLastVisibleIndex());
-            }
-        }
             // Update the program's configuration
         updateProgramConfig();
         return config;
@@ -5900,30 +5835,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * cover all possible ways of the value being set.
      */
     private void updateProgramConfig(){
-            // Map the list panels to their listIDs
-        Map<Integer,LinksListPanel> panels = new HashMap<>();
-            // Go through the list panels in the selected tabs panel
-        for (LinksListPanel panel : getSelectedTabsPanel()){
-                // If the list panel's listID is not null
-            if (panel.getListID() != null)
-                panels.put(panel.getListID(), panel);
-        }   // Go through the tabs panel
-        for (LinksListTabsPanel tabsPanel : listsTabPanels){
-                // If the current tabs panel is the selected panel
-            if (tabsPanel == getSelectedTabsPanel())
-                continue;
-                // Go through the list panels in the current tabs panel
-            for (LinksListPanel panel : tabsPanel){
+            // If the program has fully loaded
+        if (fullyLoaded){
+                // Map the list panels to their listIDs
+            Map<Integer,LinksListPanel> panels = new HashMap<>();
+                // Go through the list panels in the selected tabs panel
+            for (LinksListPanel panel : getSelectedTabsPanel()){
                     // If the list panel's listID is not null
                 if (panel.getListID() != null)
-                    panels.putIfAbsent(panel.getListID(), panel);
+                    panels.put(panel.getListID(), panel);
+            }   // Go through the tabs panel
+            for (LinksListTabsPanel tabsPanel : listsTabPanels){
+                    // If the current tabs panel is the selected panel
+                if (tabsPanel == getSelectedTabsPanel())
+                    continue;
+                    // Go through the list panels in the current tabs panel
+                for (LinksListPanel panel : tabsPanel){
+                        // If the list panel's listID is not null
+                    if (panel.getListID() != null)
+                        panels.putIfAbsent(panel.getListID(), panel);
+                }
+            }   // Go through the list panels
+            for (LinksListPanel panel : panels.values()){
+                    // Update the visible properties for the panel in the config
+                config.setVisibleSection(panel);
             }
-        }   // Go through the list panels
-        for (LinksListPanel panel : panels.values()){
-                // Update the visible properties for the panel in the config
-            config.setVisibleSection(panel);
-        }
-            // Set the search text in the configuration
+        }   // Set the search text in the configuration
         config.setSearchText(searchPanel.getSearchText());
             // Set the entered link text in the configuration
         config.setEnteredLinkText(linkTextField.getText());
@@ -6056,43 +5993,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // that list
         Map<Integer,Boolean> selVisMap = config.getSelectedLinkIsVisibleMap();
             // This maps the listIDs to the first visible index for that list
-        Map<Integer,Integer> firstVisMap = new HashMap<>();
+        Map<Integer,Integer> firstVisMap = config.getFirstVisibleIndexMap();
             // This maps the tabs panel indexes to the listID of the selected 
             // list for that tabs panel
         Map<Integer,Integer> selListIDMap = new HashMap<>(config.getCurrentTabListIDMap());
             // This maps the tabs panel indexes to the selected index of the 
             // tab for that tabs panel
         Map<Integer,Integer> selListMap = config.getCurrentTabIndexMap();
-            // This gets a set of keys for the properties
-        Set<String> keys = new HashSet<>(config.getProperties().stringPropertyNames());
-            // Remove any null keys and keys that aren't prefixed keys for the 
-            // selection
-        keys.removeIf((String t) -> {
-            return t == null || !isPrefixedConfigKey(t);
-        });
-            // Go through the prefixed selection keys
-        for (String key : keys){
-            String keyPrefix;   // Get the prefix for the current key
-                // If the key starts with the first visible index key prefix
-            if (key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX))
-                keyPrefix = FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX;
-            else // Skip this key
-                continue;
-                // Get the value for this key
-            String value = config.getProperty(key);
-                // If the value is null
-            if (value == null)
-                continue;
-            try{    // Get the list or tabs panel that this key is for
-                int type = Integer.parseInt(key.substring(keyPrefix.length()));
-                    // Determine which key this is based off the prefix
-                switch(keyPrefix){
-                        // If this is the first visible index key
-                    case(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX):
-                        firstVisMap.put(type, Integer.valueOf(value));
-                }
-            } catch(NumberFormatException ex){ }
-        }   // Go through the list tabs panels
+            // Go through the list tabs panels
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
                 // Go through the list panels in the current list tabs panel
             for (LinksListPanel panel : tabsPanel){
