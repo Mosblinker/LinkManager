@@ -4088,8 +4088,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // If the source of the change is the currently selected list
             if (Objects.equals(getSelectedList(),evt.getSource())){
                 updateSelectedLink(); 
-            }   // If the program has fully loaded
-            if (fullyLoaded){
+            }   // If the program has fully loaded and the program isn't loading 
+                // the database
+            if (fullyLoaded && !isLoadingDatabase()){
                     // This will get the listID of the list that the selection 
                 Integer listID;     // changed
                     // This will get the newly selected value
