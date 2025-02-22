@@ -294,6 +294,15 @@ public class ConfigUtilities {
     }
     /**
      * 
+     * @param width
+     * @param height
+     * @return 
+     */
+    public static byte[] dimensionToByteArray(int width, int height){
+        return intArraytoByteArray(DIMENSION_BYTE_ARRAY_HEADER,width,height);
+    }
+    /**
+     * 
      * @param value
      * @return 
      */
@@ -301,7 +310,7 @@ public class ConfigUtilities {
             // If the given dimension object is null
         if (value == null)
             return null;
-        return intArraytoByteArray(DIMENSION_BYTE_ARRAY_HEADER,value.width,value.height);
+        return dimensionToByteArray(value.width,value.height);
     }
     /**
      * 
