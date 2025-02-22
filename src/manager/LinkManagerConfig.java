@@ -148,7 +148,7 @@ public class LinkManagerConfig {
     /**
      * This is a properties map that stores the defaults for {@code localNode}.
      */
-    private final Properties localDefaults;
+    private final ConfigProperties localDefaults;
     /**
      * This is the preference node containing the sensitive data for this 
      * instance of LinkManager and any that share this instance's ID.
@@ -157,7 +157,7 @@ public class LinkManagerConfig {
     /**
      * This is a properties map that stores the defaults for {@code privateNode}.
      */
-    private final Properties privateDefaults;
+    private final ConfigProperties privateDefaults;
     /**
      * This is a properties map that stores the configuration for LinkManager.
      */
@@ -192,14 +192,18 @@ public class LinkManagerConfig {
      * This is the ID for the program.
      */
     private UUID programID = null;
-    
+    /**
+     * 
+     * @param sqlProp
+     * @param node 
+     */
     private LinkManagerConfig(Properties sqlProp, ConfigPreferences node){
         defaultConfig = new Properties();
         config = new Properties(defaultConfig);
         defaultPrivateConfig = new Properties();
         privateConfig = new Properties(defaultPrivateConfig);
-        localDefaults = new Properties();
-        privateDefaults = new Properties();
+        localDefaults = new ConfigProperties();
+        privateDefaults = new ConfigProperties();
         compKeyMap = new HashMap<>();
             // If the given SQLite config properties is not null
         if(sqlProp != null)
@@ -208,11 +212,17 @@ public class LinkManagerConfig {
             sqlConfig = new SQLiteConfig();
         programNode = node;
     }
-    
+    /**
+     * 
+     * @param node 
+     */
     public LinkManagerConfig(Preferences node){
-        this(null, new ConfigPreferences(node));
+        this(null, new ConfigPreferences(node, new ConfigProperties()));
     }
-    
+    /**
+     * 
+     * @param linkConfig 
+     */
     public LinkManagerConfig(LinkManagerConfig linkConfig){
         this(linkConfig.sqlConfig.toProperties(), linkConfig.programNode);
         this.defaultConfig.putAll(linkConfig.defaultConfig);
@@ -220,8 +230,8 @@ public class LinkManagerConfig {
         this.config.putAll(linkConfig.config);
         this.privateConfig.putAll(linkConfig.privateConfig);
         this.compKeyMap.putAll(linkConfig.compKeyMap);
-        this.localDefaults.putAll(linkConfig.localDefaults);
-        this.privateDefaults.putAll(linkConfig.privateDefaults);
+        this.localDefaults.addProperties(linkConfig.localDefaults);
+        this.privateDefaults.addProperties(linkConfig.privateDefaults);
         LinkManagerConfig.this.setProgramID(linkConfig.programID);
     }
     /**
@@ -244,10 +254,11 @@ public class LinkManagerConfig {
     /**
      * This returns the properties map that stores the default values for the 
      * {@link #getPreferences preference node}.
-     * @return The properties map with the defaults for the preference node.
+     * @return The properties map with the defaults for the local preference 
+     * node.
      * @see #getPreferences() 
      */
-    public Properties getDefaults(){
+    public ConfigProperties getDefaults(){
         return localDefaults;
     }
     /**
@@ -266,7 +277,7 @@ public class LinkManagerConfig {
      * private data.
      * @see #getPrivatePreferences() 
      */
-    public Properties getPrivateDefaults(){
+    public ConfigProperties getPrivateDefaults(){
         return privateDefaults;
     }
     /**
