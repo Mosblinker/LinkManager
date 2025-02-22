@@ -15,6 +15,21 @@ import java.util.Objects;
  */
 public class ConfigUtilities {
     /**
+     * This is the header short for dimensions stored in byte arrays. This 
+     * should result in a Base64 encoded String that starts with "DM".
+     */
+    public static final short DIMENSION_BYTE_ARRAY_HEADER = (short) 0x0CC3;
+    /**
+     * This is the header short for points stored in byte arrays. This should 
+     * result in a Base64 encoded String that starts with "PT".
+     */
+    public static final short POINT_BYTE_ARRAY_HEADER = (short) 0x3D30;
+    /**
+     * This is the header short for rectangles stored in byte arrays. This 
+     * should result in a Base64 encoded String that starts with "RT".
+     */
+    public static final short RECTANGLE_BYTE_ARRAY_HEADER = (short) 0x4530;
+    /**
      * This class cannot be constructed.
      */
     private ConfigUtilities() {}
