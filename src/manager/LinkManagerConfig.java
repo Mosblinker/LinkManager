@@ -1384,9 +1384,10 @@ public class LinkManagerConfig {
      * @param value
      * @param prop 
      */
-    protected void setFilePathProperty(String key,String value,Properties prop){
+    protected void setFilePathProperty(String key,String value,
+            ConfigProperties prop){
             // Format the file path and set it
-        setProperty(key,formatFilePath(value), prop);
+        prop.setProperty(key,formatFilePath(value));
     }
     /**
      * 
