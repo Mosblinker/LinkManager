@@ -231,7 +231,7 @@ public class LinkManagerConfig {
     /**
      * This is the Obfuscator object used to encrypt and decrypt sensitive data.
      */
-    private Obfuscator obfuscator;
+    protected final Obfuscator obfuscator;
     /**
      * 
      * @param sqlProp
