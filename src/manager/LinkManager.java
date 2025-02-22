@@ -128,13 +128,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String PROGRAM_ID_KEY = "ProgramID";
     /**
-     * This is the prefix for the configuration key for the currently selected 
-     * link in a list with a listID. The list's listID is appended to the end of 
-     * this to get the configuration key specific for that list.
-     */
-    private static final String SELECTED_LINK_FOR_LIST_KEY_PREFIX = 
-            "SelectedLinkForList";
-    /**
      * This is the prefix for the configuration key for whether the currently 
      * selected link in a list is visible (i.e. whether this should scroll to 
      * the selected link when the program is first loading) with a listID. The 
@@ -154,7 +147,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * use a prefix instead of a defined value.
      */
     private static final String[] PREFIXED_CONFIG_KEYS = {
-        SELECTED_LINK_FOR_LIST_KEY_PREFIX,
         SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX,
         FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX,
         LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX
@@ -4088,10 +4080,33 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ListSelectionEvent.
      */
     private void listsTabsPanelValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listsTabsPanelValueChanged
-            // If the selection is not currently being adjusted and the source 
-            // of the change is the currently selected list
-        if (!evt.getValueIsAdjusting() && Objects.equals(getSelectedList(),evt.getSource())){
-            updateSelectedLink(); 
+            // If the selection is not currently being adjusted
+        if (!evt.getValueIsAdjusting()){
+                // If the source of the change is the currently selected list
+            if (Objects.equals(getSelectedList(),evt.getSource())){
+                updateSelectedLink(); 
+            }   // This will get the listID of the list that the selection 
+            Integer listID;     // changed
+                // This will get the newly selected value
+            String selValue;
+                // If the source of the event is a LinksListPanel
+            if (evt.getSource() instanceof LinksListPanel){
+                    // Get the source as a panel
+                LinksListPanel panel = (LinksListPanel)evt.getSource();
+                listID = panel.getListID();
+                selValue = panel.getSelectedValue();
+                // If the source of the event is a LinksListModel
+            } else if (evt.getSource() instanceof LinksListModel){
+                    // Get the source as a model
+                LinksListModel model = (LinksListModel)evt.getSource();
+                listID = model.getListID();
+                selValue = model.getSelectedValue();
+            } else
+                return;
+                // If the listID for this list is not null
+            if (listID != null)
+                    // Set the selected link for the list
+                config.setSelectedLink(listID, selValue);
         }
     }//GEN-LAST:event_listsTabsPanelValueChanged
 
@@ -5852,9 +5867,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 int listID = panelEntry.getKey();
                     // Get the list panel
                 LinksListPanel panel = panelEntry.getValue();
-                    // Set the selected link for the list
-                config.setProperty(SELECTED_LINK_FOR_LIST_KEY_PREFIX+listID,
-                        panel.getSelectedValue());
                     // Set the first visible index for the list
                 config.setProperty(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX+listID,
                         panel.getList().getFirstVisibleIndex());
@@ -6014,7 +6026,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void setSelectedFromConfig(){
             // This maps listIDs to the selected link for that list
-        Map<Integer,String> selMap = new HashMap<>();
+        Map<Integer,String> selMap = config.getSelectedLinkMap();
             // This maps the listIDs to whether the selected link is visible for 
         Map<Integer,Boolean> selVisMap = new HashMap<>();   // that list
             // This maps the listIDs to the first visible index for that list
@@ -6035,11 +6047,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Go through the prefixed selection keys
         for (String key : keys){
             String keyPrefix;   // Get the prefix for the current key
-                // If the key starts with the selected link key prefix
-            if (key.startsWith(SELECTED_LINK_FOR_LIST_KEY_PREFIX))
-                keyPrefix = SELECTED_LINK_FOR_LIST_KEY_PREFIX;
                 // If the key starts with the selected link visible key prefix
-            else if (key.startsWith(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX))
+            if (key.startsWith(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX))
                 keyPrefix = SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX;
                 // If the key starts with the first visible index key prefix
             else if (key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX))
@@ -6055,10 +6064,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 int type = Integer.parseInt(key.substring(keyPrefix.length()));
                     // Determine which key this is based off the prefix
                 switch(keyPrefix){
-                        // If this is the selected link key
-                    case(SELECTED_LINK_FOR_LIST_KEY_PREFIX):
-                        selMap.put(type, value);
-                        break;
                         // If this is the selected link is visible key
                     case(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX):
                         selVisMap.put(type, Boolean.valueOf(value));
