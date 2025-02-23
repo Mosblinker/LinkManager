@@ -57,6 +57,7 @@ import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
 import manager.icons.DefaultPfpIcon;
 import manager.links.*;
+import manager.security.Obfuscator;
 import manager.timermenu.*;
 import measure.format.binary.ByteUnitFormat;
 import net.coobird.thumbnailator.Thumbnailator;
@@ -132,6 +133,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * determine what preference node to use for the program.
      */
     private static final String PROGRAM_ID_KEY = "ProgramID";
+    /**
+     * This is the configuration key for the seed for the encryption keys. This 
+     * is used to generate the encryption keys for sensitive information stored 
+     * by the program.
+     */
+    private static final String ENCRYPTION_KEY_SEED_KEY = "EncryptionKeySeed";
     
     private static final String LIST_MANAGER_NAME = "ListManager";
     
@@ -624,10 +631,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // TODO: Error message window
         }
         
-            // TODO: Uncomment this when Dropbox token encryption is implemented
-//        config = new LinkManagerConfig(node,Obfuscator.getInstance());
             // Create the configuration for the program
-        config = new LinkManagerConfig(node);
+        config = new LinkManagerConfig(node,Obfuscator.getInstance());
         try{    // Try to load the configuration file into the properties
             loadProperties(getConfigFile(),config.getProperties());
         } catch (IOException ex){
@@ -650,7 +655,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         else{   // Set and store a random program ID
             config.getProperties().setProperty(PROGRAM_ID_KEY, 
                     config.setRandomProgramID());
-        }   
+        }   // This gets the seed for the encryption keys
+        Long encryptSeed = config.getProperties().getLongProperty(ENCRYPTION_KEY_SEED_KEY);
+            // If there is no encryption key seed set
+        if (encryptSeed == null){
+                // Get a random long value
+            encryptSeed = new Random().nextLong();
+                // Store the encryption key seed
+            config.getProperties().setProperty(ENCRYPTION_KEY_SEED_KEY, 
+                    encryptSeed);
+        }
         try{    // Try to save the properties to the configuration file
             saveConfigFile();
         } catch (IOException ex) {
