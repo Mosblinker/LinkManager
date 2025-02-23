@@ -814,6 +814,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         textPopupMenus.put(addLinksPanel.getTextArea(), addLinksPanel.getTextPopupMenu());
         textPopupMenus.put(dropboxSetupPanel.getAuthorizationCodeField(), 
                 dropboxSetupPanel.getAuthorizationCodePopupMenu());
+        textPopupMenus.put(dbxDbFileField, dbxDbFilePopupMenu);
         
         pasteAndAddAction = new PasteAndAddAction(){
             @Override
@@ -1180,6 +1181,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         prefixPopupMenu = new javax.swing.JPopupMenu();
         dbStructurePopupMenu = new javax.swing.JPopupMenu();
         dbFilePopupMenu = new javax.swing.JPopupMenu();
+        dbxDbFilePopupMenu = new javax.swing.JPopupMenu();
         setLocationDialog = new javax.swing.JDialog(this);
         setLocationPanel = new javax.swing.JPanel();
         setExternalCard = new javax.swing.JPanel();
@@ -1492,6 +1494,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         jLabel2.setText("File:");
 
+        dbxDbFileField.setComponentPopupMenu(dbxDbFilePopupMenu);
 
         dbxDataPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -5541,6 +5544,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JLabel dbxAccountLabel;
     private javax.swing.JPanel dbxDataPanel;
     private javax.swing.JTextField dbxDbFileField;
+    private javax.swing.JPopupMenu dbxDbFilePopupMenu;
     private javax.swing.JButton dbxLogInButton;
     private javax.swing.JButton dbxLogOutButton;
     private components.JThumbnailLabel dbxPfpLabel;
