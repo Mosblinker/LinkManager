@@ -3308,7 +3308,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void linkOperationToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_linkOperationToggleActionPerformed
         updateSelectedLink();
-        hiddenLinkOperationToggle.setEnabled(linkOperationToggle.isSelected());
+        hiddenLinkOperationToggle.setEnabled(active&&linkOperationToggle.isSelected());
         config.setLinkOperationsEnabled(linkOperationToggle.isSelected());
     }//GEN-LAST:event_linkOperationToggleActionPerformed
     /**
@@ -5114,7 +5114,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         doubleNewLinesToggle.setEnabled(enabled);
         linkOperationToggle.setEnabled(enabled);
-        hiddenLinkOperationToggle.setEnabled(enabled);
+        hiddenLinkOperationToggle.setEnabled(enabled&&linkOperationToggle.isSelected());
         autosaveMenu.setEnabled(enabled);
         autoHideMenu.setEnabled(enabled);
         manageListsItem.setEnabled(enabled);
@@ -5960,7 +5960,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         searchPanel.setSearchText(config.getSearchText());
             // Enable the hidden lists link operation if link operations are 
             // enabled
-        hiddenLinkOperationToggle.setEnabled(linkOperationToggle.isSelected());
+        hiddenLinkOperationToggle.setEnabled(active&&linkOperationToggle.isSelected());
             // Set whether hidden lists link operations enabled property from 
             // the config
         hiddenLinkOperationToggle.setSelected(config.isHiddenLinkOperationsEnabled(
