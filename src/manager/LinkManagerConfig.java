@@ -321,6 +321,14 @@ public class LinkManagerConfig {
      */
     private Map<Integer, Integer> lastVisIndexMap = null;
     /**
+     * This is the private Dropbox node.
+     */
+    protected ConfigPreferences privateDropboxNode = null;
+    /**
+     * This is the local Dropbox node.
+     */
+    protected ConfigPreferences localDropboxNode = null;
+    /**
      * This is the ID for the program.
      */
     private UUID programID = null;
@@ -345,6 +353,8 @@ public class LinkManagerConfig {
             sqlConfig = new SQLiteConfig();
         programNode = node;
         localDefaults = new ConfigProperties();
+        listTypeNodeMap = new HashMap<>();
+        listIDNodeMap = new HashMap<>();
         this.obfuscator = obfuscator;
     }
     /**
@@ -427,14 +437,22 @@ public class LinkManagerConfig {
      * @return 
      */
     public ConfigPreferences getDropboxPreferences(){
-        return getPreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
+            // If the local Dropbox node is currently null
+        if (localDropboxNode == null)
+            localDropboxNode = getPreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
+        return localDropboxNode;
     }
     /**
      * This returns the preference node used to store the Dropbox access tokens.
      * @return 
      */
     public ConfigPreferences getPrivateDropboxPreferences(){
-        return getPrivatePreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
+            // If the private Dropbox node is currently null
+        if (privateDropboxNode == null)
+            privateDropboxNode = getPrivatePreferences().node(
+                    DROPBOX_PREFERENCE_NODE_NAME);
+        return privateDropboxNode;
+    }
     }
     /**
      * 
@@ -536,6 +554,8 @@ public class LinkManagerConfig {
         localNode = getProgramIDNode(LOCAL_PREFERENCE_NODE_PATH,getDefaults());
             // Set the private preference node
         privateNode = getProgramIDNode(PRIVATE_PREFERENCE_NODE_PATH,null);
+            // Reset the Dropbox nodes to null
+        privateDropboxNode = localDropboxNode = null;
     }
     /**
      * This sets the program ID to be a random {@code UUID}.
@@ -2008,10 +2028,12 @@ public class LinkManagerConfig {
      * 
      */
     public void clearDropboxToken(){
-            // If the private Dropbox node exists
-        if (nodeExists(getPrivatePreferences(),DROPBOX_PREFERENCE_NODE_NAME))
+            // If the private Dropbox node is not null
+        if (privateDropboxNode != null)
                 // Remove it
-            removeNode(getPrivateDropboxPreferences());
+            removeNode(privateDropboxNode);
+            // Set it to null
+        privateDropboxNode = null;
     }
     /**
      * 
