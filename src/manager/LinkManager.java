@@ -5936,17 +5936,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 searchPanel.getWrapAround()));
             // Set the search text from the config
         searchPanel.setSearchText(config.getSearchText());
-            // Set the show hidden lists property from the config
-        showHiddenListsToggle.setSelected(config.getHiddenListsAreShown(
-                showHiddenListsToggle.isSelected()));
-            // Update the visible lists
-        updateVisibleTabsPanel();
             // Enable the hidden lists link operation if link operations are 
             // enabled
         hiddenLinkOperationToggle.setEnabled(linkOperationToggle.isSelected());
             // Set whether hidden lists link operations enabled property from 
             // the config
-        hiddenLinkOperationToggle.setSelected(config.isLinkOperationsEnabled(
+        hiddenLinkOperationToggle.setSelected(config.isHiddenLinkOperationsEnabled(
                 hiddenLinkOperationToggle.isSelected()));
             // Set whether additional details are shown when an error occurs 
             // with the database
@@ -5975,6 +5970,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Set the selection from the config
             setSelectedFromConfig();
         } else {    // Only load these settings when the program first starts up
+                // If the auto hide menu is set to automatically hide the hidden 
+            if (autoHideMenu.getDurationIndex() != 0)   // lists
+                    // Clear the hidden lists are chown value
+                config.setHiddenListsAreShown(null);
                 // Set the entered link from the config
             linkTextField.setText(config.getEnteredLinkText());
                 // Go through the components with sizes saved to config
@@ -6022,6 +6021,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
             }
         }
+            // Set the show hidden lists property from the config
+        showHiddenListsToggle.setSelected(config.getHiddenListsAreShown(
+                showHiddenListsToggle.isSelected()));
+            // Update the visible lists
+        updateVisibleTabsPanel();
     }
     /**
      * 
@@ -7951,11 +7955,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             showHiddenListsToggle.setEnabled(false);
             setIndeterminate(true);
             LinkManagerConfig saveConfig = createSaveConfig(config);
-            if (exitAfterSaving && autoHideMenu.getDurationIndex() != 0)
-                    // Make sure hidden lists are hidden
-                saveConfig.setHiddenListsAreShown(false);
-            else    // Set whether hidden lists are shown
-                saveConfig.setHiddenListsAreShown(showHiddenListsToggle.isSelected());
             return saveProperties(file,saveConfig.getProperties());
         }
         @Override
