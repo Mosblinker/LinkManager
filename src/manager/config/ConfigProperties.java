@@ -36,6 +36,14 @@ public class ConfigProperties extends Properties{
         super(initialCapacity);
     }
     /**
+     * This returns the {@code Properties} object that stores the defaults for 
+     * this {@code Properties}.
+     * @return The {@code Properties} object that stores the defaults, or null.
+     */
+    public Properties getDefaults(){
+        return defaults;
+    }
+    /**
      * {@inheritDoc }
      * @param key {@inheritDoc }
      * @param value {@inheritDoc }

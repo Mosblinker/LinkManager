@@ -51,7 +51,7 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 import javax.swing.tree.*;
 import static manager.LinkManagerConfig.*;
-import manager.config.ConfigPreferences;
+import manager.config.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
@@ -100,6 +100,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         "Links"
     };
     /**
+     * This is the argument for specifying a program ID for the program from the 
+     * arguments.
+     */
+    public static final String PROGRAM_ID_ARGUMENT = "-programID=";
+    /**
      * This holds the abstract path to the default database file storing the 
      * tables containing the links.
      */
@@ -118,39 +123,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public static final String DROPBOX_API_KEY_FILE = "LinkManagerDropboxKey.json";
     /**
-     * This is the header flag for the general settings in the configuration 
+     * This is the header  for the general settings in the configuration 
      * file.
      */
-    private static final String GENERAL_CONFIG_FLAG = "[LinkManager Config]";
+    private static final String GENERAL_CONFIG_HEADER = "[LinkManager Config]";
     /**
      * This is the configuration key for the program ID. This is used to
      * determine what preference node to use for the program.
      */
     private static final String PROGRAM_ID_KEY = "ProgramID";
-    /**
-     * This is the prefix for the configuration key for whether the currently 
-     * selected link in a list is visible (i.e. whether this should scroll to 
-     * the selected link when the program is first loading) with a listID. The 
-     * list's listID is appended to the end of this to get the configuration key 
-     * specific for that list.
-     */
-    private static final String SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX = 
-            "SelectedLinkVisibleForList";
-    
-    private static final String FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX = 
-            "FirstVisibleIndexForList";
-    
-    private static final String LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX = 
-            "LastVisibleIndexForList";
-    /**
-     * This is an array that contains the prefixes for configuration keys that 
-     * use a prefix instead of a defined value.
-     */
-    private static final String[] PREFIXED_CONFIG_KEYS = {
-        SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX,
-        FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX,
-        LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX
-    };
     
     private static final String LIST_MANAGER_NAME = "ListManager";
     
@@ -193,10 +174,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     public static final FileNameExtensionFilter SHORTCUT_FILE_FILTER = 
             generateExtensionFilter("Internet Shortcuts","url");
     /**
-     * The flag used in an Internet Shortcut file to indicate where the actual 
+     * The header used in an Internet Shortcut file to indicate where the actual 
      * shortcut is located.
      */
-    public static final String SHORTCUT_FLAG = "[InternetShortcut]";
+    public static final String SHORTCUT_HEADER = "[InternetShortcut]";
     /**
      * The flag used in an Internet Shortcut file to indicate the URL.
      */
@@ -441,7 +422,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return The configuration file.
      */
     private File getConfigFile(){
-        return getRelativeFile(CONFIG_FILE);
+        return new File(getProgramDirectory(),CONFIG_FILE);
     }
     /**
      * This returns the file containing the Dropbox API keys for this program.
@@ -621,10 +602,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * This constructs a new LinkManager with the given value determining if it 
-     * is in debug mode.
+     * is in debug mode and the given program ID.
      * @param debugMode Whether the program is in debug mode.
+     * @param programID The program ID for this instance of the program. This is 
+     * used to determine which settings to use.
      */
-    public LinkManager(boolean debugMode) {
+    public LinkManager(boolean debugMode, UUID programID) {
         this.debugMode = debugMode;
         setIconImages(generateIconImages(
                 new ImageIcon(this.getClass().getResource(ICON_FILE)).getImage()));
@@ -638,11 +621,42 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             node = Preferences.userRoot().node(PREFERENCE_NODE_NAME);
         } catch (SecurityException | IllegalStateException ex){
             System.out.println("Unable to load preference node: " +ex);
+            // TODO: Error message window
         }
         
             // TODO: Uncomment this when Dropbox token encryption is implemented
 //        config = new LinkManagerConfig(node,Obfuscator.getInstance());
+            // Create the configuration for the program
         config = new LinkManagerConfig(node);
+        try{    // Try to load the configuration file into the properties
+            loadProperties(getConfigFile(),config.getProperties());
+        } catch (IOException ex){
+            System.out.println("Config Load Error: " + ex);
+            // TODO: Error message window
+        }
+            // If no program ID was provided to the program
+        if (programID == null){
+                // Get the program ID as a String from the properties
+            String programIDStr = config.getProperties().getProperty(PROGRAM_ID_KEY);
+                // If there is a program ID set
+            if (programIDStr != null){
+                try{    // Try to get the program ID
+                    programID = UUID.fromString(programIDStr);
+                } catch (IllegalArgumentException ex){}
+            }
+        }   // If there is a program ID to use
+        if (programID != null)
+            config.setProgramID(programID);
+        else{   // Set and store a random program ID
+            config.getProperties().setProperty(PROGRAM_ID_KEY, 
+                    config.setRandomProgramID());
+        }   
+        try{    // Try to save the properties to the configuration file
+            saveConfigFile();
+        } catch (IOException ex) {
+            System.out.println("Config Save Error: " + ex);
+            // TODO: Error message window
+        }
         
         loadDbxUtils();
         
@@ -931,47 +945,34 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         };
         
-        File configFile = getConfigFile();
-        if (configFile.exists()){
-            try{
-                loadConfiguration(configFile,config.getProperties());
-            } catch (IOException ex){
-                System.out.println("Config Load Error: " + ex);
-                // TODO: Error message window
-            }
-        }
-        
-            // TODO: This is temporarily being loaded from the config
-            
-            // Get the program ID as a String
-        String programIDStr = config.getProperty(PROGRAM_ID_KEY);
-            // This gets the program ID
-        UUID programID = null;
-            // If there is a program ID set
-        if (programIDStr != null){
-            try{    // Try to get the program ID
-                programID = UUID.fromString(programIDStr);
-            } catch (IllegalArgumentException ex){}
-        }   // If there is a program ID to use
-        if (programID != null)
-            config.setProgramID(programID);
-        else{
-                // Set and store a random program ID
-            config.setProperty(PROGRAM_ID_KEY, config.setRandomProgramID());
-        }
-            // TODO: Temporarily import the property list to the config
-        config.importProperties(config.getProperties());
-        
         System.gc();        // Run the garbage collector
+            // Configure the program from the settings
         configureProgram();
         if (ENABLE_INITIAL_LOAD_AND_SAVE){
             loadDatabase(DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG);
         }
-//        loader = new ConfigLoader(configFile);
-//        loader.execute();
     }
     /**
-     * This constructs a new LinkManager that is not in debug mode.
+     * This constructs a new LinkManager with the given value determining if it 
+     * is in debug mode and that will load the program ID from the 
+     * configuration.
+     * @param debugMode Whether the program is in debug mode.
+     */
+    public LinkManager(boolean debugMode){
+        this(debugMode,null);
+    }
+     /**
+     * This constructs a new LinkManager that is not in debug mode and with the 
+     * given program ID.
+     * @param programID The program ID for this instance of the program. This is 
+     * used to determine which settings to use.
+     */
+    public LinkManager(UUID programID) {
+        this(false,programID);
+    }
+    /**
+     * This constructs a new LinkManager that is not in debug mode and that will 
+     * load the program ID from the configuration.
      */
     public LinkManager(){
         this(false);
@@ -1095,6 +1096,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             autoHideMenu.stopAutoHide();
         setVisibleTabsPanel(getSelectedTabsPanel());
         hiddenLinkOperationToggle.setVisible(showHiddenListsToggle.isSelected());
+            // Set whether hidden lists are shown in the configuration
+        config.setHiddenListsAreShown(showHiddenListsToggle.isSelected());
     }
     /**
      * 
@@ -3305,7 +3308,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void linkOperationToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_linkOperationToggleActionPerformed
         updateSelectedLink();
-        hiddenLinkOperationToggle.setEnabled(linkOperationToggle.isSelected());
+        hiddenLinkOperationToggle.setEnabled(active&&linkOperationToggle.isSelected());
         config.setLinkOperationsEnabled(linkOperationToggle.isSelected());
     }//GEN-LAST:event_linkOperationToggleActionPerformed
     /**
@@ -3400,7 +3403,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.out.println();
         System.out.println("Stored Configuration:");
         try {
-            config.getProperties().store(System.out, GENERAL_CONFIG_FLAG);
+            config.getProperties().store(System.out, GENERAL_CONFIG_HEADER);
         } catch (IOException ex) {
             System.out.println("Error: " + ex);
         }
@@ -4352,6 +4355,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (AutoHideMenu.AUTO_HIDE_COMMAND.equals(evt.getActionCommand())){
             showHiddenListsToggle.setSelected(false);
             updateVisibleTabsPanel();
+                // Clear whether hidden lists are shown in the configuration
+            config.setHiddenListsAreShown(null);
         }
     }//GEN-LAST:event_autoHideMenuActionPerformed
     /**
@@ -4778,8 +4783,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbxPrintButtonActionPerformed
 
     private void dbxLogOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogOutButtonActionPerformed
-        dbxUtils.clearCredentials();
         // TODO: Figure out how to properly deal with logging out of dropbox
+            // Clear the account credentials
+        dbxUtils.clearCredentials();
+            // Load the external account data
+        loadExternalAccountData();
+            // Remind the user that this program is still connected to their 
+            // Dropbox account, and that they've only logged out on this end
+        JOptionPane.showMessageDialog(setLocationDialog, 
+                "Don't forget to disconnect this app from your Dropbox account.",
+                "Dropbox Log out",JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_dbxLogOutButtonActionPerformed
 
     private void dbxLogInButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogInButtonActionPerformed
@@ -4823,15 +4836,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     String message = "The app does not have the appropriate scope.\n"
                             + "Missing the following required permissions:";
                     for (String temp : missing){
-                        message += "\n\t"+missing;
+                        message += "\n\t"+temp;
                     }
                     JOptionPane.showMessageDialog(setLocationDialog,message,
                             "Missing Permissions",JOptionPane.ERROR_MESSAGE);
+                        // Clear the account credentials
                     dbxUtils.clearCredentials();
+                        // Load the external account data
+                    loadExternalAccountData();
                     return;
                 }
-            }
+            }   // Set the account credentials
             dbxUtils.setCredentials(authFinish);
+                // Load the external account data
+            loadExternalAccountData();
         } catch (DbxException ex){
             if (isInDebug())
                 System.out.println("Error: " + ex);
@@ -5011,7 +5029,44 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
-            new LinkManager(DebugCapable.checkForDebugArgument(args)).setVisible(true);
+                // This will get the program ID for the program
+            UUID programID = null;
+                // This gets an array containing all the arguments that could be 
+                // the program ID
+            ArrayList<String> progIDArgs = new ArrayList<>(Arrays.asList(args));
+                // Remove any arguments that are either null or don't start 
+                // with the program ID argument
+            progIDArgs.removeIf((String t) -> t == null || 
+                    !t.startsWith(PROGRAM_ID_ARGUMENT));
+                // If there are any arguments that could be the program ID
+            if (!progIDArgs.isEmpty()){
+                    // If there are too many arguments for the program ID
+                if (progIDArgs.size() > 1){
+                        // Tell the user that there are too many program IDs
+                    System.out.println("Too many arguments for program ID, expected at most 1.");
+                    JOptionPane.showMessageDialog(null, 
+                            "Too many arguments provided for the program ID.\n"
+                                    + "This program expects at most one.", 
+                            "ERROR - Too Many Program IDs",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                try{
+                    programID = UUID.fromString(progIDArgs.get(0).substring(
+                            PROGRAM_ID_ARGUMENT.length()));
+                } catch (IllegalArgumentException ex){
+                        // Tell the user that the program ID is invalid
+                    System.out.println("Program ID is invalid, expected UUID.");
+                    JOptionPane.showMessageDialog(null, 
+                            "The program ID is invalid.\n"
+                                    + "The program ID should be a UUID.", 
+                            "ERROR - Invalid Program IDs",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+            new LinkManager(DebugCapable.checkForDebugArgument(args),programID)
+                    .setVisible(true);
         });
     }
     @Override
@@ -5059,7 +5114,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         doubleNewLinesToggle.setEnabled(enabled);
         linkOperationToggle.setEnabled(enabled);
-        hiddenLinkOperationToggle.setEnabled(enabled);
+        hiddenLinkOperationToggle.setEnabled(enabled&&linkOperationToggle.isSelected());
         autosaveMenu.setEnabled(enabled);
         autoHideMenu.setEnabled(enabled);
         manageListsItem.setEnabled(enabled);
@@ -5717,7 +5772,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private String getShortcutURL(List<String> lines){
             // Starts from the shortcut flag and searches for the URL
-        for (int pos = lines.indexOf(SHORTCUT_FLAG); pos < lines.size(); pos++){
+        for (int pos = lines.indexOf(SHORTCUT_HEADER);pos < lines.size();pos++){
             String temp = lines.get(pos).trim();  // The string being checked
                 // If the current string starts with the URL flag
             if (temp.startsWith(URL_FLAG)){
@@ -5771,85 +5826,61 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return true;
     }
     /**
-     * 
-     * @param key
-     * @return 
-     */
-    private boolean isPrefixedConfigKey(String key){
-        for (String prefix : PREFIXED_CONFIG_KEYS){
-            if (key.startsWith(prefix))
-                return true;
-        }
-        return false;
-    }
-    /**
-     * 
-     * @param file
-     * @param config
-     * @throws IOException 
-     */
-    private void loadProperties(File file, Properties config) throws IOException{
-            // Try to create a FileReader to read from the file
-        try(FileReader reader = new FileReader(file)){
-            config.clear();
-            config.load(reader);
-        }
-    }
-    /**
      * This attempts to read the contents of the given file and store it in the 
      * given properties map. This will first clear the given properties map and 
      * then load the properties into the map.
      * @param file The file to read from.
-     * @param config The properties map to load into.
+     * @param prop The properties map to load into.
      * @return Whether the configuration was successfully loaded.
      * @throws IOException If an error occurs while reading the file.
      */
-    private boolean loadConfiguration(File file, Properties config) throws IOException{
+    private boolean loadProperties(File file,Properties prop)throws IOException{
+            // If the file doesn't exist
         if (!file.exists())
             return false;
-        loadProperties(file,config);
+            // Try to create a FileReader to read from the file
+        try(FileReader reader = new FileReader(file)){
+            prop.clear();
+            prop.load(reader);
+        }
+        return true;
+    }
+    /**
+     * This attempts to save the given properties map to the given file.
+     * @param file The file to write to.
+     * @param prop The properties map to save.
+     * @return If the file was successfully written.
+     * @throws IOException If an error occurs while writing to the file.
+     */
+    private boolean saveProperties(File file, Properties prop)throws IOException{
+            // Try to create a PrintWriter to write to the file
+        try (PrintWriter writer = new PrintWriter(file)) {
+                // Store the configuration
+            prop.store(writer, GENERAL_CONFIG_HEADER);
+        }
         return true;
     }
     /**
      * 
-     * @param file
-     * @param prop
      * @return 
      */
-    private boolean loadConfigFile(File file, Properties prop){
-        showHiddenListsToggle.setEnabled(false);
-        try {
-            if (loadConfiguration(file, prop)){
-                config.importProperties(prop);
-                return true;
-            }
-        } catch (IOException ex) {
-            if (isInDebug())
-                System.out.println(ex);
-        }
-        return false;
+    private boolean saveConfigFile() throws IOException{
+            // Get the configuration file
+        File file = getConfigFile();
+            // If the configuration properties is not empty or the file exists
+        if (!config.getProperties().isEmpty() || file.exists())
+                // Save the configuration properties to file
+            return saveProperties(file,config.getProperties());
+        return true;
     }
     /**
-     * 
-     * @param config
-     * @return 
+     * This updates the values in the program's configuration that would update 
+     * too frequently if updated in real time or that would be too difficult to 
+     * cover all possible ways of the value being set.
      */
-    private LinkManagerConfig createSaveConfig(LinkManagerConfig config){
-        return prepareSaveConfig(new LinkManagerConfig(config));
-    }
-    /**
-     * 
-     * @param config
-     * @return 
-     */
-    private LinkManagerConfig prepareSaveConfig(LinkManagerConfig config){
+    private void updateProgramConfig(){
             // If the program has fully loaded
         if (fullyLoaded){
-                // Remove any keys from the config that are related to 
-                // selected tabs, selected links, or visible indexes
-            config.getProperties().keySet().removeIf((Object t) -> {
-                return t == null || isPrefixedConfigKey(t.toString());
-            });
                 // Map the list panels to their listIDs
             Map<Integer,LinksListPanel> panels = new HashMap<>();
                 // Go through the list panels in the selected tabs panel
@@ -5868,47 +5899,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     if (panel.getListID() != null)
                         panels.putIfAbsent(panel.getListID(), panel);
                 }
-            }   // Go through the list panels and their listIDs
-            for (Map.Entry<Integer,LinksListPanel> panelEntry : panels.entrySet()){
-                    // Get the listID for the panel
-                int listID = panelEntry.getKey();
-                    // Get the list panel
-                LinksListPanel panel = panelEntry.getValue();
-                    // Set the first visible index for the list
-                config.setProperty(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX+listID,
-                        panel.getList().getFirstVisibleIndex());
-                    // Set the last visible index for the list
-                config.setProperty(LAST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX+listID,
-                        panel.getList().getLastVisibleIndex());
-                    // If the panel's selection is not empty
-                if (!panel.isSelectionEmpty())
-                        // Set whether the selected link is visible
-                    config.setProperty(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX+listID,
-                            panel.isIndexVisible(panel.getSelectedIndex()));
+            }   // Go through the list panels
+            for (LinksListPanel panel : panels.values()){
+                    // Update the visible properties for the panel in the config
+                config.setVisibleSection(panel);
             }
         }   // Set the search text in the configuration
         config.setSearchText(searchPanel.getSearchText());
             // Set the entered link text in the configuration
         config.setEnteredLinkText(linkTextField.getText());
-        return config;
-    }
-    /**
-     * This attempts to save the given properties map to the given file.
-     * @param file The file to write to.
-     * @param config The properties map to save.
-     * @param header The header for the properties.
-     * @return If the file was successfully written.
-     */
-    private boolean saveConfiguration(File file, Properties config, String header){
-            // Try to create a PrintWriter to write to the file
-        try (PrintWriter writer = new PrintWriter(file)) {
-            setIndeterminate(true);
-                // Store the configuration
-            config.store(writer, header);
-        } catch (IOException ex) {
-            return false;
-        }
-        return true;
     }
     /**
      * This loads the configuration for the program from the configuration map.
@@ -5941,17 +5940,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 searchPanel.getWrapAround()));
             // Set the search text from the config
         searchPanel.setSearchText(config.getSearchText());
-            // Set the show hidden lists property from the config
-        showHiddenListsToggle.setSelected(config.getHiddenListsAreShown(
-                showHiddenListsToggle.isSelected()));
-            // Update the visible lists
-        updateVisibleTabsPanel();
             // Enable the hidden lists link operation if link operations are 
             // enabled
-        hiddenLinkOperationToggle.setEnabled(linkOperationToggle.isSelected());
+        hiddenLinkOperationToggle.setEnabled(active&&linkOperationToggle.isSelected());
             // Set whether hidden lists link operations enabled property from 
             // the config
-        hiddenLinkOperationToggle.setSelected(config.isLinkOperationsEnabled(
+        hiddenLinkOperationToggle.setSelected(config.isHiddenLinkOperationsEnabled(
                 hiddenLinkOperationToggle.isSelected()));
             // Set whether additional details are shown when an error occurs 
             // with the database
@@ -5980,6 +5974,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Set the selection from the config
             setSelectedFromConfig();
         } else {    // Only load these settings when the program first starts up
+                // If the auto hide menu is set to automatically hide the hidden 
+            if (autoHideMenu.getDurationIndex() != 0)   // lists
+                    // Clear the hidden lists are chown value
+                config.setHiddenListsAreShown(null);
                 // Set the entered link from the config
             linkTextField.setText(config.getEnteredLinkText());
                 // Go through the components with sizes saved to config
@@ -6027,6 +6025,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
             }
         }
+            // Set the show hidden lists property from the config
+        showHiddenListsToggle.setSelected(config.getHiddenListsAreShown(
+                showHiddenListsToggle.isSelected()));
+            // Update the visible lists
+        updateVisibleTabsPanel();
     }
     /**
      * 
@@ -6035,52 +6038,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // This maps listIDs to the selected link for that list
         Map<Integer,String> selMap = config.getSelectedLinkMap();
             // This maps the listIDs to whether the selected link is visible for 
-        Map<Integer,Boolean> selVisMap = new HashMap<>();   // that list
+            // that list
+        Map<Integer,Boolean> selVisMap = config.getSelectedLinkIsVisibleMap();
             // This maps the listIDs to the first visible index for that list
-        Map<Integer,Integer> firstVisMap = new HashMap<>();
+        Map<Integer,Integer> firstVisMap = config.getFirstVisibleIndexMap();
             // This maps the tabs panel indexes to the listID of the selected 
             // list for that tabs panel
         Map<Integer,Integer> selListIDMap = new HashMap<>(config.getCurrentTabListIDMap());
             // This maps the tabs panel indexes to the selected index of the 
             // tab for that tabs panel
         Map<Integer,Integer> selListMap = config.getCurrentTabIndexMap();
-            // This gets a set of keys for the properties
-        Set<String> keys = new HashSet<>(config.getProperties().stringPropertyNames());
-            // Remove any null keys and keys that aren't prefixed keys for the 
-            // selection
-        keys.removeIf((String t) -> {
-            return t == null || !isPrefixedConfigKey(t);
-        });
-            // Go through the prefixed selection keys
-        for (String key : keys){
-            String keyPrefix;   // Get the prefix for the current key
-                // If the key starts with the selected link visible key prefix
-            if (key.startsWith(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX))
-                keyPrefix = SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX;
-                // If the key starts with the first visible index key prefix
-            else if (key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX))
-                keyPrefix = FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX;
-            else // Skip this key
-                continue;
-                // Get the value for this key
-            String value = config.getProperty(key);
-                // If the value is null
-            if (value == null)
-                continue;
-            try{    // Get the list or tabs panel that this key is for
-                int type = Integer.parseInt(key.substring(keyPrefix.length()));
-                    // Determine which key this is based off the prefix
-                switch(keyPrefix){
-                        // If this is the selected link is visible key
-                    case(SELECTED_LINK_VISIBLE_FOR_LIST_KEY_PREFIX):
-                        selVisMap.put(type, Boolean.valueOf(value));
-                        break;
-                        // If this is the first visible index key
-                    case(FIRST_VISIBLE_INDEX_FOR_LIST_KEY_PREFIX):
-                        firstVisMap.put(type, Integer.valueOf(value));
-                }
-            } catch(NumberFormatException ex){ }
-        }   // Go through the list tabs panels
+            // Go through the list tabs panels
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
                 // Go through the list panels in the current list tabs panel
             for (LinksListPanel panel : tabsPanel){
@@ -7931,7 +7899,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private class ConfigLoader extends FileLoader{
         
-        private Properties loadedConfig = new Properties();
+        private ConfigProperties prop = new ConfigProperties();
 
         ConfigLoader(File file) {
             super(file,fullyLoaded);
@@ -7942,49 +7910,57 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean loadFile(File file) {
-            return loadConfigFile(file,loadedConfig);
+                // Disable the hidden list toggle
+            showHiddenListsToggle.setEnabled(false);
+            try {   // Load the properties from the file and get if we are 
+                    // successful
+                if (loadProperties(file, prop)){
+                        // Import the properties into the configuration
+                    config.importProperties(prop);
+                    return true;
+                }
+            } catch (IOException ex) {
+                    // If the program is in debug mode
+                if (isInDebug())
+                    System.out.println(ex);
+            }
+            return false;
         }
         @Override
         protected void done(){
-//            config.getProperties().putAll(loadedConfig);
+                // Configure the program
             configureProgram();
+                // Wrap up the loading process
             super.done();
+                // Re-enable the hidden list toggle
             showHiddenListsToggle.setEnabled(true);
-            if (!fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
-                loader = new DatabaseLoader();
-                loader.execute();
-            }
         }
     }
     
-    private class ConfigSaver extends FileSaver{
-
-        ConfigSaver(File file, boolean exit) {
+    private abstract class AbstractConfigSaver extends FileSaver{
+        
+        AbstractConfigSaver(File file, boolean exit) {
             super(file, exit);
         }
         
-        ConfigSaver(File file){
+        AbstractConfigSaver(File file){
             super(file);
         }
         
-        ConfigSaver(boolean exit){
-            this(getConfigFile(),exit);
-        }
-        
-        ConfigSaver(){
-            this(getConfigFile());
-        }
+        protected abstract boolean savePropertiesFile(File file) throws IOException;
         @Override
         protected boolean saveFile(File file) {
+                // Disable the hidden lists toggle
             showHiddenListsToggle.setEnabled(false);
+                // Set the program to be indeterminate
             setIndeterminate(true);
-            LinkManagerConfig saveConfig = createSaveConfig(config);
-            if (exitAfterSaving && autoHideMenu.getDurationIndex() != 0)
-                    // Make sure hidden lists are hidden
-                saveConfig.setHiddenListsAreShown(false);
-            else    // Set whether hidden lists are shown
-                saveConfig.setHiddenListsAreShown(showHiddenListsToggle.isSelected());
-            return saveConfiguration(file,saveConfig.getProperties(), GENERAL_CONFIG_FLAG);
+                // Update the program configuration
+            updateProgramConfig();
+            try {   // Try to save the properties to file
+                return savePropertiesFile(file);
+            } catch (IOException ex) {
+                return false;
+            }
         }
         @Override
         public String getProgressString(){
@@ -7993,7 +7969,42 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             super.done();
+                // Re-enable the hidden lists toggle if the program isn't 
+                // closing after this is done
             showHiddenListsToggle.setEnabled(!exitAfterSaving);
+        }
+    }
+    
+    private class ConfigSaver extends AbstractConfigSaver{
+        
+        ConfigSaver(File file){
+            super(file);
+        }
+        @Override
+        protected boolean savePropertiesFile(File file) throws IOException {
+                // Get the settings for the program, as a Properties object
+            Properties prop = config.exportProperties();
+                // If the settings somehow failed to be exported
+            if (prop == null)
+                return false;
+            return saveProperties(file,prop);
+        }
+    }
+    /**
+     * 
+     */
+    private class ProgramConfigSaver extends AbstractConfigSaver{
+
+        public ProgramConfigSaver(boolean exit) {
+            super(getConfigFile(), exit);
+        }
+        
+        public ProgramConfigSaver(){
+            this(false);
+        }
+        @Override
+        protected boolean savePropertiesFile(File file) throws IOException {
+            return saveConfigFile();
         }
     }
     /**
@@ -8106,6 +8117,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected String getFileNotFoundMessage(File file){
             return "The database file does not exist.";
+        }
+        @Override
+        protected void done(){
+            super.done();
+                // Update the program configuration
+            updateProgramConfig();
         }
     }
     /**
@@ -8337,7 +8354,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
                 uploadDatabase();
             } else {
-                saver = new ConfigSaver(true);
+                saver = new ProgramConfigSaver(true);
                 saver.execute();
             }
         }
@@ -8346,7 +8363,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (success){   // If this was successful
                 allListsTabsPanel.clearEdited();
                 shownListsTabsPanel.clearEdited();
-            }
+            }   // Update the program configuration
+            updateProgramConfig();
             super.done();
                 // If we are not exiting the program after saving the database
             if (!exitAfterSaving){   
@@ -8728,7 +8746,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             conn.getShownListIDs().removeAll(shownListsTabsPanel.getRemovedListIDs());
                 // Remove any lists that have been removed
             conn.getListNameMap().keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
-                // Clear the sets of removed ListIDs
+                // Go through the removed list IDs
+            for (Integer listID : allListsTabsPanel.getRemovedListIDs()){
+                    // If the current listID is not null
+                if (listID != null)
+                        // Remove the list's preference node
+                    config.removeListPreferences(listID);
+            }   // Clear the sets of removed ListIDs
             allListsTabsPanel.clearRemovedListIDs();
             shownListsTabsPanel.clearRemovedListIDs();
             conn.commit();       // Commit the changes to the database
@@ -9116,6 +9140,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         /**
          * 
          * @param source
+         * @param prop 
+         */
+        private void addConfigRows(String source, ConfigProperties prop){
+            addConfigRows(source,prop,prop.getDefaults());
+        }
+        /**
+         * 
+         * @param source
          * @param node
          */
         private void addConfigRows(String source, ConfigPreferences node){
@@ -9124,20 +9156,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return;
             try {   // If the node exists
                 if (node.nodeExists(""))
-                    addConfigRows(source,node.toProperties(),node.getDefaults());
+                    addConfigRows(source,node.toProperties());
             } catch (BackingStoreException | IllegalStateException ex) {
                     // If the program is in debug mode
                 if (isInDebug())
                     System.out.println("Error: " + ex);
             }
-        }
-        /**
-         * 
-         * @param source
-         * @param node 
-         */
-        private void addConfigRows(String source, Preferences node){
-            addConfigRows(source,new ConfigPreferences(node));
         }
         /**
          * 
@@ -9176,7 +9200,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             addConfigRows("SQLiteConfig",config.getSQLiteConfig().toProperties(),
                     new SQLiteConfig().toProperties(),true);
                 // Add all the properties for this program
-            addConfigRows("Properties",config.getProperties(),config.getDefaultProperties());
+            addConfigRows("Properties",config.getProperties(),null);
                 // Add all the shared preferences for this program
             addConfigRows("Shared Preferences",config.getSharedPreferences());
                 // Add all the local preferences for this program
@@ -9863,6 +9887,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             return false;
         }
+        @Override
+        protected void done(){
+            super.done();
+                // Update the program configuration
+            updateProgramConfig();
+        }
     }
     /**
      * 
@@ -10085,7 +10115,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void exitProgram(){
-            saver = new ConfigSaver(true);
+            saver = new ProgramConfigSaver(true);
             saver.execute();
         }
     }
@@ -10259,15 +10289,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     System.out.println(ex);
             }
             return false;
-        }
-        @Override
-        protected void done(){
-            super.done();
-                // If we are exiting the program after saving the database
-            if (exitAfterSaving){   
-                saver = new ConfigSaver(true);
-                saver.execute();
-            }
         }
     }
     /**

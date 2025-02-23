@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.prefs.*;
 import manager.config.*;
 import manager.dropbox.DropboxLinkUtils;
-import manager.links.LinksListTabsPanel;
+import manager.links.*;
 import manager.security.Obfuscator;
 import org.sqlite.SQLiteConfig;
 
@@ -282,12 +282,6 @@ public class LinkManagerConfig {
      */
     private final ConfigProperties config;
     /**
-     * This is a properties map that stores the default configuration for 
-     * LinkManager, and which serves as the default properties map for {@code 
-     * config}.
-     */
-    private final Properties defaultConfig;
-    /**
      * This is the SQLite configuration to use for the database.
      */
     private final SQLiteConfig sqlConfig;
@@ -311,7 +305,21 @@ public class LinkManagerConfig {
      * null and is initialized when first used.
      */
     private Map<Integer, String> selLinkMap = null;
-    
+    /**
+     * This is a map view of whether the selected links are visible for the 
+     * lists. This is initially null and is initialized when first used.
+     */
+    private Map<Integer, Boolean> selLinkVisMap = null;
+    /**
+     * This is a map view of the first visible indexes in the lists. This is 
+     * initially null and is initialized when first used.
+     */
+    private Map<Integer, Integer> firstVisIndexMap = null;
+    /**
+     * This is a map view of the last visible indexes in the lists. This is 
+     * initially null and is initialized when first used.
+     */
+    private Map<Integer, Integer> lastVisIndexMap = null;
     /**
      * This is the ID for the program.
      */
@@ -328,8 +336,7 @@ public class LinkManagerConfig {
      */
     private LinkManagerConfig(Properties sqlProp, ConfigPreferences node,
             Obfuscator obfuscator){
-        defaultConfig = new Properties();
-        config = new ConfigProperties(defaultConfig);
+        config = new ConfigProperties();
         compNameMap = new HashMap<>();
             // If the given SQLite config properties is not null
         if(sqlProp != null)
@@ -363,7 +370,6 @@ public class LinkManagerConfig {
     public LinkManagerConfig(LinkManagerConfig linkConfig){
         this(linkConfig.sqlConfig.toProperties(), linkConfig.programNode,
                 linkConfig.obfuscator);
-        this.defaultConfig.putAll(linkConfig.defaultConfig);
         this.config.putAll(linkConfig.config);
         this.compNameMap.putAll(linkConfig.compNameMap);
         this.localDefaults.addProperties(linkConfig.localDefaults);
@@ -572,106 +578,6 @@ public class LinkManagerConfig {
         return config;
     }
     /**
-     * This returns the properties map that stores the default configuration for 
-     * LinkManager. This serves as the defaults for {@link #getProperties}.
-     * @return The default properties map.
-     */
-    public Properties getDefaultProperties(){
-        return defaultConfig;
-    }
-    /**
-     * This sets the property in the given {@code config} Properties for the 
-     * given key to the given value, and returning the old value. If the given 
-     * value is null, then the property for the given key will be reset to its 
-     * default.
-     * @param key The key for the property to set (cannot be null).
-     * @param value The new value for the property, or null to reset the 
-     * property to its default value.
-     * @param config The Properties object to set the property of (cannot be 
-     * null).
-     * @param defaultConfig The Properties object containing the defaults for 
-     * {@code config}, or null.
-     * @return The old value set for the property, or null if no value was set.
-     * @throws NullPointerException If either {@code key} or {@code config} are 
-     * null.
-     */
-    protected synchronized String setConfigProperty(String key, Object value,
-            Properties config, Properties defaultConfig){
-            // Check if the key is null
-        Objects.requireNonNull(key, "The key for the property cannot be null");
-            // If the value is null
-        if (value == null){
-                // Remove it from the configuration and get its value
-            Object old = config.remove(key);
-                // If it's not null, return it as a string. Otherwise, return null
-            return (old != null) ? old.toString() : null;
-        }else{   // Get the value as a String
-            String valueStr = Objects.toString(value);
-                // This gets the default value for the property to be set, or 
-                // null if there is no default value (or no defaultConfig was 
-            String defValue = null;     // provided)
-                // If a default Properties map was provided
-            if (defaultConfig != null)
-                    // Get the default value for the property
-                defValue = defaultConfig.getProperty(key);
-                // If the config currently has a value set for the given key or 
-                // if the given value does not match the default value (prevents 
-                // needlessly setting the value to its default unless it was 
-                // previously set to something else)
-            if (config.containsKey(key) || !valueStr.equals(defValue)){
-                    // Set the value in the config and get its old value
-                Object oldValue = config.setProperty(key, valueStr);
-                    // If the old value is null, return null. Otherwise, return 
-                    // the value as a string
-                return (oldValue == null) ? null : oldValue.toString();
-            } else  // Return the default value
-                return defValue;
-        }
-    }
-    /**
-     * This sets the 
-     * @param key
-     * @param value
-     * @return 
-     */
-    public synchronized String setProperty(String key, Object value){
-        return setConfigProperty(key,value,getProperties(),getDefaultProperties());
-    }
-    /**
-     * 
-     * @param key
-     * @param value
-     * @return 
-     */
-    public synchronized String setPropertyDefault(String key, Object value){
-        return setConfigProperty(key,value,getDefaultProperties(),null);
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    public String getProperty(String key){
-        return getProperties().getProperty(key);
-    }
-    /**
-     * 
-     * @param key
-     * @param defaultValue
-     * @return 
-     */
-    public String getProperty(String key, String defaultValue){
-        return getProperties().getProperty(key, defaultValue);
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    public String getPropertyDefault(String key){
-        return getDefaultProperties().getProperty(key);
-    }
-    /**
      * 
      * @param value
      * @return 
@@ -682,50 +588,6 @@ public class LinkManagerConfig {
             return value.trim();
         return null;
     }
-    /**
-     * 
-     * @param key
-     * @param config
-     * @param defaultConfig
-     * @return 
-     */
-    protected String getConfigFilePathProperty(String key, Properties config, 
-            Properties defaultConfig){
-            // Get the value of the property from the config map and format it
-        String value = formatFilePath(config.getProperty(key));
-            // If the value is not null
-        if (value != null)
-            return value;
-            // If there was default config map provided
-        if (defaultConfig != null){
-                // Get the value from the default config map and format it
-            value = formatFilePath(defaultConfig.getProperty(key));
-                // If the value is not null
-            if (value != null)
-                return value;
-        }
-        return null;
-    }
-    /**
-     * 
-     * @param key
-     * @return 
-     */
-    public String getFilePathProperty(String key){
-        return getConfigFilePathProperty(key,getProperties(),getDefaultProperties());
-    }
-    /**
-     * 
-     * @param key
-     * @param value
-     * @return 
-     */
-    public String setFilePathProperty(String key, String value){
-        return setProperty(key,formatFilePath(value));
-    }
-    
-    
-    
     /**
      * 
      * @param key
@@ -874,12 +736,6 @@ public class LinkManagerConfig {
                 // object as its defaults. This should be okay since we won't be 
                 // writing to it, only reading from it.
             cProp = new ConfigProperties(prop);
-        
-            // TODO: Remove this once the config properties map is removed or 
-            // repurposed.
-            // Add all the properties to the config properties map
-        config.putAll(prop);
-        
             // Get the value for the database file path from the properties
         String str = cProp.getProperty(DATABASE_FILE_PATH_KEY);
             // If the properties has the database file path
@@ -1021,15 +877,6 @@ public class LinkManagerConfig {
             if (rect != null)
                     // Set the component's bounds from the properties
                 setComponentBounds(entry.getKey(),rect);
-            
-                // TODO: Remove this once the config properties map is removed or 
-                // repurposed.
-                // Remove the component size, since that's in the preference node
-            config.remove(entry.getValue()+COMPONENT_SIZE_KEY_SUFFIX);
-                // Remove the component location, since that's in the preference node
-            config.remove(entry.getValue()+COMPONENT_LOCATION_KEY_SUFFIX);
-                // Remove the component bounds, since that's in the preference node
-            config.remove(entry.getValue()+COMPONENT_BOUNDS_KEY_SUFFIX);
         }   // This maps listIDs to the selected link for that list
         Map<Integer,String> selMap = new HashMap<>();
             // This maps the listIDs to whether the selected link is visible for 
@@ -1059,6 +906,15 @@ public class LinkManagerConfig {
                 // If the key starts with the selected link key
             if (key.startsWith(SELECTED_LINK_FOR_LIST_KEY))
                 keyPrefix = SELECTED_LINK_FOR_LIST_KEY;
+                // If the key starts with the selected link is visible key
+            else if (key.startsWith(SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
+                keyPrefix = SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY;
+                // If the key starts with the first visible index key
+            else if (key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY))
+                keyPrefix = FIRST_VISIBLE_INDEX_FOR_LIST_KEY;
+                // If the key starts with the last visible index key
+            else if (key.startsWith(LAST_VISIBLE_INDEX_FOR_LIST_KEY))
+                keyPrefix = LAST_VISIBLE_INDEX_FOR_LIST_KEY;
                 // If the key starts with the current tab listID key
             else if (key.startsWith(CURRENT_TAB_LIST_ID_KEY)){
                 keyPrefix = CURRENT_TAB_LIST_ID_KEY;
@@ -1099,11 +955,6 @@ public class LinkManagerConfig {
                         selListMap.put(type, cProp.getIntProperty(key));
                 }
             } catch(NumberFormatException ex){ }
-            
-                // TODO: Remove this once the config properties map is removed or 
-                // repurposed.
-                // Remove this key since it'll soon be in the preference node
-            config.remove(key);
         }   // Remove all null values from the selected links
         selMap.values().removeIf((String t) -> t == null);
             // Remove all the null values from whether the links are visible
@@ -1118,50 +969,68 @@ public class LinkManagerConfig {
         selListMap.values().removeIf((Integer t) -> t == null);
             // Add all the values for the selected links in the lists
         getSelectedLinkMap().putAll(selMap);
-        
+            // Add all the values for the selected links are visible in the lists
+        getSelectedLinkIsVisibleMap().putAll(selVisMap);
+            // Add all the values for the first visible indexes in the lists
+        getFirstVisibleIndexMap().putAll(firstVisMap);
+            // Add all the values for the last visible indexes in the lists
+        getLastVisibleIndexMap().putAll(lastVisMap);
             // Add all the values for the current tab listIDs 
         getCurrentTabListIDMap().putAll(selListIDMap);
             // Add all the values for the current tab indexes
         getCurrentTabIndexMap().putAll(selListMap);
-        
-            // TODO: Remove this once the config properties map is removed or 
-            // repurposed.
-            // Remove the database file path, since that's in the preference node
-        config.remove(DATABASE_FILE_PATH_KEY);
-            // Remove the progress display, since that's in the preference node
-        config.remove(PROGRESS_DISPLAY_KEY);
-            // Remove the always on top value, since that's in the preference node
-        config.remove(ALWAYS_ON_TOP_KEY);
-            // Remove the add blank lines value, since that's in the preference node
-        config.remove(BLANK_LINES_KEY);
-            // Remove the link ops enabled value, since that's in the preference node
-        config.remove(ENABLE_LINK_OPS_KEY);
-            // Remove the hidden link ops enabled value, since that's in the preference node
-        config.remove(ENABLE_HIDDEN_LINK_OPS_KEY);
-            // Remove the database file change operation value, since that's in the preference node
-        config.remove(DATABASE_FILE_CHANGE_OPERATION_KEY);
-            // Remove the autosave frequency index, since that's in the preference node
-        config.remove(AUTOSAVE_FREQUENCY_KEY);
-            // Remove the auto-hide wait duration index, since that's in the preference node
-        config.remove(AUTO_HIDE_WAIT_DURATION_KEY);
-            // Remove the search match case value, since that's in the preference node
-        config.remove(SEARCH_MATCH_CASE_KEY);
-            // Remove the search match spaces value, since that's in the preference node
-        config.remove(SEARCH_MATCH_SPACES_KEY);
-            // Remove the search wrap around value, since that's in the preference node
-        config.remove(SEARCH_WRAP_AROUND_KEY);
-            // Remove the search text, since that's in the preference node
-        config.remove(SEARCH_TEXT_KEY);
-            // Remove the entered link text, since that's in the preference node
-        config.remove(ENTERED_LINK_TEXT_KEY);
-            // Remove the hidden lists are shown value, since that's in the preference node
-        config.remove(HIDDEN_LISTS_ARE_SHOWN_KEY);
-            // Remove the database error details are shown value, since that's in the preference node
-        config.remove(SHOW_DETAILED_DATABASE_ERRORS);
-            // Remove the database sync value, since that's in the preference node
-        config.remove(SYNC_DATABASE_KEY);
-            // Remove the dropbox database file path, since that's in the preference node
-        config.remove(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY);
+    }
+    /**
+     * 
+     * @param listData
+     * @param keyPrefix
+     * @param prop 
+     */
+    private void addListDataToProperties(Map<Integer,?> listData,String keyPrefix, 
+            ConfigProperties prop){
+            // Go through the entries in the given map
+        for (Map.Entry<Integer, ?> entry : listData.entrySet()){
+                // Add the current entry to the properties map
+            prop.setProperty(keyPrefix+entry.getKey(), entry.getValue());
+        }
+    }
+    /**
+     * 
+     * @return 
+     */
+    public ConfigProperties exportProperties(){
+        try{    // This gets the preference node as a properties object
+            ConfigProperties prop = getPreferences().toProperties();
+                // If the local dropbox node exists
+            if (nodeExists(getPreferences(),DROPBOX_PREFERENCE_NODE_NAME)){
+                    // Set the value for the Dropbox database file path
+                prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY, 
+                        getDropboxDatabaseFileName());
+            }   // Add the current tab listID data to the properties
+            addListDataToProperties(getCurrentTabListIDMap(),
+                    CURRENT_TAB_LIST_ID_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
+                // Add the current tab index data to the properties
+            addListDataToProperties(getCurrentTabIndexMap(),
+                    CURRENT_TAB_INDEX_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
+                // Add the selected link data to the properties
+            addListDataToProperties(getSelectedLinkMap(),
+                    SELECTED_LINK_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,prop);
+                // Add the selected link visibility data to the properties
+            addListDataToProperties(getSelectedLinkIsVisibleMap(),
+                    SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY+
+                            LIST_ID_PROPERTY_KEY_SUFFIX,prop);
+                // Add the first visible index data to the properties
+            addListDataToProperties(getFirstVisibleIndexMap(),
+                    FIRST_VISIBLE_INDEX_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
+                    prop);
+                // Add the last visible index data to the properties
+            addListDataToProperties(getLastVisibleIndexMap(),
+                    LAST_VISIBLE_INDEX_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
+                    prop);
+            return prop;
+        } catch (BackingStoreException | IllegalStateException ex) {
+            return null;
+        }
     }
     /**
      * 
@@ -1713,13 +1582,11 @@ public class LinkManagerConfig {
     }
     /**
      * 
-     * @param listType
+     * @param node
      * @param key
      * @return 
      */
-    private Integer getCurrentTabValue(int listType, String key){
-            // Get the preference node for the list type
-        ConfigPreferences node = getListTypePreferences(listType);
+    private Integer getIntegerPreference(ConfigPreferences node, String key){
             // Get whether the node contains the key
         if (node.containsKey(key))
                 // Get the value for the given key
@@ -1741,7 +1608,8 @@ public class LinkManagerConfig {
      * @return 
      */
     public Integer getCurrentTabListID(int listType){
-        return getCurrentTabValue(listType, CURRENT_TAB_LIST_ID_KEY);
+        return getIntegerPreference(getListTypePreferences(listType), 
+                CURRENT_TAB_LIST_ID_KEY);
     }
     /**
      * 
@@ -1779,8 +1647,8 @@ public class LinkManagerConfig {
      * @param listType
      * @return 
      */
-    public Integer getCurrentTabIndex(int listType){
-        return getCurrentTabValue(listType, CURRENT_TAB_INDEX_KEY);
+    public int getCurrentTabIndex(int listType){
+        return getListTypePreferences(listType).getInt(CURRENT_TAB_INDEX_KEY,0);
     }
     /**
      * 
@@ -1791,7 +1659,11 @@ public class LinkManagerConfig {
             currTabIndexMap = new ListConfigDataMap<>(){
                 @Override
                 protected Integer getValue(int key) {
-                    return getCurrentTabIndex(key);
+                         // If the node contains the current tab index key
+                    if (getListTypePreferences(key).containsKey(
+                            CURRENT_TAB_INDEX_KEY))
+                        return getCurrentTabIndex(key);
+                    return null;
                 }
                 @Override
                 protected void putValue(int key, Integer value) {
@@ -1811,11 +1683,20 @@ public class LinkManagerConfig {
      * @param tabsPanel 
      */
     public void setCurrentTab(int listType, LinksListTabsPanel tabsPanel){
-        setCurrentTabListID(listType,tabsPanel.getSelectedListID());
-            // If the tabs panel has nothing selected, set the index to null.
-            // Otherwise, set it to the selected index
-        setCurrentTabIndex(listType, (tabsPanel.isSelectionEmpty()) ? null :
-                tabsPanel.getSelectedIndex());
+            // The listID of the current tab
+        Integer listID = null;
+            // The index of the current tab
+        Integer index = null;
+            // If the given panel is not null
+        if (tabsPanel != null){
+            listID = tabsPanel.getSelectedListID();
+                // If the tabs panel has nothing selected, use null as the 
+                // index. Otherwise, use the selected index
+            index = (tabsPanel.isSelectionEmpty()) ? null :
+                    tabsPanel.getSelectedIndex();
+        }
+        setCurrentTabListID(listType,listID);
+        setCurrentTabIndex(listType, index);
     }
     /**
      * 
@@ -1855,6 +1736,181 @@ public class LinkManagerConfig {
             };
         }
         return selLinkMap;
+    }
+    /**
+     * 
+     * @param listID
+     * @param value 
+     */
+    public void setSelectedLinkIsVisible(int listID, Boolean value){
+        getListPreferences(listID).putObject(
+                SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, value);
+    }
+    /**
+     * 
+     * @param listID
+     * @return 
+     */
+    public boolean getSelectedLinkIsVisible(int listID){
+        return getListPreferences(listID).getBoolean(
+                SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, false);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<Integer,Boolean> getSelectedLinkIsVisibleMap(){
+        if (selLinkVisMap == null){
+            selLinkVisMap = new ListConfigDataMap<>(){
+                @Override
+                protected Boolean getValue(int key) {
+                        // If the node contains the selected link is visible key
+                    if (getListPreferences(key).containsKey(
+                            SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
+                        return getSelectedLinkIsVisible(key);
+                    return null;
+                }
+                @Override
+                protected void putValue(int key, Boolean value) {
+                    setSelectedLinkIsVisible(key,value);
+                }
+                @Override
+                protected String getPrefixForNodes() {
+                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                }
+            };
+        }
+        return selLinkVisMap;
+    }
+    /**
+     * 
+     * @param listID
+     * @param value 
+     */
+    public void setFirstVisibleIndex(int listID, Integer value){
+        getListPreferences(listID).putObject(FIRST_VISIBLE_INDEX_FOR_LIST_KEY,
+                value);
+    }
+    /**
+     * 
+     * @param listID
+     * @return 
+     */
+    public Integer getFirstVisibleIndex(int listID){
+        return getIntegerPreference(getListPreferences(listID), 
+                FIRST_VISIBLE_INDEX_FOR_LIST_KEY);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<Integer, Integer> getFirstVisibleIndexMap(){
+        if (firstVisIndexMap == null){
+            firstVisIndexMap = new ListConfigDataMap<>(){
+                @Override
+                protected Integer getValue(int key) {
+                    return getFirstVisibleIndex(key);
+                }
+                @Override
+                protected void putValue(int key, Integer value) {
+                    setFirstVisibleIndex(key,value);
+                }
+                @Override
+                protected String getPrefixForNodes() {
+                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                }
+            };
+        }
+        return firstVisIndexMap;
+    }
+    /**
+     * 
+     * @param listID
+     * @param value 
+     */
+    public void setLastVisibleIndex(int listID, Integer value){
+        getListPreferences(listID).putObject(LAST_VISIBLE_INDEX_FOR_LIST_KEY,
+                value);
+    }
+    /**
+     * 
+     * @param listID
+     * @return 
+     */
+    public Integer getLastVisibleIndex(int listID){
+        return getIntegerPreference(getListPreferences(listID), 
+                LAST_VISIBLE_INDEX_FOR_LIST_KEY);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<Integer, Integer> getLastVisibleIndexMap(){
+        if (lastVisIndexMap == null){
+            lastVisIndexMap = new ListConfigDataMap<>(){
+                @Override
+                protected Integer getValue(int key) {
+                    return getLastVisibleIndex(key);
+                }
+                @Override
+                protected void putValue(int key, Integer value) {
+                    setLastVisibleIndex(key,value);
+                }
+                @Override
+                protected String getPrefixForNodes() {
+                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                }
+            };
+        }
+        return lastVisIndexMap;
+    }
+    /**
+     * 
+     * @param listID
+     * @param panel 
+     */
+    public void setVisibleSection(int listID, LinksListPanel panel){
+            // This will get the first visible index
+        Integer firstVisIndex = null;
+            // This will get the last visible index
+        Integer lastVisIndex = null;
+            // This will get whether the selected index is visible
+        Boolean isSelVis = null;
+            // If the panel is not null
+        if (panel != null){
+                // Get the first visible index for the list
+            firstVisIndex = panel.getList().getFirstVisibleIndex();
+                // Get the last visible index for the list
+            lastVisIndex = panel.getList().getLastVisibleIndex();
+                // If the panel's selection is not empty
+            if (!panel.isSelectionEmpty())
+                    // Get whether the selected indes is visible
+                isSelVis = panel.isIndexVisible(panel.getSelectedIndex());
+        }   // Set the first visible index for the list
+        setFirstVisibleIndex(listID,firstVisIndex);
+            // Set the last visible index for the list
+        setLastVisibleIndex(listID,lastVisIndex);
+            // Set whether the selected link is visible
+        setSelectedLinkIsVisible(listID,isSelVis);
+    }
+    /**
+     * 
+     * @param panel 
+     */
+    public void setVisibleSection(LinksListPanel panel){
+            // If the panel is not null and has a non-null listID
+        if (panel != null && panel.getListID() != null)
+            setVisibleSection(panel.getListID(),panel);
+    }
+    /**
+     * 
+     * @param listID 
+     */
+    public void removeListPreferences(int listID){
+            // If the list preference node for the given listID exists
+        if (nodeExists(getPreferences(),LIST_ID_PREFERENCE_NODE_NAME_PREFIX+listID))
+                // Remove it
+            removeNode(getListPreferences(listID));
     }
     /**
      * 

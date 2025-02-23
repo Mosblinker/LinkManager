@@ -946,9 +946,9 @@ public class ConfigPreferences extends Preferences{
      * @see #get(String, String) 
      * @see #getDefaults() 
      */
-    public Properties toProperties() throws BackingStoreException{
+    public ConfigProperties toProperties() throws BackingStoreException{
             // Create a properties map with the defaults for this node
-        Properties prop = new Properties(defaults);
+        ConfigProperties prop = new ConfigProperties(defaults);
             // Go through all the keys that are in the preference node
         for (String key : node.keys()){
                 // Get the value for that key
