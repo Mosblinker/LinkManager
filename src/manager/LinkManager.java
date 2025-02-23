@@ -5823,6 +5823,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return true;
     }
     /**
+     * This attempts to save the given properties map to the given file.
+     * @param file The file to write to.
+     * @param prop The properties map to save.
+     * @return If the file was successfully written.
+     */
+    private boolean saveProperties(File file, Properties prop){
+            // Try to create a PrintWriter to write to the file
+        try (PrintWriter writer = new PrintWriter(file)) {
+                // Store the configuration
+            prop.store(writer, GENERAL_CONFIG_FLAG);
+        } catch (IOException ex) {
+            return false;
+        }
+        return true;
+    }
+    /**
      * 
      * @param config
      * @return 
@@ -5839,24 +5855,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Update the program's configuration
         updateProgramConfig();
         return config;
-    }
-    /**
-     * This attempts to save the given properties map to the given file.
-     * @param file The file to write to.
-     * @param config The properties map to save.
-     * @param header The header for the properties.
-     * @return If the file was successfully written.
-     */
-    private boolean saveConfiguration(File file, Properties config, String header){
-            // Try to create a PrintWriter to write to the file
-        try (PrintWriter writer = new PrintWriter(file)) {
-            setIndeterminate(true);
-                // Store the configuration
-            config.store(writer, header);
-        } catch (IOException ex) {
-            return false;
-        }
-        return true;
     }
     /**
      * This updates the values in the program's configuration that would update 
@@ -7945,7 +7943,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 saveConfig.setHiddenListsAreShown(false);
             else    // Set whether hidden lists are shown
                 saveConfig.setHiddenListsAreShown(showHiddenListsToggle.isSelected());
-            return saveConfiguration(file,saveConfig.getProperties(), GENERAL_CONFIG_FLAG);
+            return saveProperties(file,saveConfig.getProperties());
         }
         @Override
         public String getProgressString(){
