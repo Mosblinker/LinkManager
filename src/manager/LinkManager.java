@@ -4773,8 +4773,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbxPrintButtonActionPerformed
 
     private void dbxLogOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogOutButtonActionPerformed
-        dbxUtils.clearCredentials();
         // TODO: Figure out how to properly deal with logging out of dropbox
+            // Clear the account credentials
+        dbxUtils.clearCredentials();
+            // Load the external account data
+        loadExternalAccountData();
+            // Remind the user that this program is still connected to their 
+            // Dropbox account, and that they've only logged out on this end
+        JOptionPane.showMessageDialog(setLocationDialog, 
+                "Don't forget to disconnect this app from your Dropbox account.",
+                "Dropbox Log out",JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_dbxLogOutButtonActionPerformed
 
     private void dbxLogInButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogInButtonActionPerformed
@@ -4818,15 +4826,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     String message = "The app does not have the appropriate scope.\n"
                             + "Missing the following required permissions:";
                     for (String temp : missing){
-                        message += "\n\t"+missing;
+                        message += "\n\t"+temp;
                     }
                     JOptionPane.showMessageDialog(setLocationDialog,message,
                             "Missing Permissions",JOptionPane.ERROR_MESSAGE);
+                        // Clear the account credentials
                     dbxUtils.clearCredentials();
+                        // Load the external account data
+                    loadExternalAccountData();
                     return;
                 }
-            }
+            }   // Set the account credentials
             dbxUtils.setCredentials(authFinish);
+                // Load the external account data
+            loadExternalAccountData();
         } catch (DbxException ex){
             if (isInDebug())
                 System.out.println("Error: " + ex);
