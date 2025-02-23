@@ -1647,9 +1647,8 @@ public class LinkManagerConfig {
      * @param listType
      * @return 
      */
-    public Integer getCurrentTabIndex(int listType){
-        return getIntegerPreference(getListTypePreferences(listType), 
-                CURRENT_TAB_INDEX_KEY);
+    public int getCurrentTabIndex(int listType){
+        return getListTypePreferences(listType).getInt(CURRENT_TAB_INDEX_KEY,0);
     }
     /**
      * 
@@ -1660,7 +1659,11 @@ public class LinkManagerConfig {
             currTabIndexMap = new ListConfigDataMap<>(){
                 @Override
                 protected Integer getValue(int key) {
-                    return getCurrentTabIndex(key);
+                         // If the node contains the current tab index key
+                    if (getListTypePreferences(key).containsKey(
+                            CURRENT_TAB_INDEX_KEY))
+                        return getCurrentTabIndex(key);
+                    return null;
                 }
                 @Override
                 protected void putValue(int key, Integer value) {
