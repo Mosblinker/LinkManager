@@ -8118,6 +8118,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected String getFileNotFoundMessage(File file){
             return "The database file does not exist.";
         }
+        @Override
+        protected void done(){
+            super.done();
+                // Update the program configuration
+            updateProgramConfig();
+        }
     }
     /**
      * This is an abstract class that provides the framework for saving to a 
@@ -8357,7 +8363,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (success){   // If this was successful
                 allListsTabsPanel.clearEdited();
                 shownListsTabsPanel.clearEdited();
-            }
+            }   // Update the program configuration
+            updateProgramConfig();
             super.done();
                 // If we are not exiting the program after saving the database
             if (!exitAfterSaving){   
@@ -9873,6 +9880,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     System.out.println(ex);
             }
             return false;
+        }
+        @Override
+        protected void done(){
+            super.done();
+                // Update the program configuration
+            updateProgramConfig();
         }
     }
     /**
