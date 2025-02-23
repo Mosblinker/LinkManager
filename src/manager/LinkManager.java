@@ -1096,6 +1096,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             autoHideMenu.stopAutoHide();
         setVisibleTabsPanel(getSelectedTabsPanel());
         hiddenLinkOperationToggle.setVisible(showHiddenListsToggle.isSelected());
+            // Set whether hidden lists are shown in the configuration
+        config.setHiddenListsAreShown(showHiddenListsToggle.isSelected());
     }
     /**
      * 
@@ -4353,6 +4355,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (AutoHideMenu.AUTO_HIDE_COMMAND.equals(evt.getActionCommand())){
             showHiddenListsToggle.setSelected(false);
             updateVisibleTabsPanel();
+                // Clear whether hidden lists are shown in the configuration
+            config.setHiddenListsAreShown(null);
         }
     }//GEN-LAST:event_autoHideMenuActionPerformed
     /**
