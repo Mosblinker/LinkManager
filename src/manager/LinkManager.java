@@ -917,7 +917,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         File configFile = getConfigFile();
         if (configFile.exists()){
             try{
-                loadConfiguration(configFile,config.getProperties());
+                loadProperties(configFile,config.getProperties());
             } catch (IOException ex){
                 System.out.println("Config Load Error: " + ex);
                 // TODO: Error message window
@@ -5810,31 +5810,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return true;
     }
     /**
-     * 
-     * @param file
-     * @param config
-     * @throws IOException 
-     */
-    private void loadProperties(File file, Properties config) throws IOException{
-            // Try to create a FileReader to read from the file
-        try(FileReader reader = new FileReader(file)){
-            config.clear();
-            config.load(reader);
-        }
-    }
-    /**
      * This attempts to read the contents of the given file and store it in the 
      * given properties map. This will first clear the given properties map and 
      * then load the properties into the map.
      * @param file The file to read from.
-     * @param config The properties map to load into.
+     * @param prop The properties map to load into.
      * @return Whether the configuration was successfully loaded.
      * @throws IOException If an error occurs while reading the file.
      */
-    private boolean loadConfiguration(File file, Properties config) throws IOException{
+    private boolean loadProperties(File file, Properties prop) throws IOException{
+            // If the file doesn't exist
         if (!file.exists())
             return false;
-        loadProperties(file,config);
+            // Try to create a FileReader to read from the file
+        try(FileReader reader = new FileReader(file)){
+            prop.clear();
+            prop.load(reader);
+        }
         return true;
     }
     /**
@@ -5846,7 +5838,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private boolean loadConfigFile(File file, Properties prop){
         showHiddenListsToggle.setEnabled(false);
         try {
-            if (loadConfiguration(file, prop)){
+            if (loadProperties(file, prop)){
                 config.importProperties(prop);
                 return true;
             }
