@@ -5840,14 +5840,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param file The file to write to.
      * @param prop The properties map to save.
      * @return If the file was successfully written.
+     * @throws IOException If an error occurs while writing to the file.
      */
-    private boolean saveProperties(File file, Properties prop){
+    private boolean saveProperties(File file, Properties prop)throws IOException{
             // Try to create a PrintWriter to write to the file
         try (PrintWriter writer = new PrintWriter(file)) {
                 // Store the configuration
             prop.store(writer, GENERAL_CONFIG_HEADER);
-        } catch (IOException ex) {
-            return false;
         }
         return true;
     }
@@ -7955,7 +7954,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             showHiddenListsToggle.setEnabled(false);
             setIndeterminate(true);
             LinkManagerConfig saveConfig = createSaveConfig(config);
-            return saveProperties(file,saveConfig.getProperties());
+            try {
+                return saveProperties(file,saveConfig.getProperties());
+            } catch (IOException ex) {
+                return false;
+            }
         }
         @Override
         public String getProgressString(){
