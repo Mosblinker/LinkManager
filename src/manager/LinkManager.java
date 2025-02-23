@@ -8746,7 +8746,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             conn.getShownListIDs().removeAll(shownListsTabsPanel.getRemovedListIDs());
                 // Remove any lists that have been removed
             conn.getListNameMap().keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
-                // Clear the sets of removed ListIDs
+                // Go through the removed list IDs
+            for (Integer listID : allListsTabsPanel.getRemovedListIDs()){
+                    // If the current listID is not null
+                if (listID != null)
+                        // Remove the list's preference node
+                    config.removeListPreferences(listID);
+            }   // Clear the sets of removed ListIDs
             allListsTabsPanel.clearRemovedListIDs();
             shownListsTabsPanel.clearRemovedListIDs();
             conn.commit();       // Commit the changes to the database
