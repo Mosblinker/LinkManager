@@ -621,11 +621,36 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             node = Preferences.userRoot().node(PREFERENCE_NODE_NAME);
         } catch (SecurityException | IllegalStateException ex){
             System.out.println("Unable to load preference node: " +ex);
+            // TODO: Error message window
         }
         
             // TODO: Uncomment this when Dropbox token encryption is implemented
 //        config = new LinkManagerConfig(node,Obfuscator.getInstance());
+            // Create the configuration for the program
         config = new LinkManagerConfig(node);
+        try{    // Try to load the configuration file into the properties
+            loadProperties(getConfigFile(),config.getProperties());
+        } catch (IOException ex){
+            System.out.println("Config Load Error: " + ex);
+            // TODO: Error message window
+        }
+            // If no program ID was provided to the program
+        if (programID == null){
+                // Get the program ID as a String from the properties
+            String programIDStr = config.getProperties().getProperty(PROGRAM_ID_KEY);
+                // If there is a program ID set
+            if (programIDStr != null){
+                try{    // Try to get the program ID
+                    programID = UUID.fromString(programIDStr);
+                } catch (IllegalArgumentException ex){}
+            }
+        }   // If there is a program ID to use
+        if (programID != null)
+            config.setProgramID(programID);
+        else{   // Set and store a random program ID
+            config.getProperties().setProperty(PROGRAM_ID_KEY, 
+                    config.setRandomProgramID());
+        }
         
         loadDbxUtils();
         
@@ -914,44 +939,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         };
         
-        File configFile = getConfigFile();
-        if (configFile.exists()){
-            try{
-                loadProperties(configFile,config.getProperties());
-            } catch (IOException ex){
-                System.out.println("Config Load Error: " + ex);
-                // TODO: Error message window
-            }
-        }
-        
-            // TODO: This is temporarily being loaded from the config
-            
-            // If no program ID was provided to the program
-        if (programID == null){
-                // Get the program ID as a String
-            String programIDStr = config.getProperties().getProperty(PROGRAM_ID_KEY);
-                // If there is a program ID set
-            if (programIDStr != null){
-                try{    // Try to get the program ID
-                    programID = UUID.fromString(programIDStr);
-                } catch (IllegalArgumentException ex){}
-            }
-        }
-           // If there is a program ID to use
-        if (programID != null)
-            config.setProgramID(programID);
-        else{
-                // Set and store a random program ID
-            config.getProperties().setProperty(PROGRAM_ID_KEY, config.setRandomProgramID());
-        }
-        
         System.gc();        // Run the garbage collector
+            // Configure the program from the settings
         configureProgram();
         if (ENABLE_INITIAL_LOAD_AND_SAVE){
             loadDatabase(DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG);
         }
-//        loader = new ConfigLoader(configFile);
-//        loader.execute();
     }
     /**
      * This constructs a new LinkManager with the given value determining if it 
