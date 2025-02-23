@@ -7990,26 +7990,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private class ConfigSaver extends AbstractConfigSaver{
-
-        ConfigSaver(File file, boolean exit) {
-            super(file, exit);
-        }
         
         ConfigSaver(File file){
             super(file);
-        }
-        
-        ConfigSaver(boolean exit){
-            this(getConfigFile(),exit);
-        }
-        
-        ConfigSaver(){
-            this(getConfigFile());
         }
         @Override
         protected boolean savePropertiesFile(File file) throws IOException {
             LinkManagerConfig saveConfig = createSaveConfig(config);
             return saveProperties(file,saveConfig.getProperties());
+        }
+    }
+    /**
+     * 
+     */
+    private class ProgramConfigSaver extends AbstractConfigSaver{
+
+        public ProgramConfigSaver(boolean exit) {
+            super(getConfigFile(), exit);
+        }
+        
+        public ProgramConfigSaver(){
+            this(false);
+        }
+        @Override
+        protected boolean savePropertiesFile(File file) throws IOException {
+            return saveConfigFile();
         }
     }
     /**
@@ -8353,7 +8358,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
                 uploadDatabase();
             } else {
-                saver = new ConfigSaver(true);
+                saver = new ProgramConfigSaver(true);
                 saver.execute();
             }
         }
@@ -10101,7 +10106,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void exitProgram(){
-            saver = new ConfigSaver(true);
+            saver = new ProgramConfigSaver(true);
             saver.execute();
         }
     }
