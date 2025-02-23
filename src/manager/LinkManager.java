@@ -10232,15 +10232,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             return false;
         }
-        @Override
-        protected void done(){
-            super.done();
-                // If we are exiting the program after saving the database
-            if (exitAfterSaving){   
-                saver = new ConfigSaver(true);
-                saver.execute();
-            }
-        }
     }
     /**
      * 
