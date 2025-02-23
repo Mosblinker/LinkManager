@@ -6115,8 +6115,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Get the index of the selected list, prioritizing the index 
                 // for the selected listID (since listIDs don't typically change 
                 // between instances of the program), then the index of the 
-                // last selected index, and defaulting to -1 to clear the selection
-            int index = selListIDMap.getOrDefault(i, selListMap.getOrDefault(i,-1));
+                // last selected index, and defaulting to 0 to select the first tab
+            int index = selListIDMap.getOrDefault(i, selListMap.getOrDefault(i,0));
                 // If the selected index is in bounds or the selection should be 
             if (index >= -1 && index<listsTabPanels[i].getTabCount()) // cleared
                 listsTabPanels[i].setSelectedIndex(index);
