@@ -1492,7 +1492,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         jLabel2.setText("File:");
 
-        dbxDbFileField.setEnabled(false);
 
         dbxDataPanel.setLayout(new java.awt.GridBagLayout());
 
