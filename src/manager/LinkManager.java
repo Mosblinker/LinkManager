@@ -650,6 +650,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         else{   // Set and store a random program ID
             config.getProperties().setProperty(PROGRAM_ID_KEY, 
                     config.setRandomProgramID());
+        }   
+        try{    // Try to save the properties to the configuration file
+            saveConfigFile();
+        } catch (IOException ex) {
+            System.out.println("Config Save Error: " + ex);
+            // TODO: Error message window
         }
         
         loadDbxUtils();
@@ -5848,6 +5854,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Store the configuration
             prop.store(writer, GENERAL_CONFIG_HEADER);
         }
+        return true;
+    }
+    /**
+     * 
+     * @return 
+     */
+    private boolean saveConfigFile() throws IOException{
+        File file = getConfigFile();
+        if (!config.getProperties().isEmpty() || file.exists())
+            return saveProperties(file,config.getProperties());
         return true;
     }
     /**
