@@ -1880,8 +1880,14 @@ public class LinkManagerConfig {
         if (panel != null){
                 // Get the first visible index for the list
             firstVisIndex = panel.getList().getFirstVisibleIndex();
+                // If the first visible index is negative
+            if (firstVisIndex < 0)
+                firstVisIndex = null;
                 // Get the last visible index for the list
             lastVisIndex = panel.getList().getLastVisibleIndex();
+                // If the last visible index is negative
+            if (lastVisIndex < 0)
+                lastVisIndex = null;
                 // If the panel's selection is not empty
             if (!panel.isSelectionEmpty())
                     // Get whether the selected indes is visible
