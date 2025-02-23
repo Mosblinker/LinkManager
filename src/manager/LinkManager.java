@@ -5874,24 +5874,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return true;
     }
     /**
-     * 
-     * @param config
-     * @return 
-     */
-    private LinkManagerConfig createSaveConfig(LinkManagerConfig config){
-        return prepareSaveConfig(new LinkManagerConfig(config));
-    }
-    /**
-     * 
-     * @param config
-     * @return 
-     */
-    private LinkManagerConfig prepareSaveConfig(LinkManagerConfig config){
-            // Update the program's configuration
-        updateProgramConfig();
-        return config;
-    }
-    /**
      * This updates the values in the program's configuration that would update 
      * too frequently if updated in real time or that would be too difficult to 
      * cover all possible ways of the value being set.
@@ -8000,8 +7982,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean savePropertiesFile(File file) throws IOException {
-            LinkManagerConfig saveConfig = createSaveConfig(config);
-            return saveProperties(file,saveConfig.getProperties());
+                // Get the settings for the program, as a Properties object
+            Properties prop = config.exportProperties();
+                // If the settings somehow failed to be exported
+            if (prop == null)
+                return false;
+            return saveProperties(file,prop);
         }
     }
     /**
