@@ -422,7 +422,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return The configuration file.
      */
     private File getConfigFile(){
-        return getRelativeFile(CONFIG_FILE);
+        return new File(getProgramDirectory(),CONFIG_FILE);
     }
     /**
      * This returns the file containing the Dropbox API keys for this program.
