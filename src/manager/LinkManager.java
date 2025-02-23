@@ -5861,8 +5861,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private boolean saveConfigFile() throws IOException{
+            // Get the configuration file
         File file = getConfigFile();
+            // If the configuration properties is not empty or the file exists
         if (!config.getProperties().isEmpty() || file.exists())
+                // Save the configuration properties to file
             return saveProperties(file,config.getProperties());
         return true;
     }
@@ -7948,7 +7951,45 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private class ConfigSaver extends FileSaver{
+    private abstract class AbstractConfigSaver extends FileSaver{
+        
+        AbstractConfigSaver(File file, boolean exit) {
+            super(file, exit);
+        }
+        
+        AbstractConfigSaver(File file){
+            super(file);
+        }
+        
+        protected abstract boolean savePropertiesFile(File file) throws IOException;
+        @Override
+        protected boolean saveFile(File file) {
+                // Disable the hidden lists toggle
+            showHiddenListsToggle.setEnabled(false);
+                // Set the program to be indeterminate
+            setIndeterminate(true);
+                // Update the program configuration
+            updateProgramConfig();
+            try {   // Try to save the properties to file
+                return savePropertiesFile(file);
+            } catch (IOException ex) {
+                return false;
+            }
+        }
+        @Override
+        public String getProgressString(){
+            return "Saving Configuration";
+        }
+        @Override
+        protected void done(){
+            super.done();
+                // Re-enable the hidden lists toggle if the program isn't 
+                // closing after this is done
+            showHiddenListsToggle.setEnabled(!exitAfterSaving);
+        }
+    }
+    
+    private class ConfigSaver extends AbstractConfigSaver{
 
         ConfigSaver(File file, boolean exit) {
             super(file, exit);
@@ -7966,24 +8007,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this(getConfigFile());
         }
         @Override
-        protected boolean saveFile(File file) {
-            showHiddenListsToggle.setEnabled(false);
-            setIndeterminate(true);
+        protected boolean savePropertiesFile(File file) throws IOException {
             LinkManagerConfig saveConfig = createSaveConfig(config);
-            try {
-                return saveProperties(file,saveConfig.getProperties());
-            } catch (IOException ex) {
-                return false;
-            }
-        }
-        @Override
-        public String getProgressString(){
-            return "Saving Configuration";
-        }
-        @Override
-        protected void done(){
-            super.done();
-            showHiddenListsToggle.setEnabled(!exitAfterSaving);
+            return saveProperties(file,saveConfig.getProperties());
         }
     }
     /**
