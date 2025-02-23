@@ -4582,8 +4582,26 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return;
         }
         
-        // TODO: Implement setting the location for the dropbox file
-        String extFileName = dbxDbFileField.getText();
+            // If the user is logged into Dropbox
+        if (isLoggedInToDropbox()){
+            // TODO: Implement setting the location for the dropbox file using 
+            // a browse dialog and make it more robust
+            
+                // Get the database file name for Dropbox
+            String dbxFileName = dbxDbFileField.getText().trim();
+                // If the Dropbox database file name is empty  or ends with a 
+            if (dbxFileName.isEmpty() || dbxFileName.endsWith("/")) // slash
+                    // Add the database file name to the path
+                dbxFileName+=LINK_DATABASE_FILE;
+                // Format the Dropbox database file name
+            dbxFileName = formatDropboxPath(dbxFileName);
+                // If the Dropbox database file name has changed
+            if (!Objects.equals(dbxFileName, config.getDropboxDatabaseFileName())){
+                    // Set the Dropbox database file name
+                config.setDropboxDatabaseFileName(dbxFileName);
+                setDropboxDatabaseFileFields(dbxFileName);
+            }
+        }
         
         File file = new File(fileName.trim());
         fileName = file.toString();
@@ -6295,7 +6313,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (!path.startsWith("/"))
                 // Add a slash to the start of the file name
             return "/"+path;
-        return path;
+        return path.trim();
     }
     /**
      * This is a LinksListTabAction that saves the links from a list to a 
