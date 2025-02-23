@@ -5818,7 +5818,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return Whether the configuration was successfully loaded.
      * @throws IOException If an error occurs while reading the file.
      */
-    private boolean loadProperties(File file, Properties prop) throws IOException{
+    private boolean loadProperties(File file,Properties prop)throws IOException{
             // If the file doesn't exist
         if (!file.exists())
             return false;
@@ -5828,25 +5828,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             prop.load(reader);
         }
         return true;
-    }
-    /**
-     * 
-     * @param file
-     * @param prop
-     * @return 
-     */
-    private boolean loadConfigFile(File file, Properties prop){
-        showHiddenListsToggle.setEnabled(false);
-        try {
-            if (loadProperties(file, prop)){
-                config.importProperties(prop);
-                return true;
-            }
-        } catch (IOException ex) {
-            if (isInDebug())
-                System.out.println(ex);
-        }
-        return false;
     }
     /**
      * 
@@ -7906,7 +7887,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private class ConfigLoader extends FileLoader{
         
-        private Properties loadedConfig = new Properties();
+        private ConfigProperties prop = new ConfigProperties();
 
         ConfigLoader(File file) {
             super(file,fullyLoaded);
@@ -7917,18 +7898,30 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean loadFile(File file) {
-            return loadConfigFile(file,loadedConfig);
+                // Disable the hidden list toggle
+            showHiddenListsToggle.setEnabled(false);
+            try {   // Load the properties from the file and get if we are 
+                    // successful
+                if (loadProperties(file, prop)){
+                        // Import the properties into the configuration
+                    config.importProperties(prop);
+                    return true;
+                }
+            } catch (IOException ex) {
+                    // If the program is in debug mode
+                if (isInDebug())
+                    System.out.println(ex);
+            }
+            return false;
         }
         @Override
         protected void done(){
-//            config.getProperties().putAll(loadedConfig);
+                // Configure the program
             configureProgram();
+                // Wrap up the loading process
             super.done();
+                // Re-enable the hidden list toggle
             showHiddenListsToggle.setEnabled(true);
-            if (!fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
-                loader = new DatabaseLoader();
-                loader.execute();
-            }
         }
     }
     
