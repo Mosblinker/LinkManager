@@ -123,10 +123,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public static final String DROPBOX_API_KEY_FILE = "LinkManagerDropboxKey.json";
     /**
-     * This is the header flag for the general settings in the configuration 
+     * This is the header  for the general settings in the configuration 
      * file.
      */
-    private static final String GENERAL_CONFIG_FLAG = "[LinkManager Config]";
+    private static final String GENERAL_CONFIG_HEADER = "[LinkManager Config]";
     /**
      * This is the configuration key for the program ID. This is used to
      * determine what preference node to use for the program.
@@ -174,10 +174,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     public static final FileNameExtensionFilter SHORTCUT_FILE_FILTER = 
             generateExtensionFilter("Internet Shortcuts","url");
     /**
-     * The flag used in an Internet Shortcut file to indicate where the actual 
+     * The header used in an Internet Shortcut file to indicate where the actual 
      * shortcut is located.
      */
-    public static final String SHORTCUT_FLAG = "[InternetShortcut]";
+    public static final String SHORTCUT_HEADER = "[InternetShortcut]";
     /**
      * The flag used in an Internet Shortcut file to indicate the URL.
      */
@@ -3395,7 +3395,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.out.println();
         System.out.println("Stored Configuration:");
         try {
-            config.getProperties().store(System.out, GENERAL_CONFIG_FLAG);
+            config.getProperties().store(System.out, GENERAL_CONFIG_HEADER);
         } catch (IOException ex) {
             System.out.println("Error: " + ex);
         }
@@ -5749,7 +5749,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private String getShortcutURL(List<String> lines){
             // Starts from the shortcut flag and searches for the URL
-        for (int pos = lines.indexOf(SHORTCUT_FLAG); pos < lines.size(); pos++){
+        for (int pos = lines.indexOf(SHORTCUT_HEADER);pos < lines.size();pos++){
             String temp = lines.get(pos).trim();  // The string being checked
                 // If the current string starts with the URL flag
             if (temp.startsWith(URL_FLAG)){
@@ -5832,7 +5832,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Try to create a PrintWriter to write to the file
         try (PrintWriter writer = new PrintWriter(file)) {
                 // Store the configuration
-            prop.store(writer, GENERAL_CONFIG_FLAG);
+            prop.store(writer, GENERAL_CONFIG_HEADER);
         } catch (IOException ex) {
             return false;
         }
