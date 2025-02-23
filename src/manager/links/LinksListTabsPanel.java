@@ -9,6 +9,7 @@ import event.DisabledComponentMouseListener;
 import icons.DisabledIcon;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.event.MouseListener;
@@ -147,6 +148,7 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
         currPanelMenuItemMap = new HashMap<>();
         panelActionMapper = null;
         tabbedPane = new JTabbedPane();
+        tabbedPane.setMinimumSize(new Dimension(119,76));
         listHandler = new ListPanelHandler();
         listIconHandler = new ListIconHandler();
         Handler handler = new Handler();
