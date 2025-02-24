@@ -427,6 +427,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return The configuration file.
      */
     private File getConfigFile(){
+            // If a configuration file was specified
+        if (configFile != null)
+            return configFile;
         return new File(getProgramDirectory(),CONFIG_FILE);
     }
     /**
@@ -621,6 +624,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         editCommands = new HashMap<>();
         undoCommands = new HashMap<>();
         textPopupMenus = new HashMap<>();
+        this.configFile = configFile;
         
             // This will get the preference node for the program
         Preferences node = null;
@@ -5470,6 +5474,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private File showSaveFileChooser(JFileChooser fc){
         return showSaveFileChooser(fc,null);
     }
+    /**
+     * This is the configuration file if one was specified at the start of the 
+     * program.
+     */
+    private File configFile = null;
     /**
      * This is used to load data from files.
      */
