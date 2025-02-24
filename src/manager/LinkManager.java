@@ -105,6 +105,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public static final String PROGRAM_ID_ARGUMENT = "-programID=";
     /**
+     * This is the argument for specifying a configuration file for the program 
+     * from the arguments.
+     */
+    public static final String CONFIG_FILE_ARGUMENT = "-config=";
+    /**
      * This holds the abstract path to the default database file storing the 
      * tables containing the links.
      */
@@ -422,6 +427,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return The configuration file.
      */
     private File getConfigFile(){
+            // If a configuration file was specified
+        if (configFile != null)
+            return configFile;
         return new File(getProgramDirectory(),CONFIG_FILE);
     }
     /**
@@ -605,15 +613,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * is in debug mode and the given program ID.
      * @param debugMode Whether the program is in debug mode.
      * @param programID The program ID for this instance of the program. This is 
-     * used to determine which settings to use.
+     * used to determine which settings to use, or null.
+     * @param configFile The configuration file for the program to load some 
+     * settings from, or null.
      */
-    public LinkManager(boolean debugMode, UUID programID) {
+    public LinkManager(boolean debugMode, UUID programID, File configFile) {
         this.debugMode = debugMode;
         setIconImages(generateIconImages(
                 new ImageIcon(this.getClass().getResource(ICON_FILE)).getImage()));
         editCommands = new HashMap<>();
         undoCommands = new HashMap<>();
         textPopupMenus = new HashMap<>();
+        this.configFile = configFile;
         
             // This will get the preference node for the program
         Preferences node = null;
@@ -954,12 +965,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * This constructs a new LinkManager with the given value determining if it 
+     * is in debug mode and the given program ID.
+     * @param debugMode Whether the program is in debug mode.
+     * @param programID The program ID for this instance of the program. This is 
+     * used to determine which settings to use, or null.
+     */
+    public LinkManager(boolean debugMode, UUID programID) {
+        this(debugMode,programID,null);
+    }
+    /**
+     * This constructs a new LinkManager with the given value determining if it 
+     * is in debug mode and the given program ID.
+     * @param debugMode Whether the program is in debug mode.
+     * @param configFile The configuration file for the program to load some 
+     * settings from, or null.
+     */
+    public LinkManager(boolean debugMode, File configFile) {
+        this(debugMode,null,configFile);
+    }
+    /**
+     * This constructs a new LinkManager with the given value determining if it 
      * is in debug mode and that will load the program ID from the 
      * configuration.
      * @param debugMode Whether the program is in debug mode.
      */
     public LinkManager(boolean debugMode){
-        this(debugMode,null);
+        this(debugMode,null, null);
     }
      /**
      * This constructs a new LinkManager that is not in debug mode and with the 
@@ -968,7 +999,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * used to determine which settings to use.
      */
     public LinkManager(UUID programID) {
-        this(false,programID);
+        this(false,programID, null);
     }
     /**
      * This constructs a new LinkManager that is not in debug mode and that will 
@@ -5024,6 +5055,37 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             dbLastModLabel.setText(DEBUG_DATE_FORMAT.format(new java.util.Date(lastMod)));
     }
     /**
+     * 
+     * @param args
+     * @param arg
+     * @param name
+     * @return 
+     * @throws IllegalStateException 
+     */
+    private static String getArgument(String[] args, String arg, String name){
+            // This gets an array containing all the arguments that could be the 
+            // argument we're looking for
+        ArrayList<String> argsList = new ArrayList<>(Arrays.asList(args));
+            // Remove any arguments that are either null or don't start with the 
+            // argument we're looking for
+        argsList.removeIf((String t) -> t == null || !t.startsWith(arg));
+            // If there are no arguments that match
+        if (argsList.isEmpty())
+            return null;
+            // If there are too many arguments
+        if (argsList.size() > 1){
+                // Tell the user that there are too many arguments that match
+            System.out.println("Too many arguments for "+name+", expected at most 1.");
+            JOptionPane.showMessageDialog(null, 
+                    "Too many arguments provided for the "+name+".\n"+
+                            "This program expects at most one.", 
+                    "ERROR - Too Many "+name.substring(0, 1).toUpperCase()+name.substring(1),
+                    JOptionPane.ERROR_MESSAGE);
+            throw new IllegalStateException();
+        }
+        return argsList.get(0).substring(arg.length());
+    }
+    /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
@@ -5050,41 +5112,58 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         java.awt.EventQueue.invokeLater(() -> {
                 // This will get the program ID for the program
             UUID programID = null;
-                // This gets an array containing all the arguments that could be 
-                // the program ID
-            ArrayList<String> progIDArgs = new ArrayList<>(Arrays.asList(args));
-                // Remove any arguments that are either null or don't start 
-                // with the program ID argument
-            progIDArgs.removeIf((String t) -> t == null || 
-                    !t.startsWith(PROGRAM_ID_ARGUMENT));
-                // If there are any arguments that could be the program ID
-            if (!progIDArgs.isEmpty()){
-                    // If there are too many arguments for the program ID
-                if (progIDArgs.size() > 1){
-                        // Tell the user that there are too many program IDs
-                    System.out.println("Too many arguments for program ID, expected at most 1.");
-                    JOptionPane.showMessageDialog(null, 
-                            "Too many arguments provided for the program ID.\n"
-                                    + "This program expects at most one.", 
-                            "ERROR - Too Many Program IDs",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
+            try{    // Get the value for the UUID
+                String value = getArgument(args,PROGRAM_ID_ARGUMENT,"program ID");
+                    // If there is a program ID provided
+                if (value != null)
+                        // Get the UUID from the argument
+                    programID = UUID.fromString(value);
+            } catch (IllegalStateException ex){
+                return;
+            } catch (IllegalArgumentException ex){
+                    // Tell the user that the program ID is invalid
+                System.out.println("Program ID is invalid, expected UUID.");
+                JOptionPane.showMessageDialog(null, 
+                        "The program ID is invalid.\n"+ 
+                                "The program ID should be a UUID.", 
+                        "ERROR - Invalid Program ID",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }   // The configuration file for the program
+            File configFile = null;
+                // This gets whether the configuration file is invalid
+            boolean invalidFile = false;
+            try{    // Get the value for the configuration file
+                String value = getArgument(args,CONFIG_FILE_ARGUMENT,"configuration file");
+                    // If there is a configuration file provided
+                if (value != null){
+                        // Remove any quotation marks
+                    value = FilesExtended.removeQuotations(value).trim();
+                        // File path is invalid if empty
+                    invalidFile = value.isEmpty();
+                        // If the file path is not invalid
+                    if (!invalidFile){
+                            // Get the configuration file from the argument
+                        configFile = new File(value);
+                            // Try to turn the file into a path to test if it's valid
+                        configFile.toPath();
+                    }
                 }
-                try{
-                    programID = UUID.fromString(progIDArgs.get(0).substring(
-                            PROGRAM_ID_ARGUMENT.length()));
-                } catch (IllegalArgumentException ex){
-                        // Tell the user that the program ID is invalid
-                    System.out.println("Program ID is invalid, expected UUID.");
-                    JOptionPane.showMessageDialog(null, 
-                            "The program ID is invalid.\n"
-                                    + "The program ID should be a UUID.", 
-                            "ERROR - Invalid Program IDs",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
+            } catch (IllegalStateException ex){
+                return;
+            } catch (InvalidPathException ex){
+                invalidFile = true;
+            }   // If the configuration file is invalid
+            if (invalidFile){
+                    // Tell the user that the configuration file is invalid
+                System.out.println("Configuration file is invalid.");
+                JOptionPane.showMessageDialog(null, 
+                        "The configuration file is invalid.", 
+                        "ERROR - Invalid Configuration File",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
             }
-            new LinkManager(DebugCapable.checkForDebugArgument(args),programID)
+            new LinkManager(DebugCapable.checkForDebugArgument(args),programID,configFile)
                     .setVisible(true);
         });
     }
@@ -5395,6 +5474,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private File showSaveFileChooser(JFileChooser fc){
         return showSaveFileChooser(fc,null);
     }
+    /**
+     * This is the configuration file if one was specified at the start of the 
+     * program.
+     */
+    private File configFile = null;
     /**
      * This is used to load data from files.
      */
