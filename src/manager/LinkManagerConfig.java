@@ -321,13 +321,10 @@ public class LinkManagerConfig {
      */
     private Map<Integer, Integer> lastVisIndexMap = null;
     /**
-     * This is the private Dropbox node.
+     * This is the preference node that stores the settings and tokens for 
+     * Dropbox.
      */
-    protected ConfigPreferences privateDropboxNode = null;
-    /**
-     * This is the local Dropbox node.
-     */
-    protected ConfigPreferences localDropboxNode = null;
+    protected ConfigPreferences dropboxNode = null;
     /**
      * This is a map that caches the list type preference nodes.
      */
@@ -445,21 +442,10 @@ public class LinkManagerConfig {
      * @return 
      */
     public ConfigPreferences getDropboxPreferences(){
-            // If the local Dropbox node is currently null
-        if (localDropboxNode == null)
-            localDropboxNode = getPreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
-        return localDropboxNode;
-    }
-    /**
-     * This returns the preference node used to store the Dropbox access tokens.
-     * @return 
-     */
-    public ConfigPreferences getPrivateDropboxPreferences(){
-            // If the private Dropbox node is currently null
-        if (privateDropboxNode == null)
-            privateDropboxNode = getPrivatePreferences().node(
-                    DROPBOX_PREFERENCE_NODE_NAME);
-        return privateDropboxNode;
+            // If the Dropbox node is currently null
+        if (dropboxNode == null)
+            dropboxNode = getPreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
+        return dropboxNode;
     }
     /**
      * 
@@ -611,8 +597,8 @@ public class LinkManagerConfig {
         listTypeNodeMap.clear();
             // Clear the listID preference node cache
         listIDNodeMap.clear();
-            // Reset the Dropbox nodes to null
-        privateDropboxNode = localDropboxNode = null;
+            // Reset the Dropbox node to null
+        dropboxNode = null;
     }
     /**
      * This sets the program ID to be a random {@code UUID}.
