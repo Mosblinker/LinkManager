@@ -610,9 +610,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * is in debug mode and the given program ID.
      * @param debugMode Whether the program is in debug mode.
      * @param programID The program ID for this instance of the program. This is 
-     * used to determine which settings to use.
+     * used to determine which settings to use, or null.
+     * @param configFile The configuration file for the program to load some 
+     * settings from, or null.
      */
-    public LinkManager(boolean debugMode, UUID programID) {
+    public LinkManager(boolean debugMode, UUID programID, File configFile) {
         this.debugMode = debugMode;
         setIconImages(generateIconImages(
                 new ImageIcon(this.getClass().getResource(ICON_FILE)).getImage()));
@@ -959,12 +961,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * This constructs a new LinkManager with the given value determining if it 
+     * is in debug mode and the given program ID.
+     * @param debugMode Whether the program is in debug mode.
+     * @param programID The program ID for this instance of the program. This is 
+     * used to determine which settings to use, or null.
+     */
+    public LinkManager(boolean debugMode, UUID programID) {
+        this(debugMode,programID,null);
+    }
+    /**
+     * This constructs a new LinkManager with the given value determining if it 
+     * is in debug mode and the given program ID.
+     * @param debugMode Whether the program is in debug mode.
+     * @param configFile The configuration file for the program to load some 
+     * settings from, or null.
+     */
+    public LinkManager(boolean debugMode, File configFile) {
+        this(debugMode,null,configFile);
+    }
+    /**
+     * This constructs a new LinkManager with the given value determining if it 
      * is in debug mode and that will load the program ID from the 
      * configuration.
      * @param debugMode Whether the program is in debug mode.
      */
     public LinkManager(boolean debugMode){
-        this(debugMode,null);
+        this(debugMode,null, null);
     }
      /**
      * This constructs a new LinkManager that is not in debug mode and with the 
@@ -973,7 +995,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * used to determine which settings to use.
      */
     public LinkManager(UUID programID) {
-        this(false,programID);
+        this(false,programID, null);
     }
     /**
      * This constructs a new LinkManager that is not in debug mode and that will 
@@ -5137,7 +5159,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            new LinkManager(DebugCapable.checkForDebugArgument(args),programID)
+            new LinkManager(DebugCapable.checkForDebugArgument(args),programID,configFile)
                     .setVisible(true);
         });
     }
