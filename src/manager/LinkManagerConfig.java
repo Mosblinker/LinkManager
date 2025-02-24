@@ -555,6 +555,30 @@ public class LinkManagerConfig {
         return getNode(path+programID.toString(), defaults);
     }
     /**
+     * This creates and returns the local preference node for the program using 
+     * the {@link #getProgramID() program ID} as the name of the node. This is 
+     * equivalent to the following: 
+     * 
+     * <pre> {@code
+     * return getSharedPreferences().node(getProgramID().toString(), getDefaults());
+     * }</pre>
+     * 
+     * @return The ConfigPreferences node to use to store the local settings for 
+     * instances of the program with the currently set program ID.
+     * @throws IllegalStateException If the program node (or an ancestor) has 
+     * been removed with the {@link ConfigPreferences#removeNode() removeNode()} 
+     * method.
+     * @see #getSharedPreferences() 
+     * @see ConfigPreferences#node(String) 
+     * @see #getProgramID() 
+     * @see #getDefaults() 
+     * @see #getPreferences() 
+     * @see #setProgramID(UUID) 
+     */
+    protected ConfigPreferences createPreferences(){
+        return programNode.node(programID.toString(), getDefaults());
+    }
+    /**
      * This returns the program ID set for this configuration.
      * @return The program ID.
      */
@@ -580,7 +604,7 @@ public class LinkManagerConfig {
             return;
         programID = id;
             // Set the local preference node
-        localNode = getProgramIDNode(LOCAL_PREFERENCE_NODE_PATH,getDefaults());
+        localNode = createPreferences();
             // Set the private preference node
         privateNode = getProgramIDNode(PRIVATE_PREFERENCE_NODE_PATH,null);
             // Clear the list type preference node cache
