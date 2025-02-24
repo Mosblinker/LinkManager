@@ -13,7 +13,6 @@ import java.util.prefs.*;
 import manager.config.*;
 import manager.dropbox.DropboxLinkUtils;
 import manager.links.*;
-import manager.security.Obfuscator;
 import org.sqlite.SQLiteConfig;
 
 /**
@@ -323,17 +322,11 @@ public class LinkManagerConfig {
      */
     private UUID programID = null;
     /**
-     * This is the Obfuscator object used to encrypt and decrypt sensitive data.
-     */
-    protected final Obfuscator obfuscator;
-    /**
      * 
      * @param sqlProp
      * @param node 
-     * @param obfuscator
      */
-    private LinkManagerConfig(Properties sqlProp, ConfigPreferences node,
-            Obfuscator obfuscator){
+    private LinkManagerConfig(Properties sqlProp, ConfigPreferences node){
         config = new ConfigProperties();
         compNameMap = new HashMap<>();
             // If the given SQLite config properties is not null
@@ -345,31 +338,20 @@ public class LinkManagerConfig {
         localDefaults = new ConfigProperties();
         listTypeNodeMap = new HashMap<>();
         listIDNodeMap = new HashMap<>();
-        this.obfuscator = obfuscator;
-    }
-    /**
-     * 
-     * @param node 
-     * @param obfuscator 
-     */
-    public LinkManagerConfig(Preferences node, Obfuscator obfuscator){
-        this(null, new ConfigPreferences(node, new ConfigProperties()), 
-                obfuscator);
     }
     /**
      * 
      * @param node 
      */
     public LinkManagerConfig(Preferences node){
-        this(node,null);
+        this(null, new ConfigPreferences(node, new ConfigProperties()));
     }
     /**
      * 
      * @param linkConfig 
      */
     public LinkManagerConfig(LinkManagerConfig linkConfig){
-        this(linkConfig.sqlConfig.toProperties(), linkConfig.programNode,
-                linkConfig.obfuscator);
+        this(linkConfig.sqlConfig.toProperties(), linkConfig.programNode);
         this.config.putAll(linkConfig.config);
         this.compNameMap.putAll(linkConfig.compNameMap);
         this.localDefaults.addProperties(linkConfig.localDefaults);
@@ -462,6 +444,30 @@ public class LinkManagerConfig {
                 listIDNodeMap);
     }
     /**
+     * This returns the SQLite configuration for the database used by 
+     * LinkManager.
+     * @return The SQLite configuration.
+     */
+    public SQLiteConfig getSQLiteConfig(){
+        return sqlConfig;
+    }
+    /**
+     * This returns a map used to map components in LinkManager to the names of 
+     * the component in the settings that relate to that component.
+     * @return A map that maps components to the names for those components.
+     */
+    public Map<Component, String> getComponentNames(){
+        return compNameMap;
+    }
+    /**
+     * This returns the properties map that stores the configuration for 
+     * LinkManager.
+     * @return The properties map.
+     */
+    public ConfigProperties getProperties(){
+        return config;
+    }
+    /**
      * This creates and returns the local preference node for the program using 
      * the {@link #getProgramID() program ID} as the name of the node. This is 
      * equivalent to the following: 
@@ -532,30 +538,7 @@ public class LinkManagerConfig {
         setProgramID(id);
         return id;
     }
-    /**
-     * This returns the SQLite configuration for the database used by 
-     * LinkManager.
-     * @return The SQLite configuration.
-     */
-    public SQLiteConfig getSQLiteConfig(){
-        return sqlConfig;
-    }
-    /**
-     * This returns a map used to map components in LinkManager to the names of 
-     * the component in the settings that relate to that component.
-     * @return A map that maps components to the names for those components.
-     */
-    public Map<Component, String> getComponentNames(){
-        return compNameMap;
-    }
-    /**
-     * This returns the properties map that stores the configuration for 
-     * LinkManager.
-     * @return The properties map.
-     */
-    public ConfigProperties getProperties(){
-        return config;
-    }
+        // TODO: Add key pair code getter and setter here.
     /**
      * 
      * @param value

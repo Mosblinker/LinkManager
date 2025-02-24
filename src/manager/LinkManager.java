@@ -624,8 +624,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // TODO: Error message window
         }
         
-            // TODO: Uncomment this when Dropbox token encryption is implemented
-//        config = new LinkManagerConfig(node,Obfuscator.getInstance());
             // Create the configuration for the program
         config = new LinkManagerConfig(node);
         try{    // Try to load the configuration file into the properties
@@ -650,7 +648,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         else{   // Set and store a random program ID
             config.getProperties().setProperty(PROGRAM_ID_KEY, 
                     config.setRandomProgramID());
-        }   
+        }
+        // TODO: Implement encryption stuff
         try{    // Try to save the properties to the configuration file
             saveConfigFile();
         } catch (IOException ex) {
