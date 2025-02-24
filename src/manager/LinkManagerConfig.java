@@ -229,7 +229,7 @@ public class LinkManagerConfig {
         LAST_VISIBLE_INDEX_FOR_LIST_KEY
     };
     /**
-     * This is the name of the preference nodes used to store the data for 
+     * This is the name of the preference node used to store the data for 
      * Dropbox.
      */
     public static final String DROPBOX_PREFERENCE_NODE_NAME = "dropbox";
