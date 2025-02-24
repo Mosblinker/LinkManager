@@ -462,6 +462,30 @@ public class LinkManagerConfig {
                 listIDNodeMap);
     }
     /**
+     * This returns the SQLite configuration for the database used by 
+     * LinkManager.
+     * @return The SQLite configuration.
+     */
+    public SQLiteConfig getSQLiteConfig(){
+        return sqlConfig;
+    }
+    /**
+     * This returns a map used to map components in LinkManager to the names of 
+     * the component in the settings that relate to that component.
+     * @return A map that maps components to the names for those components.
+     */
+    public Map<Component, String> getComponentNames(){
+        return compNameMap;
+    }
+    /**
+     * This returns the properties map that stores the configuration for 
+     * LinkManager.
+     * @return The properties map.
+     */
+    public ConfigProperties getProperties(){
+        return config;
+    }
+    /**
      * This creates and returns the local preference node for the program using 
      * the {@link #getProgramID() program ID} as the name of the node. This is 
      * equivalent to the following: 
@@ -531,30 +555,6 @@ public class LinkManagerConfig {
             // Set the program ID to the generated UUID
         setProgramID(id);
         return id;
-    }
-    /**
-     * This returns the SQLite configuration for the database used by 
-     * LinkManager.
-     * @return The SQLite configuration.
-     */
-    public SQLiteConfig getSQLiteConfig(){
-        return sqlConfig;
-    }
-    /**
-     * This returns a map used to map components in LinkManager to the names of 
-     * the component in the settings that relate to that component.
-     * @return A map that maps components to the names for those components.
-     */
-    public Map<Component, String> getComponentNames(){
-        return compNameMap;
-    }
-    /**
-     * This returns the properties map that stores the configuration for 
-     * LinkManager.
-     * @return The properties map.
-     */
-    public ConfigProperties getProperties(){
-        return config;
     }
     /**
      * 
