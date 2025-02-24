@@ -573,14 +573,12 @@ public class LinkManagerConfig {
     }
     /**
      * This sets the program ID for this configuration. This will also set the 
-     * {@link #getPreferences() local} and {@link #getPrivatePreferences() 
-     * private preference nodes}.
+     * {@link #getPreferences() local preference node}.
      * @param id The new program ID.
      * @throws NullPointerException If the program ID is null.
      * @see #getProgramID() 
      * @see #setRandomProgramID() 
      * @see #getPreferences()
-     * @see #getPrivatePreferences()
      */
     public void setProgramID(UUID id){
             // Check if the program ID is null
@@ -607,7 +605,6 @@ public class LinkManagerConfig {
      * @see #getProgramID() 
      * @see #setProgramID(UUID) 
      * @see #getPreferences()
-     * @see #getPrivatePreferences()
      */
     public UUID setRandomProgramID(){
             // Generate a random UUID
@@ -1064,7 +1061,7 @@ public class LinkManagerConfig {
     public ConfigProperties exportProperties(){
         try{    // This gets the preference node as a properties object
             ConfigProperties prop = getPreferences().toProperties();
-                // If the local dropbox node exists
+                // If the Dropbox node exists
             if (nodeExists(getPreferences(),DROPBOX_PREFERENCE_NODE_NAME)){
                     // Set the value for the Dropbox database file path
                 prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY, 
