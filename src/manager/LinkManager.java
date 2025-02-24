@@ -9238,15 +9238,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             addConfigRows("Properties",config.getProperties(),null);
                 // Add all the shared preferences for this program
             addConfigRows("Shared Preferences",config.getSharedPreferences());
-                // Add all the local preferences for this program
-            addConfigRows("Local Preferences",config.getPreferences());
+                // Add all the preferences for this program
+            addConfigRows("Preferences",config.getPreferences());
                 // Add all the list type nodes
             addNodeChildConfigRows("List Type %s Preferences",
                     LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX);
                 // Add all the list ID nodes
             addNodeChildConfigRows("List ID %s Preferences",
                     LIST_ID_PREFERENCE_NODE_NAME_PREFIX);
-                // Add all the local Dropbox preferences for this program
+                // Add all the Dropbox preferences for this program
             addConfigRows("Dropbox Preferences",config.getDropboxPreferences());
             
             return null;
