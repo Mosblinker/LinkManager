@@ -229,17 +229,7 @@ public class LinkManagerConfig {
         LAST_VISIBLE_INDEX_FOR_LIST_KEY
     };
     /**
-     * This is the start of the path for the preference node used to store the 
-     * configuration data for an instance of the program.
-     */
-    private static final String LOCAL_PREFERENCE_NODE_PATH = "local";
-    /**
-     * This is the start of the path for the preference node used to store 
-     * sensitive data for the program.
-     */
-    private static final String PRIVATE_PREFERENCE_NODE_PATH = "private";
-    /**
-     * This is the name of the preference nodes used to store the data for 
+     * This is the name of the preference node used to store the data for 
      * Dropbox.
      */
     public static final String DROPBOX_PREFERENCE_NODE_NAME = "dropbox";
@@ -272,11 +262,6 @@ public class LinkManagerConfig {
      * This is a properties map that stores the defaults for {@code localNode}.
      */
     private final ConfigProperties localDefaults;
-    /**
-     * This is the preference node containing the sensitive data for this 
-     * instance of LinkManager and any that share this instance's ID.
-     */
-    private ConfigPreferences privateNode = null;
     /**
      * This is a properties map that stores the configuration for LinkManager.
      */
@@ -321,13 +306,10 @@ public class LinkManagerConfig {
      */
     private Map<Integer, Integer> lastVisIndexMap = null;
     /**
-     * This is the private Dropbox node.
+     * This is the preference node that stores the settings and tokens for 
+     * Dropbox.
      */
-    protected ConfigPreferences privateDropboxNode = null;
-    /**
-     * This is the local Dropbox node.
-     */
-    protected ConfigPreferences localDropboxNode = null;
+    protected ConfigPreferences dropboxNode = null;
     /**
      * This is a map that caches the list type preference nodes.
      */
@@ -432,34 +414,14 @@ public class LinkManagerConfig {
         return localDefaults;
     }
     /**
-     * This returns the preference node used to store the sensitive data for 
-     * LinkManager.
-     * @return The local preference node for private data.
-     * @see #getPrivateDefaults() 
-     */
-    public ConfigPreferences getPrivatePreferences(){
-        return privateNode;
-    }
-    /**
      * This returns the preference node used to store the Dropbox settings.
      * @return 
      */
     public ConfigPreferences getDropboxPreferences(){
-            // If the local Dropbox node is currently null
-        if (localDropboxNode == null)
-            localDropboxNode = getPreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
-        return localDropboxNode;
-    }
-    /**
-     * This returns the preference node used to store the Dropbox access tokens.
-     * @return 
-     */
-    public ConfigPreferences getPrivateDropboxPreferences(){
-            // If the private Dropbox node is currently null
-        if (privateDropboxNode == null)
-            privateDropboxNode = getPrivatePreferences().node(
-                    DROPBOX_PREFERENCE_NODE_NAME);
-        return privateDropboxNode;
+            // If the Dropbox node is currently null
+        if (dropboxNode == null)
+            dropboxNode = getPreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
+        return dropboxNode;
     }
     /**
      * 
@@ -500,59 +462,28 @@ public class LinkManagerConfig {
                 listIDNodeMap);
     }
     /**
-     * This gets a preference node relative to the program preference node with 
-     * the given defaults. This is equivalent to the following: 
+     * This creates and returns the local preference node for the program using 
+     * the {@link #getProgramID() program ID} as the name of the node. This is 
+     * equivalent to the following: 
      * 
      * <pre> {@code
-     * Preferences node = getSharedPreferences().node(pathName);
-     * return new ConfigPreferences(node, defaults);
+     * return getSharedPreferences().node(getProgramID().toString(), getDefaults());
      * }</pre>
      * 
-     * @param pathName The path name for the preference node to return.
-     * @param defaults The defaults for the preferences.
-     * @return A ConfigPreferences node from the shared preference node.
-     * @throws IllegalArgumentException If the path name is invalid (i.e. it 
-     * contains multiple consecutive slash characters or it ends with a slash 
-     * character and is more than one character long).
-     * @throws NullPointerException If the path name is null.
+     * @return The ConfigPreferences node to use to store the local settings for 
+     * instances of the program with the currently set program ID.
      * @throws IllegalStateException If the program node (or an ancestor) has 
      * been removed with the {@link ConfigPreferences#removeNode() removeNode()} 
      * method.
      * @see #getSharedPreferences() 
      * @see ConfigPreferences#node(String) 
-     * @see ConfigPreferences
-     * @see #getProgramIDNode(String, Properties) 
-     */
-    protected ConfigPreferences getNode(String pathName, Properties defaults){
-        return programNode.node(pathName,defaults);
-    }
-    /**
-     * This returns a preference node that is relative to the program preference 
-     * node, and using the {@link #getProgramID() program ID} as the name of the 
-     * node. This is roughly equivalent to calling {@link #getNode(String, 
-     * Properties) getNode}{@code (path+"/"+getProgramID().toString(), 
-     * defaults)}.
-     * @param path The path for the node. The path will end with the program ID.
-     * @param defaults The defaults for the preferences.
-     * @return A ConfigPreferences node from the shared preference node and with 
-     * the program ID as the name.
-     * @throws IllegalArgumentException If the path name is invalid (i.e. it 
-     * contains multiple consecutive slash characters).
-     * @throws IllegalStateException If the program node (or an ancestor) has 
-     * been removed with the {@link ConfigPreferences#removeNode() removeNode()} 
-     * method.
-     * @see #getNode(String, Properties) 
-     * @see #getSharedPreferences() 
      * @see #getProgramID() 
+     * @see #getDefaults() 
+     * @see #getPreferences() 
+     * @see #setProgramID(UUID) 
      */
-    protected ConfigPreferences getProgramIDNode(String path, Properties defaults){
-            // If the path is null
-        if (path == null)
-            path = "";
-            // If the path is not empty and does not end with a slash
-        if (!path.isEmpty() && !path.endsWith("/"))
-            path += "/";
-        return getNode(path+programID.toString(), defaults);
+    protected ConfigPreferences createPreferences(){
+        return programNode.node(programID.toString(), getDefaults());
     }
     /**
      * This returns the program ID set for this configuration.
@@ -563,14 +494,12 @@ public class LinkManagerConfig {
     }
     /**
      * This sets the program ID for this configuration. This will also set the 
-     * {@link #getPreferences() local} and {@link #getPrivatePreferences() 
-     * private preference nodes}.
+     * {@link #getPreferences() local preference node}.
      * @param id The new program ID.
      * @throws NullPointerException If the program ID is null.
      * @see #getProgramID() 
      * @see #setRandomProgramID() 
      * @see #getPreferences()
-     * @see #getPrivatePreferences()
      */
     public void setProgramID(UUID id){
             // Check if the program ID is null
@@ -580,15 +509,13 @@ public class LinkManagerConfig {
             return;
         programID = id;
             // Set the local preference node
-        localNode = getProgramIDNode(LOCAL_PREFERENCE_NODE_PATH,getDefaults());
-            // Set the private preference node
-        privateNode = getProgramIDNode(PRIVATE_PREFERENCE_NODE_PATH,null);
+        localNode = createPreferences();
             // Clear the list type preference node cache
         listTypeNodeMap.clear();
             // Clear the listID preference node cache
         listIDNodeMap.clear();
-            // Reset the Dropbox nodes to null
-        privateDropboxNode = localDropboxNode = null;
+            // Reset the Dropbox node to null
+        dropboxNode = null;
     }
     /**
      * This sets the program ID to be a random {@code UUID}.
@@ -597,7 +524,6 @@ public class LinkManagerConfig {
      * @see #getProgramID() 
      * @see #setProgramID(UUID) 
      * @see #getPreferences()
-     * @see #getPrivatePreferences()
      */
     public UUID setRandomProgramID(){
             // Generate a random UUID
@@ -1054,7 +980,7 @@ public class LinkManagerConfig {
     public ConfigProperties exportProperties(){
         try{    // This gets the preference node as a properties object
             ConfigProperties prop = getPreferences().toProperties();
-                // If the local dropbox node exists
+                // If the Dropbox node exists
             if (nodeExists(getPreferences(),DROPBOX_PREFERENCE_NODE_NAME)){
                     // Set the value for the Dropbox database file path
                 prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY, 
@@ -1080,6 +1006,8 @@ public class LinkManagerConfig {
             addListDataToProperties(getLastVisibleIndexMap(),
                     LAST_VISIBLE_INDEX_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
                     prop);
+                // Remember to remove any sensitive or unnecessary data from the 
+                // properties!
             return prop;
         } catch (BackingStoreException | IllegalStateException ex) {
             return null;
@@ -1997,8 +1925,8 @@ public class LinkManagerConfig {
      * @param token 
      */
     private void setDropboxToken(String key, String token){
-            // Get the private Dropbox preference node and put the token in it
-        getPrivateDropboxPreferences().put(key, token);
+            // Get the Dropbox preference node and put the token in it
+        getDropboxPreferences().put(key, token);
     }
     /**
      * 
@@ -2008,7 +1936,7 @@ public class LinkManagerConfig {
      * @return 
      */
     private String getDropboxToken(String key){
-        return getPrivateDropboxPreferences().get(key, null);
+        return getDropboxPreferences().get(key, null);
     }
     /**
      * 
@@ -2044,16 +1972,15 @@ public class LinkManagerConfig {
      */
     public void setDropboxTokenExpiresAt(Long time){
             // Set the value for the time
-        getPrivateDropboxPreferences().putObject(DROPBOX_TOKEN_EXPIRATION_KEY,
-                time);
+        getDropboxPreferences().putObject(DROPBOX_TOKEN_EXPIRATION_KEY,time);
     }
     /**
      * 
      * @return 
      */
     public Long getDropboxTokenExpiresAt(){
-            // Get the private Dropbox preference node
-        ConfigPreferences node = getPrivateDropboxPreferences();
+            // Get the Dropbox preference node
+        ConfigPreferences node = getDropboxPreferences();
             // Get whether the node contains the dropbox token expire time
         if (node.containsKey(DROPBOX_TOKEN_EXPIRATION_KEY))
             return node.getLong(DROPBOX_TOKEN_EXPIRATION_KEY, 0);
@@ -2063,12 +1990,12 @@ public class LinkManagerConfig {
      * 
      */
     public void clearDropboxToken(){
-            // If the private Dropbox node is not null
-        if (privateDropboxNode != null)
-                // Remove it
-            removeNode(privateDropboxNode);
-            // Set it to null
-        privateDropboxNode = null;
+            // Set the Dropbox access token to null, clearing it
+        setDropboxAccessToken(null);
+            // Set the Dropbox refresh token to null, clearing it
+        setDropboxRefreshToken(null);
+            // Set the Dropbox token expiration time to null, clearing it
+        setDropboxTokenExpiresAt(null);
     }
     /**
      * 
