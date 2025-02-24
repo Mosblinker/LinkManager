@@ -229,16 +229,6 @@ public class LinkManagerConfig {
         LAST_VISIBLE_INDEX_FOR_LIST_KEY
     };
     /**
-     * This is the start of the path for the preference node used to store the 
-     * configuration data for an instance of the program.
-     */
-    private static final String LOCAL_PREFERENCE_NODE_PATH = "local";
-    /**
-     * This is the start of the path for the preference node used to store 
-     * sensitive data for the program.
-     */
-    private static final String PRIVATE_PREFERENCE_NODE_PATH = "private";
-    /**
      * This is the name of the preference nodes used to store the data for 
      * Dropbox.
      */
