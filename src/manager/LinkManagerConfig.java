@@ -2063,12 +2063,12 @@ public class LinkManagerConfig {
      * 
      */
     public void clearDropboxToken(){
-            // If the private Dropbox node is not null
-        if (privateDropboxNode != null)
-                // Remove it
-            removeNode(privateDropboxNode);
-            // Set it to null
-        privateDropboxNode = null;
+            // Set the Dropbox access token to null, clearing it
+        setDropboxAccessToken(null);
+            // Set the Dropbox refresh token to null, clearing it
+        setDropboxRefreshToken(null);
+            // Set the Dropbox token expiration time to null, clearing it
+        setDropboxTokenExpiresAt(null);
     }
     /**
      * 
