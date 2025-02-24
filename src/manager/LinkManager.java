@@ -105,6 +105,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public static final String PROGRAM_ID_ARGUMENT = "-programID=";
     /**
+     * This is the argument for specifying a configuration file for the program 
+     * from the arguments.
+     */
+    public static final String CONFIG_FILE_ARGUMENT = "-config=";
+    /**
      * This holds the abstract path to the default database file storing the 
      * tables containing the links.
      */
