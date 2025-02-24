@@ -321,6 +321,22 @@ public class LinkManagerConfig {
      */
     private Map<Integer, Integer> lastVisIndexMap = null;
     /**
+     * This is the private Dropbox node.
+     */
+    protected ConfigPreferences privateDropboxNode = null;
+    /**
+     * This is the local Dropbox node.
+     */
+    protected ConfigPreferences localDropboxNode = null;
+    /**
+     * This is a map that caches the list type preference nodes.
+     */
+    protected Map<Integer, ConfigPreferences> listTypeNodeMap;
+    /**
+     * This is a map that caches the listID preference nodes.
+     */
+    protected Map<Integer, ConfigPreferences> listIDNodeMap;
+    /**
      * This is the ID for the program.
      */
     private UUID programID = null;
@@ -345,6 +361,8 @@ public class LinkManagerConfig {
             sqlConfig = new SQLiteConfig();
         programNode = node;
         localDefaults = new ConfigProperties();
+        listTypeNodeMap = new HashMap<>();
+        listIDNodeMap = new HashMap<>();
         this.obfuscator = obfuscator;
     }
     /**
@@ -427,14 +445,41 @@ public class LinkManagerConfig {
      * @return 
      */
     public ConfigPreferences getDropboxPreferences(){
-        return getPreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
+            // If the local Dropbox node is currently null
+        if (localDropboxNode == null)
+            localDropboxNode = getPreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
+        return localDropboxNode;
     }
     /**
      * This returns the preference node used to store the Dropbox access tokens.
      * @return 
      */
     public ConfigPreferences getPrivateDropboxPreferences(){
-        return getPrivatePreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
+            // If the private Dropbox node is currently null
+        if (privateDropboxNode == null)
+            privateDropboxNode = getPrivatePreferences().node(
+                    DROPBOX_PREFERENCE_NODE_NAME);
+        return privateDropboxNode;
+    }
+    /**
+     * 
+     * @param key
+     * @param prefix
+     * @param cache
+     * @return 
+     */
+    private ConfigPreferences getListDataPreferences(int key, String prefix, 
+            Map<Integer, ConfigPreferences> cache){
+            // Check the preference node cache for the node
+        ConfigPreferences node = cache.get(key);
+            // If the cache does not have the preference node
+        if (node == null){
+                // Get the node
+            node = getPreferences().node(prefix+key);
+                // Cache the node
+            cache.put(key, node);
+        }
+        return node;
     }
     /**
      * 
@@ -442,7 +487,8 @@ public class LinkManagerConfig {
      * @return 
      */
     public ConfigPreferences getListTypePreferences(int type){
-        return getPreferences().node(LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX+type);
+        return getListDataPreferences(type,LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX,
+                listTypeNodeMap);
     }
     /**
      * 
@@ -450,7 +496,8 @@ public class LinkManagerConfig {
      * @return 
      */
     public ConfigPreferences getListPreferences(int listID){
-        return getPreferences().node(LIST_ID_PREFERENCE_NODE_NAME_PREFIX+listID);
+        return getListDataPreferences(listID,LIST_ID_PREFERENCE_NODE_NAME_PREFIX,
+                listIDNodeMap);
     }
     /**
      * This gets a preference node relative to the program preference node with 
@@ -536,6 +583,12 @@ public class LinkManagerConfig {
         localNode = getProgramIDNode(LOCAL_PREFERENCE_NODE_PATH,getDefaults());
             // Set the private preference node
         privateNode = getProgramIDNode(PRIVATE_PREFERENCE_NODE_PATH,null);
+            // Clear the list type preference node cache
+        listTypeNodeMap.clear();
+            // Clear the listID preference node cache
+        listIDNodeMap.clear();
+            // Reset the Dropbox nodes to null
+        privateDropboxNode = localDropboxNode = null;
     }
     /**
      * This sets the program ID to be a random {@code UUID}.
@@ -1880,8 +1933,14 @@ public class LinkManagerConfig {
         if (panel != null){
                 // Get the first visible index for the list
             firstVisIndex = panel.getList().getFirstVisibleIndex();
+                // If the first visible index is negative
+            if (firstVisIndex < 0)
+                firstVisIndex = null;
                 // Get the last visible index for the list
             lastVisIndex = panel.getList().getLastVisibleIndex();
+                // If the last visible index is negative
+            if (lastVisIndex < 0)
+                lastVisIndex = null;
                 // If the panel's selection is not empty
             if (!panel.isSelectionEmpty())
                     // Get whether the selected indes is visible
@@ -1907,10 +1966,12 @@ public class LinkManagerConfig {
      * @param listID 
      */
     public void removeListPreferences(int listID){
-            // If the list preference node for the given listID exists
-        if (nodeExists(getPreferences(),LIST_ID_PREFERENCE_NODE_NAME_PREFIX+listID))
+            // If there is a list preference node for the given listID
+        if (listIDNodeMap.containsKey(listID))
                 // Remove it
-            removeNode(getListPreferences(listID));
+            removeNode(listIDNodeMap.get(listID));
+            // Remove it from the cache
+        listIDNodeMap.remove(listID);
     }
     /**
      * 
@@ -2002,10 +2063,12 @@ public class LinkManagerConfig {
      * 
      */
     public void clearDropboxToken(){
-            // If the private Dropbox node exists
-        if (nodeExists(getPrivatePreferences(),DROPBOX_PREFERENCE_NODE_NAME))
+            // If the private Dropbox node is not null
+        if (privateDropboxNode != null)
                 // Remove it
-            removeNode(getPrivateDropboxPreferences());
+            removeNode(privateDropboxNode);
+            // Set it to null
+        privateDropboxNode = null;
     }
     /**
      * 

@@ -90,6 +90,12 @@
         <Property name="useNullLayout" type="boolean" value="true"/>
       </Layout>
     </Container>
+    <Container class="javax.swing.JPopupMenu" name="dbxDbFilePopupMenu">
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
+        <Property name="useNullLayout" type="boolean" value="true"/>
+      </Layout>
+    </Container>
     <Container class="javax.swing.JDialog" name="setLocationDialog">
       <Properties>
         <Property name="title" type="java.lang.String" value="Set Database Location"/>
@@ -269,7 +275,9 @@
                 </Component>
                 <Component class="javax.swing.JTextField" name="dbxDbFileField">
                   <Properties>
-                    <Property name="enabled" type="boolean" value="false"/>
+                    <Property name="componentPopupMenu" type="javax.swing.JPopupMenu" editor="org.netbeans.modules.form.ComponentChooserEditor">
+                      <ComponentRef name="dbxDbFilePopupMenu"/>
+                    </Property>
                   </Properties>
                 </Component>
                 <Container class="javax.swing.JPanel" name="dbxDataPanel">
