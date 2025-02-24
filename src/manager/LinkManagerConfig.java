@@ -273,11 +273,6 @@ public class LinkManagerConfig {
      */
     private final ConfigProperties localDefaults;
     /**
-     * This is the preference node containing the sensitive data for this 
-     * instance of LinkManager and any that share this instance's ID.
-     */
-    private ConfigPreferences privateNode = null;
-    /**
      * This is a properties map that stores the configuration for LinkManager.
      */
     private final ConfigProperties config;
@@ -427,15 +422,6 @@ public class LinkManagerConfig {
      */
     public ConfigProperties getDefaults(){
         return localDefaults;
-    }
-    /**
-     * This returns the preference node used to store the sensitive data for 
-     * LinkManager.
-     * @return The local preference node for private data.
-     * @see #getPrivateDefaults() 
-     */
-    public ConfigPreferences getPrivatePreferences(){
-        return privateNode;
     }
     /**
      * This returns the preference node used to store the Dropbox settings.
@@ -589,8 +575,6 @@ public class LinkManagerConfig {
         programID = id;
             // Set the local preference node
         localNode = createPreferences();
-            // Set the private preference node
-        privateNode = getProgramIDNode(PRIVATE_PREFERENCE_NODE_PATH,null);
             // Clear the list type preference node cache
         listTypeNodeMap.clear();
             // Clear the listID preference node cache
