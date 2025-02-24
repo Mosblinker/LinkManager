@@ -5103,6 +5103,39 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         "ERROR - Invalid Program ID",
                         JOptionPane.ERROR_MESSAGE);
                 return;
+            }   // The configuration file for the program
+            File configFile = null;
+                // This gets whether the configuration file is invalid
+            boolean invalidFile = false;
+            try{    // Get the value for the configuration file
+                String value = getArgument(args,CONFIG_FILE_ARGUMENT,"configuration file");
+                    // If there is a configuration file provided
+                if (value != null){
+                        // Remove any quotation marks
+                    value = FilesExtended.removeQuotations(value).trim();
+                        // File path is invalid if empty
+                    invalidFile = value.isEmpty();
+                        // If the file path is not invalid
+                    if (!invalidFile){
+                            // Get the configuration file from the argument
+                        configFile = new File(value);
+                            // Try to turn the file into a path to test if it's valid
+                        configFile.toPath();
+                    }
+                }
+            } catch (IllegalStateException ex){
+                return;
+            } catch (InvalidPathException ex){
+                invalidFile = true;
+            }   // If the configuration file is invalid
+            if (invalidFile){
+                    // Tell the user that the configuration file is invalid
+                System.out.println("Configuration file is invalid.");
+                JOptionPane.showMessageDialog(null, 
+                        "The configuration file is invalid.", 
+                        "ERROR - Invalid Configuration File",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
             }
             new LinkManager(DebugCapable.checkForDebugArgument(args),programID)
                     .setVisible(true);
