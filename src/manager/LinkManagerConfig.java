@@ -13,7 +13,6 @@ import java.util.prefs.*;
 import manager.config.*;
 import manager.dropbox.DropboxLinkUtils;
 import manager.links.*;
-import manager.security.Obfuscator;
 import org.sqlite.SQLiteConfig;
 
 /**
@@ -323,17 +322,11 @@ public class LinkManagerConfig {
      */
     private UUID programID = null;
     /**
-     * This is the Obfuscator object used to encrypt and decrypt sensitive data.
-     */
-    protected final Obfuscator obfuscator;
-    /**
      * 
      * @param sqlProp
      * @param node 
-     * @param obfuscator
      */
-    private LinkManagerConfig(Properties sqlProp, ConfigPreferences node,
-            Obfuscator obfuscator){
+    private LinkManagerConfig(Properties sqlProp, ConfigPreferences node){
         config = new ConfigProperties();
         compNameMap = new HashMap<>();
             // If the given SQLite config properties is not null
@@ -345,31 +338,20 @@ public class LinkManagerConfig {
         localDefaults = new ConfigProperties();
         listTypeNodeMap = new HashMap<>();
         listIDNodeMap = new HashMap<>();
-        this.obfuscator = obfuscator;
-    }
-    /**
-     * 
-     * @param node 
-     * @param obfuscator 
-     */
-    public LinkManagerConfig(Preferences node, Obfuscator obfuscator){
-        this(null, new ConfigPreferences(node, new ConfigProperties()), 
-                obfuscator);
     }
     /**
      * 
      * @param node 
      */
     public LinkManagerConfig(Preferences node){
-        this(node,null);
+        this(null, new ConfigPreferences(node, new ConfigProperties()));
     }
     /**
      * 
      * @param linkConfig 
      */
     public LinkManagerConfig(LinkManagerConfig linkConfig){
-        this(linkConfig.sqlConfig.toProperties(), linkConfig.programNode,
-                linkConfig.obfuscator);
+        this(linkConfig.sqlConfig.toProperties(), linkConfig.programNode);
         this.config.putAll(linkConfig.config);
         this.compNameMap.putAll(linkConfig.compNameMap);
         this.localDefaults.addProperties(linkConfig.localDefaults);
@@ -556,6 +538,7 @@ public class LinkManagerConfig {
         setProgramID(id);
         return id;
     }
+        // TODO: Add key pair code getter and setter here.
     /**
      * 
      * @param value
