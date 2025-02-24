@@ -1080,6 +1080,8 @@ public class LinkManagerConfig {
             addListDataToProperties(getLastVisibleIndexMap(),
                     LAST_VISIBLE_INDEX_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
                     prop);
+                // Remember to remove any sensitive or unnecessary data from the 
+                // properties!
             return prop;
         } catch (BackingStoreException | IllegalStateException ex) {
             return null;
