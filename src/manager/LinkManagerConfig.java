@@ -2023,8 +2023,8 @@ public class LinkManagerConfig {
      * @param token 
      */
     private void setDropboxToken(String key, String token){
-            // Get the private Dropbox preference node and put the token in it
-        getPrivateDropboxPreferences().put(key, token);
+            // Get the Dropbox preference node and put the token in it
+        getDropboxPreferences().put(key, token);
     }
     /**
      * 
@@ -2034,7 +2034,7 @@ public class LinkManagerConfig {
      * @return 
      */
     private String getDropboxToken(String key){
-        return getPrivateDropboxPreferences().get(key, null);
+        return getDropboxPreferences().get(key, null);
     }
     /**
      * 
@@ -2070,16 +2070,15 @@ public class LinkManagerConfig {
      */
     public void setDropboxTokenExpiresAt(Long time){
             // Set the value for the time
-        getPrivateDropboxPreferences().putObject(DROPBOX_TOKEN_EXPIRATION_KEY,
-                time);
+        getDropboxPreferences().putObject(DROPBOX_TOKEN_EXPIRATION_KEY,time);
     }
     /**
      * 
      * @return 
      */
     public Long getDropboxTokenExpiresAt(){
-            // Get the private Dropbox preference node
-        ConfigPreferences node = getPrivateDropboxPreferences();
+            // Get the Dropbox preference node
+        ConfigPreferences node = getDropboxPreferences();
             // Get whether the node contains the dropbox token expire time
         if (node.containsKey(DROPBOX_TOKEN_EXPIRATION_KEY))
             return node.getLong(DROPBOX_TOKEN_EXPIRATION_KEY, 0);
