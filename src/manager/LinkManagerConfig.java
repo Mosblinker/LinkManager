@@ -721,6 +721,48 @@ public class LinkManagerConfig {
     /**
      * 
      * @param value
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException 
+     */
+    protected byte[] encryptValue(byte[] value) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+            // If the encryption is enabled and the value is not null
+        if (isEncryptionEnabled() && value != null)
+            return CipherUtilities.encryptByteArray(value, secretKey, cipherIV, 
+                    getSecureRandom());
+        return value;
+    }
+    /**
+     * 
+     * @param value
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException 
+     */
+    protected byte[] decryptValue(byte[] value) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+            // If the encryption is enabled and the value is not null
+        if (isEncryptionEnabled() && value != null)
+            return CipherUtilities.decryptByteArray(value, secretKey, cipherIV, 
+                    getSecureRandom());
+        return value;
+    }
+    /**
+     * 
+     * @param value
      * @return 
      */
     protected String formatFilePath(String value){
