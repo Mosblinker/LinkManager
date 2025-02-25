@@ -639,6 +639,69 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @param key
+     * @param iv 
+     * @throws java.security.NoSuchAlgorithmException 
+     * @throws javax.crypto.NoSuchPaddingException 
+     * @throws java.security.InvalidKeyException 
+     * @throws java.security.InvalidAlgorithmParameterException 
+     * @throws javax.crypto.IllegalBlockSizeException 
+     * @throws javax.crypto.BadPaddingException 
+     */
+    public void initializeEncryption(SecretKey key, IvParameterSpec iv) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+            // Get the encrypted encryption key
+        byte[] localKey = getRawEncryptionKey();
+            // If there is not an encryption key set
+        if (localKey == null){
+                // Get the unencrypted Dropbox access token
+            String accessToken = getDropboxAccessToken();
+                // Get the unencrypted Dropbox refresh token
+            String refreshToken = getDropboxRefreshToken();
+                // Generate the secret key
+            secretKey = getKeyGenerator().generateKey();
+                // Generate the IV
+            cipherIV = CipherUtilities.generateIV(getSecureRandom());
+                // Get the encryption key for the program
+            localKey = CipherUtilities.getEncryptionKey(secretKey, cipherIV);
+                // Encrypt the encryption key and store it
+            setRawEncryptionKey(CipherUtilities.encryptByteArray(localKey, key,
+                    iv, getSecureRandom()));
+                // Set the Dropbox access token, which should encrypt it now
+            setDropboxAccessToken(accessToken);
+                // Set the Dropbox refresh token, which should encrypt it now
+            setDropboxRefreshToken(refreshToken);
+        } else {    // Decrypt the encryption key
+            localKey = CipherUtilities.decryptByteArray(localKey, key, iv, 
+                    getSecureRandom());
+                // Extract the secret key from the encryption key
+            secretKey = CipherUtilities.getSecretKeyFromEncryptionKey(localKey);
+                // Extract the IV from the encryption key
+            cipherIV = CipherUtilities.getIVFromEncryptionKey(localKey);
+        }
+    }
+    /**
+     * 
+     * @param encryptKey
+     * @throws java.security.NoSuchAlgorithmException 
+     * @throws javax.crypto.NoSuchPaddingException 
+     * @throws java.security.InvalidKeyException 
+     * @throws java.security.InvalidAlgorithmParameterException 
+     * @throws javax.crypto.IllegalBlockSizeException 
+     * @throws javax.crypto.BadPaddingException 
+     */
+    public void initializeEncryption(byte[] encryptKey) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+        initializeEncryption(
+                CipherUtilities.getSecretKeyFromEncryptionKey(encryptKey),
+                CipherUtilities.getIVFromEncryptionKey(encryptKey));
+    }
+    /**
+     * 
      */
     public void resetEncryption(){
         cipherIV = null;
