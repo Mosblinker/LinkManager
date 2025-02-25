@@ -593,6 +593,38 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @return 
+     */
+    public KeyGenerator getKeyGenerator(){
+        return keyGen;
+    }
+    /**
+     * 
+     * @param keyGen 
+     */
+    public void setKeyGenerator(KeyGenerator keyGen){
+        this.keyGen = keyGen;
+    }
+    /**
+     * 
+     * @param rand
+     * @return
+     * @throws NoSuchAlgorithmException 
+     */
+    public KeyGenerator setKeyGenerator(SecureRandom rand) throws NoSuchAlgorithmException{
+        setKeyGenerator(CipherUtilities.getKeyGenerator(rand));
+        return getKeyGenerator();
+    }
+    /**
+     * 
+     * @return
+     * @throws NoSuchAlgorithmException 
+     */
+    public KeyGenerator setKeyGenerator() throws NoSuchAlgorithmException{
+        return setKeyGenerator(getSecureRandom());
+    }
+    /**
+     * 
      * @param value 
      */
     protected void setRawEncryptionKey(byte[] value){
