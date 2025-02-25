@@ -2131,8 +2131,17 @@ public class LinkManagerConfig {
      * @param token 
      */
     private void setDropboxToken(String key, String token){
-            // Get the Dropbox preference node and put the token in it
-        getDropboxPreferences().put(key, token);
+            // This will be the value that is stored
+        Object value = token;
+            // If the encryption is enabled and the token is not null
+        if (isEncryptionEnabled() && token != null){
+            try{    // Encrypt the token
+                value = encryptValue(token.getBytes());
+            } catch (GeneralSecurityException ex){
+//                throw new UncheckedSecurityException(ex);
+            }
+        }   // Get the Dropbox preference node and put the token in it
+        getDropboxPreferences().putObject(key, value);
     }
     /**
      * 
@@ -2142,6 +2151,17 @@ public class LinkManagerConfig {
      * @return 
      */
     private String getDropboxToken(String key){
+            // If the encryption is enabled
+        if (isEncryptionEnabled()){
+            try{    // Decrypt the token
+                byte[] arr = decryptValue(getDropboxPreferences().getByteArray(key, null));
+                    // If there was an encrypted token
+                if (arr != null)
+                    return new String(arr);
+            } catch (GeneralSecurityException ex){
+//                throw new UncheckedSecurityException(ex);
+            }
+        }
         return getDropboxPreferences().get(key, null);
     }
     /**
