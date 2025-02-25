@@ -8,11 +8,15 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.security.*;
 import java.util.*;
 import java.util.prefs.*;
+import javax.crypto.*;
+import javax.crypto.spec.*;
 import manager.config.*;
 import manager.dropbox.DropboxLinkUtils;
 import manager.links.*;
+import manager.security.*;
 import org.sqlite.SQLiteConfig;
 
 /**
@@ -170,6 +174,12 @@ public class LinkManagerConfig {
     public static final String LAST_VISIBLE_INDEX_FOR_LIST_KEY = 
             "LastVisibleIndex";
     /**
+     * This is the user and program specific encryption key for the program. 
+     * This encryption key is, in it of itself, encrypted by another encryption 
+     * key stored along side the program ID.
+     */
+    private static final String ENCRYPTION_KEY_KEY = "EncryptionKey";
+    /**
      * This is the suffix for the configuration keys for the size of a 
      * component.
      */
@@ -322,6 +332,22 @@ public class LinkManagerConfig {
      */
     private UUID programID = null;
     /**
+     * This is the secret key used for the cipher.
+     */
+    protected SecretKey secretKey = null;
+    /**
+     * This is the IV Parameter used for the cipher.
+     */
+    protected IvParameterSpec cipherIV = null;
+    /**
+     * This is the SecureRandom used to generate random numbers for the cipher.
+     */
+    protected SecureRandom secureRand = null;
+    /**
+     * The key generator used to generate the secret keys.
+     */
+    protected KeyGenerator keyGen = null;
+    /**
      * 
      * @param sqlProp
      * @param node 
@@ -356,6 +382,10 @@ public class LinkManagerConfig {
         this.compNameMap.putAll(linkConfig.compNameMap);
         this.localDefaults.addProperties(linkConfig.localDefaults);
         LinkManagerConfig.this.setProgramID(linkConfig.programID);
+        this.secretKey = linkConfig.secretKey;
+        this.cipherIV = linkConfig.cipherIV;
+        this.secureRand = linkConfig.secureRand;
+        this.keyGen = linkConfig.keyGen;
     }
     /**
      * This returns the preference node used to store the shared configuration 
@@ -538,7 +568,198 @@ public class LinkManagerConfig {
         setProgramID(id);
         return id;
     }
-        // TODO: Add key pair code getter and setter here.
+    /**
+     * 
+     * @return 
+     */
+    public SecureRandom getSecureRandom(){
+        return secureRand;
+    }
+    /**
+     * 
+     * @param rand 
+     */
+    public void setSecureRandom(SecureRandom rand){
+        secureRand = rand;
+    }
+    /**
+     * 
+     * @return 
+     * @throws java.security.NoSuchAlgorithmException 
+     */
+    public SecureRandom setSecureRandom() throws NoSuchAlgorithmException{
+        setSecureRandom(SecureRandom.getInstanceStrong());
+        return getSecureRandom();
+    }
+    /**
+     * 
+     * @return 
+     */
+    public KeyGenerator getKeyGenerator(){
+        return keyGen;
+    }
+    /**
+     * 
+     * @param keyGen 
+     */
+    public void setKeyGenerator(KeyGenerator keyGen){
+        this.keyGen = keyGen;
+    }
+    /**
+     * 
+     * @param rand
+     * @return
+     * @throws NoSuchAlgorithmException 
+     */
+    public KeyGenerator setKeyGenerator(SecureRandom rand) throws NoSuchAlgorithmException{
+        setKeyGenerator(CipherUtilities.getKeyGenerator(rand));
+        return getKeyGenerator();
+    }
+    /**
+     * 
+     * @return
+     * @throws NoSuchAlgorithmException 
+     */
+    public KeyGenerator setKeyGenerator() throws NoSuchAlgorithmException{
+        return setKeyGenerator(getSecureRandom());
+    }
+    /**
+     * 
+     * @param value 
+     */
+    protected void setRawEncryptionKey(byte[] value){
+        getPreferences().putByteArray(ENCRYPTION_KEY_KEY, value);
+    }
+    /**
+     * 
+     * @return 
+     */
+    protected byte[] getRawEncryptionKey(){
+        return getPreferences().getByteArray(ENCRYPTION_KEY_KEY, null);
+    }
+    /**
+     * 
+     * @param key
+     * @param iv 
+     * @throws java.security.NoSuchAlgorithmException 
+     * @throws javax.crypto.NoSuchPaddingException 
+     * @throws java.security.InvalidKeyException 
+     * @throws java.security.InvalidAlgorithmParameterException 
+     * @throws javax.crypto.IllegalBlockSizeException 
+     * @throws javax.crypto.BadPaddingException 
+     */
+    public void initializeEncryption(SecretKey key, IvParameterSpec iv) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+            // Get the encrypted encryption key
+        byte[] localKey = getRawEncryptionKey();
+            // If there is not an encryption key set
+        if (localKey == null){
+                // Get the unencrypted Dropbox access token
+            String accessToken = getDropboxAccessToken();
+                // Get the unencrypted Dropbox refresh token
+            String refreshToken = getDropboxRefreshToken();
+                // Generate the secret key
+            secretKey = getKeyGenerator().generateKey();
+                // Generate the IV
+            cipherIV = CipherUtilities.generateIV(getSecureRandom());
+                // Get the encryption key for the program
+            localKey = CipherUtilities.getEncryptionKey(secretKey, cipherIV);
+                // Encrypt the encryption key and store it
+            setRawEncryptionKey(CipherUtilities.encryptByteArray(localKey, key,
+                    iv, getSecureRandom()));
+                // Set the Dropbox access token, which should encrypt it now
+            setDropboxAccessToken(accessToken);
+                // Set the Dropbox refresh token, which should encrypt it now
+            setDropboxRefreshToken(refreshToken);
+        } else {    // Decrypt the encryption key
+            localKey = CipherUtilities.decryptByteArray(localKey, key, iv, 
+                    getSecureRandom());
+                // Extract the secret key from the encryption key
+            secretKey = CipherUtilities.getSecretKeyFromEncryptionKey(localKey);
+                // Extract the IV from the encryption key
+            cipherIV = CipherUtilities.getIVFromEncryptionKey(localKey);
+        }
+    }
+    /**
+     * 
+     * @param encryptKey
+     * @throws java.security.NoSuchAlgorithmException 
+     * @throws javax.crypto.NoSuchPaddingException 
+     * @throws java.security.InvalidKeyException 
+     * @throws java.security.InvalidAlgorithmParameterException 
+     * @throws javax.crypto.IllegalBlockSizeException 
+     * @throws javax.crypto.BadPaddingException 
+     */
+    public void initializeEncryption(byte[] encryptKey) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+        initializeEncryption(
+                CipherUtilities.getSecretKeyFromEncryptionKey(encryptKey),
+                CipherUtilities.getIVFromEncryptionKey(encryptKey));
+    }
+    /**
+     * 
+     */
+    public void resetEncryption(){
+        cipherIV = null;
+        secretKey = null;
+            // If there was an encryption key set
+        if (getRawEncryptionKey() != null)
+            clearDropboxToken();
+        setRawEncryptionKey(null);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public boolean isEncryptionEnabled(){
+        return secretKey != null && cipherIV != null && getSecureRandom()!=null;
+    }
+    /**
+     * 
+     * @param value
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException 
+     */
+    protected byte[] encryptValue(byte[] value) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+            // If the encryption is enabled and the value is not null
+        if (isEncryptionEnabled() && value != null)
+            return CipherUtilities.encryptByteArray(value, secretKey, cipherIV, 
+                    getSecureRandom());
+        return value;
+    }
+    /**
+     * 
+     * @param value
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException 
+     */
+    protected byte[] decryptValue(byte[] value) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+            // If the encryption is enabled and the value is not null
+        if (isEncryptionEnabled() && value != null)
+            return CipherUtilities.decryptByteArray(value, secretKey, cipherIV, 
+                    getSecureRandom());
+        return value;
+    }
     /**
      * 
      * @param value
@@ -989,6 +1210,8 @@ public class LinkManagerConfig {
             addListDataToProperties(getLastVisibleIndexMap(),
                     LAST_VISIBLE_INDEX_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
                     prop);
+                // Remove the encryption key from the properties
+            prop.remove(ENCRYPTION_KEY_KEY);
                 // Remember to remove any sensitive or unnecessary data from the 
                 // properties!
             return prop;
@@ -1908,8 +2131,17 @@ public class LinkManagerConfig {
      * @param token 
      */
     private void setDropboxToken(String key, String token){
-            // Get the Dropbox preference node and put the token in it
-        getDropboxPreferences().put(key, token);
+            // This will be the value that is stored
+        Object value = token;
+            // If the encryption is enabled and the token is not null
+        if (isEncryptionEnabled() && token != null){
+            try{    // Encrypt the token
+                value = encryptValue(token.getBytes());
+            } catch (GeneralSecurityException ex){
+//                throw new UncheckedSecurityException(ex);
+            }
+        }   // Get the Dropbox preference node and put the token in it
+        getDropboxPreferences().putObject(key, value);
     }
     /**
      * 
@@ -1919,6 +2151,17 @@ public class LinkManagerConfig {
      * @return 
      */
     private String getDropboxToken(String key){
+            // If the encryption is enabled
+        if (isEncryptionEnabled()){
+            try{    // Decrypt the token
+                byte[] arr = decryptValue(getDropboxPreferences().getByteArray(key, null));
+                    // If there was an encrypted token
+                if (arr != null)
+                    return new String(arr);
+            } catch (GeneralSecurityException ex){
+//                throw new UncheckedSecurityException(ex);
+            }
+        }
         return getDropboxPreferences().get(key, null);
     }
     /**
