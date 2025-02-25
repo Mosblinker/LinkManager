@@ -137,6 +137,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * determine what preference node to use for the program.
      */
     private static final String PROGRAM_ID_KEY = "ProgramID";
+    /**
+     * This is the configuration key for the encryption key used to encrypt the 
+     * encryption keys for all the users of the program with the same program 
+     * ID.
+     */
+    private static final String USER_ENCRYPTION_KEY_KEY = "UserEncryptionKey";
     
     private static final String LIST_MANAGER_NAME = "ListManager";
     
@@ -9305,6 +9311,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     new SQLiteConfig().toProperties(),true);
                 // Add all the properties for this program
             addConfigRows("Properties",config.getProperties(),null);
+                // Go through the rows that have been added so far
+            for (int i = 0; i < configTableModel.getRowCount(); i++){
+                    // If it's a row from the properties and it's the user 
+                    // encryption key encryption key
+                if ("Properties".equals(configTableModel.getValueAt(i, 0)) && 
+                        USER_ENCRYPTION_KEY_KEY.equals(configTableModel.getValueAt(i, 1))){
+                        // Remove that row
+                    configTableModel.removeRow(i);
+                    break;
+                }
+            }
                 // Add all the shared preferences for this program
             addConfigRows("Shared Preferences",config.getSharedPreferences());
                 // Add all the preferences for this program

@@ -170,6 +170,12 @@ public class LinkManagerConfig {
     public static final String LAST_VISIBLE_INDEX_FOR_LIST_KEY = 
             "LastVisibleIndex";
     /**
+     * This is the user and program specific encryption key for the program. 
+     * This encryption key is, in it of itself, encrypted by another encryption 
+     * key stored along side the program ID.
+     */
+    private static final String ENCRYPTION_KEY_KEY = "EncryptionKey";
+    /**
      * This is the suffix for the configuration keys for the size of a 
      * component.
      */
