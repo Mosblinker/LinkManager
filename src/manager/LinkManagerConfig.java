@@ -568,7 +568,29 @@ public class LinkManagerConfig {
         setProgramID(id);
         return id;
     }
-        // TODO: Add key pair code getter and setter here.
+    /**
+     * 
+     * @return 
+     */
+    public SecureRandom getSecureRandom(){
+        return secureRand;
+    }
+    /**
+     * 
+     * @param rand 
+     */
+    public void setSecureRandom(SecureRandom rand){
+        secureRand = rand;
+    }
+    /**
+     * 
+     * @return 
+     * @throws java.security.NoSuchAlgorithmException 
+     */
+    public SecureRandom setSecureRandom() throws NoSuchAlgorithmException{
+        setSecureRandom(SecureRandom.getInstanceStrong());
+        return getSecureRandom();
+    }
     /**
      * 
      * @param value 
