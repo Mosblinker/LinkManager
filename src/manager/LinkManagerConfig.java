@@ -639,6 +639,17 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     */
+    public void resetEncryption(){
+        cipherIV = null;
+        secretKey = null;
+            // If there was an encryption key set
+        if (getRawEncryptionKey() != null)
+            clearDropboxToken();
+        setRawEncryptionKey(null);
+    }
+    /**
+     * 
      * @param value
      * @return 
      */
