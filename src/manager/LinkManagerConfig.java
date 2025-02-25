@@ -995,6 +995,8 @@ public class LinkManagerConfig {
             addListDataToProperties(getLastVisibleIndexMap(),
                     LAST_VISIBLE_INDEX_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
                     prop);
+                // Remove the encryption key from the properties
+            prop.remove(ENCRYPTION_KEY_KEY);
                 // Remember to remove any sensitive or unnecessary data from the 
                 // properties!
             return prop;
