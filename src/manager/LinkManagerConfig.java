@@ -650,6 +650,13 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @return 
+     */
+    public boolean isEncryptionEnabled(){
+        return secretKey != null && cipherIV != null && getSecureRandom()!=null;
+    }
+    /**
+     * 
      * @param value
      * @return 
      */
