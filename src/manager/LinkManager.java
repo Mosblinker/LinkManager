@@ -38,11 +38,14 @@ import java.beans.PropertyChangeEvent;
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
+import java.security.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.prefs.*;
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
@@ -57,6 +60,7 @@ import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
 import manager.icons.DefaultPfpIcon;
 import manager.links.*;
+import manager.security.CipherUtilities;
 import manager.timermenu.*;
 import measure.format.binary.ByteUnitFormat;
 import net.coobird.thumbnailator.Thumbnailator;
@@ -666,7 +670,36 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             config.getProperties().setProperty(PROGRAM_ID_KEY, 
                     config.setRandomProgramID());
         }
-        // TODO: Implement encryption stuff
+        try{    // The SecureRandom object to use for a secure source of randomness
+            SecureRandom rand = config.setSecureRandom();
+                // The KeyGenerator to use to generate secret keys
+            KeyGenerator keyGen = config.setKeyGenerator();
+                // Get the encryption key from the config file if there is one
+            byte[] encryptKey = config.getProperties().getByteArrayProperty(USER_ENCRYPTION_KEY_KEY);
+                // If there isn't an encryption key
+            if (encryptKey == null){
+                    // Reset the encryption on the config just in case there was 
+                    // one set previously
+                config.resetEncryption();
+                    // Generate a secret key
+                SecretKey key = keyGen.generateKey();
+                    // Generate the IVs
+                IvParameterSpec iv = CipherUtilities.generateIV(rand);
+                    // Store the encryption key
+                config.getProperties().setProperty(USER_ENCRYPTION_KEY_KEY, 
+                        CipherUtilities.getEncryptionKey(key, iv));
+                    // Initialize the encryption on the configuration
+                config.initializeEncryption(key, iv);
+            } else {
+                    // Initialize the encryption on the configuration
+                config.initializeEncryption(encryptKey);
+            }
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | 
+                InvalidKeyException | InvalidAlgorithmParameterException | 
+                IllegalBlockSizeException | BadPaddingException ex) {
+            System.out.println("Encryption Error: " + ex);
+            config.resetEncryption();
+        }
         try{    // Try to save the properties to the configuration file
             saveConfigFile();
         } catch (IOException ex) {
