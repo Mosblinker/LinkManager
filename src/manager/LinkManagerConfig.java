@@ -8,11 +8,15 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.security.*;
 import java.util.*;
 import java.util.prefs.*;
+import javax.crypto.*;
+import javax.crypto.spec.*;
 import manager.config.*;
 import manager.dropbox.DropboxLinkUtils;
 import manager.links.*;
+import manager.security.*;
 import org.sqlite.SQLiteConfig;
 
 /**
@@ -328,6 +332,22 @@ public class LinkManagerConfig {
      */
     private UUID programID = null;
     /**
+     * This is the secret key used for the cipher.
+     */
+    protected SecretKey secretKey = null;
+    /**
+     * This is the IV Parameter used for the cipher.
+     */
+    protected IvParameterSpec cipherIV = null;
+    /**
+     * This is the SecureRandom used to generate random numbers for the cipher.
+     */
+    protected SecureRandom secureRand = null;
+    /**
+     * The key generator used to generate the secret keys.
+     */
+    protected KeyGenerator keyGen = null;
+    /**
      * 
      * @param sqlProp
      * @param node 
@@ -362,6 +382,10 @@ public class LinkManagerConfig {
         this.compNameMap.putAll(linkConfig.compNameMap);
         this.localDefaults.addProperties(linkConfig.localDefaults);
         LinkManagerConfig.this.setProgramID(linkConfig.programID);
+        this.secretKey = linkConfig.secretKey;
+        this.cipherIV = linkConfig.cipherIV;
+        this.secureRand = linkConfig.secureRand;
+        this.keyGen = linkConfig.keyGen;
     }
     /**
      * This returns the preference node used to store the shared configuration 
