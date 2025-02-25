@@ -547,6 +547,20 @@ public class LinkManagerConfig {
         // TODO: Add key pair code getter and setter here.
     /**
      * 
+     * @param value 
+     */
+    protected void setRawEncryptionKey(byte[] value){
+        getPreferences().putByteArray(ENCRYPTION_KEY_KEY, value);
+    }
+    /**
+     * 
+     * @return 
+     */
+    protected byte[] getRawEncryptionKey(){
+        return getPreferences().getByteArray(ENCRYPTION_KEY_KEY, null);
+    }
+    /**
+     * 
      * @param value
      * @return 
      */
