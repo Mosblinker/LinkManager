@@ -1530,6 +1530,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setLocationDialog.setMinimumSize(new java.awt.Dimension(480, 360));
         setLocationDialog.setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         setLocationDialog.addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                setLocationDialogComponentMoved(evt);
+            }
             public void componentResized(java.awt.event.ComponentEvent evt) {
                 setLocationDialogComponentResized(evt);
             }
@@ -2696,6 +2699,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         searchDialog.setTitle("Find...");
         searchDialog.setMinimumSize(new java.awt.Dimension(517, 190));
         searchDialog.setResizable(false);
+        searchDialog.addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                searchDialogComponentMoved(evt);
+            }
+        });
 
         searchPanel.setEnabled(false);
         searchPanel.addActionListener(new java.awt.event.ActionListener() {
@@ -4867,8 +4875,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ComponentEvent to be processed.
      */
     private void setLocationDialogComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_setLocationDialogComponentResized
-            // Set the dialog's size in the config if it's saved
-        config.setComponentSize(setLocationDialog);
+            // Update the dialog's bounds in the config
+        config.setComponentBounds(setLocationDialog);
     }//GEN-LAST:event_setLocationDialogComponentResized
 
     private void dbxPrintButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxPrintButtonActionPerformed
@@ -5001,6 +5009,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             System.out.println("Error: "+ex);
         }
     }//GEN-LAST:event_dbUpdateLastModButtonActionPerformed
+
+    private void setLocationDialogComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_setLocationDialogComponentMoved
+            // Update the dialog's bounds in the config
+        config.setComponentBounds(setLocationDialog);
+    }//GEN-LAST:event_setLocationDialogComponentMoved
+
+    private void searchDialogComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_searchDialogComponentMoved
+            // Update the location of the search dialog in the config
+        config.setComponentLocation(searchDialog);
+    }//GEN-LAST:event_searchDialogComponentMoved
     
     private CustomTableModel getListSearchTableModel(){
         CustomTableModel model = new CustomTableModel("ListID", "List Name", 
