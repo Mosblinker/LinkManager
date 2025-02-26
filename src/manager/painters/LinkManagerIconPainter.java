@@ -21,6 +21,36 @@ public class LinkManagerIconPainter implements Painter<Object>{
      * The height at which this is internally rendered at.
      */
     private static final int INTERNAL_HEIGHT = 512;
+    
+    public static final Color BORDER_OUTLINE_COLOR = new Color(0x3967A3);
+    
+    public static final Color PROGRAM_BACKGROUND_COLOR = new Color(0xF0F0F0);
+    
+    public static final Color LIST_OUTLINE_COLOR = Color.BLACK;
+    
+    public static final Color LIST_BACKGROUND_COLOR = Color.WHITE;
+    
+    public static final Color LIST_FOREGROUND_COLOR = Color.BLACK;
+    
+    public static final Color LIST_SELECTED_BACKGROUND_COLOR = new Color(0x0078D7);
+    
+    public static final Color LIST_SELECTED_FOREGROUND_COLOR = LIST_BACKGROUND_COLOR;
+    
+    public static final Color SIDE_BUTTON_OUTLINE_COLOR = new Color(0xADADAD);
+    
+    public static final Color SIDE_BUTTON_BACKGROUND_COLOR = new Color(0xE1E1E1);
+    
+    public static final Color ADD_BUTTON_FOREGROUND_COLOR = new Color(0x007F00);
+    
+    public static final Color ARROW_BUTTONS_FOREGROUND_COLOR = Color.BLACK;
+    
+    public static final Color REMOVE_BUTTON_FOREGROUND_COLOR = Color.RED;
+    
+    private static final int SIDE_BUTTON_COUNT = 4;
+    
+    private static final int LIST_LINE_COUNT = 10;
+    
+    private static final int SELECTED_LINE_INDEX = 5;
     @Override
     public void paint(Graphics2D g, Object object, int width, int height) {
             // Check if the graphics context is null
