@@ -15,7 +15,7 @@ public class HiddenListIndicatorPainter extends AbstractListIndicatorPainter{
     /**
      * The width at which this is internally rendered at.
      */
-    private static final int INTERNAL_WIDTH = 10;
+    private static final int INTERNAL_WIDTH = 12;
     /**
      * The height at which this is internally rendered at.
      */
