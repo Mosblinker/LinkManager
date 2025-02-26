@@ -97,6 +97,15 @@ public class LinkManagerIconPainter implements Painter<Object>{
         rect.setFrame(36, 36+(44*SELECTED_LINE_INDEX), 392, 44);
         g.setColor(LIST_SELECTED_BACKGROUND_COLOR);
         g.fill(rect);
+        for (int i = 0; i < SIDE_BUTTON_COUNT; i++){
+            int yOff = 48*i;
+            rect.setFrame(436, 164+yOff, 40, 40);
+            g.setColor(SIDE_BUTTON_OUTLINE_COLOR);
+            g.fill(rect);
+            rect.setFrame(440, 168+yOff, 32, 32);
+            g.setColor(SIDE_BUTTON_BACKGROUND_COLOR);
+            g.fill(rect);
+        }
             // Dispose of the copy of the graphics context
         g.dispose();
     }
