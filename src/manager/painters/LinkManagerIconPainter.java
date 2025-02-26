@@ -164,6 +164,11 @@ public class LinkManagerIconPainter implements Painter<Object>{
             roundRect.setRoundRect(354, 14, 24, 24, 10, 10);
             linkShape.subtract(new Area(roundRect));
             linkShape.subtract(new Area(getLinkSlash(366,3,23,23,8.5,path)));
+            rect.setFrame(371, 2, 19, 4);
+            linkShape.add(new Area(rect));
+            rect.setFrame(386, 2, 4, 19);
+            linkShape.add(new Area(rect));
+            linkShape.add(new Area(getLinkSlash(366,3,23,23,3.5,path)));
         }
         if (!selected)
             g.setColor(BORDER_OUTLINE_COLOR);
