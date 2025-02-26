@@ -10316,9 +10316,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxUtils.refreshCredentials(client, cred);
                     // Get the file namespace for Dropbox
                 DbxUserFilesRequests dbxFiles = client.files();
-                    // If the file doesn't exist on dropbox
-                if (!DropboxUtilities.exists(path, dbxFiles)){
-                    fileFound = false;
+                    // This gets the size of the file to be downloaded
+                Long size = null;
+                try{    // Get the metadata for the file
+                    Metadata metadata = dbxFiles.getMetadataBuilder(path).start();
+                        // If the metadata is actually file metadata
+                    if (metadata instanceof FileMetadata){
+                            // Get the size of the file
+                        size = ((FileMetadata) metadata).getSize();
+                    }
+                } catch (GetMetadataErrorException ex){
+                        // If the error because the file doesn't exist
+                    if (ex.errorValue.isPath() && 
+                            ex.errorValue.getPathValue().isNotFound()){
+                        fileFound = false;
+                    } else {
+                        dbxEx = ex;
+                        if (isInDebug())    // If the program is in debug mode
+                            System.out.println(ex);
+                    }
                     return false;
                 }
                 
