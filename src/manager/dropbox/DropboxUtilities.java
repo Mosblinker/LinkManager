@@ -84,6 +84,16 @@ public class DropboxUtilities {
     }
     /**
      * 
+     * @param ex
+     * @return 
+     */
+    public static boolean fileNotFound(GetMetadataErrorException ex){
+            // If the error is related to the path and it is because the path is 
+            // not found, then the file doesn't exist
+        return ex.errorValue.isPath() && ex.errorValue.getPathValue().isNotFound();
+    }
+    /**
+     * 
      * @param path
      * @param dbxFiles
      * @return
@@ -95,9 +105,8 @@ public class DropboxUtilities {
             dbxFiles.getMetadataBuilder(path).start();
             return true;
         } catch (GetMetadataErrorException ex){
-                // If the error is related to the path and it is because the 
-                // path is not found, then the file doesn't exist
-            if (ex.errorValue.isPath() && ex.errorValue.getPathValue().isNotFound())
+                // If the file was not found
+            if (fileNotFound(ex))
                 return false;
             throw ex;
         }

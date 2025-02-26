@@ -10439,8 +10439,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     }
                 } catch (GetMetadataErrorException ex){
                         // If the error because the file doesn't exist
-                    if (ex.errorValue.isPath() && 
-                            ex.errorValue.getPathValue().isNotFound()){
+                    if (DropboxUtilities.fileNotFound(ex)){
                         fileFound = false;
                     } else {
                         dbxEx = ex;
@@ -10523,8 +10522,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
                     // Refresh the Dropbox credentials if necessary
                 dbxUtils.refreshCredentials(client, cred);
-                    // Get the file namespace for Dropbox
-                DbxUserFilesRequests dbxFiles = client.files();
                     // Setup the progress bar and get the progress listener used 
                     // to update the progress bar to reflect the bytes that have 
                     // been loaded so far.
@@ -10533,7 +10530,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 setIndeterminate(false);
                     // Upload the file to Dropbox, using the set chunk size and 
                     // overwriting the file if it already exists
-                DropboxUtilities.upload(file, path, dbxFiles, 
+                DropboxUtilities.upload(file, path, client.files(), 
                         dbxChunkSizeModel.getChunkSize(), true, listener);
                 return true;
             } catch(DbxException ex){
