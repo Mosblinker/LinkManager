@@ -180,6 +180,11 @@ public class LinkManagerConfig {
      */
     private static final String ENCRYPTION_KEY_KEY = "EncryptionKey";
     /**
+     * This is the configuration key for the chunk size multiplier for the 
+     * chunk size used when uploading large files.
+     */
+    public static final String CHUNK_SIZE_MULTIPLIER_KEY = "ChunkSizeMultiplier";
+    /**
      * This is the suffix for the configuration keys for the size of a 
      * component.
      */
@@ -858,7 +863,7 @@ public class LinkManagerConfig {
      * @param comp
      * @return 
      */
-    protected String getComponentName(Component comp){
+    public String getComponentName(Component comp){
         return getComponentNames().getOrDefault(comp, comp.getName());
     }
     /**
@@ -2122,6 +2127,22 @@ public class LinkManagerConfig {
     public String getDropboxDatabaseFileName(){
         return getFilePathPreference(DATABASE_FILE_PATH_KEY,
                 LinkManager.LINK_DATABASE_FILE,getDropboxPreferences());
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setDropboxChunkSizeMultiplier(Integer value){
+        getDropboxPreferences().putObject(CHUNK_SIZE_MULTIPLIER_KEY, value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public int getDropboxChunkSizeMultiplier(int defaultValue){
+        return getDropboxPreferences().getInt(CHUNK_SIZE_MULTIPLIER_KEY, 
+                defaultValue);
     }
     /**
      * 

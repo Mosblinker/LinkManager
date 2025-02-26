@@ -7,6 +7,7 @@ package manager;
 import com.dropbox.core.*;
 import com.dropbox.core.json.JsonReader;
 import com.dropbox.core.oauth.*;
+import com.dropbox.core.util.IOUtil.ProgressListener;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import com.dropbox.core.v2.users.*;
@@ -21,7 +22,6 @@ import files.FilesExtended;
 import static files.FilesExtended.generateExtensionFilter;
 import files.extensions.ConfigExtensions;
 import static files.extensions.TextDocumentExtensions.TEXT_FILTER;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Desktop;
@@ -30,6 +30,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.datatransfer.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -57,7 +58,6 @@ import manager.config.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
-import manager.icons.DefaultPfpIcon;
 import manager.links.*;
 import manager.painters.LinkManagerIconPainter;
 import manager.security.CipherUtilities;
@@ -79,7 +79,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This is the version of the program.
      */
-    public static final String PROGRAM_VERSION = "0.5.0";
+    public static final String PROGRAM_VERSION = "0.6.0";
     /**
      * This is an array containing the widths and heights for the icon images 
      * for this program. The icon images are generated on the fly.
@@ -165,6 +165,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private static final String DATABASE_LOCATION_DIALOG_NAME = 
             "SetDatabaseLocation";
+    
+    private static final String SEARCH_DIALOG_NAME = "SearchDialog";
     
     private static final String LINK_MANAGER_NAME = "LinkManager";
     /**
@@ -698,6 +700,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         loadDbxUtils();
         
+        dbxChunkSizeModel = new DbxChunkSizeSpinnerModel();
         initComponents();
         
         listsTabPanels = new LinksListTabsPanel[]{
@@ -952,11 +955,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config.getComponentNames().put(databaseFC, DATABASE_FILE_CHOOSER_NAME);
         config.getComponentNames().put(LinkManager.this, LINK_MANAGER_NAME);
         config.getComponentNames().put(setLocationDialog, DATABASE_LOCATION_DIALOG_NAME);
+        config.getComponentNames().put(searchDialog, SEARCH_DIALOG_NAME);
         
             // Initialize the defaults that are dependent on the UI
         
+            // Set the default location of the search dialog
+        config.setDefaultComponentLocation(searchDialog, searchDialog.getX(), 
+                searchDialog.getY());
+            
             // Go through the components to store their preferred sizes
         for (Component comp : config.getComponentNames().keySet()){
+                // If the component is the search dialog
+            if (comp == searchDialog)
+                continue;
                 // Get the prefered size of the current component
             Dimension size = comp.getPreferredSize();
                 // If the current component is this component
@@ -964,6 +975,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Use the preferred size of the component as it's 
                     // default size for its bounds
                 config.setDefaultComponentBounds(comp, size.width,size.height);
+                // If the component is the database location dialog
+            } else if (comp == setLocationDialog){
+                    // Use the preferred size of the component as it's 
+                    // default size for its bounds, but use its current location 
+                    // as the default location
+                config.setDefaultComponentBounds(comp, comp.getX(),comp.getY(),
+                        size.width,size.height);
             } else {// Use the preferred size of the current component as its 
                     // default size
                 config.setDefaultComponentSize(comp,size);
@@ -1256,6 +1274,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxSpaceFreeLabel = new javax.swing.JLabel();
         dbxLogOutButton = new javax.swing.JButton();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
+        jLabel7 = new javax.swing.JLabel();
+        dbxChunkSizeSpinner = new javax.swing.JSpinner();
+        jLabel11 = new javax.swing.JLabel();
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
@@ -1508,9 +1529,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         databaseFC.setFileSelectionMode(javax.swing.JFileChooser.FILES_AND_DIRECTORIES);
 
         setLocationDialog.setTitle("Set Database Location");
-        setLocationDialog.setMinimumSize(new java.awt.Dimension(480, 360));
-        setLocationDialog.setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        setLocationDialog.setMinimumSize(new java.awt.Dimension(480, 380));
         setLocationDialog.addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                setLocationDialogComponentMoved(evt);
+            }
             public void componentResized(java.awt.event.ComponentEvent evt) {
                 setLocationDialogComponentResized(evt);
             }
@@ -1535,14 +1558,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             .addGroup(setExternalCardLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(dbxLogInButton)
-                .addContainerGap(316, Short.MAX_VALUE))
+                .addContainerGap(310, Short.MAX_VALUE))
         );
         setExternalCardLayout.setVerticalGroup(
             setExternalCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(setExternalCardLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(dbxLogInButton)
-                .addContainerGap(160, Short.MAX_VALUE))
+                .addContainerGap(158, Short.MAX_VALUE))
         );
 
         setLocationPanel.add(setExternalCard, "logInCard");
@@ -1626,18 +1649,37 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         gridBagConstraints.weightx = 0.75;
         dbxDataPanel.add(filler1, gridBagConstraints);
 
+        jLabel7.setLabelFor(dbxChunkSizeSpinner);
+        jLabel7.setText("Chunk Size:");
+
+        dbxChunkSizeSpinner.setModel(dbxChunkSizeModel);
+        dbxChunkSizeSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                dbxChunkSizeSpinnerStateChanged(evt);
+            }
+        });
+
+        jLabel11.setText("MiB");
+
         javax.swing.GroupLayout setDropboxCardLayout = new javax.swing.GroupLayout(setDropboxCard);
         setDropboxCard.setLayout(setDropboxCardLayout);
         setDropboxCardLayout.setHorizontalGroup(
             setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, setDropboxCardLayout.createSequentialGroup()
+            .addGroup(setDropboxCardLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(dbxDataPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, setDropboxCardLayout.createSequentialGroup()
+                .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(dbxDataPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(setDropboxCardLayout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbxDbFileField, javax.swing.GroupLayout.DEFAULT_SIZE, 395, Short.MAX_VALUE)))
+                        .addComponent(dbxDbFileField, javax.swing.GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE))
+                    .addGroup(setDropboxCardLayout.createSequentialGroup()
+                        .addComponent(jLabel7)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(dbxChunkSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel11)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         setDropboxCardLayout.setVerticalGroup(
@@ -1649,7 +1691,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(dbxDbFileField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(50, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7)
+                    .addComponent(dbxChunkSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel11))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         setLocationPanel.add(setDropboxCard, "setDropbox");
@@ -1750,7 +1797,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addComponent(dbFileRelativeButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(setLocationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(setLocationDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(locationControlPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, setLocationDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -2677,6 +2724,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         searchDialog.setTitle("Find...");
         searchDialog.setMinimumSize(new java.awt.Dimension(517, 190));
         searchDialog.setResizable(false);
+        searchDialog.addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                searchDialogComponentMoved(evt);
+            }
+        });
 
         searchPanel.setEnabled(false);
         searchPanel.addActionListener(new java.awt.event.ActionListener() {
@@ -4848,8 +4900,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ComponentEvent to be processed.
      */
     private void setLocationDialogComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_setLocationDialogComponentResized
-            // Set the dialog's size in the config if it's saved
-        config.setComponentSize(setLocationDialog);
+            // Update the dialog's bounds in the config
+        config.setComponentBounds(setLocationDialog);
     }//GEN-LAST:event_setLocationDialogComponentResized
 
     private void dbxPrintButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxPrintButtonActionPerformed
@@ -4982,6 +5034,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             System.out.println("Error: "+ex);
         }
     }//GEN-LAST:event_dbUpdateLastModButtonActionPerformed
+
+    private void setLocationDialogComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_setLocationDialogComponentMoved
+            // Update the dialog's bounds in the config
+        config.setComponentBounds(setLocationDialog);
+    }//GEN-LAST:event_setLocationDialogComponentMoved
+
+    private void searchDialogComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_searchDialogComponentMoved
+            // Update the location of the search dialog in the config
+        config.setComponentLocation(searchDialog);
+    }//GEN-LAST:event_searchDialogComponentMoved
+
+    private void dbxChunkSizeSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_dbxChunkSizeSpinnerStateChanged
+            // Update the chunk size in the configuration
+        config.setDropboxChunkSizeMultiplier(dbxChunkSizeModel.getMultiplier());
+    }//GEN-LAST:event_dbxChunkSizeSpinnerStateChanged
     
     private CustomTableModel getListSearchTableModel(){
         CustomTableModel model = new CustomTableModel("ListID", "List Name", 
@@ -5038,30 +5105,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             dbLinkSearchTable.setModel(getListSearchTableModel(conn,
                     pstmt.executeQuery(),listNames));
         }
-    }
-    
-    private void refreshDbxCredentials(DbxCredential cred,DbxClientV2 client) 
-            throws DbxException{
-        if (cred.aboutToExpire()){
-            dbxUtils.refreshCredentials(client.refreshAccessToken());
-        }
-    }
-    
-    private boolean dbxFileExists(String path, DbxUserFilesRequests dbxFiles) throws DbxException{
-        try{    // Check if the file exists
-            dbxFiles.getMetadataBuilder(path).start();
-            return true;
-        } catch (GetMetadataErrorException ex){
-                // If the error is related to the path and it is because the 
-                // path is not found, then the file doesn't exist
-            if (ex.errorValue.isPath() && ex.errorValue.getPathValue().isNotFound())
-                return false;
-            throw ex;
-        }
-    }
-    
-    private boolean dbxFileExists(String path, DbxClientV2 client) throws DbxException{
-        return dbxFileExists(path,client.files());
     }
     
     private void loadExternalAccountData(){
@@ -5278,7 +5321,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         dbxLogInButton.setEnabled(setDBLocationItem.isEnabled() && dbxUtils != null);
         dbxLogOutButton.setEnabled(setDBLocationItem.isEnabled());
-        dbxDbFileField.setEditable(dbFileField.isEditable());
+        dbxDbFileField.setEditable(dbFileField.isEditable() && dbxUtils != null);
+        dbxChunkSizeSpinner.setEnabled(dbxLogInButton.isEnabled());
         
         updateDBLocationButtons();
     }
@@ -5503,6 +5547,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return showSaveFileChooser(fc,null);
     }
     /**
+     * This is the model used for the spinner to set the chunk size for 
+     * uploading files to Dropbox.
+     */
+    private DbxChunkSizeSpinnerModel dbxChunkSizeModel;
+    /**
      * This is the configuration file if one was specified at the start of the 
      * program.
      */
@@ -5671,6 +5720,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem dbViewItem;
     private manager.database.DatabaseTableViewer dbViewer;
     private javax.swing.JLabel dbxAccountLabel;
+    private javax.swing.JSpinner dbxChunkSizeSpinner;
     private javax.swing.JPanel dbxDataPanel;
     private javax.swing.JTextField dbxDbFileField;
     private javax.swing.JPopupMenu dbxDbFilePopupMenu;
@@ -5700,10 +5750,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenu hideListsMenu;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
@@ -6093,7 +6145,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbFileChangeCombo.setSelectedIndex(
                 config.getDatabaseFileChangeOperation(
                         dbFileChangeCombo.getSelectedIndex()));
-        
+            // Update the fields showing the database file location
         updateDatabaseFileFields();
             // Set the autosave frequency index
         autosaveMenu.setFrequencyIndex(config.getAutosaveFrequencyIndex(
@@ -6101,6 +6153,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Set the auto-hide wait duration index
         autoHideMenu.setDurationIndex(config.getAutoHideWaitDurationIndex(
                 autoHideMenu.getDurationIndex()));
+            // Set the Dropbox chunk size multiplier
+        dbxChunkSizeModel.setMultiplier(config.getDropboxChunkSizeMultiplier(
+                dbxChunkSizeModel.getMultiplier()));
             // If the program has fully loaded
         if (fullyLoaded){
                 // Set the selection from the config
@@ -6127,12 +6182,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // Make sure the width and height are within range
                     dim.width = Math.max(dim.width, min.width);
                     dim.height = Math.max(dim.height, min.height);
-                        // If the current component is this program
-                    if (comp == this){
-                            // Set the size of the program window
-                        setSize(dim);
-                    } else {
-                            // Set the size of the current component
+                        // If the current component is a window
+                    if (comp instanceof Window){
+                            // Set the size of the window
+                        comp.setSize(dim);
+                    } else {// Set the preferred size of the current component
                         comp.setPreferredSize(dim);
                     }
                 }   // If the location for the component is not null
@@ -6155,9 +6209,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                                 // Make sure the height is within range
                             Math.max(rect.height, min.height));
                 }
-            }
-        }
-            // Set the show hidden lists property from the config
+            }   // Remove the database location dialog's size from the config 
+                // since it uses the bounds now
+                // TODO: If and when this would affect the actual bounds 
+                // property, then don't set this anymore.
+            config.setComponentSize(setLocationDialog, null);
+                // If the bounds for the database location dialog is not set
+            if (!config.isComponentBoundsSet(setLocationDialog))
+                    // Make the database location dialog's position relative to 
+                    // to the program's
+                setLocationDialog.setLocationRelativeTo(this);
+                // If the location for the search dialog is not set
+            if (!config.isComponentLocationSet(searchDialog))
+                    // Make the search dialog's position relative to the 
+                    // program's
+                searchDialog.setLocationRelativeTo(this);
+        }   // Set the show hidden lists property from the config
         showHiddenListsToggle.setSelected(config.getHiddenListsAreShown(
                 showHiddenListsToggle.isSelected()));
             // Update the visible lists
@@ -8047,6 +8114,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             try {   // Load the properties from the file and get if we are 
                     // successful
                 if (loadProperties(file, prop)){
+                        // If the properties has a value for the database 
+                        // location dialog's size
+                    if (prop.containsKey(config.getComponentName(setLocationDialog)
+                            +LinkManagerConfig.COMPONENT_SIZE_KEY_SUFFIX)){
+                            // If the properties doesn't have a value for the 
+                            // database location dialog's bounds
+                        if (!prop.containsKey(config.getComponentName(setLocationDialog)
+                                +LinkManagerConfig.COMPONENT_BOUNDS_KEY_SUFFIX)){
+                                // Get the database location dialog's bounds
+                            Rectangle rect = config.getComponentBounds(setLocationDialog);
+                                // Set the size from the properties
+                            rect.setSize(prop.getDimensionProperty(
+                                    config.getComponentName(setLocationDialog)+
+                                            LinkManagerConfig.COMPONENT_SIZE_KEY_SUFFIX));
+                                // Set it's bounds
+                            config.setComponentBounds(setLocationDialog,rect);
+                        }
+                            // Remove the value
+                        prop.remove(config.getComponentName(setLocationDialog)+
+                                LinkManagerConfig.COMPONENT_SIZE_KEY_SUFFIX);
+                    }
                         // Import the properties into the configuration
                     config.importProperties(prop);
                     return true;
@@ -10264,6 +10352,33 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
+     * @param fileSize
+     * @return 
+     */
+    private ProgressListener createProgressListener(long fileSize){
+            // Set the progress to be zero
+        setProgressValue(0);
+            // Get the value needed to divide the file length to get it back 
+            // into the range of integers
+        int divider = 1;
+            // While the divided file length is larger than the integer maximum
+        while (Math.ceil(fileSize / ((double)divider)) > Integer.MAX_VALUE)
+            divider++;
+            // Create a copy of divisor to get around it needing to be 
+            // effectively final, since it's not going to change after this.
+        double div = divider;
+            // Set the progress maximum to the file length divided by the 
+            // divisor
+        setProgressMaximum((int)Math.ceil(fileSize / div));
+            // Create and return a progress listener that will update the 
+            // progress bar to reflect the bytes that have been written so far
+        return (long bytesWritten) -> {
+                // Update the progress with the amount of bytes written
+            setProgressValue((int)Math.ceil(bytesWritten / div));
+        };
+    }
+    /**
+     * 
      */
     private class DbxDownloader extends FileDownloader{
         /**
@@ -10310,22 +10425,39 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Get a client to communicate with Dropbox
                 DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
                     // Refresh the Dropbox credentials if necessary
-                refreshDbxCredentials(cred,client);
+                dbxUtils.refreshCredentials(client, cred);
                     // Get the file namespace for Dropbox
                 DbxUserFilesRequests dbxFiles = client.files();
-                    // If the file doesn't exist on dropbox
-                if (!dbxFileExists(path,dbxFiles)){
-                    fileFound = false;
+                    // This gets the size of the file to be downloaded
+                Long size = null;
+                try{    // Get the metadata for the file
+                    Metadata metadata = dbxFiles.getMetadataBuilder(path).start();
+                        // If the metadata is actually file metadata
+                    if (metadata instanceof FileMetadata){
+                            // Get the size of the file
+                        size = ((FileMetadata) metadata).getSize();
+                    }
+                } catch (GetMetadataErrorException ex){
+                        // If the error because the file doesn't exist
+                    if (DropboxUtilities.fileNotFound(ex)){
+                        fileFound = false;
+                    } else {
+                        dbxEx = ex;
+                        if (isInDebug())    // If the program is in debug mode
+                            System.out.println(ex);
+                    }
                     return false;
-                }
-                
-                    // TODO: Handle files larger than 150MB
-                
-                    // Create an output stream to save the file 
-                try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file))){
-                        // Download the file from Dropbox
-                    dbxFiles.downloadBuilder(path).download(out);
-                }
+                }   // This is the progress listener to use to listen to how 
+                    // many bytes have been downloaded so far.
+                ProgressListener listener = null;
+                    // If the file size was loaded
+                if (size != null){
+                        // Setup the progress bar and get the progress listener
+                    listener = createProgressListener(size);
+                        // Set the progress bar to not be indeterminate
+                    setIndeterminate(false);
+                }   // Download the file from Dropbox
+                DropboxUtilities.download(file, path, dbxFiles, listener);
                 return true;
             } catch(DbxException ex){
                 dbxEx = ex;
@@ -10389,42 +10521,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Get a client to communicate with Dropbox
                 DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
                     // Refresh the Dropbox credentials if necessary
-                refreshDbxCredentials(cred,client);
-                    // Get the file namespace for Dropbox
-                DbxUserFilesRequests dbxFiles = client.files();
-                    // If the file already exists
-                if (dbxFileExists(path,dbxFiles))
-                        // Delete the file so that it can be replaced
-                    dbxFiles.deleteV2(path);
-                    // Set the progress to be zero
-                setProgressValue(0);
-                    // Get the value needed to divide the file length to get it 
-                    // back into the range of integers
-                int divider = 1;
-                    // While the divided file length is larger than the integer 
-                    // maximum
-                while (Math.ceil(file.length() / ((double)divider)) > Integer.MAX_VALUE)
-                    divider++;
-                    // Create a copy of divisor to get around it needing to 
-                    // be effectively final
-                double div = divider;
-                    // Set the progress maximum to the file length divided by 
-                    // the divisor
-                setProgressMaximum((int)Math.ceil(file.length() / div));
+                dbxUtils.refreshCredentials(client, cred);
+                    // Setup the progress bar and get the progress listener used 
+                    // to update the progress bar to reflect the bytes that have 
+                    // been loaded so far.
+                ProgressListener listener = createProgressListener(file.length());
                     // Set the progress bar to not be indeterminate
                 setIndeterminate(false);
-                
-                    // TODO: Handle files larger than 150MB
-                
-                    // Create an input stream to load the file 
-                try (InputStream in = new BufferedInputStream(new FileInputStream(file))){
-                        // Upload the file to Dropbox
-                    dbxFiles.uploadBuilder(path).uploadAndFinish(in, (long bytesWritten) -> {
-                            // Update the progress with the amount of bytes 
-                            // written
-                        setProgressValue((int)Math.ceil(bytesWritten / div));
-                    });
-                }
+                    // Upload the file to Dropbox, using the set chunk size and 
+                    // overwriting the file if it already exists
+                DropboxUtilities.upload(file, path, client.files(), 
+                        dbxChunkSizeModel.getChunkSize(), true, listener);
                 return true;
             } catch(DbxException ex){
                 dbxEx = ex;
@@ -10518,41 +10625,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Get a client to communicate with Dropbox
                 DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
                     // Refresh the Dropbox credentials if necessary
-                refreshDbxCredentials(cred,client);
+                dbxUtils.refreshCredentials(client, cred);
                     // Get the request for the user
                 DbxUserUsersRequests users = client.users();
                     // Get the account details for the user
                 FullAccount account = users.getCurrentAccount();
                     // Get the user's account name
                 accountName = account.getName().getDisplayName();
-                    // Get the URL for the user's profile picture
-                String pfpUrl = account.getProfilePhotoUrl();
-                    // If the user has a profile picture set.
-                if (pfpUrl != null){
-                    try{    // Load the profile picture
-                        pfpIcon = new ImageIcon(new URL(pfpUrl), 
-                                accountName+"'s Profile Picture");
-                    } catch (MalformedURLException ex){ }
-                }   // If the user did not have a profile picture set or the 
-                    // profile picture failed to load
-                if (pfpIcon == null || (((ImageIcon)pfpIcon).getImageLoadStatus() 
-                        & (java.awt.MediaTracker.ABORTED | java.awt.MediaTracker.ERRORED)) != 0)
-                        // Set the profile picture to a default profile picture 
-                        // with a background color dependent on the hash code of 
-                        // their unique user ID.
-                    pfpIcon = new DefaultPfpIcon(new Color(account.getAccountId().hashCode()));
+                    // Load the profile picture for the user
+                pfpIcon = DropboxUtilities.getProfilePicture(account, accountName);
                     // Get the space usage for the user
                 SpaceUsage spaceUsage = users.getSpaceUsage();
-                    // Get the allocation of the space for the user
-                SpaceAllocation spaceAllocation = spaceUsage.getAllocation();
                     // Get the amount of space used by the user
                 used = spaceUsage.getUsed();
-                    // If the user's account is part of a team
-                if (spaceAllocation.isTeam())
-                        // Get the amount of space allocated to the team
-                    allocated = spaceAllocation.getTeamValue().getAllocated();
-                else    // Get the amount of space allocated to the user alone
-                    allocated = spaceAllocation.getIndividualValue().getAllocated();
+                    // Get the amount of space allocated to the user
+                allocated = DropboxUtilities.getAllocatedSpace(spaceUsage);
                 return true;
             } catch (InvalidAccessTokenException ex){
                 validAccount = false;

@@ -6,6 +6,7 @@ package manager.dropbox;
 
 import com.dropbox.core.*;
 import com.dropbox.core.oauth.*;
+import com.dropbox.core.v2.DbxClientV2;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Objects;
@@ -181,6 +182,18 @@ public abstract class DropboxLinkUtils {
     }
     /**
      * 
+     * @param client
+     * @param cred
+     * @throws DbxException 
+     */
+    public void refreshCredentials(DbxClientV2 client, DbxCredential cred) 
+            throws DbxException{
+        if (cred.aboutToExpire()){
+            refreshCredentials(client.refreshAccessToken());
+        }
+    }
+    /**
+     * 
      */
     public void clearCredentials(){
         setCredentials(null,null,null);
@@ -209,7 +222,7 @@ public abstract class DropboxLinkUtils {
      * @return 
      */
     public DbxCredential getCredentials(){
-        return DropboxLinkUtils.this.getCredentials(usesPKCE() || !hasSecretKey());
+        return getCredentials(usesPKCE() || !hasSecretKey());
     }
     /**
      * 
