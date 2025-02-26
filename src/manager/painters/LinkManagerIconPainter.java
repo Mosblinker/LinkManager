@@ -56,6 +56,10 @@ public class LinkManagerIconPainter implements Painter<Object>{
      * A scratch rounded rectangle object used to draw the image.
      */
     private RoundRectangle2D roundRect = null;
+    /**
+     * A scratch rectangle object used to draw the image.
+     */
+    private Rectangle2D rect = null;
     @Override
     public void paint(Graphics2D g, Object object, int width, int height) {
             // Check if the graphics context is null
@@ -76,12 +80,20 @@ public class LinkManagerIconPainter implements Painter<Object>{
                 RenderingHints.VALUE_RENDER_QUALITY);
         if (roundRect == null)
             roundRect = new RoundRectangle2D.Double();
+        if (rect == null)
+            rect = new Rectangle2D.Double();
         roundRect.setRoundRect(8, 8, 496, 496, 20, 20);
         g.setColor(BORDER_OUTLINE_COLOR);
         g.fill(roundRect);
         roundRect.setRoundRect(12, 12, 488, 488, 20, 20);
         g.setColor(PROGRAM_BACKGROUND_COLOR);
         g.fill(roundRect);
+        rect.setRect(32, 32, 400, 448);
+        g.setColor(LIST_OUTLINE_COLOR);
+        g.fill(rect);
+        rect.setRect(36, 36, 392, 440);
+        g.setColor(LIST_BACKGROUND_COLOR);
+        g.fill(rect);
             // Dispose of the copy of the graphics context
         g.dispose();
     }
