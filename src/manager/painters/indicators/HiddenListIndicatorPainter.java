@@ -76,12 +76,12 @@ public class HiddenListIndicatorPainter extends AbstractListIndicatorPainter{
             outline.curveTo(ctrlPt1X, irisOutline.getMinY(), 
                     irisOutline.getMinX()+0.5, minY, 
                     irisOutline.getCenterX(), minY);
-            outline.curveTo(irisOutline.getMaxX()+0.5, minY, 
+            outline.curveTo(irisOutline.getMaxX()-0.5, minY, 
                     ctrlPt2X, irisOutline.getMinY(), 
                     INTERNAL_WIDTH, irisOutline.getCenterY());
                 // Do the same for the bottom, but backwards
             outline.curveTo(ctrlPt2X,irisOutline.getMaxY(), 
-                    irisOutline.getMaxX()+0.5, maxY, 
+                    irisOutline.getMaxX()-0.5, maxY, 
                     irisOutline.getCenterX(), maxY);
             outline.curveTo(irisOutline.getMinX()+0.5, maxY, 
                     ctrlPt1X, irisOutline.getMaxY(), 
