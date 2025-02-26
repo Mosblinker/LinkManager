@@ -54,8 +54,6 @@ public class LinkManagerIconPainter implements Painter<Object>{
     private static final int LIST_ITEM_COUNT = 10;
     
     private static final int LIST_SELECTED_ITEM_INDEX = 5;
-    
-    private static final double SLASH_COORDINATE_OFFSET = Math.sqrt(18);
     /**
      * A scratch rounded rectangle object used to draw the image.
      */
@@ -129,9 +127,13 @@ public class LinkManagerIconPainter implements Painter<Object>{
         g.setColor(ARROW_BUTTONS_FOREGROUND_COLOR);
         g.fill(getTriangle(444, 220, 24, 24, false, path));
         g.fill(getTriangle(444, 268, 24, 24, true, path));
+            // Set the color to the remove button foreground color to draw the 
+            // remove button symbol
         g.setColor(REMOVE_BUTTON_FOREGROUND_COLOR);
-        g.fill(getSlash(444, 316, 24, 24,false,path));
-        g.fill(getSlash(444, 316, 24, 24,true,path));
+            // Draw a slash going top-left to down-right
+        g.fill(getSlash(444, 316, 24, 24, 6, false, path));
+            // Draw a slash going top-right to down-left
+        g.fill(getSlash(444, 316, 24, 24, 6, true, path));
             // Dispose of the copy of the graphics context
         g.dispose();
     }
@@ -233,32 +235,39 @@ public class LinkManagerIconPainter implements Painter<Object>{
         return path;
     }
     /**
-     * 
-     * @param x
-     * @param y
-     * @param w
-     * @param h
-     * @param flip
-     * @param path
-     * @return 
+     * This generates and returns a slash to use for the remove button's symbol.
+     * @param x The x-coordinate of the top-left corner of the slash.
+     * @param y The y-coordinate of the top-left corner of the slash.
+     * @param w The width of the slash.
+     * @param h The height of the slash.
+     * @param thickness The thickness of the slash.
+     * @param flip {@code true} if the slash should go top-right to down-left, 
+     * {@code false} if the slash should go top-left to down-right.
+     * @param path The path to store the slash in, or null.
+     * @return A path with the slash stored in it.
      */
-    private Path2D getSlash(double x, double y, double w, double h,boolean flip,
-            Path2D path){
+    private Path2D getSlash(double x, double y, double w, double h,
+            double thickness,boolean flip,Path2D path){
+            // If the given path is null
         if (path == null)
             path = new Path2D.Double();
-        else
+        else    // Reset the path
             path.reset();
+            // This is the offset to use to remove the corners of the area from 
+            // the slash
+        double offset = Math.sqrt(Math.pow(thickness, 2)/2.0);
+            // If the slash is flipped
         if (flip){
-            path.moveTo(x, y+h-SLASH_COORDINATE_OFFSET);
-            path.lineTo(x+SLASH_COORDINATE_OFFSET, y+h);
-            path.lineTo(x+w, y+SLASH_COORDINATE_OFFSET);
-            path.lineTo(x+w-SLASH_COORDINATE_OFFSET, y);
+            path.moveTo(x, y+h-offset);
+            path.lineTo(x+offset, y+h);
+            path.lineTo(x+w, y+offset);
+            path.lineTo(x+w-offset, y);
         } else {
-            path.moveTo(x, y+SLASH_COORDINATE_OFFSET);
-            path.lineTo(x+SLASH_COORDINATE_OFFSET, y);
-            path.lineTo(x+w, y+h-SLASH_COORDINATE_OFFSET);
-            path.lineTo(x+w-SLASH_COORDINATE_OFFSET, y+h);
-        }
+            path.moveTo(x, y+offset);
+            path.lineTo(x+offset, y);
+            path.lineTo(x+w, y+h-offset);
+            path.lineTo(x+w-offset, y+h);
+        }   // Close the path
         path.closePath();
         return path;
     }
