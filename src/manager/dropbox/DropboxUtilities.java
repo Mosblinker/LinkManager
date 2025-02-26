@@ -5,8 +5,10 @@
 package manager.dropbox;
 
 import com.dropbox.core.*;
+import com.dropbox.core.util.IOUtil.ProgressListener;
 import com.dropbox.core.v2.*;
 import com.dropbox.core.v2.files.*;
+import java.io.*;
 
 /**
  * A utility library used with Dropbox stuff.
@@ -71,5 +73,41 @@ public class DropboxUtilities {
                 // Forward the exception
             throw ex;
         }
+    }
+    /**
+     * 
+     * @param file
+     * @param path
+     * @param dbxFiles
+     * @param l
+     * @return
+     * @throws IOException
+     * @throws DbxException 
+     */
+    public static FileMetadata download(File file, String path, 
+            DbxUserFilesRequests dbxFiles, ProgressListener l) 
+            throws IOException, DbxException{
+        try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file));
+                DbxDownloader<FileMetadata> dbxDown = dbxFiles.downloadBuilder(path).start()){
+                // If no progress listener was provided
+            if (l == null)
+                    // Download the file from Dropbox
+                return dbxDown.download(out);
+                // Download the file from Dropbox
+            return dbxDown.download(out, l);
+        }
+    }
+    /**
+     * 
+     * @param file
+     * @param path
+     * @param dbxFiles
+     * @return
+     * @throws IOException
+     * @throws DbxException 
+     */
+    public static FileMetadata download(File file, String path, 
+            DbxUserFilesRequests dbxFiles) throws IOException, DbxException{
+        return download(file,path,dbxFiles,null);
     }
 }
