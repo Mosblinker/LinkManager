@@ -12,8 +12,8 @@ import com.dropbox.core.v2.users.*;
 import java.awt.Color;
 import java.awt.MediaTracker;
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
+import java.util.*;
 import javax.swing.*;
 import manager.icons.DefaultPfpIcon;
 
@@ -22,6 +22,26 @@ import manager.icons.DefaultPfpIcon;
  * @author Mosblinker
  */
 public class DropboxUtilities {
+    /**
+     * This is the minimum chunk size that can be used when uploading a decently 
+     * large file. This is set to 4 MiB.
+     */
+    public static final long MINIMUM_CHUNK_SIZE = 0x400000;
+    /**
+     * This is the maximum chunk size that can be used when uploading a decently 
+     * large file. This is set to 148 MiB.
+     */
+    public static final long MAXIMUM_CHUNK_SIZE = 0x9400000;
+    /**
+     * This is the default chunk size to use when uploading a decently large 
+     * file. This is set to 8 MiB.
+     */
+    public static final long DEFAULT_CHUNK_SIZE = 0x800000;
+    /**
+     * This is the amount of times the program will try to upload a file to 
+     * Dropbox when the file is being uploaded in chunks before giving up.
+     */
+    public static final int CHUNKED_UPLOAD_MAX_ATTEMPTS = 10;
     /**
      * This class cannot be constructed.
      */
@@ -152,5 +172,259 @@ public class DropboxUtilities {
     public static FileMetadata download(File file, String path, 
             DbxUserFilesRequests dbxFiles) throws IOException, DbxException{
         return download(file,path,dbxFiles,null);
+    }
+    /**
+     * 
+     * @param file
+     * @param path
+     * @param dbxFiles
+     * @param chunkSize
+     * @param overwrite
+     * @param l
+     * @return
+     * @throws IOException
+     * @throws DbxException 
+     */
+    public static FileMetadata upload(File file, String path, 
+            DbxUserFilesRequests dbxFiles, long chunkSize, boolean overwrite, 
+            ProgressListener l) throws IOException, DbxException{
+            // If the chunk size is smaller than the minimum chunk size
+        if (chunkSize < MINIMUM_CHUNK_SIZE)
+            throw new IllegalArgumentException("Chunk size is too small ("+
+                    chunkSize+" < "+MINIMUM_CHUNK_SIZE+")");
+            // If the chunk size is larger than the maximum chunk size
+        else if (chunkSize > MAXIMUM_CHUNK_SIZE){
+            throw new IllegalArgumentException("Chunk size is too large ("+
+                    chunkSize+" > "+MAXIMUM_CHUNK_SIZE+")");
+        }   // Get the write mode to use for uploading the file. If the file is 
+            // to be overwritten if it exists, overwrite it. Otherwise, don't 
+            // overwrite it if it exists
+        WriteMode mode = (overwrite)?WriteMode.OVERWRITE:WriteMode.ADD;
+            // This is the size of the file to upload
+        long fileSize = file.length();
+            // If we can get away with not breaking up the file into chunks
+        if (fileSize < chunkSize){
+                // Create an input stream to load the file 
+            try (InputStream in = new BufferedInputStream(new FileInputStream(file))){
+                    // Create an upload builder to upload the file with the 
+                    // given mode
+                UploadBuilder uploader = dbxFiles.uploadBuilder(path)
+                        .withMode(mode)
+                            // Set the client modified date to the file's last 
+                            // modified date
+                        .withClientModified(new Date(file.lastModified()));
+                    // If the progress listener is null
+                if (l == null)
+                        // Upload the file to Dropbox
+                    return uploader.uploadAndFinish(in);
+                    // Upload the file to Dropbox
+                return uploader.uploadAndFinish(in, l);
+            }
+        } else {    // Code is heavily based off the upload file example for Dropbox
+                // The amount of bytes that have been uploaded so far
+            long uploaded = 0;
+                // The session ID for the upload session, used to resume the 
+                // session if we unexpectedly fail to upload
+            String sessionID = null;
+                // A progress listener that adjusts the bytes written to reflect 
+                // the total amount of bytes written so far
+            ProgressListener listener = new ProgressListener(){
+                    // The amount of bytes in the chunks that have been uploaded
+                    // so far
+                long uploaded = 0;
+                @Override
+                public void onProgress(long bytesWritten){
+                        // If the given listener is not null
+                    if (l != null)
+                            // Inform it of the total amount of bytes written
+                        l.onProgress(bytesWritten+uploaded);
+                        // If a chunk has been completed
+                    if (bytesWritten == chunkSize)
+                        uploaded += chunkSize;
+                }
+            };  // This is the most recent exception that was thrown
+            DbxException dbxEx = null;
+                // This is the file metadata to return upon a successful upload
+            FileMetadata metadata = null;
+                // A for loop to retry uploading the file if and when we've 
+                // failed at some point
+            for (int i = 0; i < CHUNKED_UPLOAD_MAX_ATTEMPTS && metadata == null; 
+                    i++){
+                    // Create an input stream to load the file 
+                try (InputStream in = new BufferedInputStream(new FileInputStream(file))){
+                        // Skip the bytes we've already read
+                    in.skip(uploaded);
+                        // If we are at the start of the upload and the session 
+                        // hasn't begun yet
+                    if (sessionID == null){
+                            // Upload the first chunk and get the session ID
+                        sessionID = dbxFiles.uploadSessionStart()
+                                .uploadAndFinish(in, chunkSize, listener)
+                                .getSessionId();
+                        uploaded += chunkSize;
+                    }   // A cursor that represents how far we are in the upload
+                    UploadSessionCursor cursor = new UploadSessionCursor(sessionID, uploaded);
+                        // While there are still chunks to upload before we 
+                        // reach the last chunk
+                    while (fileSize - uploaded > chunkSize){
+                            // Upload the next chunk
+                        dbxFiles.uploadSessionAppendV2(cursor)
+                                .uploadAndFinish(in, chunkSize, listener);
+                        uploaded += chunkSize;
+                            // Update the cursor
+                        cursor = new UploadSessionCursor(sessionID, uploaded);
+                    }   // Create a commit info for the final part of the upload 
+                        // with the file's path and the mode
+                    CommitInfo info = CommitInfo.newBuilder(path)
+                            .withMode(mode)
+                                // Set the client modified date to the file's 
+                                // last modified date
+                            .withClientModified(new Date(file.lastModified()))
+                            .build();
+                        // Upload the final part of the file to Dropbox
+                    metadata = dbxFiles.uploadSessionFinish(cursor, info)
+                            .uploadAndFinish(in, fileSize - uploaded, listener);
+                } catch (RetryException ex){
+                        // This is thrown when the program wants us to back off 
+                        // for a bit
+                    dbxEx = ex;
+                    try{    // Wait the amount of time we've been told to before 
+                            // retrying, plus an additional millisecond for good 
+                        Thread.sleep(ex.getBackoffMillis()+1);  // measure
+                    } catch (InterruptedException ex1){ }
+                } catch (NetworkIOException ex){
+                        // If the previous error was also a network issue with 
+                        // Dropbox
+                    if (dbxEx instanceof NetworkIOException){
+                        try{    // Wait a second just in case it was a timeout
+                        Thread.sleep(1000);
+                        } catch (InterruptedException ex1){ }
+                    }
+                    dbxEx = ex;
+                } catch (UploadSessionFinishErrorException ex){
+                        // If the offset into the stream doesn't match the 
+                        // amount we've uploaded
+                    if (ex.errorValue.isLookupFailed() && 
+                            ex.errorValue.getLookupFailedValue().isIncorrectOffset()){
+                        dbxEx = ex;
+                            // Correct the offset loaded so far
+                        uploaded = ex.errorValue.getLookupFailedValue().
+                                getIncorrectOffsetValue().
+                                getCorrectOffset();
+                    } else
+                        throw ex;
+                }
+            }   // If the file metadata is null (indicates a failed upload) and 
+                // we have a Dropbox error to forward
+            if (metadata == null && dbxEx != null)
+                throw dbxEx;
+            return metadata;
+        }
+    }
+    /**
+     * 
+     * @param file
+     * @param path
+     * @param dbxFiles
+     * @param chunkSize
+     * @param overwrite
+     * @return
+     * @throws IOException
+     * @throws DbxException 
+     */
+    public static FileMetadata upload(File file, String path, 
+            DbxUserFilesRequests dbxFiles, long chunkSize, boolean overwrite) 
+            throws IOException, DbxException{
+        return upload(file,path,dbxFiles,chunkSize,overwrite,null);
+    }
+    /**
+     * 
+     * @param file
+     * @param path
+     * @param dbxFiles
+     * @param chunkSize
+     * @param l
+     * @return
+     * @throws IOException
+     * @throws DbxException 
+     */
+    public static FileMetadata upload(File file, String path, 
+            DbxUserFilesRequests dbxFiles, long chunkSize, ProgressListener l) 
+            throws IOException, DbxException{
+        return upload(file,path,dbxFiles,chunkSize,false,l);
+    }
+    /**
+     * 
+     * @param file
+     * @param path
+     * @param dbxFiles
+     * @param chunkSize
+     * @return
+     * @throws IOException
+     * @throws DbxException 
+     */
+    public static FileMetadata upload(File file, String path, 
+            DbxUserFilesRequests dbxFiles, long chunkSize) throws IOException, 
+            DbxException{
+        return upload(file,path,dbxFiles,chunkSize,null);
+    }
+    /**
+     * 
+     * @param file
+     * @param path
+     * @param dbxFiles
+     * @param overwrite
+     * @param l
+     * @return
+     * @throws IOException
+     * @throws DbxException 
+     */
+    public static FileMetadata upload(File file, String path, 
+            DbxUserFilesRequests dbxFiles, boolean overwrite,ProgressListener l) 
+            throws IOException, DbxException{
+        return upload(file,path,dbxFiles,DEFAULT_CHUNK_SIZE,overwrite,l);
+    }
+    /**
+     * 
+     * @param file
+     * @param path
+     * @param dbxFiles
+     * @param overwrite
+     * @return
+     * @throws IOException
+     * @throws DbxException 
+     */
+    public static FileMetadata upload(File file, String path, 
+            DbxUserFilesRequests dbxFiles,boolean overwrite) throws IOException, 
+            DbxException{
+        return upload(file,path,dbxFiles,overwrite,null);
+    }
+    /**
+     * 
+     * @param file
+     * @param path
+     * @param dbxFiles
+     * @param l
+     * @return
+     * @throws IOException
+     * @throws DbxException 
+     */
+    public static FileMetadata upload(File file, String path, 
+            DbxUserFilesRequests dbxFiles, ProgressListener l) 
+            throws IOException, DbxException{
+        return upload(file,path,dbxFiles,DEFAULT_CHUNK_SIZE,l);
+    }
+    /**
+     * 
+     * @param file
+     * @param path
+     * @param dbxFiles
+     * @return
+     * @throws IOException
+     * @throws DbxException 
+     */
+    public static FileMetadata upload(File file, String path, 
+            DbxUserFilesRequests dbxFiles) throws IOException, DbxException{
+        return upload(file,path,dbxFiles,null);
     }
 }
