@@ -27,7 +27,6 @@ import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -60,10 +59,10 @@ import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
 import manager.icons.DefaultPfpIcon;
 import manager.links.*;
+import manager.painters.LinkManagerIconPainter;
 import manager.security.CipherUtilities;
 import manager.timermenu.*;
 import measure.format.binary.ByteUnitFormat;
-import net.coobird.thumbnailator.Thumbnailator;
 import org.sqlite.*;
 import org.sqlite.core.*;
 import sql.*;
@@ -83,7 +82,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     public static final String PROGRAM_VERSION = "0.4.0";
     /**
      * This is an array containing the widths and heights for the icon images 
-     * for this program. 
+     * for this program. The icon images are generated on the fly.
      */
     private static final int[] ICON_SIZES = {16, 24, 32, 48, 64, 96, 128, 256, 512};
     /**
@@ -595,26 +594,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
-     * @param image
      * @return 
      */
-    private java.util.List<BufferedImage> generateIconImages(Image image){
-        if (image == null)
-            return null;
-        BufferedImage img;
-        if (image instanceof BufferedImage)
-            img = (BufferedImage) image;
-        else{
-            img = new BufferedImage(image.getWidth(null),image.getHeight(null),
-                    BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g = img.createGraphics();
-            g.drawImage(image, 0, 0, null);
-            g.dispose();
-        }    // Create a list to get the images
+    private java.util.List<BufferedImage> generateIconImages(){
+            // Create a list to get the images
         ArrayList<BufferedImage> iconImages = new ArrayList<>();
+            // Create the painter to generate the images
+        LinkManagerIconPainter painter = new LinkManagerIconPainter();
             // Go through the sizes for the images
         for (int size : ICON_SIZES){
-            iconImages.add(Thumbnailator.createThumbnail(img, size, size));
+            BufferedImage img = new BufferedImage(size,size,
+                    BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = img.createGraphics();
+            painter.paint(g, null, size, size);
+            g.dispose();
+            iconImages.add(img);
         }
         return iconImages;
     }
@@ -629,8 +623,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public LinkManager(boolean debugMode, UUID programID, File configFile) {
         this.debugMode = debugMode;
-        setIconImages(generateIconImages(
-                new ImageIcon(this.getClass().getResource(ICON_FILE)).getImage()));
+        setIconImages(generateIconImages());
         editCommands = new HashMap<>();
         undoCommands = new HashMap<>();
         textPopupMenus = new HashMap<>();
