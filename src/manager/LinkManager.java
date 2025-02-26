@@ -966,6 +966,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Use the preferred size of the component as it's 
                     // default size for its bounds
                 config.setDefaultComponentBounds(comp, size.width,size.height);
+                // If the component is the database location dialog
+            } else if (comp == setLocationDialog){
+                    // Use the preferred size of the component as it's 
+                    // default size for its bounds, but use its current location 
+                    // as the default location
+                config.setDefaultComponentBounds(comp, comp.getX(),comp.getY(),
+                        size.width,size.height);
             } else {// Use the preferred size of the current component as its 
                     // default size
                 config.setDefaultComponentSize(comp,size);
@@ -6105,9 +6112,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // Make sure the width and height are within range
                     dim.width = Math.max(dim.width, min.width);
                     dim.height = Math.max(dim.height, min.height);
-                        // If the current component is this program
+                        // If the current component is a window
                     if (comp instanceof Window){
-                            // Set the size of the program window
+                            // Set the size of the window
                         comp.setSize(dim);
                     } else {// Set the preferred size of the current component
                         comp.setPreferredSize(dim);
@@ -6133,7 +6140,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                             Math.max(rect.height, min.height));
                 }
             }
-        }
+        }   // Remove the database location dialog's size from the config since 
+            // it uses the bounds now
+            // TODO: If and when this would affect the actual bounds property, 
+            // then don't set this anymore.
+        config.setComponentSize(setLocationDialog, null);
             // Set the show hidden lists property from the config
         showHiddenListsToggle.setSelected(config.getHiddenListsAreShown(
                 showHiddenListsToggle.isSelected()));
@@ -8024,6 +8035,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             try {   // Load the properties from the file and get if we are 
                     // successful
                 if (loadProperties(file, prop)){
+                        // If the properties has a value for the database 
+                        // location dialog's size
+                    if (prop.containsKey(config.getComponentName(setLocationDialog)
+                            +LinkManagerConfig.COMPONENT_SIZE_KEY_SUFFIX)){
+                            // If the properties doesn't have a value for the 
+                            // database location dialog's bounds
+                        if (!prop.containsKey(config.getComponentName(setLocationDialog)
+                                +LinkManagerConfig.COMPONENT_BOUNDS_KEY_SUFFIX)){
+                                // Get the database location dialog's bounds
+                            Rectangle rect = config.getComponentBounds(setLocationDialog);
+                                // Set the size from the properties
+                            rect.setSize(prop.getDimensionProperty(
+                                    config.getComponentName(setLocationDialog)+
+                                            LinkManagerConfig.COMPONENT_SIZE_KEY_SUFFIX));
+                                // Set it's bounds
+                            config.setComponentBounds(setLocationDialog,rect);
+                        }
+                            // Remove the value
+                        prop.remove(config.getComponentName(setLocationDialog)+
+                                LinkManagerConfig.COMPONENT_SIZE_KEY_SUFFIX);
+                    }
                         // Import the properties into the configuration
                     config.importProperties(prop);
                     return true;
