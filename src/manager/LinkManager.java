@@ -22,7 +22,6 @@ import files.FilesExtended;
 import static files.FilesExtended.generateExtensionFilter;
 import files.extensions.ConfigExtensions;
 import static files.extensions.TextDocumentExtensions.TEXT_FILTER;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Desktop;
@@ -59,7 +58,6 @@ import manager.config.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
-import manager.icons.DefaultPfpIcon;
 import manager.links.*;
 import manager.painters.LinkManagerIconPainter;
 import manager.security.CipherUtilities;
@@ -10643,22 +10641,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 FullAccount account = users.getCurrentAccount();
                     // Get the user's account name
                 accountName = account.getName().getDisplayName();
-                    // Get the URL for the user's profile picture
-                String pfpUrl = account.getProfilePhotoUrl();
-                    // If the user has a profile picture set.
-                if (pfpUrl != null){
-                    try{    // Load the profile picture
-                        pfpIcon = new ImageIcon(new URL(pfpUrl), 
-                                accountName+"'s Profile Picture");
-                    } catch (MalformedURLException ex){ }
-                }   // If the user did not have a profile picture set or the 
-                    // profile picture failed to load
-                if (pfpIcon == null || (((ImageIcon)pfpIcon).getImageLoadStatus() 
-                        & (java.awt.MediaTracker.ABORTED | java.awt.MediaTracker.ERRORED)) != 0)
-                        // Set the profile picture to a default profile picture 
-                        // with a background color dependent on the hash code of 
-                        // their unique user ID.
-                    pfpIcon = new DefaultPfpIcon(new Color(account.getAccountId().hashCode()));
+                    // Load the profile picture for the user
+                pfpIcon = DropboxUtilities.getProfilePicture(account, accountName);
                     // Get the space usage for the user
                 SpaceUsage spaceUsage = users.getSpaceUsage();
                     // Get the allocation of the space for the user

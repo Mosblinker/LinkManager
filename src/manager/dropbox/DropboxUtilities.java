@@ -8,7 +8,14 @@ import com.dropbox.core.*;
 import com.dropbox.core.util.IOUtil.ProgressListener;
 import com.dropbox.core.v2.*;
 import com.dropbox.core.v2.files.*;
+import com.dropbox.core.v2.users.*;
+import java.awt.Color;
+import java.awt.MediaTracker;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import javax.swing.*;
+import manager.icons.DefaultPfpIcon;
 
 /**
  * A utility library used with Dropbox stuff.
@@ -19,6 +26,42 @@ public class DropboxUtilities {
      * This class cannot be constructed.
      */
     private DropboxUtilities() {}
+    /**
+     * 
+     * @param account
+     * @param userName
+     * @return 
+     */
+    public static Icon getProfilePicture(FullAccount account, String userName){
+            // Get the URL for the user's profile picture
+        String pfpUrl = account.getProfilePhotoUrl();
+            // This will get the image icon with the user's profile picture
+        ImageIcon pfpIcon = null;
+            // If the user has a profile picture set.
+        if (pfpUrl != null){
+            try{    // Load the profile picture
+                pfpIcon = new ImageIcon(new URL(pfpUrl), 
+                            // Set the description to state that it's the user's 
+                            // profile picture
+                        userName+"'s Profile Picture");
+            } catch (MalformedURLException ex){ }
+        }   // If the user did not have a profile picture set or the profile 
+            // picture failed to load
+        if (pfpIcon == null || (pfpIcon.getImageLoadStatus() 
+                & (MediaTracker.ABORTED | MediaTracker.ERRORED)) != 0)
+                // Return a default profile picture with a background color
+                // dependent on the hash code of the user's unique user ID.
+            return new DefaultPfpIcon(new Color(account.getAccountId().hashCode()));
+        return pfpIcon;
+    }
+    /**
+     * 
+     * @param account
+     * @return 
+     */
+    public static Icon getProfilePicture(FullAccount account){
+        return getProfilePicture(account,account.getName().getDisplayName());
+    }
     /**
      * 
      * @param path
