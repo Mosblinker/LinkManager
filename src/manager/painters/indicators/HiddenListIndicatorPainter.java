@@ -15,7 +15,7 @@ public class HiddenListIndicatorPainter extends AbstractListIndicatorPainter{
     /**
      * The width at which this is internally rendered at.
      */
-    private static final int INTERNAL_WIDTH = 12;
+    private static final int INTERNAL_WIDTH = 13;
     /**
      * The height at which this is internally rendered at.
      */
@@ -64,9 +64,9 @@ public class HiddenListIndicatorPainter extends AbstractListIndicatorPainter{
             outline = new Path2D.Double();
             outline.moveTo(0, irisOutline.getCenterY());
                 // This is the minimum y-coordinate for the eye outline
-            double minY = irisOutline.getMinY()-1;
+            double minY = irisOutline.getMinY()-1.25;
                 // This is the maximum y-coordinate for the eye outline
-            double maxY = irisOutline.getMaxY()+1;
+            double maxY = irisOutline.getMaxY()+1.25;
                 // This is the x-coordinate for the first control point in the 
                 // top-left curve.
             double ctrlPt1X = irisOutline.getMinX()/2.0;
