@@ -48,4 +48,28 @@ public class DropboxUtilities {
             throws DbxException{
         return exists(path,client.files());
     }
+    /**
+     * 
+     * @param path
+     * @param dbxFiles
+     * @return
+     * @throws IllegalArgumentException
+     * @throws DeleteErrorException
+     * @throws DbxException 
+     */
+    public static DeleteResult deleteIfExists(String path, 
+            DbxUserFilesRequests dbxFiles) throws DbxException{
+        try{    // Try to delete the file
+            return dbxFiles.deleteV2(path);
+        } catch (DeleteErrorException ex){
+                // If the reason why it failed to delete is because the file 
+                // doesn't exist
+            if (ex.errorValue.isPathLookup() && 
+                    ex.errorValue.getPathLookupValue().isNotFound())
+                    // Just return null
+                return null;
+                // Forward the exception
+            throw ex;
+        }
+    }
 }

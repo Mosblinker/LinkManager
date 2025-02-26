@@ -10368,10 +10368,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxUtils.refreshCredentials(client, cred);
                     // Get the file namespace for Dropbox
                 DbxUserFilesRequests dbxFiles = client.files();
-                    // If the file already exists
-                if (DropboxUtilities.exists(path, dbxFiles))
-                        // Delete the file so that it can be replaced
-                    dbxFiles.deleteV2(path);
+                    // Delete the file so that it can be replaced
+                DropboxUtilities.deleteIfExists(path, dbxFiles);
                     // Set the progress to be zero
                 setProgressValue(0);
                     // Get the value needed to divide the file length to get it 
