@@ -60,6 +60,10 @@ public class LinkManagerIconPainter implements Painter<Object>{
      * A scratch rectangle object used to draw the image.
      */
     private Rectangle2D rect = null;
+    /**
+     * A scratch path object used to draw the image.
+     */
+    private Path2D path = null;
     @Override
     public void paint(Graphics2D g, Object object, int width, int height) {
             // Check if the graphics context is null
@@ -82,6 +86,8 @@ public class LinkManagerIconPainter implements Painter<Object>{
             roundRect = new RoundRectangle2D.Double();
         if (rect == null)
             rect = new Rectangle2D.Double();
+        if (path == null)
+            path = new Path2D.Double();
         roundRect.setRoundRect(8, 8, 496, 496, 20, 20);
         g.setColor(BORDER_OUTLINE_COLOR);
         g.fill(roundRect);
@@ -111,6 +117,9 @@ public class LinkManagerIconPainter implements Painter<Object>{
         g.fill(rect);
         rect.setFrame(444, 181, 24, 6);
         g.fill(rect);
+        g.setColor(ARROW_BUTTONS_FOREGROUND_COLOR);
+        g.fill(getTriangle(444, 220, 24, 24, false, path));
+        g.fill(getTriangle(444, 268, 24, 24, true, path));
             // Dispose of the copy of the graphics context
         g.dispose();
     }
@@ -138,5 +147,33 @@ public class LinkManagerIconPainter implements Painter<Object>{
             // Dispose of the copy of the graphics context
         g.dispose();
     }
-    
+    /**
+     * 
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     * @param down
+     * @param path
+     * @return 
+     */
+    private Path2D getTriangle(double x, double y, double w, double h, 
+            boolean down, Path2D path){
+        if (path == null)
+            path = new Path2D.Double();
+        else
+            path.reset();
+        double centerX = x + (w/2.0);
+        if (down){
+            path.moveTo(x, y);
+            path.lineTo(centerX, y+h);
+            path.lineTo(x+w, y);
+        } else {
+            path.moveTo(x, y+h);
+            path.lineTo(centerX, y);
+            path.lineTo(x+w, y+h);
+        }
+        path.closePath();
+        return path;
+    }
 }
