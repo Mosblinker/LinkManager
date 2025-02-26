@@ -157,16 +157,44 @@ public class LinkManagerIconPainter implements Painter<Object>{
         if (linkShape == null){
             if (roundRect == null)
                 roundRect = new RoundRectangle2D.Double();
+            if (path == null)
+                path = new Path2D.Double();
             roundRect.setRoundRect(350, 10, 32, 32, 10, 10);
             linkShape = new Area(roundRect);
             roundRect.setRoundRect(354, 14, 24, 24, 10, 10);
             linkShape.subtract(new Area(roundRect));
+            linkShape.subtract(new Area(getLinkSlash(366,3,23,23,8.5,path)));
         }
         if (!selected)
             g.setColor(BORDER_OUTLINE_COLOR);
         g.fill(linkShape);
             // Dispose of the copy of the graphics context
         g.dispose();
+    }
+    /**
+     * 
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     * @param thickness
+     * @param path
+     * @return 
+     */
+    private Path2D getLinkSlash(double x, double y, double w, double h, 
+            double thickness, Path2D path){
+        if (path == null)
+            path = new Path2D.Double();
+        else
+            path.reset();
+        path.moveTo(x, y+h-thickness);
+        path.lineTo(x, y+h);
+        path.lineTo(x+thickness, y+h);
+        path.lineTo(x+w, y+thickness);
+        path.lineTo(x+w, y);
+        path.lineTo(x+w-thickness, y);
+        path.closePath();
+        return path;
     }
     /**
      * 
