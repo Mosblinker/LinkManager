@@ -10240,6 +10240,33 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
+     * @param fileSize
+     * @return 
+     */
+    private ProgressListener createProgressListener(long fileSize){
+            // Set the progress to be zero
+        setProgressValue(0);
+            // Get the value needed to divide the file length to get it back 
+            // into the range of integers
+        int divider = 1;
+            // While the divided file length is larger than the integer maximum
+        while (Math.ceil(fileSize / ((double)divider)) > Integer.MAX_VALUE)
+            divider++;
+            // Create a copy of divisor to get around it needing to be 
+            // effectively final, since it's not going to change after this.
+        double div = divider;
+            // Set the progress maximum to the file length divided by the 
+            // divisor
+        setProgressMaximum((int)Math.ceil(fileSize / div));
+            // Create and return a progress listener that will update the 
+            // progress bar to reflect the bytes that have been written so far
+        return (long bytesWritten) -> {
+                // Update the progress with the amount of bytes written
+            setProgressValue((int)Math.ceil(bytesWritten / div));
+        };
+    }
+    /**
+     * 
      */
     private class DbxDownloader extends FileDownloader{
         /**
@@ -10370,21 +10397,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 DbxUserFilesRequests dbxFiles = client.files();
                     // Delete the file so that it can be replaced
                 DropboxUtilities.deleteIfExists(path, dbxFiles);
-                    // Set the progress to be zero
-                setProgressValue(0);
-                    // Get the value needed to divide the file length to get it 
-                    // back into the range of integers
-                int divider = 1;
-                    // While the divided file length is larger than the integer 
-                    // maximum
-                while (Math.ceil(file.length() / ((double)divider)) > Integer.MAX_VALUE)
-                    divider++;
-                    // Create a copy of divisor to get around it needing to 
-                    // be effectively final
-                double div = divider;
-                    // Set the progress maximum to the file length divided by 
-                    // the divisor
-                setProgressMaximum((int)Math.ceil(file.length() / div));
+                    // Setup the progress bar and get the progress listener used 
+                    // to update the progress bar to reflect the bytes that have 
+                    // been loaded so far.
+                ProgressListener listener = createProgressListener(file.length());
                     // Set the progress bar to not be indeterminate
                 setIndeterminate(false);
                 
@@ -10393,11 +10409,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Create an input stream to load the file 
                 try (InputStream in = new BufferedInputStream(new FileInputStream(file))){
                         // Upload the file to Dropbox
-                    dbxFiles.uploadBuilder(path).uploadAndFinish(in, (long bytesWritten) -> {
-                            // Update the progress with the amount of bytes 
-                            // written
-                        setProgressValue((int)Math.ceil(bytesWritten / div));
-                    });
+                    dbxFiles.uploadBuilder(path).uploadAndFinish(in, listener);
                 }
                 return true;
             } catch(DbxException ex){
