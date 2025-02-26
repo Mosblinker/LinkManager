@@ -168,6 +168,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private static final String DATABASE_LOCATION_DIALOG_NAME = 
             "SetDatabaseLocation";
     
+    private static final String SEARCH_DIALOG_NAME = "SearchDialog";
+    
     private static final String LINK_MANAGER_NAME = "LinkManager";
     /**
      * This is a collection storing the required Dropbox scope for the program. 
@@ -954,11 +956,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config.getComponentNames().put(databaseFC, DATABASE_FILE_CHOOSER_NAME);
         config.getComponentNames().put(LinkManager.this, LINK_MANAGER_NAME);
         config.getComponentNames().put(setLocationDialog, DATABASE_LOCATION_DIALOG_NAME);
+        config.getComponentNames().put(searchDialog, SEARCH_DIALOG_NAME);
         
             // Initialize the defaults that are dependent on the UI
         
+            // Set the default location of the search dialog
+        config.setDefaultComponentLocation(searchDialog, searchDialog.getX(), 
+                searchDialog.getY());
+            
             // Go through the components to store their preferred sizes
         for (Component comp : config.getComponentNames().keySet()){
+                // If the component is the search dialog
+            if (comp == searchDialog)
+                continue;
                 // Get the prefered size of the current component
             Dimension size = comp.getPreferredSize();
                 // If the current component is this component
@@ -6139,13 +6149,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                                 // Make sure the height is within range
                             Math.max(rect.height, min.height));
                 }
-            }
-        }   // Remove the database location dialog's size from the config since 
-            // it uses the bounds now
-            // TODO: If and when this would affect the actual bounds property, 
-            // then don't set this anymore.
-        config.setComponentSize(setLocationDialog, null);
-            // Set the show hidden lists property from the config
+            }   // Remove the database location dialog's size from the config 
+                // since it uses the bounds now
+                // TODO: If and when this would affect the actual bounds 
+                // property, then don't set this anymore.
+            config.setComponentSize(setLocationDialog, null);
+                // If the bounds for the database location dialog is not set
+            if (!config.isComponentBoundsSet(setLocationDialog))
+                    // Make the database location dialog's position relative to 
+                    // to the program's
+                setLocationDialog.setLocationRelativeTo(this);
+                // If the location for the search dialog is not set
+            if (!config.isComponentLocationSet(searchDialog))
+                    // Make the search dialog's position relative to the 
+                    // program's
+                searchDialog.setLocationRelativeTo(this);
+        }   // Set the show hidden lists property from the config
         showHiddenListsToggle.setSelected(config.getHiddenListsAreShown(
                 showHiddenListsToggle.isSelected()));
             // Update the visible lists
