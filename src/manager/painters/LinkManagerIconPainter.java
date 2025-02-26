@@ -94,6 +94,9 @@ public class LinkManagerIconPainter implements Painter<Object>{
         rect.setRect(36, 36, 392, 440);
         g.setColor(LIST_BACKGROUND_COLOR);
         g.fill(rect);
+        rect.setFrame(36, 36+(44*SELECTED_LINE_INDEX), 392, 44);
+        g.setColor(LIST_SELECTED_BACKGROUND_COLOR);
+        g.fill(rect);
             // Dispose of the copy of the graphics context
         g.dispose();
     }
