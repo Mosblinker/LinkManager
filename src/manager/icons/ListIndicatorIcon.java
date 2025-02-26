@@ -64,10 +64,6 @@ public class ListIndicatorIcon implements Icon2D{
     
     private int flags = 0;
     
-    protected static Area padlockShackle = null;
-    
-    protected static RoundRectangle2D padlockBody = null;
-    
     protected static Path2D eyeOutline = null;
     
     protected static Arc2D eyeIrisOutline = null;
@@ -79,6 +75,12 @@ public class ListIndicatorIcon implements Icon2D{
      * constructed.
      */
     protected static Painter<Component> fullListPainter = null;
+    /**
+     * This is the painter used to paint the hidden list indicator. This is 
+     * initially null and is initialized the first time a ListIndicatorIcon is 
+     * constructed.
+     */
+    protected static Painter<Component> hiddenListPainter = null;
 
     public ListIndicatorIcon(int flags){
         this.flags = flags;
@@ -98,17 +100,18 @@ public class ListIndicatorIcon implements Icon2D{
             // If the full list indicator painter has not been initialized yet
         if (fullListPainter == null)
             fullListPainter = new FullListIndicatorPainter();
+            // If the hidden list indicator painter has not been initialized yet
+        if (hiddenListPainter == null)
+            hiddenListPainter = new HiddenListIndicatorPainter();
     }
     
     private void constructShapes(){
             // If all the shapes have been initialized
-        if (padlockShackle != null && padlockBody != null && 
-                eyePupil != null && eyeIrisOutline != null && 
+        if (eyePupil != null && eyeIrisOutline != null && 
                 eyeOutline != null)
             return;
         
         Ellipse2D e = new Ellipse2D.Double();
-        Rectangle2D rect = new Rectangle2D.Double();
         
             // If the eye iris outline has not been initialized yet
         if (eyeIrisOutline == null){
@@ -149,27 +152,6 @@ public class ListIndicatorIcon implements Icon2D{
                     ctrlPt1X, eyeIrisOutline.getMaxY(), 
                     0, eyeIrisOutline.getCenterY());
             eyeOutline.closePath();
-        }   // If the padlock body has not been initialized yet
-        if (padlockBody == null){
-            padlockBody = new RoundRectangle2D.Double();
-            padlockBody.setFrameFromDiagonal(0, (INDICATOR_HEIGHT*3)/8.0,
-                    READ_ONLY_INDICATOR_WIDTH, INDICATOR_HEIGHT);
-            ((RoundRectangle2D.Double)padlockBody).arcwidth = 2.5;
-            ((RoundRectangle2D.Double)padlockBody).archeight = 2.5;
-        }   // If the padlock shackle has not been initialized yet
-        if (padlockShackle == null){
-                // Get the minimum x for the padlock shackle
-            double padlockX1 = padlockBody.getMinX()+1.5;
-                // Get the maximum x for the padlock shackle
-            double padlockX2 = padlockBody.getMaxX()-1.5;
-            e.setFrameFromDiagonal(padlockX1, 0, padlockX2, (padlockX2-padlockX1));
-            rect.setFrameFromDiagonal(padlockX1, e.getCenterY(), padlockX2, padlockBody.getMinY()+1);
-            padlockShackle = new Area(e);
-            padlockShackle.add(new Area(rect));
-            e.setFrameFromCenter(e.getCenterX(), e.getCenterY(), e.getMinX()+1.25, e.getMinY()+1.25);
-            rect.setFrameFromCenter(rect.getCenterX(), rect.getCenterY(), e.getMinX(), rect.getMinY());
-            padlockShackle.subtract(new Area(e));
-            padlockShackle.subtract(new Area(rect));
         }
     }
     
@@ -284,8 +266,7 @@ public class ListIndicatorIcon implements Icon2D{
             // Translate the graphics context to where the indicator should be 
         g.translate(x, y);  // rendered
             // Paint the read only list indicator
-        g.fill(padlockShackle);
-        g.fill(padlockBody);
+        hiddenListPainter.paint(g, c, HIDDEN_INDICATOR_WIDTH,INDICATOR_HEIGHT);
             // Dispose of the graphics context
         g.dispose();
     }
