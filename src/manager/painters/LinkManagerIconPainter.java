@@ -94,9 +94,9 @@ public class LinkManagerIconPainter implements Painter<Object>{
         rect.setRect(36, 36, 392, 440);
         g.setColor(LIST_BACKGROUND_COLOR);
         g.fill(rect);
-        rect.setFrame(36, 36+(44*SELECTED_LINE_INDEX), 392, 44);
-        g.setColor(LIST_SELECTED_BACKGROUND_COLOR);
-        g.fill(rect);
+        for (int i = 0; i < LIST_LINE_COUNT; i++){
+            paintListLine(g, i);
+        }
         for (int i = 0; i < SIDE_BUTTON_COUNT; i++){
             int yOff = 48*i;
             rect.setFrame(436, 164+yOff, 40, 40);
@@ -106,6 +106,30 @@ public class LinkManagerIconPainter implements Painter<Object>{
             g.setColor(SIDE_BUTTON_BACKGROUND_COLOR);
             g.fill(rect);
         }
+            // Dispose of the copy of the graphics context
+        g.dispose();
+    }
+    /**
+     * 
+     * @param g
+     * @param index 
+     */
+    private void paintListLine(Graphics2D g, int index){
+        if (rect == null)
+            rect = new Rectangle2D.Double();
+        boolean selected = index == SELECTED_LINE_INDEX;
+            // Create a copy of the given graphics context
+        g = (Graphics2D) g.create();
+            // Translate the graphics context to the top-left corner for this line
+        g.translate(36, 36+(44*index));
+        if (selected){
+            rect.setFrame(0, 0, 392, 44);
+            g.setColor(LIST_SELECTED_BACKGROUND_COLOR);
+            g.fill(rect);
+        }
+        rect.setFrame(10, 10, 329, 24);
+        g.setColor((selected)?LIST_SELECTED_FOREGROUND_COLOR:LIST_FOREGROUND_COLOR);
+        g.fill(rect);
             // Dispose of the copy of the graphics context
         g.dispose();
     }
