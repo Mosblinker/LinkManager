@@ -51,11 +51,11 @@ public class LinkManagerIconPainter implements Painter<Object>{
     
     private static final int SIDE_BUTTON_COUNT = 4;
     
-    private static final int LIST_LINE_COUNT = 10;
+    private static final int LIST_ITEM_COUNT = 10;
     
-    private static final int SELECTED_LINE_INDEX = 5;
+    private static final int LIST_SELECTED_ITEM_INDEX = 5;
     
-    private static final double SLASH_CLEAR_TRIANGLE_LENGTH = Math.sqrt(18);
+    private static final double SLASH_COORDINATE_OFFSET = Math.sqrt(18);
     /**
      * A scratch rounded rectangle object used to draw the image.
      */
@@ -69,7 +69,7 @@ public class LinkManagerIconPainter implements Painter<Object>{
      */
     private Path2D path = null;
     /**
-     * This is the shape used to draw the link icon at the end of the item in 
+     * This is the shape used to draw the link symbol at the end of the item in 
      * the list.
      */
     private Area linkShape = null;
@@ -109,8 +109,8 @@ public class LinkManagerIconPainter implements Painter<Object>{
         rect.setRect(36, 36, 392, 440);
         g.setColor(LIST_BACKGROUND_COLOR);
         g.fill(rect);
-        for (int i = 0; i < LIST_LINE_COUNT; i++){
-            paintListLine(g, i);
+        for (int i = 0; i < LIST_ITEM_COUNT; i++){
+            paintListItem(g, i);
         }
         for (int i = 0; i < SIDE_BUTTON_COUNT; i++){
             int yOff = 48*i;
@@ -140,10 +140,10 @@ public class LinkManagerIconPainter implements Painter<Object>{
      * @param g
      * @param index 
      */
-    private void paintListLine(Graphics2D g, int index){
+    private void paintListItem(Graphics2D g, int index){
         if (rect == null)
             rect = new Rectangle2D.Double();
-        boolean selected = index == SELECTED_LINE_INDEX;
+        boolean selected = index == LIST_SELECTED_ITEM_INDEX;
             // Create a copy of the given graphics context
         g = (Graphics2D) g.create();
             // Translate the graphics context to the top-left corner for this line
@@ -249,16 +249,17 @@ public class LinkManagerIconPainter implements Painter<Object>{
         else
             path.reset();
         if (flip){
-            path.moveTo(x, y+h-SLASH_CLEAR_TRIANGLE_LENGTH);
-            path.lineTo(x+SLASH_CLEAR_TRIANGLE_LENGTH, y+h);
-            path.lineTo(x+w, y+SLASH_CLEAR_TRIANGLE_LENGTH);
-            path.lineTo(x+w-SLASH_CLEAR_TRIANGLE_LENGTH, y);
+            path.moveTo(x, y+h-SLASH_COORDINATE_OFFSET);
+            path.lineTo(x+SLASH_COORDINATE_OFFSET, y+h);
+            path.lineTo(x+w, y+SLASH_COORDINATE_OFFSET);
+            path.lineTo(x+w-SLASH_COORDINATE_OFFSET, y);
         } else {
-            path.moveTo(x, y+SLASH_CLEAR_TRIANGLE_LENGTH);
-            path.lineTo(x+SLASH_CLEAR_TRIANGLE_LENGTH, y);
-            path.lineTo(x+w, y+h-SLASH_CLEAR_TRIANGLE_LENGTH);
-            path.lineTo(x+w-SLASH_CLEAR_TRIANGLE_LENGTH, y+h);
+            path.moveTo(x, y+SLASH_COORDINATE_OFFSET);
+            path.lineTo(x+SLASH_COORDINATE_OFFSET, y);
+            path.lineTo(x+w, y+h-SLASH_COORDINATE_OFFSET);
+            path.lineTo(x+w-SLASH_COORDINATE_OFFSET, y+h);
         }
+        path.closePath();
         return path;
     }
 }
