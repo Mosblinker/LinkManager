@@ -5040,24 +5040,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    
-    private boolean dbxFileExists(String path, DbxUserFilesRequests dbxFiles) throws DbxException{
-        try{    // Check if the file exists
-            dbxFiles.getMetadataBuilder(path).start();
-            return true;
-        } catch (GetMetadataErrorException ex){
-                // If the error is related to the path and it is because the 
-                // path is not found, then the file doesn't exist
-            if (ex.errorValue.isPath() && ex.errorValue.getPathValue().isNotFound())
-                return false;
-            throw ex;
-        }
-    }
-    
-    private boolean dbxFileExists(String path, DbxClientV2 client) throws DbxException{
-        return dbxFileExists(path,client.files());
-    }
-    
     private void loadExternalAccountData(){
         if (isLoggedInToDropbox()){
             dbxLoader = new DbxAccountLoader();
@@ -10308,7 +10290,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Get the file namespace for Dropbox
                 DbxUserFilesRequests dbxFiles = client.files();
                     // If the file doesn't exist on dropbox
-                if (!dbxFileExists(path,dbxFiles)){
+                if (!DropboxUtilities.exists(path, dbxFiles)){
                     fileFound = false;
                     return false;
                 }
@@ -10387,7 +10369,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Get the file namespace for Dropbox
                 DbxUserFilesRequests dbxFiles = client.files();
                     // If the file already exists
-                if (dbxFileExists(path,dbxFiles))
+                if (DropboxUtilities.exists(path, dbxFiles))
                         // Delete the file so that it can be replaced
                     dbxFiles.deleteV2(path);
                     // Set the progress to be zero
