@@ -30,7 +30,7 @@ public class ListIndicatorIcon implements Icon2D{
     /**
      * This is the width of the hidden list indicator icon.
      */
-    protected static final int HIDDEN_INDICATOR_WIDTH = 11;
+    protected static final int HIDDEN_INDICATOR_WIDTH = 12;
     /**
      * This is the width of the read-only list indicator icon.
      */
@@ -76,11 +76,11 @@ public class ListIndicatorIcon implements Icon2D{
      */
     protected static Painter<Component> fullListPainter = null;
     /**
-     * This is the painter used to paint the hidden list indicator. This is 
+     * This is the painter used to paint the read-only list indicator. This is 
      * initially null and is initialized the first time a ListIndicatorIcon is 
      * constructed.
      */
-    protected static Painter<Component> hiddenListPainter = null;
+    protected static Painter<Component> readOnlyListPainter = null;
 
     public ListIndicatorIcon(int flags){
         this.flags = flags;
@@ -100,9 +100,9 @@ public class ListIndicatorIcon implements Icon2D{
             // If the full list indicator painter has not been initialized yet
         if (fullListPainter == null)
             fullListPainter = new FullListIndicatorPainter();
-            // If the hidden list indicator painter has not been initialized yet
-        if (hiddenListPainter == null)
-            hiddenListPainter = new HiddenListIndicatorPainter();
+            // If the read-only list indicator painter has not been initialized 
+        if (readOnlyListPainter == null)    // yet
+            readOnlyListPainter = new ReadOnlyListIndicatorPainter();
     }
     
     private void constructShapes(){
@@ -266,7 +266,7 @@ public class ListIndicatorIcon implements Icon2D{
             // Translate the graphics context to where the indicator should be 
         g.translate(x, y);  // rendered
             // Paint the read only list indicator
-        hiddenListPainter.paint(g, c, HIDDEN_INDICATOR_WIDTH,INDICATOR_HEIGHT);
+        readOnlyListPainter.paint(g,c,READ_ONLY_INDICATOR_WIDTH,INDICATOR_HEIGHT);
             // Dispose of the graphics context
         g.dispose();
     }
