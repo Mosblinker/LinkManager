@@ -858,7 +858,7 @@ public class LinkManagerConfig {
      * @param comp
      * @return 
      */
-    protected String getComponentName(Component comp){
+    public String getComponentName(Component comp){
         return getComponentNames().getOrDefault(comp, comp.getName());
     }
     /**
