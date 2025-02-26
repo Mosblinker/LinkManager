@@ -988,7 +988,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Configure the program from the settings
         configureProgram();
         if (ENABLE_INITIAL_LOAD_AND_SAVE){
-            loadDatabase(DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG);
+            loadDatabase(DATABASE_LOADER_LOAD_ALL_FLAG);// | DATABASE_LOADER_CHECK_LOCAL_FLAG);
         }
     }
     /**
