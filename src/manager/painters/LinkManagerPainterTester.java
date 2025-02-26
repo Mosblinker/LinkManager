@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.prefs.Preferences;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import manager.painters.indicators.*;
 
 /**
  *
@@ -202,6 +203,9 @@ public class LinkManagerPainterTester extends javax.swing.JFrame {
         heightSpinner.setEnabled(!linkSizeToggle.isSelected());
         scaleToggle.setSelected(viewLabel.isImageAlwaysScaled());
         addPainter(new LinkManagerIconPainter());
+        addPainter(new FullListIndicatorPainter());
+        addPainter(new ReadOnlyListIndicatorPainter());
+        addPainter(new HiddenListIndicatorPainter());
         viewLabel.setIcon(getDebugIcon());
     }
 
@@ -306,7 +310,7 @@ public class LinkManagerPainterTester extends javax.swing.JFrame {
 
         jLabel1.setText("Painter:");
 
-        painterCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "LinkManagerIconPainter" }));
+        painterCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "LinkManagerIconPainter", "FullListIndicatorPainter", "ReadOnlyListIndicatorPainter", "HiddenListIndicatorPainter" }));
         painterCombo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 painterComboActionPerformed(evt);
