@@ -6,7 +6,6 @@ package manager.icons;
 
 import icons.Icon2D;
 import java.awt.*;
-import java.awt.geom.*;
 import java.util.EventListener;
 import javax.swing.Painter;
 import javax.swing.event.*;
@@ -63,12 +62,6 @@ public class ListIndicatorIcon implements Icon2D{
     protected EventListenerList listenerList = new EventListenerList();
     
     private int flags = 0;
-    
-    protected static Path2D eyeOutline = null;
-    
-    protected static Arc2D eyeIrisOutline = null;
-    
-    protected static Area eyePupil = null;
     /**
      * This is the painter used to paint the full list indicator. This is 
      * initially null and is initialized the first time a ListIndicatorIcon is 
@@ -81,10 +74,15 @@ public class ListIndicatorIcon implements Icon2D{
      * constructed.
      */
     protected static Painter<Component> readOnlyListPainter = null;
+    /**
+     * This is the painter used to paint the hidden list indicator. This is 
+     * initially null and is initialized the first time a ListIndicatorIcon is 
+     * constructed.
+     */
+    protected static Painter<Component> hiddenListPainter = null;
 
     public ListIndicatorIcon(int flags){
         this.flags = flags;
-        constructShapes();
             // Construct the painters 
         constructPainters();
     }
@@ -103,56 +101,9 @@ public class ListIndicatorIcon implements Icon2D{
             // If the read-only list indicator painter has not been initialized 
         if (readOnlyListPainter == null)    // yet
             readOnlyListPainter = new ReadOnlyListIndicatorPainter();
-    }
-    
-    private void constructShapes(){
-            // If all the shapes have been initialized
-        if (eyePupil != null && eyeIrisOutline != null && 
-                eyeOutline != null)
-            return;
-        
-        Ellipse2D e = new Ellipse2D.Double();
-        
-            // If the eye iris outline has not been initialized yet
-        if (eyeIrisOutline == null){
-            eyeIrisOutline = new Arc2D.Double();
-            eyeIrisOutline.setArcByCenter(HIDDEN_INDICATOR_WIDTH/2.0,INDICATOR_HEIGHT/2.0, 
-                    2.5, 160, 310, Arc2D.OPEN);
-        }   // If the eye pupil shape has not been initialized yet
-        if (eyePupil == null){
-            e.setFrameFromCenter(eyeIrisOutline.getCenterX(),eyeIrisOutline.getCenterY(),
-                    eyeIrisOutline.getMinX()+1,eyeIrisOutline.getMinY()+1);
-            eyePupil = new Area(e);
-            Arc2D arc = new Arc2D.Double();
-            arc.setArc(eyeIrisOutline);
-            arc.setArcType(Arc2D.PIE);
-            eyePupil.intersect(new Area(arc));
-        }   // If the eye outline has not been initialized yet
-        if (eyeOutline == null){
-            eyeOutline = new Path2D.Double();
-            eyeOutline.moveTo(0, eyeIrisOutline.getCenterY());
-            double minY = eyeIrisOutline.getMinY()-1;
-            double maxY = eyeIrisOutline.getMaxY()+1;
-            double ctrlPt1X = eyeIrisOutline.getMinX()/2.0;
-            double ctrlPt2X = eyeIrisOutline.getCenterX()+(eyeIrisOutline.getMaxX()/2.0);
-            eyeOutline.curveTo(
-                    ctrlPt1X, eyeIrisOutline.getMinY(), 
-                    eyeIrisOutline.getMinX()+0.5, minY, 
-                    eyeIrisOutline.getCenterX(), minY);
-            eyeOutline.curveTo(
-                    eyeIrisOutline.getMaxX()+0.5, minY, 
-                    ctrlPt2X, eyeIrisOutline.getMinY(), 
-                    HIDDEN_INDICATOR_WIDTH, eyeIrisOutline.getCenterY());
-            eyeOutline.curveTo(
-                    ctrlPt2X,eyeIrisOutline.getMaxY(), 
-                    eyeIrisOutline.getMaxX()+0.5, maxY, 
-                    eyeIrisOutline.getCenterX(), maxY);
-            eyeOutline.curveTo(
-                    eyeIrisOutline.getMinX()+0.5, maxY, 
-                    ctrlPt1X, eyeIrisOutline.getMaxY(), 
-                    0, eyeIrisOutline.getCenterY());
-            eyeOutline.closePath();
-        }
+            // If the hidden list indicator painter has not been initialized yet
+        if (hiddenListPainter == null)
+            hiddenListPainter = new HiddenListIndicatorPainter();
     }
     
     public int getFlags(){
@@ -252,10 +203,7 @@ public class ListIndicatorIcon implements Icon2D{
             // Translate the graphics context to where the indicator should be 
         g.translate(x, y);  // rendered
             // Paint the hidden list indicator
-        g.draw(eyeIrisOutline);
-        g.fill(eyePupil);
-        g.setStroke(new BasicStroke(1.25f));
-        g.draw(eyeOutline);
+        hiddenListPainter.paint(g, c, HIDDEN_INDICATOR_WIDTH, INDICATOR_HEIGHT);
             // Dispose of the graphics context
         g.dispose();
     }
