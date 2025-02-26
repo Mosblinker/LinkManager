@@ -84,6 +84,27 @@ public class DropboxUtilities {
     }
     /**
      * 
+     * @param allocation
+     * @return 
+     */
+    public static long getAllocatedSpace(SpaceAllocation allocation){
+            // If the user's account is part of a team
+        if (allocation.isTeam())
+                // Return the amount of space allocated to the team
+            return allocation.getTeamValue().getAllocated();
+        else    // Return the amount of space allocated to the user alone
+            return allocation.getIndividualValue().getAllocated();
+    }
+    /**
+     * 
+     * @param usage
+     * @return 
+     */
+    public static long getAllocatedSpace(SpaceUsage usage){
+        return getAllocatedSpace(usage.getAllocation());
+    }
+    /**
+     * 
      * @param ex
      * @return 
      */

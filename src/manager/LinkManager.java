@@ -10636,16 +10636,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 pfpIcon = DropboxUtilities.getProfilePicture(account, accountName);
                     // Get the space usage for the user
                 SpaceUsage spaceUsage = users.getSpaceUsage();
-                    // Get the allocation of the space for the user
-                SpaceAllocation spaceAllocation = spaceUsage.getAllocation();
                     // Get the amount of space used by the user
                 used = spaceUsage.getUsed();
-                    // If the user's account is part of a team
-                if (spaceAllocation.isTeam())
-                        // Get the amount of space allocated to the team
-                    allocated = spaceAllocation.getTeamValue().getAllocated();
-                else    // Get the amount of space allocated to the user alone
-                    allocated = spaceAllocation.getIndividualValue().getAllocated();
+                    // Get the amount of space allocated to the user
+                allocated = DropboxUtilities.getAllocatedSpace(spaceUsage);
                 return true;
             } catch (InvalidAccessTokenException ex){
                 validAccount = false;
