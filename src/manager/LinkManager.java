@@ -10525,22 +10525,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxUtils.refreshCredentials(client, cred);
                     // Get the file namespace for Dropbox
                 DbxUserFilesRequests dbxFiles = client.files();
-                    // Delete the file so that it can be replaced
-                DropboxUtilities.deleteIfExists(path, dbxFiles);
                     // Setup the progress bar and get the progress listener used 
                     // to update the progress bar to reflect the bytes that have 
                     // been loaded so far.
                 ProgressListener listener = createProgressListener(file.length());
                     // Set the progress bar to not be indeterminate
                 setIndeterminate(false);
-                
-                    // TODO: Handle files larger than 150MB
-                
-                    // Create an input stream to load the file 
-                try (InputStream in = new BufferedInputStream(new FileInputStream(file))){
-                        // Upload the file to Dropbox
-                    dbxFiles.uploadBuilder(path).uploadAndFinish(in, listener);
-                }
+                    // Upload the file to Dropbox, using the set chunk size and 
+                    // overwriting the file if it already exists
+                DropboxUtilities.upload(file, path, dbxFiles, 
+                        dbxChunkSizeModel.getChunkSize(), true, listener);
                 return true;
             } catch(DbxException ex){
                 dbxEx = ex;
