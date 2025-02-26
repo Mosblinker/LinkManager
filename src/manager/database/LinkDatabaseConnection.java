@@ -1530,10 +1530,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         "http://",
         "http://www.",
         "https://",
-        "https://www.",
-        "https://www.reddit.com/",
-        "https://www.youtube.com/",
-        "https://www.google.com/"
+        "https://www."
     };
     /**
      * This is the key for the minimum amount of links that need to share a 
