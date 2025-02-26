@@ -5040,12 +5040,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private void refreshDbxCredentials(DbxCredential cred,DbxClientV2 client) 
-            throws DbxException{
-        if (cred.aboutToExpire()){
-            dbxUtils.refreshCredentials(client.refreshAccessToken());
-        }
-    }
     
     private boolean dbxFileExists(String path, DbxUserFilesRequests dbxFiles) throws DbxException{
         try{    // Check if the file exists
@@ -10310,7 +10304,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Get a client to communicate with Dropbox
                 DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
                     // Refresh the Dropbox credentials if necessary
-                refreshDbxCredentials(cred,client);
+                dbxUtils.refreshCredentials(client, cred);
                     // Get the file namespace for Dropbox
                 DbxUserFilesRequests dbxFiles = client.files();
                     // If the file doesn't exist on dropbox
@@ -10389,7 +10383,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Get a client to communicate with Dropbox
                 DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
                     // Refresh the Dropbox credentials if necessary
-                refreshDbxCredentials(cred,client);
+                dbxUtils.refreshCredentials(client, cred);
                     // Get the file namespace for Dropbox
                 DbxUserFilesRequests dbxFiles = client.files();
                     // If the file already exists
@@ -10518,7 +10512,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Get a client to communicate with Dropbox
                 DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
                     // Refresh the Dropbox credentials if necessary
-                refreshDbxCredentials(cred,client);
+                dbxUtils.refreshCredentials(client, cred);
                     // Get the request for the user
                 DbxUserUsersRequests users = client.users();
                     // Get the account details for the user
