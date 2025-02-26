@@ -504,7 +504,8 @@ public class LinkManagerPainterTester extends javax.swing.JFrame {
     private void saveIconButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveIconButtonActionPerformed
             // Get the folder to save the icons to
         File dir = showSaveFileChooser(iconImgFC);
-        displaySavedFrames(saveFrames(dir));
+        if (dir != null)
+            displaySavedFrames(saveFrames(dir));
     }//GEN-LAST:event_saveIconButtonActionPerformed
     
     /**
