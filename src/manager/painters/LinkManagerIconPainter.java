@@ -106,6 +106,11 @@ public class LinkManagerIconPainter implements Painter<Object>{
             g.setColor(SIDE_BUTTON_BACKGROUND_COLOR);
             g.fill(rect);
         }
+        g.setColor(ADD_BUTTON_FOREGROUND_COLOR);
+        rect.setFrame(453, 172, 6, 24);
+        g.fill(rect);
+        rect.setFrame(444, 181, 24, 6);
+        g.fill(rect);
             // Dispose of the copy of the graphics context
         g.dispose();
     }
