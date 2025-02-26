@@ -68,10 +68,6 @@ public class ListIndicatorIcon implements Icon2D{
     
     protected static RoundRectangle2D padlockBody = null;
     
-    protected static Path2D fullListBody = null;
-    
-    protected static Ellipse2D fullListPoint = null;
-    
     protected static Path2D eyeOutline = null;
     
     protected static Arc2D eyeIrisOutline = null;
@@ -107,7 +103,6 @@ public class ListIndicatorIcon implements Icon2D{
     private void constructShapes(){
             // If all the shapes have been initialized
         if (padlockShackle != null && padlockBody != null && 
-                fullListBody != null && fullListPoint != null && 
                 eyePupil != null && eyeIrisOutline != null && 
                 eyeOutline != null)
             return;
@@ -175,22 +170,6 @@ public class ListIndicatorIcon implements Icon2D{
             rect.setFrameFromCenter(rect.getCenterX(), rect.getCenterY(), e.getMinX(), rect.getMinY());
             padlockShackle.subtract(new Area(e));
             padlockShackle.subtract(new Area(rect));
-        }   // If the full list indicator dot has not been initialized yet
-        if (fullListPoint == null){
-            fullListPoint = new Ellipse2D.Double();
-            fullListPoint.setFrameFromDiagonal(0, INDICATOR_HEIGHT, 
-                    FULL_LIST_INDICATOR_WIDTH, 
-                    INDICATOR_HEIGHT-FULL_LIST_INDICATOR_WIDTH);
-        }   // If the body of the full list indicator dot has not been 
-            // initialized yet
-        if (fullListBody == null){
-            fullListBody = new Path2D.Double();
-            fullListBody.moveTo(0, 0);
-            fullListBody.lineTo(FULL_LIST_INDICATOR_WIDTH, 0);
-            double fullListY = fullListPoint.getMinY() - 1.5;
-            fullListBody.lineTo(FULL_LIST_INDICATOR_WIDTH-0.75, fullListY);
-            fullListBody.lineTo(0.75, fullListY);
-            fullListBody.closePath();
         }
     }
     
