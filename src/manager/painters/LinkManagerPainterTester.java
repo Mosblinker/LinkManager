@@ -19,10 +19,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.prefs.Preferences;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import manager.painters.indicators.*;
 
 /**
  *
@@ -140,11 +140,6 @@ public class LinkManagerPainterTester extends javax.swing.JFrame {
         return false;
     }
     
-    private void setSpinnerValueFromConfig(JSpinner spinner, String key, 
-            double defaultValue, double mult){
-        spinner.setValue(config.getDouble(key, defaultValue)*mult);
-    }
-    
     private void addPainter(Painter<?> painter){
         painters.add(painter);
         PainterTestIcon icon = new PainterTestIcon(painter);
@@ -167,10 +162,10 @@ public class LinkManagerPainterTester extends javax.swing.JFrame {
                     viewLabel.isImageAlwaysScaled()));
             listenerToggle.setSelected(config.getBoolean(PRINT_LISTENERS_KEY, 
                     listenerToggle.isSelected()));
+            linkSizeToggle.setSelected(config.getBoolean(LINK_PAINTER_SIZE_KEY, 
+                    linkSizeToggle.isSelected()));
             widthSpinner.setValue(config.getInt(PAINTER_WIDTH_KEY, 512));
             heightSpinner.setValue(config.getInt(PAINTER_HEIGHT_KEY, 512));
-            linkSizeToggle.setSelected(config.getBoolean(LINK_PAINTER_SIZE_KEY, 
-                    Objects.equals(widthSpinner.getValue(), heightSpinner.getValue())));
             painterCombo.setSelectedIndex(config.getInt(SELECTED_PAINTER_KEY, 
                     painterCombo.getSelectedIndex()));
                 // Get the name of the current directory for the save file 
@@ -208,6 +203,9 @@ public class LinkManagerPainterTester extends javax.swing.JFrame {
         heightSpinner.setEnabled(!linkSizeToggle.isSelected());
         scaleToggle.setSelected(viewLabel.isImageAlwaysScaled());
         addPainter(new LinkManagerIconPainter());
+        addPainter(new FullListIndicatorPainter());
+        addPainter(new ReadOnlyListIndicatorPainter());
+        addPainter(new HiddenListIndicatorPainter());
         viewLabel.setIcon(getDebugIcon());
     }
 
@@ -312,7 +310,7 @@ public class LinkManagerPainterTester extends javax.swing.JFrame {
 
         jLabel1.setText("Painter:");
 
-        painterCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "LinkManagerIconPainter" }));
+        painterCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "LinkManagerIconPainter", "FullListIndicatorPainter", "ReadOnlyListIndicatorPainter", "HiddenListIndicatorPainter" }));
         painterCombo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 painterComboActionPerformed(evt);
