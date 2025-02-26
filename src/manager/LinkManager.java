@@ -7,6 +7,7 @@ package manager;
 import com.dropbox.core.*;
 import com.dropbox.core.json.JsonReader;
 import com.dropbox.core.oauth.*;
+import com.dropbox.core.util.IOUtil.ProgressListener;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import com.dropbox.core.v2.users.*;
@@ -30,6 +31,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.datatransfer.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -6104,11 +6106,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     dim.width = Math.max(dim.width, min.width);
                     dim.height = Math.max(dim.height, min.height);
                         // If the current component is this program
-                    if (comp == this){
+                    if (comp instanceof Window){
                             // Set the size of the program window
-                        setSize(dim);
-                    } else {
-                            // Set the size of the current component
+                        comp.setSize(dim);
+                    } else {// Set the preferred size of the current component
                         comp.setPreferredSize(dim);
                     }
                 }   // If the location for the component is not null
