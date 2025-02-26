@@ -30,11 +30,11 @@ public class ListIndicatorIcon implements Icon2D{
     /**
      * This is the width of the hidden list indicator icon.
      */
-    protected static final int HIDDEN_INDICATOR_WIDTH = INDICATOR_HEIGHT-1;
+    protected static final int HIDDEN_INDICATOR_WIDTH = 12;
     /**
      * This is the width of the read-only list indicator icon.
      */
-    protected static final int READ_ONLY_INDICATOR_WIDTH = INDICATOR_HEIGHT-3;
+    protected static final int READ_ONLY_INDICATOR_WIDTH = 10;
     /**
      * This is the width of the indicator icon for full lists.
      */
