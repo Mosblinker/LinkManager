@@ -66,6 +66,11 @@ public class LinkManagerIconPainter implements Painter<Object>{
      * A scratch path object used to draw the image.
      */
     private Path2D path = null;
+    /**
+     * This is the shape used to draw the link icon at the end of the item in 
+     * the list.
+     */
+    private Area linkShape = null;
     @Override
     public void paint(Graphics2D g, Object object, int width, int height) {
             // Check if the graphics context is null
@@ -149,6 +154,17 @@ public class LinkManagerIconPainter implements Painter<Object>{
         rect.setFrame(10, 10, 329, 24);
         g.setColor((selected)?LIST_SELECTED_FOREGROUND_COLOR:LIST_FOREGROUND_COLOR);
         g.fill(rect);
+        if (linkShape == null){
+            if (roundRect == null)
+                roundRect = new RoundRectangle2D.Double();
+            roundRect.setRoundRect(350, 10, 32, 32, 10, 10);
+            linkShape = new Area(roundRect);
+            roundRect.setRoundRect(354, 14, 24, 24, 10, 10);
+            linkShape.subtract(new Area(roundRect));
+        }
+        if (!selected)
+            g.setColor(BORDER_OUTLINE_COLOR);
+        g.fill(linkShape);
             // Dispose of the copy of the graphics context
         g.dispose();
     }
