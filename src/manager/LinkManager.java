@@ -79,7 +79,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This is the version of the program.
      */
-    public static final String PROGRAM_VERSION = "0.5.0";
+    public static final String PROGRAM_VERSION = "0.6.0";
     /**
      * This is an array containing the widths and heights for the icon images 
      * for this program. The icon images are generated on the fly.
