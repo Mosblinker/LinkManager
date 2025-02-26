@@ -10336,15 +10336,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                             System.out.println(ex);
                     }
                     return false;
-                }
-                
-                    // TODO: Handle files larger than 150MB
-                
-                    // Create an output stream to save the file 
-                try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file))){
-                        // Download the file from Dropbox
-                    dbxFiles.downloadBuilder(path).download(out);
-                }
+                }   // This is the progress listener to use to listen to how 
+                    // many bytes have been downloaded so far.
+                ProgressListener listener = null;
+                    // If the file size was loaded
+                if (size != null){
+                        // Setup the progress bar and get the progress listener
+                    listener = createProgressListener(size);
+                        // Set the progress bar to not be indeterminate
+                    setIndeterminate(false);
+                }   // Download the file from Dropbox
+                DropboxUtilities.download(file, path, dbxFiles, listener);
                 return true;
             } catch(DbxException ex){
                 dbxEx = ex;
