@@ -5,6 +5,7 @@
 package manager.painters;
 
 import java.awt.*;
+import java.awt.geom.*;
 import java.util.Objects;
 import javax.swing.*;
 
@@ -51,6 +52,10 @@ public class LinkManagerIconPainter implements Painter<Object>{
     private static final int LIST_LINE_COUNT = 10;
     
     private static final int SELECTED_LINE_INDEX = 5;
+    /**
+     * A scratch rounded rectangle object used to draw the image.
+     */
+    private RoundRectangle2D roundRect = null;
     @Override
     public void paint(Graphics2D g, Object object, int width, int height) {
             // Check if the graphics context is null
@@ -69,8 +74,14 @@ public class LinkManagerIconPainter implements Painter<Object>{
             // Prioritize rendering quality over speed
         g.setRenderingHint(RenderingHints.KEY_RENDERING, 
                 RenderingHints.VALUE_RENDER_QUALITY);
-        
-        
+        if (roundRect == null)
+            roundRect = new RoundRectangle2D.Double();
+        roundRect.setRoundRect(8, 8, 496, 496, 20, 20);
+        g.setColor(BORDER_OUTLINE_COLOR);
+        g.fill(roundRect);
+        roundRect.setRoundRect(12, 12, 488, 488, 20, 20);
+        g.setColor(PROGRAM_BACKGROUND_COLOR);
+        g.fill(roundRect);
             // Dispose of the copy of the graphics context
         g.dispose();
     }
