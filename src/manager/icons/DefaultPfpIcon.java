@@ -61,6 +61,9 @@ public class DefaultPfpIcon implements Icon2D{
         g.clipRect(0, 0, getIconWidth(), getIconHeight());
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
                 RenderingHints.VALUE_ANTIALIAS_ON);
+            // Prioritize rendering quality over speed
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, 
+                RenderingHints.VALUE_RENDER_QUALITY);
         g.setColor(bg);
         g.fillRect(0, 0, getIconWidth(), getIconHeight());
         g.setColor(fg);
