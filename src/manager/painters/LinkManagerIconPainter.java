@@ -52,6 +52,8 @@ public class LinkManagerIconPainter implements Painter<Object>{
     private static final int LIST_LINE_COUNT = 10;
     
     private static final int SELECTED_LINE_INDEX = 5;
+    
+    private static final double SLASH_CLEAR_TRIANGLE_LENGTH = Math.sqrt(18);
     /**
      * A scratch rounded rectangle object used to draw the image.
      */
@@ -120,6 +122,9 @@ public class LinkManagerIconPainter implements Painter<Object>{
         g.setColor(ARROW_BUTTONS_FOREGROUND_COLOR);
         g.fill(getTriangle(444, 220, 24, 24, false, path));
         g.fill(getTriangle(444, 268, 24, 24, true, path));
+        g.setColor(REMOVE_BUTTON_FOREGROUND_COLOR);
+        g.fill(getSlash(444, 316, 24, 24,false,path));
+        g.fill(getSlash(444, 316, 24, 24,true,path));
             // Dispose of the copy of the graphics context
         g.dispose();
     }
@@ -174,6 +179,35 @@ public class LinkManagerIconPainter implements Painter<Object>{
             path.lineTo(x+w, y+h);
         }
         path.closePath();
+        return path;
+    }
+    /**
+     * 
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     * @param flip
+     * @param path
+     * @return 
+     */
+    private Path2D getSlash(double x, double y, double w, double h,boolean flip,
+            Path2D path){
+        if (path == null)
+            path = new Path2D.Double();
+        else
+            path.reset();
+        if (flip){
+            path.moveTo(x, y+h-SLASH_CLEAR_TRIANGLE_LENGTH);
+            path.lineTo(x+SLASH_CLEAR_TRIANGLE_LENGTH, y+h);
+            path.lineTo(x+w, y+SLASH_CLEAR_TRIANGLE_LENGTH);
+            path.lineTo(x+w-SLASH_CLEAR_TRIANGLE_LENGTH, y);
+        } else {
+            path.moveTo(x, y+SLASH_CLEAR_TRIANGLE_LENGTH);
+            path.lineTo(x+SLASH_CLEAR_TRIANGLE_LENGTH, y);
+            path.lineTo(x+w, y+h-SLASH_CLEAR_TRIANGLE_LENGTH);
+            path.lineTo(x+w-SLASH_CLEAR_TRIANGLE_LENGTH, y+h);
+        }
         return path;
     }
 }
