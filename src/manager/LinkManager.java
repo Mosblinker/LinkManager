@@ -4047,6 +4047,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButtonActionPerformed
             // If the program is currently saving a file
         if (isSavingFiles()){
+                // Ensure that the program's configuration is up-to-date
+            updateProgramConfig();
             // TODO: The program should probably not be able close while a file is saving
                 // If the file saver is set to exit the program after it 
                 // finishes saving the file
@@ -4065,6 +4067,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }   // If the program fully loaded initially and it is to save after the 
             // initial load
         if (fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
+                // Ensure that the program's configuration is up-to-date
+            updateProgramConfig();
             exitButton.setEnabled(false);
                 // Save the database and close the program
             saver = new DatabaseSaver(true);
