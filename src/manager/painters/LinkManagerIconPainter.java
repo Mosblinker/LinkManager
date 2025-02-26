@@ -33,6 +33,8 @@ public class LinkManagerIconPainter implements Painter<Object>{
     
     public static final Color LIST_FOREGROUND_COLOR = Color.BLACK;
     
+    public static final Color LINK_SYMBOL_COLOR = BORDER_OUTLINE_COLOR;
+    
     public static final Color LIST_SELECTED_BACKGROUND_COLOR = new Color(0x0078D7);
     
     public static final Color LIST_SELECTED_FOREGROUND_COLOR = LIST_BACKGROUND_COLOR;
@@ -171,7 +173,7 @@ public class LinkManagerIconPainter implements Painter<Object>{
             linkShape.add(new Area(getLinkSlash(366,3,23,23,3.5,path)));
         }
         if (!selected)
-            g.setColor(BORDER_OUTLINE_COLOR);
+            g.setColor(LINK_SYMBOL_COLOR);
         g.fill(linkShape);
             // Dispose of the copy of the graphics context
         g.dispose();
