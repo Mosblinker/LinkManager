@@ -702,6 +702,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         loadDbxUtils();
         
+        dbxChunkSizeModel = new DbxChunkSizeSpinnerModel();
         initComponents();
         
         listsTabPanels = new LinksListTabsPanel[]{
@@ -1275,6 +1276,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxSpaceFreeLabel = new javax.swing.JLabel();
         dbxLogOutButton = new javax.swing.JButton();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
+        jLabel7 = new javax.swing.JLabel();
+        dbxChunkSizeSpinner = new javax.swing.JSpinner();
+        jLabel11 = new javax.swing.JLabel();
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
@@ -1527,8 +1531,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         databaseFC.setFileSelectionMode(javax.swing.JFileChooser.FILES_AND_DIRECTORIES);
 
         setLocationDialog.setTitle("Set Database Location");
-        setLocationDialog.setMinimumSize(new java.awt.Dimension(480, 360));
-        setLocationDialog.setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        setLocationDialog.setMinimumSize(new java.awt.Dimension(480, 380));
         setLocationDialog.addComponentListener(new java.awt.event.ComponentAdapter() {
             public void componentMoved(java.awt.event.ComponentEvent evt) {
                 setLocationDialogComponentMoved(evt);
@@ -1557,14 +1560,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             .addGroup(setExternalCardLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(dbxLogInButton)
-                .addContainerGap(316, Short.MAX_VALUE))
+                .addContainerGap(310, Short.MAX_VALUE))
         );
         setExternalCardLayout.setVerticalGroup(
             setExternalCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(setExternalCardLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(dbxLogInButton)
-                .addContainerGap(160, Short.MAX_VALUE))
+                .addContainerGap(158, Short.MAX_VALUE))
         );
 
         setLocationPanel.add(setExternalCard, "logInCard");
@@ -1648,18 +1651,37 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         gridBagConstraints.weightx = 0.75;
         dbxDataPanel.add(filler1, gridBagConstraints);
 
+        jLabel7.setLabelFor(dbxChunkSizeSpinner);
+        jLabel7.setText("Chunk Size:");
+
+        dbxChunkSizeSpinner.setModel(dbxChunkSizeModel);
+        dbxChunkSizeSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                dbxChunkSizeSpinnerStateChanged(evt);
+            }
+        });
+
+        jLabel11.setText("MiB");
+
         javax.swing.GroupLayout setDropboxCardLayout = new javax.swing.GroupLayout(setDropboxCard);
         setDropboxCard.setLayout(setDropboxCardLayout);
         setDropboxCardLayout.setHorizontalGroup(
             setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, setDropboxCardLayout.createSequentialGroup()
+            .addGroup(setDropboxCardLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(dbxDataPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, setDropboxCardLayout.createSequentialGroup()
+                .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(dbxDataPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(setDropboxCardLayout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbxDbFileField, javax.swing.GroupLayout.DEFAULT_SIZE, 395, Short.MAX_VALUE)))
+                        .addComponent(dbxDbFileField, javax.swing.GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE))
+                    .addGroup(setDropboxCardLayout.createSequentialGroup()
+                        .addComponent(jLabel7)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(dbxChunkSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel11)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         setDropboxCardLayout.setVerticalGroup(
@@ -1671,7 +1693,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(dbxDbFileField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(50, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7)
+                    .addComponent(dbxChunkSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel11))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         setLocationPanel.add(setDropboxCard, "setDropbox");
@@ -1772,7 +1799,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addComponent(dbFileRelativeButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(setLocationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(setLocationDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(locationControlPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, setLocationDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -5019,6 +5046,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Update the location of the search dialog in the config
         config.setComponentLocation(searchDialog);
     }//GEN-LAST:event_searchDialogComponentMoved
+
+    private void dbxChunkSizeSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_dbxChunkSizeSpinnerStateChanged
+            // Update the chunk size in the configuration
+        config.setDropboxChunkSizeMultiplier(dbxChunkSizeModel.getMultiplier());
+    }//GEN-LAST:event_dbxChunkSizeSpinnerStateChanged
     
     private CustomTableModel getListSearchTableModel(){
         CustomTableModel model = new CustomTableModel("ListID", "List Name", 
@@ -5291,7 +5323,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         dbxLogInButton.setEnabled(setDBLocationItem.isEnabled() && dbxUtils != null);
         dbxLogOutButton.setEnabled(setDBLocationItem.isEnabled());
-        dbxDbFileField.setEditable(dbFileField.isEditable());
+        dbxDbFileField.setEditable(dbFileField.isEditable() && dbxUtils != null);
+        dbxChunkSizeSpinner.setEnabled(dbxLogInButton.isEnabled());
         
         updateDBLocationButtons();
     }
@@ -5516,6 +5549,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return showSaveFileChooser(fc,null);
     }
     /**
+     * This is the model used for the spinner to set the chunk size for 
+     * uploading files to Dropbox.
+     */
+    private DbxChunkSizeSpinnerModel dbxChunkSizeModel;
+    /**
      * This is the configuration file if one was specified at the start of the 
      * program.
      */
@@ -5684,6 +5722,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem dbViewItem;
     private manager.database.DatabaseTableViewer dbViewer;
     private javax.swing.JLabel dbxAccountLabel;
+    private javax.swing.JSpinner dbxChunkSizeSpinner;
     private javax.swing.JPanel dbxDataPanel;
     private javax.swing.JTextField dbxDbFileField;
     private javax.swing.JPopupMenu dbxDbFilePopupMenu;
@@ -5713,10 +5752,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenu hideListsMenu;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
@@ -6106,7 +6147,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbFileChangeCombo.setSelectedIndex(
                 config.getDatabaseFileChangeOperation(
                         dbFileChangeCombo.getSelectedIndex()));
-        
+            // Update the fields showing the database file location
         updateDatabaseFileFields();
             // Set the autosave frequency index
         autosaveMenu.setFrequencyIndex(config.getAutosaveFrequencyIndex(
@@ -6114,6 +6155,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Set the auto-hide wait duration index
         autoHideMenu.setDurationIndex(config.getAutoHideWaitDurationIndex(
                 autoHideMenu.getDurationIndex()));
+            // Set the Dropbox chunk size multiplier
+        dbxChunkSizeModel.setMultiplier(config.getDropboxChunkSizeMultiplier(
+                dbxChunkSizeModel.getMultiplier()));
             // If the program has fully loaded
         if (fullyLoaded){
                 // Set the selection from the config
