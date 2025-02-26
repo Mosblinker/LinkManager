@@ -207,6 +207,7 @@ public class LinkManagerPainterTester extends javax.swing.JFrame {
         }
         heightSpinner.setEnabled(!linkSizeToggle.isSelected());
         scaleToggle.setSelected(viewLabel.isImageAlwaysScaled());
+        addPainter(new LinkManagerIconPainter());
         viewLabel.setIcon(getDebugIcon());
     }
 
