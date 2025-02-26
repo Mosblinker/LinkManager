@@ -8,9 +8,11 @@ import icons.Icon2D;
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.EventListener;
+import javax.swing.Painter;
 import javax.swing.event.*;
 import manager.LinkManager;
 import manager.links.*;
+import manager.painters.indicators.*;
 
 /**
  *
@@ -75,14 +77,31 @@ public class ListIndicatorIcon implements Icon2D{
     protected static Arc2D eyeIrisOutline = null;
     
     protected static Area eyePupil = null;
+    /**
+     * This is the painter used to paint the full list indicator. This is 
+     * initially null and is initialized the first time a ListIndicatorIcon is 
+     * constructed.
+     */
+    protected static Painter<Component> fullListPainter = null;
 
     public ListIndicatorIcon(int flags){
         this.flags = flags;
         constructShapes();
+            // Construct the painters 
+        constructPainters();
     }
 
     public ListIndicatorIcon(){
         this(0);
+    }
+    /**
+     * This is used to initialize the painters that are used to paint the 
+     * indicators.
+     */
+    private void constructPainters(){
+            // If the full list indicator painter has not been initialized yet
+        if (fullListPainter == null)
+            fullListPainter = new FullListIndicatorPainter();
     }
     
     private void constructShapes(){
@@ -231,7 +250,9 @@ public class ListIndicatorIcon implements Icon2D{
 
     @Override
     public void paintIcon2D(Component c, Graphics2D g, int x, int y) {
+            // Translate the position to the top-left corner of the icon
         g.translate(x, y);
+            // Clip the area rendered by the icon
 //        g.clipRect(0, 0, getIconWidth(), getIconHeight());
             // Enable antialiasing
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
@@ -243,59 +264,78 @@ public class ListIndicatorIcon implements Icon2D{
             // left unmodified
         g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, 
                 RenderingHints.VALUE_STROKE_PURE);
+            // Set the color to be the component's foreground
         g.setColor(c.getForeground());
+            // This stores the x-coordinate for the next icon to paint
         int xOff = INDICATOR_SPACING;
+            // If the list is hidden
         if (isHidden()){
+                // Paint the hidden list indicator
             paintHiddenIndicator(c,g,xOff,0);
             xOff += HIDDEN_INDICATOR_WIDTH + INDICATOR_SPACING;
-        }
+        }   // If the list is read only
         if (isReadOnly()){
+                // Paint the read only list indicator
             paintReadOnlyIndicator(c,g,xOff,0);
             xOff += READ_ONLY_INDICATOR_WIDTH + INDICATOR_SPACING;
-        }
+        }   // If the list is full
         if (isFull()){
+                // Paint the full list indicator
             painFullIndicator(c,g,xOff,0);
         }
     }
     
     protected void paintHiddenIndicator(Component c, Graphics2D g, int x, int y){
+            // Create a copy of the graphics context
         g = (Graphics2D) g.create();
-        g.translate(x, y);
+            // Translate the graphics context to where the indicator should be 
+        g.translate(x, y);  // rendered
+            // Paint the hidden list indicator
         g.draw(eyeIrisOutline);
         g.fill(eyePupil);
         g.setStroke(new BasicStroke(1.25f));
         g.draw(eyeOutline);
+            // Dispose of the graphics context
         g.dispose();
     }
     
     protected void paintReadOnlyIndicator(Component c, Graphics2D g, int x, int y){
+            // Create a copy of the graphics context
         g = (Graphics2D) g.create();
-        g.translate(x, y);
+            // Translate the graphics context to where the indicator should be 
+        g.translate(x, y);  // rendered
+            // Paint the read only list indicator
         g.fill(padlockShackle);
         g.fill(padlockBody);
+            // Dispose of the graphics context
         g.dispose();
     }
     
     protected void painFullIndicator(Component c, Graphics2D g, int x, int y){
+            // Create a copy of the graphics context
         g = (Graphics2D) g.create();
-        g.translate(x, y);
-        g.fill(fullListBody);
-        g.fill(fullListPoint);
+            // Translate the graphics context to where the indicator should be 
+        g.translate(x, y);  // rendered
+            // Paint the full list indicator
+        fullListPainter.paint(g, c, FULL_LIST_INDICATOR_WIDTH,INDICATOR_HEIGHT);
+            // Dispose of the graphics context
         g.dispose();
     }
-
     @Override
     public int getIconWidth() {
+            // Start off with a width of zero
         int width = 0;
+            // If the hidden list indicator is painted
         if (isHidden())
             width += HIDDEN_INDICATOR_WIDTH;
+            // If the read-only list indicator is painted
         if (isReadOnly())
             width += READ_ONLY_INDICATOR_WIDTH;
+            // If the full list indicator is painted
         if (isFull())
             width += FULL_LIST_INDICATOR_WIDTH;
         return Math.max(0, width+(INDICATOR_SPACING*(Integer.bitCount(getFlags())))+1);
     }
-
     @Override
     public int getIconHeight() {
         return INDICATOR_HEIGHT;
