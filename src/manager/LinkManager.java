@@ -92,10 +92,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private static final String DROPBOX_CLIENT_ID = PROGRAM_NAME.replaceAll(" ",
             "")+"/"+PROGRAM_VERSION;
     /**
-     * This is the path of the icon that this program displays.
-     */
-    public static final String ICON_FILE = "/images/Link Manager Icon.png";
-    /**
      * This is a list containing the default names for the lists of links. <p>
      * 0: Links
      */
