@@ -4,7 +4,8 @@
  */
 package manager;
 
-import javax.swing.AbstractSpinnerModel;
+import java.util.*;
+import javax.swing.*;
 
 /**
  * This is a spinner model for setting the Dropbox chunk size to use when 
@@ -89,5 +90,38 @@ class DbxChunkSizeSpinnerModel extends AbstractSpinnerModel{
         if (getMultiplier() > MULTIPLIER_MINIMUM)
             return BASE_VALUE * (getMultiplier()-1);
         return null;
+    }
+    /**
+     * 
+     */
+    protected static class DbxChunkSizeList extends AbstractList<Integer>{
+        @Override
+        public Integer get(int index) {
+                // Check the size
+            Objects.checkIndex(index, size());
+            return BASE_VALUE*(index+MULTIPLIER_MINIMUM);
+        }
+        @Override
+        public int indexOf(Object o){
+            if (o instanceof Integer){
+                int value = (Integer)o;
+                if (value % BASE_VALUE != 0)
+                    return -1;
+                value /= BASE_VALUE;
+                value -= MULTIPLIER_MINIMUM;
+                if (value >= 0 && value < size())
+                    return value;
+            }
+            return -1;
+        }
+        @Override
+        public int lastIndexOf(Object o){
+            return indexOf(o);
+        }
+        @Override
+        public int size() {
+            return MULTIPLIER_MAXIMUM-MULTIPLIER_MINIMUM+1;
+        }
+        
     }
 }
