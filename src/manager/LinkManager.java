@@ -6487,18 +6487,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
-     * @param path
-     * @return 
-     */
-    private String formatDropboxPath(String path){
-            // If the path does not start with a slash
-        if (!path.startsWith("/"))
-                // Add a slash to the start of the file name
-            return "/"+path;
-        return path.trim();
-    }
-    /**
-     * 
      * @param conn
      * @return
      * @throws SQLException 

@@ -48,6 +48,18 @@ public class DropboxUtilities {
     private DropboxUtilities() {}
     /**
      * 
+     * @param path
+     * @return 
+     */
+    public static String formatDropboxPath(String path){
+            // If the path does not start with a slash
+        if (!path.startsWith("/"))
+                // Add a slash to the start of the file name
+            return "/"+path;
+        return path.trim();
+    }
+    /**
+     * 
      * @param account
      * @param userName
      * @return 
