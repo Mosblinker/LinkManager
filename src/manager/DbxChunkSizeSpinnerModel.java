@@ -57,6 +57,7 @@ class DbxChunkSizeSpinnerModel extends SpinnerListModel{
     public long getChunkSize(){
         return BASE_CHUNK_SIZE * getMultiplier();
     }
+    
     @Override
     public void setValue(Object elt){
         if (elt instanceof String){
