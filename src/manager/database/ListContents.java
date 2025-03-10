@@ -5,7 +5,7 @@
 package manager.database;
 
 import java.util.*;
-import java.util.function.BiConsumer;
+import manager.ProgressObserver;
 import manager.links.LinksListModel;
 import sql.UncheckedSQLException;
 import sql.util.SQLList;
@@ -166,17 +166,13 @@ public interface ListContents extends SQLList<String>{
      * 
      * @param model The model to reuse, or null
      * @param observer An observer to use to observe the progress of this 
-     * method, or null. The first parameter provided to it will be the progress 
-     * value, and the second parameter will be the progress maximum. A null 
-     * value for the second parameter indicates that this is to switch whether 
-     * the progress is indeterminate, with a non-zero first parameter indicating 
-     * that the progress is currently indeterminate.
+     * method, or null.
      * @return 
      * @throws UncheckedSQLException Implementations may, but are not required 
      * to, throw this if a database error occurs.
      */
     public default LinksListModel toModel(LinksListModel model, 
-            BiConsumer<Integer,Integer> observer){
+            ProgressObserver observer){
             // If this list does not exist in the database
         if (!exists())
             throw new IllegalStateException("List does not exist (listID: "+
@@ -212,7 +208,7 @@ public interface ListContents extends SQLList<String>{
             try{
                 model.add(temp);        // Add the link to the model
                 if (observer != null)   // If an observer was provided
-                    observer.accept(model.size()-1, size);
+                    observer.incrementValue();
             } catch(IllegalArgumentException | IllegalStateException ex){ }
         }   // If the model does not allow duplicates
         if (!model.getAllowsDuplicates())
@@ -243,7 +239,7 @@ public interface ListContents extends SQLList<String>{
      * @throws UncheckedSQLException Implementations may, but are not required 
      * to, throw this if a database error occurs.
      */
-    public default LinksListModel toModel(BiConsumer<Integer,Integer> observer){
+    public default LinksListModel toModel(ProgressObserver observer){
         return toModel(null, observer);
     }
     /**
@@ -316,38 +312,34 @@ public interface ListContents extends SQLList<String>{
      * 
      * @param model The model to save
      * @param observer An observer to use to observe the progress of this 
-     * method, or null. The first parameter provided to it will be the progress 
-     * value, and the second parameter will be the progress maximum. A null 
-     * value for the second parameter indicates that this is to switch whether 
-     * the progress is indeterminate, with a non-zero first parameter indicating 
-     * that the progress is currently indeterminate.
+     * method, or null.
      * @param linkIDMap A cached map that maps the links to their linkIDs, or 
      * null.
      * @throws UncheckedSQLException Implementations may, but are not required 
      * to, throw this if a database error occurs.
      */
     public default void updateContents(LinksListModel model, 
-            BiConsumer<Integer,Integer> observer, Map<String, Long> linkIDMap){
+            ProgressObserver observer, Map<String, Long> linkIDMap){
             // Check if the model is null
         Objects.requireNonNull(model);
             // If an observer has been provided
         if (observer != null)
                 // Set the progress to be indeterminate
-            observer.accept(1, null);
+            observer.setIndeterminate(true);
         clear();    // Clear this list
             // If the given model is not empty
         if (!model.isEmpty()){
                 // If an observer has been provided
             if (observer != null)
                     // Set the progress to not be indeterminate
-                observer.accept(0, null);
+                observer.setIndeterminate(false);
                 // Go through the contents of the model
             for (int index = 0; index < model.size(); index++){
                     // Add the value at the current index
                 add(model.get(index));
                     // If an observer has been provided
                 if (observer != null)
-                    observer.accept(index, model.size());
+                    observer.incrementValue();
             }
         }   // Set both this and the model's last modified time to the current 
         model.setLastModified(setLastModified());   // time
@@ -362,7 +354,7 @@ public interface ListContents extends SQLList<String>{
      * to, throw this if a database error occurs.
      */
     public default void updateContents(LinksListModel model, 
-            BiConsumer<Integer,Integer> observer){
+            ProgressObserver observer){
         updateContents(model,observer,null);
     }
     /**

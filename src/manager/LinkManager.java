@@ -991,14 +991,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Set the SQLite config to enforce the foreign keys
         config.getSQLiteConfig().enforceForeignKeys(foreignKeysToggle.isSelected());
         
-        listContentsObserver = (Integer index, Integer size) -> {
-                // If the size is null (indicates whether this is to toggle 
-                // whether progress is indeterminate)
-            if (size == null)
-                setIndeterminate(index != 0);
-            else{
-                incrementProgressValue();
+        progressObserver = new DefaultProgressObserver(progressBar){
+            @Override
+            public DefaultProgressObserver setValue(int value) {
+                super.setValue(value);
                 slowTestToggle.runSlowTest();
+                return this;
             }
         };
         
@@ -5582,6 +5580,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private DbxAccountLoader dbxLoader = null;
     /**
+     * This is a progress observer used to observe the progress, particularly 
+     * when loading and saving lists.
+     */
+    private ProgressObserver progressObserver;
+    /**
      * This is a BiConsumer used to observe the loading and saving of lists.
      */
     private BiConsumer<Integer,Integer> listContentsObserver;
@@ -6404,7 +6407,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         conn.commit();          // Commit the changes to the database
         System.gc();            // Run the garbage collector
             // Add the new links to the database.
-        linkMap.addAll(linksSet, listContentsObserver);
+        linkMap.addAll(linksSet, progressObserver);
         setIndeterminate(false);
             // This gets a cached copy of the inverse link map
         Map<String,Long> linkIDMap = new HashMap<>(conn.getLinkMap().inverse());
@@ -6453,7 +6456,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         conn.setAutoCommit(false);
             // Update th contents of the list based off the contents of the model
         conn.getListContents(model.getListID()).updateContents(model, 
-                listContentsObserver,linkIDMap);
+                progressObserver,linkIDMap);
         conn.commit();          // Commit the changes to the database
         model.clearEdited();    // Clear whether the list was edited
         System.gc();            // Run the garbage collector
@@ -8823,7 +8826,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Get the listID of the list being loaded
                 Integer listID = listData.getKey();
                     // Get a model version of the current list
-                LinksListModel model = listData.getValue().toModel(listContentsObserver);
+                LinksListModel model = listData.getValue().toModel(progressObserver);
                     // Get the old version of the model (the one that this model 
                     // is replacing), and copy the selection from the old model
                 model.setSelectionFrom(oldModelsMap.get(listID));

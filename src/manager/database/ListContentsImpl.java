@@ -6,7 +6,7 @@ package manager.database;
 
 import java.sql.*;
 import java.util.*;
-import java.util.function.BiConsumer;
+import manager.ProgressObserver;
 import static manager.database.LinkDatabaseConnection.*;
 import manager.links.LinksListModel;
 import sql.UncheckedSQLException;
@@ -432,7 +432,7 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
      */
     @Override
     public LinksListModel toModel(LinksListModel model, 
-            BiConsumer<Integer,Integer> observer){
+            ProgressObserver observer){
         try{    
             requireListExists();    // Require the list to exist
                 // Prepare a statement to get the properties of this list from 
@@ -503,7 +503,7 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
                             model.add(temp);    // Add the link to the model
                                 // If an observer was provided
                             if (observer != null)
-                                observer.accept(model.size()-1, size);
+                                observer.incrementValue();
                         } catch(IllegalArgumentException | IllegalStateException ex){ }
                     }
                 }
@@ -530,7 +530,7 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
      */
     @Override
     public void updateContents(LinksListModel model, 
-            BiConsumer<Integer,Integer>observer,Map<String,Long> linkIDMap){
+            ProgressObserver observer,Map<String,Long> linkIDMap){
             // Check if the model is null
         Objects.requireNonNull(model);
         try{    // Get the current state of the auto-commit
@@ -579,7 +579,7 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
                     pstmt.executeUpdate();
                 }   // If an observer was provided
                 if (observer != null)
-                    observer.accept(index, model.size());
+                    observer.incrementValue();
             }   // Commit the changes to the database
             getConnection().commit();       
                 // Restore the auto-commit back to what it was set to before
