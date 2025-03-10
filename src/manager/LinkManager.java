@@ -6499,6 +6499,36 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
+     * @param conn
+     * @return
+     * @throws SQLException 
+     */
+    private boolean saveDatabase(LinkDatabaseConnection conn) throws SQLException{
+            // Remove the listIDs of any lists that have been removed
+        conn.getAllListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
+            // Remove the listIDs of any lists that have been removed
+        conn.getShownListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
+            // Remove the listIDs of any lists that have been hidden
+        conn.getShownListIDs().removeAll(shownListsTabsPanel.getRemovedListIDs());
+            // Remove any lists that have been removed
+        conn.getListNameMap().keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
+            // Remove the preference nodes for the removed lists
+        config.removeListPreferences(allListsTabsPanel.getRemovedListIDs());
+            // Clear the sets of removed ListIDs
+        allListsTabsPanel.clearRemovedListIDs();
+        shownListsTabsPanel.clearRemovedListIDs();
+        conn.commit();       // Commit the changes to the database
+            // This is a set containing all the models in the program
+        Set<LinksListModel> models = new LinkedHashSet<>(allListsTabsPanel.getModels());
+            // Add any models that are in the shown lists panel that are 
+            // missing from the all lists panel
+        models.addAll(shownListsTabsPanel.getModels());
+            // Write the models to the database
+        writeToDatabase(conn, models);
+        return true;
+    }
+    /**
+     * 
      * @param file
      * @param path
      * @return
@@ -9028,29 +9058,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected boolean saveDatabase(LinkDatabaseConnection conn, 
                 Statement stmt) throws SQLException {
-                // Remove the listIDs of any lists that have been removed
-            conn.getAllListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
-                // Remove the listIDs of any lists that have been removed
-            conn.getShownListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
-                // Remove the listIDs of any lists that have been hidden
-            conn.getShownListIDs().removeAll(shownListsTabsPanel.getRemovedListIDs());
-                // Remove any lists that have been removed
-            conn.getListNameMap().keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
-                // Remove the preference nodes for the removed lists
-            config.removeListPreferences(allListsTabsPanel.getRemovedListIDs());
-                // Clear the sets of removed ListIDs
-            allListsTabsPanel.clearRemovedListIDs();
-            shownListsTabsPanel.clearRemovedListIDs();
-            conn.commit();       // Commit the changes to the database
-                // This is a set containing all the models in the program
-            Set<LinksListModel> models = new LinkedHashSet<>(allListsTabsPanel.getModels());
-                // Add any models that are in the shown lists panel that are 
-                // missing from the all lists panel
-            models.addAll(shownListsTabsPanel.getModels());
-                // Write the models to the database
-            writeToDatabase(conn, models);
-            
-            return true;
+            return LinkManager.this.saveDatabase(conn);
         }
         @Override
         protected void showSuccessPrompt(File file){ }
