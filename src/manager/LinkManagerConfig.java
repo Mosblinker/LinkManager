@@ -2120,6 +2120,20 @@ public class LinkManagerConfig {
             removeNode(node);
         return node != null;
     }
+    /**
+     * 
+     * @param listIDs
+     * @return 
+     */
+    public boolean removeListPreferences(Collection<Integer> listIDs){
+        boolean changed = false;
+        for (Integer listID : listIDs){
+            if (listID != null){
+                boolean removed = removeListPreferences(listID);
+                changed |= removed;
+            }
+        }
+        return changed;
     }
     /**
      * 
