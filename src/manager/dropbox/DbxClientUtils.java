@@ -103,4 +103,12 @@ public class DbxClientUtils {
         dbxUtils.refreshCredentials(getClient(), getCredentials());
         return this;
     }
+    /**
+     * 
+     * @return
+     * @throws DbxException 
+     */
+    public DbxClientV2 getClientWithRefresh() throws DbxException{
+        return refreshCredentials().getClient();
+    }
 }
