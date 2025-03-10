@@ -12,7 +12,7 @@ import javax.swing.*;
  * uploading large files. This is in Mebibytes.
  * @author Mosblinker
  */
-class DbxChunkSizeSpinnerModel extends SpinnerListModel{
+class DbxChunkSizeSpinnerModel extends AbstractSpinnerModel{
     /**
      * This is the minimum value for the multiplier.
      */
@@ -39,33 +39,57 @@ class DbxChunkSizeSpinnerModel extends SpinnerListModel{
      */
     protected static final long BASE_CHUNK_SIZE = 0x400000;
     /**
+     * This is the multiplier for the value.
+     */
+    private int value = MULTIPLIER_MINIMUM;
+    /**
      * This constructs a DbxChunkSizeSpinnerModel that is set to 8 MiB.
      */
     protected DbxChunkSizeSpinnerModel(){
-        super(new DbxChunkSizeList());
-        DbxChunkSizeSpinnerModel.this.setMultiplier(2);
+        value = MULTIPLIER_MINIMUM+1;
     }
     
     public int getMultiplier(){
-        return getList().indexOf(getValue())+MULTIPLIER_MINIMUM;
+        return value;
     }
     
     public void setMultiplier(int value){
-        setValue(getList().get(value-MULTIPLIER_MINIMUM));
+        if (this.value == value)
+            return;
+        if (value < MULTIPLIER_MINIMUM || value > MULTIPLIER_MAXIMUM)
+            throw new IllegalArgumentException();
+        this.value = value;
+        fireStateChanged();
+    }
+    
+    public int getNumber(){
+        return BASE_VALUE * getMultiplier();
     }
     
     public long getChunkSize(){
         return BASE_CHUNK_SIZE * getMultiplier();
     }
-    
     @Override
-    public void setValue(Object elt){
-        if (elt instanceof String){
-            try{
-                elt = Integer.valueOf((String)elt);
-            } catch (NumberFormatException ex) {}
-        }
-        super.setValue(elt);
+    public Object getValue() {
+        return getNumber();
+    }
+    @Override
+    public void setValue(Object value) {
+        if (value == null || !(value instanceof Number))
+            throw new IllegalArgumentException();
+        setMultiplier(((Number)value).intValue()/BASE_VALUE);
+    }
+    @Override
+    public Object getNextValue() {
+        if (getMultiplier() < MULTIPLIER_MAXIMUM)
+            return BASE_VALUE * (getMultiplier()+1);
+        return null;
+    }
+    @Override
+    public Object getPreviousValue() {
+        if (getMultiplier() > MULTIPLIER_MINIMUM)
+            return BASE_VALUE * (getMultiplier()-1);
+        return null;
     }
     /**
      * 
