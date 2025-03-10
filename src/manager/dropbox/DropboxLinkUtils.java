@@ -19,7 +19,7 @@ public abstract class DropboxLinkUtils {
     /**
      * 
      */
-    public DropboxLinkUtils(){
+    protected DropboxLinkUtils(){
         
     }
     /**
@@ -238,7 +238,13 @@ public abstract class DropboxLinkUtils {
     public DbxRequestConfig createRequest(){
         return createRequestBuilder().build();
     }
-    
+    /**
+     * 
+     * @return 
+     */
+    public DbxClientUtils createClientUtils(){
+        return new DbxClientUtils(this);
+    }
     /**
      * 
      * @return 
@@ -254,7 +260,6 @@ public abstract class DropboxLinkUtils {
                 ",tokenExpiresAt="+Objects.toString(getTokenExpiresAt(),"")+
                 " ("+Objects.toString(getTokenExpiresAtDate(),"")+")";
     }
-    
     @Override
     public String toString(){
         return getClass().getName()+"["+paramString()+"]";
