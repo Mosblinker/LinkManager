@@ -2103,14 +2103,17 @@ public class LinkManagerConfig {
     /**
      * 
      * @param listID 
+     * @return  
      */
-    public void removeListPreferences(int listID){
+    public boolean removeListPreferences(int listID){
+            // Remove the node from the cache if there is one
+        Preferences node = listIDNodeMap.remove(listID);
             // If there is a list preference node for the given listID
-        if (listIDNodeMap.containsKey(listID))
-                // Remove it
-            removeNode(listIDNodeMap.get(listID));
-            // Remove it from the cache
-        listIDNodeMap.remove(listID);
+        if (node != null)
+                // Remove the node
+            removeNode(node);
+        return node != null;
+    }
     }
     /**
      * 
