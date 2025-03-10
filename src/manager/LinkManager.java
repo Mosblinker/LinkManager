@@ -10422,14 +10422,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected boolean downloadFile(File file,String path) throws IOException{
                 // Reset the dropbox exception to null
             dbxEx = null;
-            try{    // Create the Dropbox client
-                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
-                    // Get the Dropbox credentials
-                DbxCredential cred = dbxUtils.getCredentials();
-                    // Get a client to communicate with Dropbox
-                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
-                    // Refresh the Dropbox credentials if necessary
-                dbxUtils.refreshCredentials(client, cred);
+            try{    // Get a client to communicate with Dropbox, refreshing the 
+                    // Dropbox credentials if necessary
+                DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
                     // Get the file namespace for Dropbox
                 DbxUserFilesRequests dbxFiles = client.files();
                     // This gets the size of the file to be downloaded
@@ -10518,14 +10513,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected boolean uploadFile(File file, String path) throws IOException {
                 // Reset the dropbox exception to null
             dbxEx = null;
-            try{    // Create the Dropbox client
-                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
-                    // Get the Dropbox credentials
-                DbxCredential cred = dbxUtils.getCredentials();
-                    // Get a client to communicate with Dropbox
-                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
-                    // Refresh the Dropbox credentials if necessary
-                dbxUtils.refreshCredentials(client, cred);
+            try{    // Get a client to communicate with Dropbox, refreshing the 
+                    // Dropbox credentials if necessary
+                DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
                     // Setup the progress bar and get the progress listener used 
                     // to update the progress bar to reflect the bytes that have 
                     // been loaded so far.
@@ -10622,14 +10612,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected boolean loadDropboxAccount(){
                 // Reset the exceptions
             dbxEx = null;
-            try{    // Create the Dropbox client
-                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
-                    // Get the Dropbox credentials
-                DbxCredential cred = dbxUtils.getCredentials();
-                    // Get a client to communicate with Dropbox
-                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
-                    // Refresh the Dropbox credentials if necessary
-                dbxUtils.refreshCredentials(client, cred);
+            try{    // Get a client to communicate with Dropbox, refreshing the 
+                    // Dropbox credentials if necessary
+                DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
                     // Get the request for the user
                 DbxUserUsersRequests users = client.users();
                     // Get the account details for the user
