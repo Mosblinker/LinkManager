@@ -2108,7 +2108,13 @@ public class LinkManagerConfig {
     public boolean removeListPreferences(int listID){
             // Remove the node from the cache if there is one
         Preferences node = listIDNodeMap.remove(listID);
-            // If there is a list preference node for the given listID
+            // If there is no node cached for the listID
+        if (node == null){
+                // If there is a node for the list with the given listID
+            if (nodeExists(getPreferences(),LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX+listID))
+                    // Get that node
+                node = getPreferences().node(LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX+listID);
+        }   // If there is a list preference node for the given listID
         if (node != null)
                 // Remove the node
             removeNode(node);
