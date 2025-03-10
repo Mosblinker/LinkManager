@@ -991,14 +991,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Set the SQLite config to enforce the foreign keys
         config.getSQLiteConfig().enforceForeignKeys(foreignKeysToggle.isSelected());
         
-        listContentsObserver = (Integer index, Integer size) -> {
-                // If the size is null (indicates whether this is to toggle 
-                // whether progress is indeterminate)
-            if (size == null)
-                setIndeterminate(index != 0);
-            else{
-                incrementProgressValue();
+        progressObserver = new DefaultProgressObserver(progressBar){
+            @Override
+            public DefaultProgressObserver setValue(int value) {
+                super.setValue(value);
                 slowTestToggle.runSlowTest();
+                return this;
             }
         };
         
@@ -4678,7 +4676,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private void setDropboxDatabaseFileFields(String fileName){
-        dbxDbFileField.setText(formatDropboxPath(fileName));
+        dbxDbFileField.setText(DropboxUtilities.formatDropboxPath(fileName));
     }
     
     private void setDBCancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBCancelButtonActionPerformed
@@ -4708,7 +4706,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Add the database file name to the path
                 dbxFileName+=LINK_DATABASE_FILE;
                 // Format the Dropbox database file name
-            dbxFileName = formatDropboxPath(dbxFileName);
+            dbxFileName = DropboxUtilities.formatDropboxPath(dbxFileName);
                 // If the Dropbox database file name has changed
             if (!Objects.equals(dbxFileName, config.getDropboxDatabaseFileName())){
                     // Set the Dropbox database file name
@@ -5582,9 +5580,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private DbxAccountLoader dbxLoader = null;
     /**
-     * This is a BiConsumer used to observe the loading and saving of lists.
+     * This is a progress observer used to observe the progress, particularly 
+     * when loading and saving lists.
      */
-    private BiConsumer<Integer,Integer> listContentsObserver;
+    private ProgressObserver progressObserver;
     /**
      * This is a map that maps the text components to their text edit commands.
      */
@@ -6404,7 +6403,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         conn.commit();          // Commit the changes to the database
         System.gc();            // Run the garbage collector
             // Add the new links to the database.
-        linkMap.addAll(linksSet, listContentsObserver);
+        linkMap.addAll(linksSet, progressObserver);
         setIndeterminate(false);
             // This gets a cached copy of the inverse link map
         Map<String,Long> linkIDMap = new HashMap<>(conn.getLinkMap().inverse());
@@ -6453,7 +6452,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         conn.setAutoCommit(false);
             // Update th contents of the list based off the contents of the model
         conn.getListContents(model.getListID()).updateContents(model, 
-                listContentsObserver,linkIDMap);
+                progressObserver,linkIDMap);
         conn.commit();          // Commit the changes to the database
         model.clearEdited();    // Clear whether the list was edited
         System.gc();            // Run the garbage collector
@@ -6487,16 +6486,100 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
-     * @param path
-     * @return 
+     * @param conn
+     * @return
+     * @throws SQLException 
      */
-    private String formatDropboxPath(String path){
-            // If the path does not start with a slash
-        if (!path.startsWith("/"))
-                // Add a slash to the start of the file name
-            return "/"+path;
-        return path.trim();
+    private boolean saveDatabase(LinkDatabaseConnection conn) throws SQLException{
+            // Remove the listIDs of any lists that have been removed
+        conn.getAllListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
+            // Remove the listIDs of any lists that have been removed
+        conn.getShownListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
+            // Remove the listIDs of any lists that have been hidden
+        conn.getShownListIDs().removeAll(shownListsTabsPanel.getRemovedListIDs());
+            // Remove any lists that have been removed
+        conn.getListNameMap().keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
+            // Remove the preference nodes for the removed lists
+        config.removeListPreferences(allListsTabsPanel.getRemovedListIDs());
+            // Clear the sets of removed ListIDs
+        allListsTabsPanel.clearRemovedListIDs();
+        shownListsTabsPanel.clearRemovedListIDs();
+        conn.commit();       // Commit the changes to the database
+            // This is a set containing all the models in the program
+        Set<LinksListModel> models = new LinkedHashSet<>(allListsTabsPanel.getModels());
+            // Add any models that are in the shown lists panel that are 
+            // missing from the all lists panel
+        models.addAll(shownListsTabsPanel.getModels());
+            // Write the models to the database
+        writeToDatabase(conn, models);
+        return true;
     }
+    /**
+     * 
+     * @param file
+     * @param path
+     * @return
+     * @throws DbxException
+     * @throws IOException 
+     */
+    private FileMetadata downloadFromDropbox(File file, String path) throws 
+            DbxException, IOException{
+            // Get a client to communicate with Dropbox, refreshing the Dropbox 
+            // credentials if necessary
+        DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
+            // Get the file namespace for Dropbox
+        DbxUserFilesRequests dbxFiles = client.files();
+            // This gets the size of the file to be downloaded
+        Long size = null;
+        try{    // Get the metadata for the file
+            Metadata metadata = dbxFiles.getMetadataBuilder(path).start();
+                // If the metadata is actually file metadata
+            if (metadata instanceof FileMetadata){
+                    // Get the size of the file
+                size = ((FileMetadata) metadata).getSize();
+            }
+        } catch (GetMetadataErrorException ex){
+                // If the error because the file doesn't exist
+            if (DropboxUtilities.fileNotFound(ex))
+                return null;
+            else 
+                throw ex;
+        }   // This is the progress listener to use to listen to how many bytes 
+            // have been downloaded so far.
+        ProgressListener listener = null;
+            // If the file size was loaded
+        if (size != null){
+                // Setup the progress bar and get the progress listener
+            listener = createProgressListener(size);
+                // Set the progress bar to not be indeterminate
+            setIndeterminate(false);
+        }   // Download the file from Dropbox
+        return DropboxUtilities.download(file, path, dbxFiles, listener);
+    }
+    /**
+     * 
+     * @param file
+     * @param path
+     * @return
+     * @throws DbxException
+     * @throws IOException 
+     */
+    private FileMetadata uploadToDropbox(File file, String path) throws 
+            DbxException, IOException{
+            // Get a client to communicate with Dropbox, refreshing the Dropbox 
+            // credentials if necessary
+        DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
+            // Setup the progress bar and get the progress listener used to 
+            // update the progress bar to reflect the bytes that have been 
+            // uploaded so far.
+        ProgressListener listener = createProgressListener(file.length());
+            // Set the progress bar to not be indeterminate
+        setIndeterminate(false);
+            // Upload the file to Dropbox, using the set chunk size and 
+            // overwriting the file if it already exists
+        return DropboxUtilities.upload(file, path, client.files(), 
+                dbxChunkSizeModel.getChunkSize(), true, listener);
+    } 
     /**
      * This is a LinksListTabAction that saves the links from a list to a 
      * file.
@@ -8739,7 +8822,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Get the listID of the list being loaded
                 Integer listID = listData.getKey();
                     // Get a model version of the current list
-                LinksListModel model = listData.getValue().toModel(listContentsObserver);
+                LinksListModel model = listData.getValue().toModel(progressObserver);
                     // Get the old version of the model (the one that this model 
                     // is replacing), and copy the selection from the old model
                 model.setSelectionFrom(oldModelsMap.get(listID));
@@ -8962,33 +9045,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected boolean saveDatabase(LinkDatabaseConnection conn, 
                 Statement stmt) throws SQLException {
-                // Remove the listIDs of any lists that have been removed
-            conn.getAllListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
-                // Remove the listIDs of any lists that have been removed
-            conn.getShownListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
-                // Remove the listIDs of any lists that have been hidden
-            conn.getShownListIDs().removeAll(shownListsTabsPanel.getRemovedListIDs());
-                // Remove any lists that have been removed
-            conn.getListNameMap().keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
-                // Go through the removed list IDs
-            for (Integer listID : allListsTabsPanel.getRemovedListIDs()){
-                    // If the current listID is not null
-                if (listID != null)
-                        // Remove the list's preference node
-                    config.removeListPreferences(listID);
-            }   // Clear the sets of removed ListIDs
-            allListsTabsPanel.clearRemovedListIDs();
-            shownListsTabsPanel.clearRemovedListIDs();
-            conn.commit();       // Commit the changes to the database
-                // This is a set containing all the models in the program
-            Set<LinksListModel> models = new LinkedHashSet<>(allListsTabsPanel.getModels());
-                // Add any models that are in the shown lists panel that are 
-                // missing from the all lists panel
-            models.addAll(shownListsTabsPanel.getModels());
-                // Write the models to the database
-            writeToDatabase(conn, models);
-            
-            return true;
+            return LinkManager.this.saveDatabase(conn);
         }
         @Override
         protected void showSuccessPrompt(File file){ }
@@ -10397,7 +10454,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param loadFlags 
          */
         DbxDownloader(File file,String dbxPath,Integer loadFlags){
-            super(file,formatDropboxPath(dbxPath),loadFlags);
+            super(file,DropboxUtilities.formatDropboxPath(dbxPath),loadFlags);
         }
         /**
          * 
@@ -10405,7 +10462,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param dbxPath
          */
         DbxDownloader(File file,String dbxPath){
-            super(file,formatDropboxPath(dbxPath));
+            super(file,DropboxUtilities.formatDropboxPath(dbxPath));
         }
         @Override
         protected String getFileNotFoundMessage(File file, String path){
@@ -10422,42 +10479,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected boolean downloadFile(File file,String path) throws IOException{
                 // Reset the dropbox exception to null
             dbxEx = null;
-            try{    // Get a client to communicate with Dropbox, refreshing the 
-                    // Dropbox credentials if necessary
-                DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
-                    // Get the file namespace for Dropbox
-                DbxUserFilesRequests dbxFiles = client.files();
-                    // This gets the size of the file to be downloaded
-                Long size = null;
-                try{    // Get the metadata for the file
-                    Metadata metadata = dbxFiles.getMetadataBuilder(path).start();
-                        // If the metadata is actually file metadata
-                    if (metadata instanceof FileMetadata){
-                            // Get the size of the file
-                        size = ((FileMetadata) metadata).getSize();
-                    }
-                } catch (GetMetadataErrorException ex){
-                        // If the error because the file doesn't exist
-                    if (DropboxUtilities.fileNotFound(ex)){
-                        fileFound = false;
-                    } else {
-                        dbxEx = ex;
-                        if (isInDebug())    // If the program is in debug mode
-                            System.out.println(ex);
-                    }
-                    return false;
-                }   // This is the progress listener to use to listen to how 
-                    // many bytes have been downloaded so far.
-                ProgressListener listener = null;
-                    // If the file size was loaded
-                if (size != null){
-                        // Setup the progress bar and get the progress listener
-                    listener = createProgressListener(size);
-                        // Set the progress bar to not be indeterminate
-                    setIndeterminate(false);
-                }   // Download the file from Dropbox
-                DropboxUtilities.download(file, path, dbxFiles, listener);
-                return true;
+            try{    // Try to download the file from Dropbox
+                FileMetadata data = downloadFromDropbox(file,path);
+                fileFound = data != null;
+                return fileFound;
             } catch(DbxException ex){
                 dbxEx = ex;
                 if (isInDebug())    // If the program is in debug mode
@@ -10483,7 +10508,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param exit 
          */
         DbxUploader(File file,String dbxPath,boolean showSuccess,boolean exit) {
-            super(file,formatDropboxPath(dbxPath),showSuccess,exit);
+            super(file,DropboxUtilities.formatDropboxPath(dbxPath),showSuccess,exit);
         }
         /**
          * 
@@ -10492,7 +10517,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param showSuccess 
          */
         DbxUploader(File file, String dbxPath, boolean showSuccess){
-            super(file,formatDropboxPath(dbxPath),showSuccess);
+            super(file,DropboxUtilities.formatDropboxPath(dbxPath),showSuccess);
         }
         /**
          * 
@@ -10500,7 +10525,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file 
          */
         DbxUploader(File file,String dbxPath){
-            super(file,formatDropboxPath(dbxPath));
+            super(file,DropboxUtilities.formatDropboxPath(dbxPath));
         }
         @Override
         protected String getExceptionMessage(File file, String path){
@@ -10513,19 +10538,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected boolean uploadFile(File file, String path) throws IOException {
                 // Reset the dropbox exception to null
             dbxEx = null;
-            try{    // Get a client to communicate with Dropbox, refreshing the 
-                    // Dropbox credentials if necessary
-                DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
-                    // Setup the progress bar and get the progress listener used 
-                    // to update the progress bar to reflect the bytes that have 
-                    // been loaded so far.
-                ProgressListener listener = createProgressListener(file.length());
-                    // Set the progress bar to not be indeterminate
-                setIndeterminate(false);
-                    // Upload the file to Dropbox, using the set chunk size and 
-                    // overwriting the file if it already exists
-                DropboxUtilities.upload(file, path, client.files(), 
-                        dbxChunkSizeModel.getChunkSize(), true, listener);
+            try{    // Try to upload the file to Dropbox
+                uploadToDropbox(file,path);
                 return true;
             } catch(DbxException ex){
                 dbxEx = ex;

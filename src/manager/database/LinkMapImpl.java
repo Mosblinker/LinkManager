@@ -6,7 +6,7 @@ package manager.database;
 
 import java.sql.*;
 import java.util.*;
-import java.util.function.BiConsumer;
+import manager.ProgressObserver;
 import static manager.database.LinkDatabaseConnection.*;
 import sql.*;
 import sql.util.*;
@@ -184,7 +184,7 @@ class LinkMapImpl extends AbstractQueryRowMap<Long,String> implements LinkMap {
      * @throws SQLException 
      */
     protected boolean addAllSQL(Collection<? extends String> c, 
-            BiConsumer<Integer,Integer> observer) throws SQLException{
+            ProgressObserver observer) throws SQLException{
         if (c.isEmpty())
             return false;
             // If the given collection is not a set
@@ -198,14 +198,14 @@ class LinkMapImpl extends AbstractQueryRowMap<Long,String> implements LinkMap {
             // If an observer has been provided
         if (observer != null)
                 // Set the progress to be indeterminate
-            observer.accept(1, null);
+            observer.setIndeterminate(true);
             // Get the prefixes for the new links
         Map<String,Map.Entry<Integer,String>> prefixes = 
                 getConnection().getPrefixMap().getLongestPrefixesFor(c);
             // If an observer has been provided
         if (observer != null)
                 // Set the progress to not be indeterminate
-            observer.accept(0, null);
+            observer.setIndeterminate(false);
         int size = size();      // Get the current size of the map
         int index = 0;          // The index for the current link
         for (String value : c){ // Go through the elements in the collection
@@ -216,7 +216,7 @@ class LinkMapImpl extends AbstractQueryRowMap<Long,String> implements LinkMap {
             index++;
                 // If an observer has been provided
             if (observer != null)
-                observer.accept(index, c.size());
+                observer.incrementValue();
                 // If we should commit the changes (prevents too many 
                 // changes from being done all at once)
             if (index % LINK_ADDING_AUTO_COMMIT == 0){
@@ -226,7 +226,7 @@ class LinkMapImpl extends AbstractQueryRowMap<Long,String> implements LinkMap {
         }   // If an observer has been provided
         if (observer != null)
                 // Set the progress to be indeterminate
-            observer.accept(1, null);
+            observer.setIndeterminate(true);
             // Commit the changes to the database
         getConnection().commit();
             // Restore the auto-commit back to what it was set to before
@@ -238,7 +238,7 @@ class LinkMapImpl extends AbstractQueryRowMap<Long,String> implements LinkMap {
      */
     @Override
     public boolean addAll(Collection<? extends String> c, 
-            BiConsumer<Integer,Integer> observer){
+            ProgressObserver observer){
         try{
             return addAllSQL(c,observer);
         } catch (SQLException ex) {
@@ -255,7 +255,7 @@ class LinkMapImpl extends AbstractQueryRowMap<Long,String> implements LinkMap {
      * @throws SQLException 
      */
     protected boolean addAllIfAbsentSQL(Collection<? extends String> c, 
-            BiConsumer<Integer,Integer> observer) throws SQLException{
+            ProgressObserver observer) throws SQLException{
             // Turn the collection into a LinkedHashSet, so as to remove any 
             // duplicates (since every element will only be added once if at 
             // all) while also maintaining the order of the given collection. 
@@ -280,7 +280,7 @@ class LinkMapImpl extends AbstractQueryRowMap<Long,String> implements LinkMap {
      */
     @Override
     public boolean addAllIfAbsent(Collection<? extends String> c, 
-            BiConsumer<Integer,Integer> observer){
+            ProgressObserver observer){
         try{
             return addAllIfAbsentSQL(c,observer);
         } catch (SQLException ex) {
