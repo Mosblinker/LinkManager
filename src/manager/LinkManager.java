@@ -5585,10 +5585,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private ProgressObserver progressObserver;
     /**
-     * This is a BiConsumer used to observe the loading and saving of lists.
-     */
-    private BiConsumer<Integer,Integer> listContentsObserver;
-    /**
      * This is a map that maps the text components to their text edit commands.
      */
     private Map<JTextComponent, TextComponentCommands> editCommands;
