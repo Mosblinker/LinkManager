@@ -4678,7 +4678,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private void setDropboxDatabaseFileFields(String fileName){
-        dbxDbFileField.setText(formatDropboxPath(fileName));
+        dbxDbFileField.setText(DropboxUtilities.formatDropboxPath(fileName));
     }
     
     private void setDBCancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBCancelButtonActionPerformed
@@ -4708,7 +4708,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Add the database file name to the path
                 dbxFileName+=LINK_DATABASE_FILE;
                 // Format the Dropbox database file name
-            dbxFileName = formatDropboxPath(dbxFileName);
+            dbxFileName = DropboxUtilities.formatDropboxPath(dbxFileName);
                 // If the Dropbox database file name has changed
             if (!Objects.equals(dbxFileName, config.getDropboxDatabaseFileName())){
                     // Set the Dropbox database file name
@@ -10455,7 +10455,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param loadFlags 
          */
         DbxDownloader(File file,String dbxPath,Integer loadFlags){
-            super(file,formatDropboxPath(dbxPath),loadFlags);
+            super(file,DropboxUtilities.formatDropboxPath(dbxPath),loadFlags);
         }
         /**
          * 
@@ -10463,7 +10463,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param dbxPath
          */
         DbxDownloader(File file,String dbxPath){
-            super(file,formatDropboxPath(dbxPath));
+            super(file,DropboxUtilities.formatDropboxPath(dbxPath));
         }
         @Override
         protected String getFileNotFoundMessage(File file, String path){
@@ -10509,7 +10509,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param exit 
          */
         DbxUploader(File file,String dbxPath,boolean showSuccess,boolean exit) {
-            super(file,formatDropboxPath(dbxPath),showSuccess,exit);
+            super(file,DropboxUtilities.formatDropboxPath(dbxPath),showSuccess,exit);
         }
         /**
          * 
@@ -10518,7 +10518,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param showSuccess 
          */
         DbxUploader(File file, String dbxPath, boolean showSuccess){
-            super(file,formatDropboxPath(dbxPath),showSuccess);
+            super(file,DropboxUtilities.formatDropboxPath(dbxPath),showSuccess);
         }
         /**
          * 
@@ -10526,7 +10526,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file 
          */
         DbxUploader(File file,String dbxPath){
-            super(file,formatDropboxPath(dbxPath));
+            super(file,DropboxUtilities.formatDropboxPath(dbxPath));
         }
         @Override
         protected String getExceptionMessage(File file, String path){
