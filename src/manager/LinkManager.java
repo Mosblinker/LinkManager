@@ -5936,7 +5936,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Go through the tab panels
         for (int i = 0; i < listsTabPanels.length; i++){
                 // Update the list of the listIDs
-            writeTabsToDatabase(conn.getListIDs(i),listsTabPanels[i]);
+            conn.updateListIDList(i, listsTabPanels[i], progressObserver);
         }   // Remove any listIDs from the shown listIDs list that are hidden
         conn.getShownListIDs().removeIf((Integer t) -> {
                 // Get the model with the current listID
@@ -5953,31 +5953,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         conn.commit();       // Commit the changes to the database
             // Restore the connection's auto-commit back to what it was set to 
         conn.setAutoCommit(autoCommit);     // before
-    }
-    /**
-     * 
-     * @param dbListIDs
-     * @param tabsPanel
-     * @throws SQLException 
-     */
-    private void writeTabsToDatabase(ListIDList dbListIDs, 
-            LinksListTabsPanel tabsPanel) throws SQLException {
-            // Get a copy of the list IDs in the list from the database
-        Set<Integer> missingIDs = new LinkedHashSet<>(dbListIDs);
-            // Remove null listIDs
-        missingIDs.remove(null);
-            // Remove any listIDs that are in the tabs panel
-        missingIDs.removeAll(tabsPanel.getListIDs());
-            // Remove any listIDs that have been removed
-        missingIDs.removeAll(tabsPanel.getRemovedListIDs());
-            // Clear the list in the database
-        dbListIDs.clear();
-            // Add all the listIDs that are in the tabs panel
-        dbListIDs.addAll(tabsPanel.getListIDs());
-            // Remove any that are null
-        dbListIDs.removeIf((Integer t) -> t == null);
-            // Add any that are missing from the tabs panel
-        dbListIDs.addAll(missingIDs);
     }
     /**
      * 
