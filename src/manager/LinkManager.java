@@ -1086,20 +1086,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setExternalCard = new javax.swing.JPanel();
         dbxLogInButton = new javax.swing.JButton();
         setDropboxCard = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
         dbxDbFileField = new javax.swing.JTextField();
         dbxDataPanel = new javax.swing.JPanel();
         dbxPfpLabel = new components.JThumbnailLabel();
         dbxAccountLabel = new javax.swing.JLabel();
-        jLabel1 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
         dbxSpaceUsedLabel = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel5 = new javax.swing.JLabel();
         dbxSpaceFreeLabel = new javax.swing.JLabel();
         dbxLogOutButton = new javax.swing.JButton();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
-        jLabel7 = new javax.swing.JLabel();
+        javax.swing.Box.Filler filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
+        javax.swing.JLabel jLabel7 = new javax.swing.JLabel();
         dbxChunkSizeSpinner = new javax.swing.JSpinner();
-        jLabel11 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel11 = new javax.swing.JLabel();
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
@@ -1117,8 +1117,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         javax.swing.JLabel dbQueryLabel = new javax.swing.JLabel();
         dbQueryField = new javax.swing.JTextField();
         executeQueryButton = new javax.swing.JButton();
-        jPanel1 = new javax.swing.JPanel();
-        jLabel4 = new javax.swing.JLabel();
+        javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
+        javax.swing.JLabel jLabel4 = new javax.swing.JLabel();
         dbQueryTimeLabel = new javax.swing.JLabel();
         dbQueryResultsPanel = new javax.swing.JPanel();
         dbQueryBlankCard = new javax.swing.JLabel();
@@ -1128,9 +1128,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         javax.swing.JLabel jLabel3 = new javax.swing.JLabel();
         dbQueryUpdateLabel = new javax.swing.JLabel();
         dbQueryErrorPanel = new javax.swing.JPanel();
-        jLabel6 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel6 = new javax.swing.JLabel();
         dbQueryErrorLabel = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel10 = new javax.swing.JLabel();
         dbQueryErrorCodeLabel = new javax.swing.JLabel();
         dbFilePanel = new javax.swing.JPanel();
         javax.swing.JLabel dbFileNameLabel = new javax.swing.JLabel();
@@ -1152,7 +1152,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbFileSizeLabel = new javax.swing.JLabel();
         javax.swing.JLabel dbUUIDTextLabel = new javax.swing.JLabel();
         dbUUIDLabel = new javax.swing.JLabel();
-        dbLastModTextLabel = new javax.swing.JLabel();
+        javax.swing.JLabel dbLastModTextLabel = new javax.swing.JLabel();
         dbLastModLabel = new javax.swing.JLabel();
         javax.swing.JLabel linkCountTextLabel = new javax.swing.JLabel();
         linkCountLabel = new javax.swing.JLabel();
@@ -1160,9 +1160,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         shownTotalSizeLabel = new javax.swing.JLabel();
         javax.swing.JLabel allTotalSizeTextLabel = new javax.swing.JLabel();
         allTotalSizeLabel = new javax.swing.JLabel();
-        programIDTextLabel = new javax.swing.JLabel();
+        javax.swing.JLabel programIDTextLabel = new javax.swing.JLabel();
         programIDLabel = new javax.swing.JLabel();
-        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
+        javax.swing.Box.Filler filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
         dbUpdateLastModButton = new javax.swing.JButton();
         dbPrefixesPanel = new javax.swing.JPanel();
         dbPrefixScrollPane = new javax.swing.JScrollPane();
@@ -1396,6 +1396,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setDropboxCard.setBorder(javax.swing.BorderFactory.createTitledBorder("Dropbox"));
         setDropboxCard.setName("setDropbox"); // NOI18N
 
+        jLabel2.setLabelFor(dbxDbFileField);
         jLabel2.setText("File:");
 
         dbxDbFileField.setComponentPopupMenu(dbxDbFilePopupMenu);
@@ -1424,6 +1425,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
         dbxDataPanel.add(dbxAccountLabel, gridBagConstraints);
 
+        jLabel1.setLabelFor(dbxSpaceUsedLabel);
         jLabel1.setText("Space Used:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1440,6 +1442,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
         dbxDataPanel.add(dbxSpaceUsedLabel, gridBagConstraints);
 
+        jLabel5.setLabelFor(dbxSpaceFreeLabel);
         jLabel5.setText("Space Free:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1655,6 +1658,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Results"));
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
+        jLabel4.setLabelFor(dbQueryTimeLabel);
         jLabel4.setText("Time:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1697,6 +1701,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         dbQueryUpdatePanel.setName("update"); // NOI18N
 
+        jLabel3.setLabelFor(dbQueryUpdateLabel);
         jLabel3.setText("Update Count: ");
 
         dbQueryUpdateLabel.setText("-1");
@@ -1724,10 +1729,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         dbQueryErrorPanel.setName("error"); // NOI18N
 
+        jLabel6.setLabelFor(dbQueryErrorLabel);
         jLabel6.setText("Error:");
 
         dbQueryErrorLabel.setText("N/A");
 
+        jLabel10.setLabelFor(dbQueryErrorCodeLabel);
         jLabel10.setText("Error Code:");
 
         dbQueryErrorCodeLabel.setText("-1");
@@ -5494,7 +5501,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton dbFileRelativeButton;
     private javax.swing.JLabel dbFileSizeLabel;
     private javax.swing.JLabel dbLastModLabel;
-    private javax.swing.JLabel dbLastModTextLabel;
     private javax.swing.JPanel dbLinkSearchPanel;
     private javax.swing.JScrollPane dbLinkSearchScrollPane;
     private javax.swing.JTable dbLinkSearchTable;
@@ -5571,22 +5577,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JFileChooser exportFC;
     private javax.swing.JMenuItem exportListsItem;
     private javax.swing.JMenu fileMenu;
-    private javax.swing.Box.Filler filler1;
-    private javax.swing.Box.Filler filler2;
     private javax.swing.JCheckBox foreignKeysToggle;
     private javax.swing.JCheckBoxMenuItem hiddenLinkOperationToggle;
     private javax.swing.JMenuItem hideAllListsItem;
     private javax.swing.JMenu hideListsMenu;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JMenu jMenu2;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
@@ -5631,7 +5626,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem printDataItem;
     private javax.swing.JCheckBoxMenuItem printListPropChangeToggle;
     private javax.swing.JLabel programIDLabel;
-    private javax.swing.JLabel programIDTextLabel;
     private javax.swing.JProgressBar progressBar;
     private components.progress.JProgressDisplayMenu progressDisplay;
     private javax.swing.JPopupMenu queryPopupMenu;
