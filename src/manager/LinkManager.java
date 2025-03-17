@@ -727,6 +727,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 LinkManagerUtilities.addToPopupMenu(entry.getValue(),undoCmd,textCmd,pasteAndAddAction);
             else
                 LinkManagerUtilities.addToPopupMenu(entry.getValue(),undoCmd,textCmd);
+            comp.setComponentPopupMenu(entry.getValue());
         }
         
         editCommands.get(linkTextField).getPasteAction().
@@ -1399,8 +1400,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         jLabel2.setLabelFor(dbxDbFileField);
         jLabel2.setText("File:");
 
-        dbxDbFileField.setComponentPopupMenu(dbxDbFilePopupMenu);
-
         dbxDataPanel.setLayout(new java.awt.GridBagLayout());
 
         dbxPfpLabel.setImageScaleMode(components.JThumbnailLabel.ALWAYS_SCALE_MAINTAIN_ASPECT_RATIO);
@@ -1569,8 +1568,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbFileLabel.setLabelFor(dbFileField);
         dbFileLabel.setText("File:");
 
-        dbFileField.setComponentPopupMenu(dbFilePopupMenu);
-
         dbFileBrowseButton.setText("Browse");
         dbFileBrowseButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1640,7 +1637,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbQueryLabel.setLabelFor(dbQueryField);
         dbQueryLabel.setText("Query:");
 
-        dbQueryField.setComponentPopupMenu(queryPopupMenu);
         dbQueryField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 executeQueryActionPerformed(evt);
@@ -2133,7 +2129,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         jLabel9.setLabelFor(prefixField);
         jLabel9.setText("Prefix:");
 
-        prefixField.setComponentPopupMenu(prefixPopupMenu);
         prefixField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addPrefixButtonActionPerformed(evt);
@@ -2459,7 +2454,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbTableStructText.setLineWrap(true);
         dbTableStructText.setRows(5);
         dbTableStructText.setWrapStyleWord(true);
-        dbTableStructText.setComponentPopupMenu(dbStructurePopupMenu);
         jScrollPane2.setViewportView(dbTableStructText);
 
         javax.swing.GroupLayout dbTablePanelLayout = new javax.swing.GroupLayout(dbTablePanel);
@@ -2713,7 +2707,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         newLinkLabel.setText("Edit Link:");
 
-        linkTextField.setComponentPopupMenu(editPopupMenu);
         linkTextField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newLinkButtonActionPerformed(evt);
