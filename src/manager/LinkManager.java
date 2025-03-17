@@ -5623,7 +5623,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param offset 
      */
     protected void incrementProgressValue(int offset){
-        setProgressValue(getProgressValue()+offset);
+        progressBar.setValue(progressBar.getValue()+offset);
     }
     /**
      * 
@@ -5635,7 +5635,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      */
     protected void clearProgressValue(){
-        setProgressValue(0);
+        progressBar.setValue(0);
     }
     /**
      * This reads in the remaining lines from the given Scanner and stores them 
@@ -9801,7 +9801,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Reset the exception to null
             ioEx = null;
                 // Set the progress to be zero
-            setProgressValue(0);
+            progressBar.setValue(0);
                 // Set the progress to be indeterminate
             progressBar.setIndeterminate(true);
             try{    // Try to download the file from the path
@@ -10052,7 +10052,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private ProgressListener createProgressListener(long fileSize){
             // Set the progress to be zero
-        setProgressValue(0);
+        progressBar.setValue(0);
             // Get the value needed to divide the file length to get it back 
             // into the range of integers
         int divider = 1;
@@ -10069,7 +10069,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // progress bar to reflect the bytes that have been written so far
         return (long bytesWritten) -> {
                 // Update the progress with the amount of bytes written
-            setProgressValue((int)Math.ceil(bytesWritten / div));
+            progressBar.setValue((int)Math.ceil(bytesWritten / div));
         };
     }
     /**
