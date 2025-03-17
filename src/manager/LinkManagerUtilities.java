@@ -5,6 +5,7 @@
 package manager;
 
 import components.text.action.commands.*;
+import files.FilesExtended;
 import java.awt.Desktop;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
@@ -12,6 +13,7 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.*;
+import java.nio.file.*;
 import java.util.*;
 import javax.swing.*;
 
@@ -254,5 +256,38 @@ public class LinkManagerUtilities {
             prop.store(writer, comments);
         }
         return true;
+    }
+    /**
+     * This attempts to create a copy of the given file to act as a backup in 
+     * the event that something goes wrong with the original file. The file will 
+     * share the same name as the original with the exception that the {@link 
+     * LinkManager#BACKUP_FILE_EXTENSION backup file extension} will be appended 
+     * to the file name. However, if a file already exists with the proposed 
+     * name for the backup file, then the {@link 
+     * FilesExtended#getNextAvailableFilePath(File) next available file path} 
+     * will be used instead. If the given file is null or does not exist, then 
+     * this does nothing and returns null.
+     * @param file The file to create a backup of.
+     * @return The backup file, or null if the original file is null or 
+     * non-existent.
+     * @throws IOException If an error occurs while creating the backup file.
+     * @see LinkManager#BACKUP_FILE_EXTENSION
+     */
+    public static File createBackupCopy(File file) throws IOException{
+            // If the original file is null or does not exist
+        if (file == null || !file.exists())
+            return null;
+            // Get the file to use as the backup file
+        File target = new File(file.toString()+"."+LinkManager.BACKUP_FILE_EXTENSION);
+        try{    // Create a copy of the file
+            return Files.copy(file.toPath(), target.toPath(), 
+                    StandardCopyOption.COPY_ATTRIBUTES).toFile();
+        }
+        catch(FileAlreadyExistsException ex){
+                // Create a copy of the file using the next available file path
+            return Files.copy(file.toPath(), 
+                    FilesExtended.getNextAvailableFilePath(target).toPath(), 
+                    StandardCopyOption.COPY_ATTRIBUTES).toFile();
+        }
     }
 }
