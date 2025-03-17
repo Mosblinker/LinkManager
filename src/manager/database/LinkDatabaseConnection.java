@@ -11,7 +11,8 @@ import java.sql.*;
 import java.util.*;
 import javax.swing.JProgressBar;
 import javax.swing.table.*;
-import manager.links.LinksListModel;
+import manager.*;
+import manager.links.*;
 import org.sqlite.*;
 import sql.*;
 import sql.util.*;
@@ -4810,6 +4811,47 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     public void updateLinkPrefix(long linkID) throws SQLException{
         updateLinkPrefix(linkID,getLinkMap(),getPrefixMap());
+    }
+    /**
+     * 
+     * @param linkIDs
+     * @param l 
+     * @throws SQLException 
+     */
+    public void updateLinkPrefix(Collection<Long> linkIDs, ProgressObserver l) 
+            throws SQLException{
+            // Get the link map
+        LinkMap linkMap = getLinkMap();
+            // Get the prefix map
+        PrefixMap prefixMap = getPrefixMap();
+            // Create a copy of the linkIDs that is a set
+        linkIDs = new LinkedHashSet<>(linkIDs);
+            // Get the current state of the auto-commit
+        boolean autoCommit = getAutoCommit();
+            // Turn off the auto-commit in order to group the following 
+            // database transactions to improve performance
+        setAutoCommit(false);
+        try{    // Go through the linkIDs of the links to be updated
+            for (Long linkID : linkIDs){
+                updateLinkPrefix(linkID,linkMap,prefixMap);
+                if (l != null)
+                    l.incrementValue();
+            }
+        } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex){
+            throw ex;
+        } finally {
+            commit();       // Commit the changes to the database
+                // Restore the auto-commit back to what it was set to before
+            setAutoCommit(autoCommit);
+        }
+    }
+    /**
+     * 
+     * @param linkIDs
+     * @throws SQLException 
+     */
+    public void updateLinkPrefix(Collection<Long> linkIDs) throws SQLException{
+        updateLinkPrefix(linkIDs,null);
     }
     /**
      * 
