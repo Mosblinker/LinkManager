@@ -5592,34 +5592,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     // End of variables declaration//GEN-END:variables
     /**
      * 
-     * @param value 
-     */
-    protected void setIndeterminate(boolean value){
-        progressBar.setIndeterminate(value);
-    }
-    /**
-     * 
-     * @param maximum 
-     */
-    protected void setProgressMaximum(int maximum){
-        progressBar.setMaximum(maximum);
-    }
-    /**
-     * 
-     * @return 
-     */
-    protected int getProgressValue(){
-        return progressBar.getValue();
-    }
-    /**
-     * 
-     * @param value 
-     */
-    protected void setProgressValue(int value){
-        progressBar.setValue(value);
-    }
-    /**
-     * 
      * @param offset 
      */
     protected void incrementProgressValue(int offset){
@@ -5630,12 +5602,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     protected void incrementProgressValue(){
         incrementProgressValue(1);
-    }
-    /**
-     * 
-     */
-    protected void clearProgressValue(){
-        progressBar.setValue(0);
     }
     /**
      * This reads in the remaining lines from the given Scanner and stores them 
