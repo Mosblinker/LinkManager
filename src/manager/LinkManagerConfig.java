@@ -8,6 +8,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Window;
 import java.security.*;
 import java.util.*;
 import java.util.prefs.*;
@@ -1588,6 +1589,41 @@ public class LinkManagerConfig {
     /**
      * 
      * @param comp
+     * @param defaultValue
+     * @return 
+     */
+    public Dimension loadComponentSize(Component comp, Dimension defaultValue){
+            // Get the size for the component
+        Dimension dim = getComponentSize(comp,defaultValue);
+            // If the size for the component is not null and the component is 
+            // not null
+        if (dim != null && comp != null){
+                // Get the minimum size for the component. This will be used to 
+                // ensure that the component does not go below its minimum size
+            Dimension size = comp.getMinimumSize();
+                // Make sure the width and height are within range
+            size.width = Math.max(dim.width, size.width);
+            size.height = Math.max(dim.height, size.height);
+                // If the component is a window
+            if (comp instanceof Window)
+                    // Set the size of the window
+                comp.setSize(size);
+            else    // Set the preferred size of the component
+                comp.setPreferredSize(size);
+        }
+        return dim;
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Dimension loadComponentSize(Component comp){
+        return loadComponentSize(comp,null);
+    }
+    /**
+     * 
+     * @param comp
      * @param x
      * @param y 
      */
@@ -1665,6 +1701,30 @@ public class LinkManagerConfig {
     public boolean isComponentLocationSet(Component comp){
         return getPreferences().isKeySet(getComponentName(comp)+
                 COMPONENT_LOCATION_KEY_SUFFIX);
+    }
+    /**
+     * 
+     * @param comp
+     * @param defaultValue
+     * @return 
+     */
+    public Point loadComponentLocation(Component comp, Point defaultValue){
+            // Get the location for the component
+        Point point = getComponentLocation(comp,defaultValue);
+            // If the location for the component is not null and the component 
+            // is not null
+        if (point != null && comp != null)
+                // Set the location for the component
+            comp.setLocation(point);
+        return point;
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Point loadComponentLocation(Component comp){
+        return loadComponentLocation(comp,null);
     }
     /**
      * 
@@ -1771,6 +1831,42 @@ public class LinkManagerConfig {
     public boolean isComponentBoundsSet(Component comp){
         return getPreferences().isKeySet(getComponentName(comp)+
                 COMPONENT_BOUNDS_KEY_SUFFIX);
+    }
+    /**
+     * 
+     * @param comp
+     * @param defaultValue
+     * @return 
+     */
+    public Rectangle loadComponentBounds(Component comp,Rectangle defaultValue){
+            // Get the bounds for the component
+        Rectangle rect = getComponentBounds(comp, defaultValue);
+            // If the bounds for the component are not null and the component is 
+            // not null
+        if (rect != null && comp != null){
+                // If the component is the program window
+            if (comp instanceof LinkManager){
+                    // If the component bounds are not set
+                if (!isComponentBoundsSet(comp))
+                    return rect;
+            }   // Get the minimum size for the component
+            Dimension min = comp.getMinimumSize();
+                // Set the bounds for the component
+            comp.setBounds(rect.x, rect.y, 
+                        // Make sure the width is within range
+                    Math.max(rect.width, min.width), 
+                        // Make sure the height is within range
+                    Math.max(rect.height, min.height));
+        }
+        return rect;
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Rectangle loadComponentBounds(Component comp){
+        return loadComponentBounds(comp,null);
     }
     /**
      * 
