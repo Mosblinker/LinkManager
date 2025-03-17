@@ -5592,16 +5592,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     // End of variables declaration//GEN-END:variables
     /**
      * 
-     * @param offset 
-     */
-    protected void incrementProgressValue(int offset){
-        progressBar.setValue(progressBar.getValue()+offset);
-    }
-    /**
-     * 
      */
     protected void incrementProgressValue(){
-        incrementProgressValue(1);
+        progressBar.setValue(progressBar.getValue()+1);
     }
     /**
      * This reads in the remaining lines from the given Scanner and stores them 
