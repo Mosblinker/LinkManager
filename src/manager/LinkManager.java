@@ -5666,7 +5666,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private boolean writeToFile(File file, List<String> list){
             // Try to create a PrintWriter to write to the file
         try (PrintWriter writer = new PrintWriter(file)) {
-            setIndeterminate(false);
+            progressBar.setIndeterminate(false);
                 // Writes each line to the file
             for (int pos = 0; pos < list.size(); pos++){
                 writer.println(list.get(pos));
@@ -6029,16 +6029,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         
         setProgressMaximum(linksSet.size()+outdatedLinks.size()+total);
-        setIndeterminate(false);
+        progressBar.setIndeterminate(false);
             // Update the prefixes of the outdated links
         updatePrefixesInDatabase(conn, linkMap, outdatedLinks);
         
-        setIndeterminate(true);
+        progressBar.setIndeterminate(true);
         conn.commit();          // Commit the changes to the database
         System.gc();            // Run the garbage collector
             // Add the new links to the database.
         linkMap.addAll(linksSet, progressObserver);
-        setIndeterminate(false);
+        progressBar.setIndeterminate(false);
             // This gets a cached copy of the inverse link map
         Map<String,Long> linkIDMap = new HashMap<>(conn.getLinkMap().inverse());
             // Go through the models to be saved
@@ -6048,7 +6048,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 writeListToDatabase(conn,model,linkIDMap);
             }
         }
-        setIndeterminate(true);
+        progressBar.setIndeterminate(true);
             // Go through the tab panels
         for (int i = 0; i < listsTabPanels.length; i++){
                 // Update the list of the listIDs
@@ -6186,7 +6186,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Setup the progress bar and get the progress listener
             listener = createProgressListener(size);
                 // Set the progress bar to not be indeterminate
-            setIndeterminate(false);
+            progressBar.setIndeterminate(false);
         }   // Download the file from Dropbox
         return DropboxUtilities.download(file, path, dbxFiles, listener);
     }
@@ -6208,7 +6208,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // uploaded so far.
         ProgressListener listener = createProgressListener(file.length());
             // Set the progress bar to not be indeterminate
-        setIndeterminate(false);
+        progressBar.setIndeterminate(false);
             // Upload the file to Dropbox, using the set chunk size and 
             // overwriting the file if it already exists
         return DropboxUtilities.upload(file, path, client.files(), 
@@ -6618,7 +6618,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             useWaitCursor(true);
             setInputEnabled(false);
             updateProgressString();
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
             progressBar.setStringPainted(true);
             clearProgressValue();
             return backgroundAction();
@@ -6627,7 +6627,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void done(){
             System.gc();        // Run the garbage collector
             clearProgressValue();
-            setIndeterminate(false);
+            progressBar.setIndeterminate(false);
             progressBar.setStringPainted(false);
             setInputEnabled(true);
             useWaitCursor(false);
@@ -7036,7 +7036,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // the current list but the current list is read only
                     (isSource && t.isReadOnly()));
             setProgressMaximum(panels.size());
-            setIndeterminate(false);
+            progressBar.setIndeterminate(false);
                 // Go through the panels 
             for (LinksListPanel current : panels){
                     // If the given panel is to be removed from the current panel
@@ -7894,7 +7894,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Disable the hidden lists toggle
             showHiddenListsToggle.setEnabled(false);
                 // Set the program to be indeterminate
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
                 // Update the program configuration
             updateProgramConfig();
             try {   // Try to save the properties to file
@@ -8213,7 +8213,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 conn.setDatabaseLastModified();
                     // If the connection is not in auto-commit mode
                 if (!conn.getAutoCommit()){
-                    setIndeterminate(true);
+                    progressBar.setIndeterminate(true);
                     conn.commit();       // Commit the changes to the database
                 }
                 return value;
@@ -8450,7 +8450,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
             }   // Set the progress maximum to the amount of links that will be 
             setProgressMaximum(total);  // loaded
-            setIndeterminate(false);
+            progressBar.setIndeterminate(false);
                 // Go through the lists to be loaded
             for (Map.Entry<Integer,ListContents> listData:loadData.entrySet()){
                     // Get the listID of the list being loaded
@@ -8463,7 +8463,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Put the model in the map containing the loaded models
                 models.put(listID, model);
             }
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
                 // This gets a map mapping the tabs panels to the list of 
                 // listIDs for the lists to be shown by the panels
             Map<LinksListTabsPanel,List<Integer>> tabsListIDs = new HashMap<>();
@@ -8796,7 +8796,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             usedPrefixComboModel = new ArrayComboBoxModel<>();
             clearProgressValue();
             setProgressMaximum(prefixMap.size());
-            setIndeterminate(false);
+            progressBar.setIndeterminate(false);
                 // Go through the prefix map's entries
             for (Map.Entry<Integer,String> entry : prefixMap.entrySet()){
                     // Add a row to the prefix table model
@@ -8812,7 +8812,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 incrementProgressValue();
             }
             
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
                 // Search for the empty prefix
             searchUsedPrefixes(conn,prefixMap.getEmptyPrefixID());
             dbLinkSearchTable.setModel(getListSearchTableModel());
@@ -8823,7 +8823,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             addConfigRows("Database",dbProperty.toProperties(),
                     dbProperty.getDefaults().toProperties());
             
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
                 // Get the list data map from the database
             ListDataMap listDataMap = conn.getListDataMap();
             listTableModel = new CustomTableModel("ListID","List Name",
@@ -8846,7 +8846,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             } catch (IllegalArgumentException ex){}
             clearProgressValue();
             setProgressMaximum(listDataMap.size());
-            setIndeterminate(false);
+            progressBar.setIndeterminate(false);
                 // Go through the list contents objects
             for (ListContents list : listDataMap.values()){
                 listTableModel.addRow(new Object[]{
@@ -8863,7 +8863,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 incrementProgressValue();
             }
             
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
                 // Get the set of table names in the database
             Set<String> tableSet = conn.showTables();
                 // Get the set of views names in the database
@@ -8880,7 +8880,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             tableTableModel.setColumnClass(0, String.class);
             tableTableModel.setColumnClass(1, String.class);
             tableTableModel.setColumnClass(2, String.class);
-            setIndeterminate(false);
+            progressBar.setIndeterminate(false);
                 // Load the structures for the tables
             loadStructure(tableSet,structMap,"Table");
                 // Load the structures for the views
@@ -8888,7 +8888,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Load the structures for the indexes
             loadStructure(indexSet,structMap,"Index");
             
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
             
             
             
@@ -9012,7 +9012,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private void addConfigRows(String source, Properties config, 
                 Properties defaultConfig, boolean setIfNotEqual){
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
                 // Create the config table model if not already created
             createConfigModel();
                 // Get the property names for the config
@@ -9023,7 +9023,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 propNames.addAll(defaultConfig.stringPropertyNames());
             clearProgressValue();
             setProgressMaximum(propNames.size());
-            setIndeterminate(false);
+            progressBar.setIndeterminate(false);
                 // Go through the program's property names
             for (String property : propNames){
                     // Get the set property value
@@ -9255,7 +9255,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Write the models to the database
             writeToDatabase(conn, models);
             
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
             conn.commit();          // Commit the changes to the database
             System.gc();            // Run the garbage collector
             
@@ -9279,7 +9279,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             
             clearProgressValue();
             setProgressMaximum(listDataMap.size()+4);
-            setIndeterminate(false);
+            progressBar.setIndeterminate(false);
                 // Check to make sure the database contains all the links in the 
             if (!linkSet2.containsAll(linkSet1))    // program
                 return false;
@@ -9340,12 +9340,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             Map<Long,String> storedLinks = new LinkedHashMap<>(links);
             
             setProgressMaximum(links.size());
-            setIndeterminate(false);
+            progressBar.setIndeterminate(false);
                 // Update the prefixes for the links in the database
             updatePrefixesInDatabase(conn, links, links.navigableKeySet());
             conn.commit();       // Commit the changes to the database
             
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
             
                 // Check to make sure everything is effectively the same, just 
                 // updated
@@ -9803,7 +9803,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Set the progress to be zero
             setProgressValue(0);
                 // Set the progress to be indeterminate
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
             try{    // Try to download the file from the path
                 return saveFile(file,filePath);
             } catch (IOException ex){
