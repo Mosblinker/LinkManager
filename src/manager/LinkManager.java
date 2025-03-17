@@ -6620,13 +6620,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             updateProgressString();
             progressBar.setIndeterminate(true);
             progressBar.setStringPainted(true);
-            clearProgressValue();
+            progressBar.setValue(0);
             return backgroundAction();
         }
         @Override
         protected void done(){
             System.gc();        // Run the garbage collector
-            clearProgressValue();
+            progressBar.setValue(0);
             progressBar.setIndeterminate(false);
             progressBar.setStringPainted(false);
             setInputEnabled(true);
@@ -8794,7 +8794,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Make sure the prefix map contains the empty prefix
             prefixMap.getEmptyPrefixID();
             usedPrefixComboModel = new ArrayComboBoxModel<>();
-            clearProgressValue();
+            progressBar.setValue(0);
             progressBar.setMaximum(prefixMap.size());
             progressBar.setIndeterminate(false);
                 // Go through the prefix map's entries
@@ -8844,7 +8844,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // Configure the values shown by the list edit settings
                     setListEditSettings(conn,listID);
             } catch (IllegalArgumentException ex){}
-            clearProgressValue();
+            progressBar.setValue(0);
             progressBar.setMaximum(listDataMap.size());
             progressBar.setIndeterminate(false);
                 // Go through the list contents objects
@@ -8874,7 +8874,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             Map<String,String> structMap = new HashMap<>(conn.showStructures());
                 // Remove any structures that are null
             structMap.values().removeIf((String t) -> t == null);
-            clearProgressValue();
+            progressBar.setValue(0);
             progressBar.setMaximum(structMap.size());
             tableTableModel = new CustomTableModel("Name", "Type", "Structure");
             tableTableModel.setColumnClass(0, String.class);
@@ -9021,7 +9021,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (defaultConfig != null)
                     // Add all the default property names too
                 propNames.addAll(defaultConfig.stringPropertyNames());
-            clearProgressValue();
+            progressBar.setValue(0);
             progressBar.setMaximum(propNames.size());
             progressBar.setIndeterminate(false);
                 // Go through the program's property names
@@ -9277,7 +9277,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 modelMap.put(model.getListID(), model);
             }
             
-            clearProgressValue();
+            progressBar.setValue(0);
             progressBar.setMaximum(listDataMap.size()+4);
             progressBar.setIndeterminate(false);
                 // Check to make sure the database contains all the links in the 
