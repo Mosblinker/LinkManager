@@ -25,10 +25,8 @@ import static files.extensions.TextDocumentExtensions.TEXT_FILTER;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
-import java.awt.Window;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.io.*;
@@ -5732,46 +5730,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             linkTextField.setText(config.getEnteredLinkText());
                 // Go through the components with sizes saved to config
             for (Component comp : config.getComponentNames().keySet()){
-                    // Get the size for the component from the config
-                Dimension dim = config.getComponentSize(comp);
-                    // Get the location for the component from the config
-                Point point = config.getComponentLocation(comp);
-                    // Get the bounds for the component from the config
-                Rectangle rect = config.getComponentBounds(comp);
-                    // If the size for the component is not null
-                if (dim != null){
-                        // Get the minimum size for the component
-                    Dimension min = comp.getMinimumSize();
-                        // Make sure the width and height are within range
-                    dim.width = Math.max(dim.width, min.width);
-                    dim.height = Math.max(dim.height, min.height);
-                        // If the current component is a window
-                    if (comp instanceof Window){
-                            // Set the size of the window
-                        comp.setSize(dim);
-                    } else {// Set the preferred size of the current component
-                        comp.setPreferredSize(dim);
-                    }
-                }   // If the location for the component is not null
-                if (point != null)
-                        // Set the location for the component
-                    comp.setLocation(point);
-                    // If the bounds for the component are not null
-                if (rect != null){
-                        // If the current component is this program
-                    if (comp == this){
-                            // If the component bounds are not set
-                        if (!config.isComponentBoundsSet(comp))
-                            continue;
-                    }   // Get the minimum size for the component
-                    Dimension min = comp.getMinimumSize();
-                        // Set the bounds for the component
-                    comp.setBounds(rect.x, rect.y, 
-                                // Make sure the width is within range
-                            Math.max(rect.width, min.width), 
-                                // Make sure the height is within range
-                            Math.max(rect.height, min.height));
-                }
+                    // Load the size for the component from the config
+                config.loadComponentSize(comp);
+                    // Load the location for the component from the config
+                config.loadComponentLocation(comp);
+                    // Load the bounds for the component from the config
+                config.loadComponentBounds(comp);
             }   // Remove the database location dialog's size from the config 
                 // since it uses the bounds now
                 // TODO: If and when this would affect the actual bounds 
