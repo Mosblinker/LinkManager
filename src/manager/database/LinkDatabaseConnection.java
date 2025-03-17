@@ -4785,7 +4785,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @param linkID
      * @throws SQLException 
      */
-    public void updateLinkData(long linkID) throws SQLException{
+    public void updateLinkPrefix(long linkID) throws SQLException{
             // Get the link for the given linkID
         String link = getLinkMap().get(linkID);
             // If there is no link mapped to the given linkID

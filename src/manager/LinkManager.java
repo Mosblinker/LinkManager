@@ -3353,7 +3353,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             Set<Long> outdatedLinks = new LinkedHashSet<>(
                     linkMap.getStartsWith(prefix).navigableKeySet());
             for (Long linkID : outdatedLinks){
-                conn.updateLinkData(linkID);
+                conn.updateLinkPrefix(linkID);
 //                progressBar.setValue(progressBar.getValue()+1);
             }
                // Ensure that the database last modified time is updated
@@ -5874,7 +5874,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             LinkMap linkMap, Collection<Long> linkIDs) throws SQLException {
             // Go through the linkIDs of the links to be updated
         for (Long linkID : linkIDs){
-            conn.updateLinkData(linkID);
+            conn.updateLinkPrefix(linkID);
             incrementProgressValue();
         }
     }
