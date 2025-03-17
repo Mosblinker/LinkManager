@@ -6028,7 +6028,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             outdatedLinks.addAll(linkMap.getStartsWith(prefix).navigableKeySet());
         }
         
-        setProgressMaximum(linksSet.size()+outdatedLinks.size()+total);
+        progressBar.setMaximum(linksSet.size()+outdatedLinks.size()+total);
         progressBar.setIndeterminate(false);
             // Update the prefixes of the outdated links
         updatePrefixesInDatabase(conn, linkMap, outdatedLinks);
@@ -7035,7 +7035,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // If this worker will be removing the given list from 
                         // the current list but the current list is read only
                     (isSource && t.isReadOnly()));
-            setProgressMaximum(panels.size());
+            progressBar.setMaximum(panels.size());
             progressBar.setIndeterminate(false);
                 // Go through the panels 
             for (LinksListPanel current : panels){
@@ -7812,7 +7812,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean saveFile(File file) {
-            setProgressMaximum(list.size());
+            progressBar.setMaximum(list.size());
             return writeToFile(file,list);
         }
     }
@@ -8449,7 +8449,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     total += temp.size();
                 }
             }   // Set the progress maximum to the amount of links that will be 
-            setProgressMaximum(total);  // loaded
+            progressBar.setMaximum(total);  // loaded
             progressBar.setIndeterminate(false);
                 // Go through the lists to be loaded
             for (Map.Entry<Integer,ListContents> listData:loadData.entrySet()){
@@ -8795,7 +8795,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             prefixMap.getEmptyPrefixID();
             usedPrefixComboModel = new ArrayComboBoxModel<>();
             clearProgressValue();
-            setProgressMaximum(prefixMap.size());
+            progressBar.setMaximum(prefixMap.size());
             progressBar.setIndeterminate(false);
                 // Go through the prefix map's entries
             for (Map.Entry<Integer,String> entry : prefixMap.entrySet()){
@@ -8845,7 +8845,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     setListEditSettings(conn,listID);
             } catch (IllegalArgumentException ex){}
             clearProgressValue();
-            setProgressMaximum(listDataMap.size());
+            progressBar.setMaximum(listDataMap.size());
             progressBar.setIndeterminate(false);
                 // Go through the list contents objects
             for (ListContents list : listDataMap.values()){
@@ -8875,7 +8875,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Remove any structures that are null
             structMap.values().removeIf((String t) -> t == null);
             clearProgressValue();
-            setProgressMaximum(structMap.size());
+            progressBar.setMaximum(structMap.size());
             tableTableModel = new CustomTableModel("Name", "Type", "Structure");
             tableTableModel.setColumnClass(0, String.class);
             tableTableModel.setColumnClass(1, String.class);
@@ -9022,7 +9022,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Add all the default property names too
                 propNames.addAll(defaultConfig.stringPropertyNames());
             clearProgressValue();
-            setProgressMaximum(propNames.size());
+            progressBar.setMaximum(propNames.size());
             progressBar.setIndeterminate(false);
                 // Go through the program's property names
             for (String property : propNames){
@@ -9278,7 +9278,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             
             clearProgressValue();
-            setProgressMaximum(listDataMap.size()+4);
+            progressBar.setMaximum(listDataMap.size()+4);
             progressBar.setIndeterminate(false);
                 // Check to make sure the database contains all the links in the 
             if (!linkSet2.containsAll(linkSet1))    // program
@@ -9339,7 +9339,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // prefixes have been updated
             Map<Long,String> storedLinks = new LinkedHashMap<>(links);
             
-            setProgressMaximum(links.size());
+            progressBar.setMaximum(links.size());
             progressBar.setIndeterminate(false);
                 // Update the prefixes for the links in the database
             updatePrefixesInDatabase(conn, links, links.navigableKeySet());
@@ -9446,7 +9446,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             int max = 0;
             for (LinksListPanel panel : allListsTabsPanel)
                 max += panel.getModel().size();
-            setProgressMaximum(max);
+            progressBar.setMaximum(max);
             /* Copied path checking code from FileRearranger
             try{
                 path = newFile.toPath();
@@ -10064,7 +10064,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         double div = divider;
             // Set the progress maximum to the file length divided by the 
             // divisor
-        setProgressMaximum((int)Math.ceil(fileSize / div));
+        progressBar.setMaximum((int)Math.ceil(fileSize / div));
             // Create and return a progress listener that will update the 
             // progress bar to reflect the bytes that have been written so far
         return (long bytesWritten) -> {
