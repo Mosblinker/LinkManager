@@ -5866,21 +5866,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      * @param conn
-     * @param linkMap
-     * @param linkIDs
-     * @throws SQLException 
-     */
-    private void updatePrefixesInDatabase(LinkDatabaseConnection conn, 
-            LinkMap linkMap, Collection<Long> linkIDs) throws SQLException {
-            // Go through the linkIDs of the links to be updated
-        for (Long linkID : linkIDs){
-            conn.updateLinkPrefix(linkID);
-            incrementProgressValue();
-        }
-    }
-    /**
-     * 
-     * @param conn
      * @param models
      * @throws SQLException 
      */
@@ -5957,7 +5942,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         progressBar.setMaximum(linksSet.size()+outdatedLinks.size()+total);
         progressBar.setIndeterminate(false);
             // Update the prefixes of the outdated links
-        updatePrefixesInDatabase(conn, linkMap, outdatedLinks);
+        conn.updateLinkPrefix(outdatedLinks, progressObserver);
         
         progressBar.setIndeterminate(true);
         conn.commit();          // Commit the changes to the database
@@ -9268,7 +9253,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             progressBar.setMaximum(links.size());
             progressBar.setIndeterminate(false);
                 // Update the prefixes for the links in the database
-            updatePrefixesInDatabase(conn, links, links.navigableKeySet());
+            conn.updateLinkPrefix(links.navigableKeySet());
             conn.commit();       // Commit the changes to the database
             
             progressBar.setIndeterminate(true);
