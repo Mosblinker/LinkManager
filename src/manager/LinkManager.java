@@ -5592,38 +5592,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     // End of variables declaration//GEN-END:variables
     /**
      * 
-     * @return 
-     */
-    protected boolean isIndeterminate(){
-        return progressBar.isIndeterminate();
-    }
-    /**
-     * 
      * @param value 
      */
     protected void setIndeterminate(boolean value){
         progressBar.setIndeterminate(value);
-    }
-    /**
-     * 
-     * @return 
-     */
-    protected int getProgressMinimum(){
-        return progressBar.getMinimum();
-    }
-    /**
-     * 
-     * @param minimum 
-     */
-    protected void setProgressMinimum(int minimum){
-        progressBar.setMinimum(minimum);
-    }
-    /**
-     * 
-     * @return 
-     */
-    protected int getProgressMaximum(){
-        return progressBar.getMaximum();
     }
     /**
      * 
