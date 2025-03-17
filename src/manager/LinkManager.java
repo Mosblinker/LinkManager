@@ -9274,28 +9274,28 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     updateSuccess = conn.updateDatabaseDefinitions(stmt, LinkManager.this);
                     break;
                 case(1):
-                    updateSuccess = conn.updateAddConfigTable(stmt, LinkManager.this);
+                    updateSuccess = conn.updateAddConfigTable(stmt, progressObserver);
                     break;
                 case(2):
-                    updateSuccess = conn.updateToVersion1_0_0(stmt, LinkManager.this);
+                    updateSuccess = conn.updateToVersion1_0_0(stmt, progressObserver);
                     break;
                 case(3):
-                    updateSuccess = conn.updateAddListSizeLimitColumn(stmt, LinkManager.this);
+                    updateSuccess = conn.updateAddListSizeLimitColumn(stmt, progressObserver);
                     break;
                 case(4):
-                    updateSuccess = conn.updateToVersion0_5_0(stmt, LinkManager.this);
+                    updateSuccess = conn.updateToVersion0_5_0(stmt, progressObserver);
                     break;
                 case(5):
-                    updateSuccess = conn.updateAddPrefixTable(stmt, LinkManager.this);
+                    updateSuccess = conn.updateAddPrefixTable(stmt, progressObserver);
                     break;
                 case(6):
-                    updateSuccess = conn.updateAddListFlagsColumn(stmt, LinkManager.this);
+                    updateSuccess = conn.updateAddListFlagsColumn(stmt, progressObserver);
                     break;
                 case(7):
-                    updateSuccess = conn.updateRenameInitialColumns(stmt, LinkManager.this);
+                    updateSuccess = conn.updateRenameInitialColumns(stmt, progressObserver);
                     break;
                 case(8):
-                    updateSuccess = conn.updateRenameLinkColumns(stmt, LinkManager.this);
+                    updateSuccess = conn.updateRenameLinkColumns(stmt, progressObserver);
             }
             if (mode != 0)
                 conn.setForeignKeysEnabled(true, stmt);

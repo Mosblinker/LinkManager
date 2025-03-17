@@ -2300,12 +2300,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * This renames the link column 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
     // Version 0.0.0 -> Version 0.0.1
-    public boolean updateRenameLinkColumns(Statement stmt, DisableGUIInput program) 
+    public boolean updateRenameLinkColumns(Statement stmt, ProgressObserver l) 
             throws SQLException{
             // Rename the old version 0.0.0 link column to its 0.0.1+ name
         renameColumn(OLD_DATABASE_TABLES[0][0][0], 
@@ -2325,37 +2325,32 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
     // Version 0.0.1 -> Version 0.1.0
-    public boolean updateRenameInitialColumns(Statement stmt, DisableGUIInput program) 
+    public boolean updateRenameInitialColumns(Statement stmt,ProgressObserver l) 
             throws SQLException{
-            // This gets the progress bar from the program if there is one
-        JProgressBar progressBar = null;
-            // If a program was provided
-        if (program != null)
-            progressBar = program.getProgressBar();
             // A two-dimensional array containing the indexes for the names of 
             // the columns that need renaming and the tables they are in
         int[][] updates = {
             {0, 3},     // Links table, link index column
             {1, 2},     // List table, list index column
             {1, 3}      // List table, list name column
-        };  // If the program has a progress bar
-        if (progressBar != null){
-            progressBar.setMaximum(updates.length);
-            progressBar.setIndeterminate(false);
+        };  // If a progress observer has been provided
+        if (l != null){
+            l.setMaximum(updates.length);
+            l.setIndeterminate(false);
         }   // Go through the tuples of table and columns that need renaming
         for (int[] update : updates){
                 // Rename the column from its 0.0.x name to its 0.1.0+ name
             renameColumn(OLD_DATABASE_TABLES[0][update[0]][0], 
                     OLD_DATABASE_TABLES[0][update[0]][update[1]], 
                     OLD_DATABASE_TABLES[1][update[0]][update[1]], stmt);
-                // If the program has a progress bar
-            if (progressBar != null)
-                progressBar.setValue(progressBar.getValue()+1);
+                // If a progress observer has been provided
+            if (l != null)
+                l.incrementValue();
         }
         return true;
     }
@@ -2371,12 +2366,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
     // Version 0.1.0 -> Version 0.2.0
-    public boolean updateAddListFlagsColumn(Statement stmt, DisableGUIInput program) 
+    public boolean updateAddListFlagsColumn(Statement stmt, ProgressObserver l) 
             throws SQLException{
             // Add the list flags column to the list table
         addColumn(OLD_DATABASE_TABLES[1][1][0], 
@@ -2396,23 +2391,18 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
     // Version 0.2.0 -> Version 0.3.0
-    public boolean updateAddPrefixTable(Statement stmt, DisableGUIInput program) 
+    public boolean updateAddPrefixTable(Statement stmt, ProgressObserver l) 
             throws SQLException{
             // Get the current state of the auto-commit
         boolean autoCommit = getAutoCommit();
             // Turn off the auto-commit in order to group the following database 
             // transactions to improve performance
         setAutoCommit(false);
-            // This gets the progress bar from the program if there is one
-        JProgressBar progressBar = null;
-            // If a program was provided
-        if (program != null)
-            progressBar = program.getProgressBar();
             // This will get a map that maps the linkIDs to the listIDs of the 
             // list containing the link
         TreeMap<Integer,Integer> listIDs = new TreeMap<>();
@@ -2421,10 +2411,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         TreeMap<Integer,Integer> indexes = new TreeMap<>();
             // This will get a map that maps the linkIDs to the links
         TreeMap<Integer,String> links = new TreeMap<>();
-        if (progressBar != null){   // If the program has a progress bar
-            progressBar.setMaximum(getTableSize(OLD_DATABASE_TABLES[1][0][0],
-                    "*",stmt));
-            progressBar.setIndeterminate(false);
+        if (l != null){     // If a progress observer has been provided
+            l.setMaximum(getTableSize(OLD_DATABASE_TABLES[1][0][0],"*",stmt));
+            l.setIndeterminate(false);
         }   // Query the database for the contents of the links table
         ResultSet results = stmt.executeQuery("SELECT * FROM "+OLD_DATABASE_TABLES[1][0][0]);
             // While there are still rows in the links table
@@ -2437,13 +2426,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             indexes.put(linkID, results.getInt(OLD_DATABASE_TABLES[1][0][3]));
                 // Get the current row's link
             links.put(linkID, results.getString(OLD_DATABASE_TABLES[1][0][4]));
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)  // If a progress observer has been provided
+                l.incrementValue();
         }
-        if (progressBar != null){   // If the program has a progress bar
-            progressBar.setIndeterminate(true);
-            progressBar.setValue(0);
-            progressBar.setMaximum(links.size());
+        if (l != null){     // If a progress observer has been provided
+            l.setIndeterminate(true);
+            l.clearValue();
+            l.setMaximum(links.size());
         }   // Delete the old links table
         deleteTable(OLD_DATABASE_TABLES[1][0][0],stmt);
         commit();       // Commit the changes to the database
@@ -2479,8 +2468,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
         }
         commit();       // Commit the changes to the database
-        if (progressBar != null)    // If the program has a progress bar
-            progressBar.setIndeterminate(false);
+        if (l != null)  // If a progress observer has been provided
+            l.setIndeterminate(false);
             // Go through the linkIDs of the links from the database
         for (Integer linkID : links.keySet()){
                 // Prepare a statement to insert the current link back into the 
@@ -2506,8 +2495,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // Execute the update
                 pstmt.executeUpdate();
             }
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)  // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Restore the auto-commit back to what it was set to before
@@ -2526,32 +2515,28 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
     // Version 0.3.0 -> Version 0.5.0
     // (Version 0.4.0 reworked the tables, version 0.5.0 added the size limit 
     // column)
-    public boolean updateToVersion0_5_0(Statement stmt, DisableGUIInput program) 
+    public boolean updateToVersion0_5_0(Statement stmt, ProgressObserver l) 
             throws SQLException{
             // Get the current state of the auto-commit
         boolean autoCommit = getAutoCommit();
             // Turn off the auto-commit in order to group the following database 
             // transactions to improve performance
         setAutoCommit(false);
-            // This gets the progress bar from the program if there is one
-        JProgressBar progressBar = null;
-        if (program != null)    // If a program was provided
-            progressBar = program.getProgressBar();
             // This will get the total size of the tables
         int max = 0;
             // Go through the tables in the database
         for (String[] table : OLD_DATABASE_TABLES[2])
             max += getTableSize(table[0],"*",stmt);
-        if (progressBar != null){   // If the program has a progress bar
-            progressBar.setMaximum(max);
-            progressBar.setIndeterminate(false);
+        if (l != null){     // If a progress observer has been provided
+            l.setMaximum(max);
+            l.setIndeterminate(false);
         }   // This will get a map mapping the prefixIDs to the prefixes
         TreeMap<Integer, String> oldPrefixes = new TreeMap<>();
             // This gets the prefixID for the empty prefix
@@ -2570,8 +2555,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             if (prefix.isEmpty())
                     // We found the empty prefixID
                 emptyPrefixID = prefixID;
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
             // If the database did not contain the empty prefix
         if (!oldPrefixes.containsValue("")){
@@ -2609,8 +2594,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // If the prefixID is was not null
             if (!results.wasNull())
                 oldPrefixIDs.put(linkID, prefixID);
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }   // This will get a map mapping listIDs to the list names
         TreeMap<Integer, String> listNames = new TreeMap<>();
             // This will get a map mapping listIDs to their tab indexes
@@ -2629,16 +2614,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             listIndexes.put(listID, results.getInt(OLD_DATABASE_TABLES[2][2][2]));
                 // Get the list flags for the current row
             listFlags.put(listID, results.getInt(OLD_DATABASE_TABLES[2][2][5]));
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
-        if (progressBar != null){       // If the program has a progress bar
-            progressBar.setValue(0);
+        if (l != null){         // If a progress observer has been provided
+            l.clearValue();
                 // Set the maximum to the amount of linkIDs + the amount of 
                 // links + the amount of lists + the amount of prefixes + the 
                 // amount of tables present in version 0.3.0 + the amount of 
                 // queries used to create the tables in version 0.5.0
-            progressBar.setMaximum(linkListIDs.size()+
+            l.setMaximum(linkListIDs.size()+
                     oldLinks.size()+
                     oldPrefixes.size()+
                     listNames.size()+
@@ -2648,15 +2633,15 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         for (String[] table : OLD_DATABASE_TABLES[2]){
                 // Delete the current table
             deleteTable(table[0],stmt);
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Go through the table creation queries for the tables in version 
         for (String query : OLD_DATABASE_DEFINITIONS[1]){   // 0.5.0
             stmt.execute(query);    // Create the table
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Go through the prefixes from the database
@@ -2677,8 +2662,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         // Update the database
                     pstmt.executeUpdate();
                 }
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Go through the linkIDs of the links from the database
@@ -2701,8 +2686,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // Update the database
                 pstmt.executeUpdate();
             }
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Go through the listIDs of the lists from the database
@@ -2730,8 +2715,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // Update the database
                 pstmt.executeUpdate();
             }
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Go through the linkIDs of the links in the lists
@@ -2753,8 +2738,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // Update the database
                 pstmt.executeUpdate();
             }
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Restore the auto-commit back to what it was set to before
@@ -2773,12 +2758,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
     public boolean updateAddListSizeLimitColumn(Statement stmt, 
-            DisableGUIInput program) throws SQLException{
+            ProgressObserver l) throws SQLException{
             // Add the list size limit column
         addColumn(OLD_DATABASE_TABLES[3][2][0], 
                 OLD_DATABASE_TABLES[3][2][5], 
@@ -2797,22 +2782,17 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
-    public boolean updateToVersion1_0_0(Statement stmt, DisableGUIInput program) 
+    public boolean updateToVersion1_0_0(Statement stmt, ProgressObserver l) 
             throws SQLException{
             // Get the current state of the auto-commit
         boolean autoCommit = getAutoCommit();
             // Turn off the auto-commit in order to group the following database 
             // transactions to improve performance
         setAutoCommit(false);
-            // This gets the progress bar from the program if there is one
-        JProgressBar progressBar = null;
-            // If a program was provided
-        if (program != null)
-            progressBar = program.getProgressBar();
             // This gets the size of all the tables currently in the database
         int max = 0;
             // Go through the tables in the database
@@ -2820,9 +2800,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             max += getTableSize(OLD_DATABASE_TABLES[3][i][0], 
                     OLD_DATABASE_TABLES[3][i][1],stmt);
         }
-        if (progressBar != null){       // If the program has a progress bar
-            progressBar.setMaximum(max);
-            progressBar.setIndeterminate(false);
+        if (l != null){ // If a progress observer has been provided
+            l.setMaximum(max);
+            l.setIndeterminate(false);
         }   // This is a set that will get the prefixes from the database
         Set<String> oldPrefixes = new LinkedHashSet<>();
             // Query the prefix table to get the prefixes
@@ -2831,8 +2811,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         while (results.next()){
                 // Add the prefix to the set
             oldPrefixes.add(results.getString(OLD_DATABASE_TABLES[3][0][2]));
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }   // This is a map that will get the full links from the database
         TreeMap<Long,String> oldLinks = new TreeMap<>();
             // Query the full links view to get the links
@@ -2842,8 +2822,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // Map the link to its linkID
             oldLinks.put(results.getLong(OLD_DATABASE_TABLES[3][4][1]), 
                     results.getString(OLD_DATABASE_TABLES[3][4][2]));
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }   // This is a map that will get the names of the lists
         TreeMap<Integer, String> oldListNames = new TreeMap<>();
             // This is a map that will get the listIDs of the lists in order
@@ -2876,8 +2856,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 listSizeLimit.put(listID, temp);
                 // Create the list to store the list data
             listData.put(listID, new ArrayList<>());
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }   // Query the list data table, sorted by listID and link index
         results = stmt.executeQuery(String.format(
                 "SELECT * FROM %s ORDER BY %s, %s NULLS LAST",
@@ -2890,11 +2870,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // list
             listData.get(results.getInt(OLD_DATABASE_TABLES[3][3][1])).
                     add(results.getLong(OLD_DATABASE_TABLES[3][3][2]));
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
-        if (progressBar != null)        // If the program has a progress bar
-            progressBar.setIndeterminate(true);
+        if (l != null)          // If a progress observer has been provided
+            l.setIndeterminate(true);
             // Delete the index on the list data table
         deleteIndex(OLD_DATABASE_TABLES[3][5][0],stmt);
             // Delete the full links view
@@ -2905,30 +2885,30 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             deleteTable(OLD_DATABASE_TABLES[3][i][0],stmt);
         }
         createTables(stmt); // Create the new tables
-        commit();       // Commit the changes to the database
-        if (progressBar != null)        // If the program has a progress bar
-            progressBar.setValue(0);
+        commit();           // Commit the changes to the database
+        if (l != null)      // If a progress observer has been provided
+            l.clearValue();
             // Set the total size back to zero
         max = 0;
             // Go through the list data to get the total size
         for (List<Long> links : listData.values())
             max += links.size();
-        if (progressBar != null){       // If the program has a progress bar
+        if (l != null){     // If a progress observer has been provided
                 // Set the maximum value for the progress bar to the amount of 
                 // prefixes, links, lists (x2) and the total size of those lists
-            progressBar.setMaximum(oldPrefixes.size()+
+            l.setMaximum(oldPrefixes.size()+
                     oldLinks.size()+
                     oldListNames.size()+
                     listIndexes.size()+max);
-            progressBar.setIndeterminate(false);
+            l.setIndeterminate(false);
         }   // Get the prefix map of the new database
         PrefixMap prefixes = getPrefixMap();
             // Go through the prefixes from the old database
         for (String prefix : oldPrefixes){
                 // Add the prefix if not already added
             prefixes.addIfAbsent(prefix);
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Get the link map of the new database
@@ -2937,8 +2917,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         for (String link : oldLinks.values()){
                 // Add the link if not already added
             links.addIfAbsent(link);
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Get the list name map from the new database
@@ -2960,8 +2940,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     listSizeLimit.get(oldID));
                 // Map the list's new ID to its old ID
             listIDConversion.put(oldID, listID);
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }   // Go through the old list of listIDs 
         for (Integer oldID : listIndexes){
                 // Convert the current list's old listID to its new listID
@@ -2971,8 +2951,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             if ((listFlags.get(oldID) & 0x1) != 1)
                 shownLists.add(listID);
             allLists.add(listID);
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Go through the old and new listIDs
@@ -2985,8 +2965,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             for (Long linkID : linkIndexes){
                     // Add the link at the linkID to the new list contents
                 listContents.add(oldLinks.get(linkID));
-                if (progressBar != null)    // If the program has a progress bar
-                    progressBar.setValue(progressBar.getValue()+1);
+                if (l != null)      // If a progress observer has been provided
+                    l.incrementValue();
             }
             commit();       // Commit the changes to the database
         }   // Remove any duplicate links
@@ -3012,11 +2992,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
-    public boolean updateAddConfigTable(Statement stmt, DisableGUIInput program) 
+    public boolean updateAddConfigTable(Statement stmt, ProgressObserver l) 
             throws SQLException{
         createTables(stmt); // Create any new tables
             // Set the database version to 1.0.0
@@ -3035,13 +3015,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @param versionStr
      * @return
      * @throws SQLException 
      */
     protected boolean updateOldDatabaseDefinitions(Statement stmt, 
-            DisableGUIInput program, String versionStr)
+            ProgressObserver l, String versionStr)
             throws SQLException{
 //            // If the version is greater than zero
 //        if (version[0] > 0)
@@ -3058,31 +3038,31 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         switch(versionStr){
             case("0.0.0"):      // If this is version 0.0.0 (Initial version)
                     // Update to version 0.0.1
-                updateSuccess = updateRenameLinkColumns(stmt,program);
+                updateSuccess = updateRenameLinkColumns(stmt,l);
                     // If the database was not successfully updated
                 if (!updateSuccess)
                     break;
             case("0.0.1"):      // If this is version 0.0.1 or earlier
                     // Update to version 0.1.0
-                updateSuccess = updateRenameInitialColumns(stmt,program);
+                updateSuccess = updateRenameInitialColumns(stmt,l);
                     // If the database was not successfully updated
                 if (!updateSuccess)
                     break;
             case("0.1.0"):      // If this is version 0.1.0 or earlier
                     // Update to version 0.2.0
-                updateSuccess = updateAddListFlagsColumn(stmt,program);
+                updateSuccess = updateAddListFlagsColumn(stmt,l);
                     // If the database was not successfully updated
                 if (!updateSuccess)
                     break;
             case("0.2.0"):      // If this is version 0.2.0 or earlier
                     // Update to version 0.3.0
-                updateSuccess = updateAddPrefixTable(stmt,program);
+                updateSuccess = updateAddPrefixTable(stmt,l);
                     // If the database was not successfully updated
                 if (!updateSuccess)
                     break;
             case("0.3.0"):      // If this is version 0.3.0 or earlier
                     // Update to version 0.5.0
-                updateSuccess = updateToVersion0_5_0(stmt,program);
+                updateSuccess = updateToVersion0_5_0(stmt,l);
                     // If the database was not successfully updated
                 if (!updateSuccess)
                     break;
@@ -3090,18 +3070,18 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // If this is version 0.4.0 only
                 if ("0.4.0".equals(versionStr)){
                         // Update to version 0.5.0
-                    updateSuccess = updateAddListSizeLimitColumn(stmt,program);
+                    updateSuccess = updateAddListSizeLimitColumn(stmt,l);
                         // If the database was not successfully updated
                     if (!updateSuccess)
                         break;
                 }
             case("0.5.0"):      // If this is version 0.5.0 or earlier
                     // Update to version 1.0.0
-                updateSuccess = updateToVersion1_0_0(stmt,program);
+                updateSuccess = updateToVersion1_0_0(stmt,l);
                 break;
             case("0.6.0"):      // If this is version 0.6.0
                     // Update to version 1.0.0
-                updateSuccess = updateAddConfigTable(stmt,program);
+                updateSuccess = updateAddConfigTable(stmt,l);
         }   // Set the database version to 1.0.0
         getDatabaseProperties().setProperty(DATABASE_VERSION_CONFIG_KEY,"1.0.0");
         commit();       // Commit the changes to the database
