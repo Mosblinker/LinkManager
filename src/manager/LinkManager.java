@@ -583,19 +583,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         listBOpCombo.setRenderer(new LinksListCellRenderer());
         listCOpCombo.setRenderer(new LinksListCellRenderer());
         
-        dbListTable.setDefaultRenderer(java.util.Date.class, new DefaultTableCellRenderer(){
-            @Override
-            public java.awt.Component getTableCellRendererComponent(
-                    JTable table, Object value, boolean isSelected, 
-                    boolean hasFocus, int row, int column) {
-                    // If the value is a date
-                if (value instanceof java.util.Date){
-                    value = DEBUG_DATE_FORMAT.format((java.util.Date) value);
-                }
-                return super.getTableCellRendererComponent(table, value, 
-                        isSelected, hasFocus, row, column);
-            }
-        });
+        dbListTable.setDefaultRenderer(java.util.Date.class, new DateTableCellRenderer(DEBUG_DATE_FORMAT));
         dbListTable.setDefaultRenderer(Integer.class, new DefaultTableCellRenderer(){
             @Override
             public java.awt.Component getTableCellRendererComponent(
@@ -655,32 +643,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (listID != null)
                 dbListIDCombo.setSelectedItem(listID);
         });
-        dbCreatePrefixTree.setCellRenderer(new DefaultTreeCellRenderer(){
-            @Override
-            public Component getTreeCellRendererComponent(JTree tree, Object value,
-                    boolean sel,boolean expanded,boolean leaf,int row,boolean hasFocus){
-                    // If the value is a DefaultMutableTreeNode
-                if (value instanceof DefaultMutableTreeNode){
-                        // Get the value as a DefaultMutableTreeNode
-                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-                        // If the node's user object is a String and the node 
-                        // allows children
-                    if (node.getUserObject() instanceof String && 
-                            node.getAllowsChildren()){
-                            // Get the amount of child nodes
-                        int children = node.getChildCount();
-                            // Get the node's user object and append the child 
-                            // count
-                        value = node.getUserObject() + " ["+children+
-                                    // If there is only one child, do not show 
-                                    // an "s" at the end of the word
-                                " Item"+((children!=1)?"s":"")+"]";
-                    }
-                }
-                return super.getTreeCellRendererComponent(tree, value, sel, 
-                        expanded, leaf, row, hasFocus);
-            }
-        });
+        dbCreatePrefixTree.setCellRenderer(new ChildCountTreeCellRenderer());
         
         listManipulator.addListSelectionListener(listManipSelCountPanel);
         copyOrMoveListSelector.addListSelectionListener(copyOrMoveSelCountPanel);
