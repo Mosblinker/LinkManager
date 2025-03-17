@@ -57,6 +57,7 @@ import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
 import manager.links.*;
 import manager.painters.LinkManagerIconPainter;
+import manager.renderer.*;
 import manager.security.CipherUtilities;
 import manager.timermenu.*;
 import measure.format.binary.ByteUnitFormat;
