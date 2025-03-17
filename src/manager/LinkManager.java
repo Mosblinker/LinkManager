@@ -5603,22 +5603,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return If the file was successfully written.
      */
     private boolean writeToFile(File file, List<String> list){
-            // Try to create a PrintWriter to write to the file
-        try (PrintWriter writer = new PrintWriter(file)) {
-            progressBar.setIndeterminate(false);
-                // Writes each line to the file
-            for (int pos = 0; pos < list.size(); pos++){
-                writer.println(list.get(pos));
-                    // If there is to be a blank line between each line
-                if (doubleNewLinesToggle.isSelected())
-                    writer.println();
-                incrementProgressValue();
-                slowTestToggle.runSlowTest();
-            }
-        } catch (FileNotFoundException ex) {
-            return false;
-        }
-        return true;
+        return LinkManagerUtilities.writeToFile(file, list, 
+                doubleNewLinesToggle.isSelected(), progressObserver);
     }
     /**
      * 
@@ -5630,7 +5616,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // If the configuration properties is not empty or the file exists
         if (!config.getProperties().isEmpty() || file.exists())
                 // Save the configuration properties to file
-            return LinkManagerUtilities.saveProperties(file,config.getProperties(),GENERAL_CONFIG_HEADER);
+            return LinkManagerUtilities.saveProperties(file,config.getProperties(),
+                    GENERAL_CONFIG_HEADER);
         return true;
     }
     /**
