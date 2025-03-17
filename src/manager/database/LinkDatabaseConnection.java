@@ -3021,8 +3021,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @throws SQLException 
      */
     protected boolean updateOldDatabaseDefinitions(Statement stmt, 
-            ProgressObserver l, String versionStr)
-            throws SQLException{
+            ProgressObserver l, String versionStr)throws SQLException{
 //            // If the version is greater than zero
 //        if (version[0] > 0)
 //            return true;
@@ -3152,7 +3151,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             lists.put(listType, new ArrayList<>(getListIDs(listType)));
         }   // This is a map that contains the list data, since that will be 
             // erased when the list table is deleted
-        Map<Integer, List<Long>> data = loadListDataIDs(stmt,progressBar);
+        Map<Integer, List<Long>> data = loadListDataIDs(stmt,toProgressObserver(progressBar));
             // Get the total size of the lists
         int totalSize = getListDataMap().totalSize();
         if (progressBar != null){       // If a progress bar was provided
@@ -3219,25 +3218,25 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             progressBar.setValue(0);
             progressBar.setMaximum(totalSize);
         }   // Repopulate the list data in the database
-        repopulateListData(data,progressBar);
+        repopulateListData(data,toProgressObserver(progressBar));
         return true;
     }
     /**
      * 
      * @param stmt
-     * @param progressBar
+     * @param l
      * @return
      * @throws SQLException 
      */
     protected Map<Integer, List<Long>> loadListDataIDs(Statement stmt, 
-            JProgressBar progressBar)throws SQLException {
+            ProgressObserver l) throws SQLException {
             // A tree map to get the list data from the database
         TreeMap<Integer, List<Long>> listData = new TreeMap<>();
-        if (progressBar != null){       // If a progress bar was provided
-            progressBar.setValue(0);
-            progressBar.setMaximum(getTableSize(LIST_DATA_TABLE_NAME,
-                    LINK_ID_COLUMN_NAME,stmt));
-            progressBar.setIndeterminate(false);
+        if (l != null){     // If a progress observer has been provided
+            l.clearValue();
+            l.setMaximum(getTableSize(LIST_DATA_TABLE_NAME,LINK_ID_COLUMN_NAME,
+                    stmt));
+            l.setIndeterminate(false);
         }   // Get the contents of the list data table
         ResultSet rs = stmt.executeQuery(String.format(
                 "SELECT %s, %s, %s FROM %s ORDER BY %s, %s", 
@@ -3268,36 +3267,36 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 list.add(null);
             }
             list.add(linkID);   // Add the linkID to the list
-            if (progressBar != null)    // If a progress bar was provided
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         return listData;
     }
     /**
      * 
      * @param listData
-     * @param progressBar
+     * @param l
      * @throws SQLException 
      */
     protected void repopulateListData(Map<Integer, List<Long>> listData, 
-            JProgressBar progressBar) throws SQLException{
+            ProgressObserver l) throws SQLException{
             // Go through the list data
         for (Map.Entry<Integer,List<Long>> entry : listData.entrySet()){
                 // Repopulate the current list in the database
-            repopulateListData(entry.getKey(),entry.getValue(),progressBar);
+            repopulateListData(entry.getKey(),entry.getValue(),l);
         }
     }
     /**
      * 
      * @param listID
      * @param linkIDs
-     * @param progressBar
+     * @param l
      * @throws SQLException 
      */
     protected void repopulateListData(int listID, List<Long> linkIDs, 
-            JProgressBar progressBar) throws SQLException{
-        if (progressBar != null)    // If a progress bar was provided
-            progressBar.setIndeterminate(false);
+            ProgressObserver l) throws SQLException{
+        if (l != null)      // If a progress observer has been provided
+            l.setIndeterminate(false);
             // Go through the linkIDs to re-insert into the list
         for (int i = 0; i < linkIDs.size(); i++){
                 // Get the linkID at the current index
@@ -3319,11 +3318,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         // Execute the update
                     pstmt.executeUpdate();
                 }
-            if (progressBar != null)    // If a progress bar was provided
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
-        if (progressBar != null)    // If a progress bar was provided
-            progressBar.setIndeterminate(true);
+        if (l != null)      // If a progress observer has been provided
+            l.setIndeterminate(true);
         commit();       // Commit the changes to the database
     }
     /**
@@ -3368,7 +3367,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             // I'm not even sure if this would fix this situation
             commit();       // Commit the changes to the database
                 // This is a map containing the list data from the database
-            Map<Integer, List<Long>> listData = loadListDataIDs(stmt,progressBar);
+            Map<Integer, List<Long>> listData = loadListDataIDs(stmt,toProgressObserver(progressBar));
             if (progressBar != null)    // If a progress bar was provided
                 progressBar.setIndeterminate(true);
                 // Delete the bugged list data table
@@ -3387,7 +3386,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             if (progressBar != null)    // If a progress bar was provided
                 progressBar.setMaximum(total);
                 // Repopulate the list data in the database
-            repopulateListData(listData,progressBar);
+            repopulateListData(listData,toProgressObserver(progressBar));
         } else {
             createTables(stmt); // Create the new tables
         }
@@ -3563,6 +3562,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     public boolean updateDatabaseDefinitions() throws SQLException{
         return updateDatabaseDefinitions((DisableGUIInput)null);
     }
+    
+    private ProgressObserver toProgressObserver(JProgressBar progressBar){
+        return (progressBar != null) ? new DefaultProgressObserver(progressBar) : 
+                null;
+    }
+    
     /**
      * 
      * @return
