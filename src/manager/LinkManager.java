@@ -8037,7 +8037,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected boolean prepareDatabase(File file, LinkDatabaseConnection conn, 
                 Statement stmt) throws SQLException{
             conn.createTables(stmt);
-            return conn.updateDatabaseDefinitions(stmt,LinkManager.this);
+            return conn.updateDatabaseDefinitions(stmt,progressObserver);
         }
         @Override
         protected boolean willCreateBackup(){
@@ -8282,7 +8282,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // TODO: This should be made to backup the database, just in case
                 // If the database was not successfully updated to the latest 
                 // version this program supports
-            if (!conn.updateDatabaseDefinitions(stmt,LinkManager.this))
+            if (!conn.updateDatabaseDefinitions(stmt,progressObserver))
                 return false;
                 // Get a set of models that currently already exist
             Set<LinksListModel> oldModels = new HashSet<>(allListsTabsPanel.getModels());
@@ -9271,7 +9271,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 conn.setForeignKeysEnabled(false, stmt);
             switch(mode){
                 case(0):
-                    updateSuccess = conn.updateDatabaseDefinitions(stmt, LinkManager.this);
+                    updateSuccess = conn.updateDatabaseDefinitions(stmt, progressObserver);
                     break;
                 case(1):
                     updateSuccess = conn.updateAddConfigTable(stmt, progressObserver);

@@ -4,12 +4,9 @@
  */
 package manager.database;
 
-import components.disable.DisableGUIInput;
-import components.progress.JProgressDisplayMenu;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
-import javax.swing.JProgressBar;
 import javax.swing.table.*;
 import manager.*;
 import manager.links.*;
@@ -3395,12 +3392,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
-    public boolean updateDatabaseDefinitions(Statement stmt, 
-            DisableGUIInput program) throws SQLException{
+    public boolean updateDatabaseDefinitions(Statement stmt, ProgressObserver l) 
+            throws SQLException{
             // If the database cannot be automatically updated to the current version
         if (!isDatabaseCompatible())
             return false;
@@ -3418,18 +3415,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         String versionStr = getDatabaseVersionStr();
             // This gets the database version as an array of integers
         int[] version = getDatabaseVersion();
-            // This gets the progress bar from the program if there is one
-        JProgressBar progressBar = null;
-            // This gets the progress display menu from the program if there is 
-        JProgressDisplayMenu progressMenu = null;   // one
-        if (program != null){   // If a program was provided
-            progressMenu = program.getProgressDisplayMenu();
-            progressBar = program.getProgressBar();
-        }   // The progress text from the progress display menu
-        String progressText = null; 
-        if (progressMenu != null){  // If the program has a progress display menu
-            progressText = progressMenu.getString();
-            progressMenu.setString("Updating Database");
+            // The progress text from the progress observer
+        String progressText = null;
+        if (l != null){             // If a progress observer has been provided
+            progressText = l.getText();
+            l.setText("Updating Database");
         }   // This gets whether foreign keys are enabled (or supported)
         Boolean foreignKeys = null;
             // If foreign keys are supported
@@ -3491,7 +3481,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 createTables(stmt); // Create the new tables
             case("2.0.0"):      // If version 2.0.0
                     // Update the database to version 2.1.0
-                updateSuccess = updateToVersion2_1_0(stmt,toProgressObserver(progressBar));
+                updateSuccess = updateToVersion2_1_0(stmt,l);
                     // If the update was not successful
                 if (!updateSuccess)
                     break;
@@ -3502,7 +3492,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 createTables(stmt);
             case("2.2.0"):      // If version 2.2.0
                     // Update the database to version 3.0.0
-                updateSuccess = updateToVersion3_0_0(stmt,toProgressObserver(progressBar));
+                updateSuccess = updateToVersion3_0_0(stmt,l);
                     // If the update was not successful
                 if (!updateSuccess)
                     break;
@@ -3522,8 +3512,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             setForeignKeysEnabled(foreignKeys, stmt);
             // Update the database version to the current version
         properties.setProperty(DATABASE_VERSION_CONFIG_KEY, DATABASE_VERSION);
-        if (progressMenu != null)   // If the program has a progress display menu
-            progressMenu.setText(progressText);
+        if (l != null)              // If a progress observer has been provided
+            l.setText(progressText);
         commit();       // Commit the changes to the database
             // Restore the auto-commit back to what it was set to before
         setAutoCommit(autoCommit);
@@ -3535,22 +3525,22 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @return
      * @throws SQLException 
      */
-    public boolean updateDatabaseDefinitions(Statement stmt) throws SQLException{
+    public boolean updateDatabaseDefinitions(Statement stmt)throws SQLException{
         return updateDatabaseDefinitions(stmt,null);
     }
     /**
      * 
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
-    public boolean  updateDatabaseDefinitions(DisableGUIInput program) throws 
+    public boolean updateDatabaseDefinitions(ProgressObserver l) throws 
             SQLException{
             // Whether the update was successful
         boolean success;
             // Create a statement to rename the column
         try(Statement stmt = createStatement()){
-            success = updateDatabaseDefinitions(stmt, program);
+            success = updateDatabaseDefinitions(stmt, l);
         }
         return success;
     }
@@ -3560,14 +3550,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @throws SQLException 
      */
     public boolean updateDatabaseDefinitions() throws SQLException{
-        return updateDatabaseDefinitions((DisableGUIInput)null);
+        return updateDatabaseDefinitions(null,null);
     }
-    
-    private ProgressObserver toProgressObserver(JProgressBar progressBar){
-        return (progressBar != null) ? new DefaultProgressObserver(progressBar) : 
-                null;
-    }
-    
     /**
      * 
      * @return
