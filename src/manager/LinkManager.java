@@ -5929,7 +5929,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         for (LinksListModel model : models){
                 // If the model's contents were modified
             if (model.getContentsModified()){
-                writeListToDatabase(conn,model,linkIDMap);
+                conn.updateListContents(model, linkIDMap, progressObserver);
             }
         }
         progressBar.setIndeterminate(true);
@@ -5951,29 +5951,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Remove any unused links
         linkMap.removeUnusedRows();
         conn.commit();       // Commit the changes to the database
-            // Restore the connection's auto-commit back to what it was set to 
-        conn.setAutoCommit(autoCommit);     // before
-    }
-    /**
-     * 
-     * @param conn
-     * @param model
-     * @param linkIDMap
-     * @throws SQLException 
-     */
-    private void writeListToDatabase(LinkDatabaseConnection conn, 
-            LinksListModel model,Map<String,Long> linkIDMap) throws SQLException{
-            // Get the current state of the connection's auto-commit
-        boolean autoCommit = conn.getAutoCommit();
-            // Turn off the connection's auto-commit to group the following 
-            // database transactions to improve performance
-        conn.setAutoCommit(false);
-            // Update th contents of the list based off the contents of the model
-        conn.getListContents(model.getListID()).updateContents(model, 
-                progressObserver,linkIDMap);
-        conn.commit();          // Commit the changes to the database
-        model.clearEdited();    // Clear whether the list was edited
-        System.gc();            // Run the garbage collector
             // Restore the connection's auto-commit back to what it was set to 
         conn.setAutoCommit(autoCommit);     // before
     }

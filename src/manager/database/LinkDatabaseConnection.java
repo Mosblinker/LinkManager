@@ -4910,6 +4910,31 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
+     * @param model
+     * @param linkIDMap
+     * @param l
+     * @throws SQLException 
+     */
+    public void updateListContents(LinksListModel model,
+            Map<String,Long> linkIDMap, ProgressObserver l) throws SQLException{
+        Objects.requireNonNull(model);
+        if (model.getListID() == null)
+            throw new IllegalArgumentException("Model must have a non-null listID");
+            // Get the current state of the connection's auto-commit
+        boolean autoCommit = getAutoCommit();
+            // Turn off the connection's auto-commit to group the following 
+            // database transactions to improve performance
+        setAutoCommit(false);
+            // Update the contents of the list based off the contents of the model
+        getListContents(model.getListID()).updateContents(model, l,linkIDMap);
+        commit();               // Commit the changes to the database
+        model.clearEdited();    // Clear whether the list was edited
+        System.gc();            // Run the garbage collector
+            // Restore the connection's auto-commit back to what it was set to 
+        setAutoCommit(autoCommit);      // before
+    }
+    /**
+     * 
      * @param <E> The type of elements stored in this set.
      */
     private abstract class AbstractQuerySet<E> extends AbstractSQLSet<E>{
