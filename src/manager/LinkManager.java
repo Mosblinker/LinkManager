@@ -25,13 +25,11 @@ import static files.extensions.TextDocumentExtensions.TEXT_FILTER;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.io.*;
 import java.net.*;
@@ -433,26 +431,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return dbxUtils;
     }
     /**
-     * 
-     * @return 
-     */
-    private java.util.List<BufferedImage> generateIconImages(){
-            // Create a list to get the images
-        ArrayList<BufferedImage> iconImages = new ArrayList<>();
-            // Create the painter to generate the images
-        LinkManagerIconPainter painter = new LinkManagerIconPainter();
-            // Go through the sizes for the images
-        for (int size : ICON_SIZES){
-            BufferedImage img = new BufferedImage(size,size,
-                    BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g = img.createGraphics();
-            painter.paint(g, null, size, size);
-            g.dispose();
-            iconImages.add(img);
-        }
-        return iconImages;
-    }
-    /**
      * This constructs a new LinkManager with the given value determining if it 
      * is in debug mode and the given program ID.
      * @param debugMode Whether the program is in debug mode.
@@ -463,7 +441,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public LinkManager(boolean debugMode, UUID programID, File configFile) {
         this.debugMode = debugMode;
-        setIconImages(generateIconImages());
+            // Generate the icons for this program
+        setIconImages(LinkManagerUtilities.generateIconImages(ICON_SIZES, 
+                new LinkManagerIconPainter()));
         editCommands = new HashMap<>();
         undoCommands = new HashMap<>();
         textPopupMenus = new HashMap<>();

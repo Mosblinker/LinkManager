@@ -6,12 +6,13 @@ package manager;
 
 import components.text.action.commands.*;
 import java.awt.Desktop;
+import java.awt.Graphics2D;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.*;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import javax.swing.*;
 
 /**
@@ -194,5 +195,26 @@ public class LinkManagerUtilities {
      */
     public static void setCard(JPanel panel, JComponent card){
         setCard(panel,card.getName());
+    }
+    /**
+     * 
+     * @param sizes
+     * @param painter
+     * @return 
+     */
+    public static List<BufferedImage> generateIconImages(int[] sizes, 
+            Painter<?> painter){
+            // Create a list to get the images
+        ArrayList<BufferedImage> iconImages = new ArrayList<>();
+            // Go through the sizes for the images
+        for (int size : sizes){
+            BufferedImage img = new BufferedImage(size,size,
+                    BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = img.createGraphics();
+            painter.paint(g, null, size, size);
+            g.dispose();
+            iconImages.add(img);
+        }
+        return iconImages;
     }
 }
