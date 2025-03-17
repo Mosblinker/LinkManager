@@ -338,4 +338,65 @@ public class LinkManagerUtilities {
     public static List<String> readIntoList(Scanner scanner){
         return readIntoList(scanner,new ArrayList<>());
     }
+    /**
+     * This attempts to write the List of Strings to the given file.
+     * @param file The file to write to.
+     * @param list The list of String to write to the file.
+     * @param blankLines
+     * @param listener
+     * @return If the file was successfully written.
+     */
+    public static boolean writeToFile(File file, List<String> list, 
+            boolean blankLines, ProgressObserver listener){
+            // Try to create a PrintWriter to write to the file
+        try (PrintWriter writer = new PrintWriter(file)) {
+                // If a progress observer was given
+            if (listener != null)
+                listener.setIndeterminate(false);
+                // Writes each line to the file
+            for (int pos = 0; pos < list.size(); pos++){
+                writer.println(list.get(pos));
+                    // If there is to be a blank line between each line
+                if (blankLines)
+                    writer.println();
+                    // If a progress observer was given
+                if (listener != null)
+                    listener.incrementValue();
+            }
+        } catch (FileNotFoundException ex) {
+            return false;
+        }
+        return true;
+    }
+    /**
+     * This attempts to write the List of Strings to the given file.
+     * @param file The file to write to.
+     * @param list The list of String to write to the file.
+     * @param blankLines
+     * @return If the file was successfully written.
+     */
+    public static boolean writeToFile(File file, List<String> list, 
+            boolean blankLines){
+        return writeToFile(file,list,blankLines,null);
+    }
+    /**
+     * This attempts to write the List of Strings to the given file.
+     * @param file The file to write to.
+     * @param list The list of String to write to the file.
+     * @param listener
+     * @return If the file was successfully written.
+     */
+    public static boolean writeToFile(File file, List<String> list, 
+            ProgressObserver listener){
+        return writeToFile(file,list,false,listener);
+    }
+    /**
+     * This attempts to write the List of Strings to the given file.
+     * @param file The file to write to.
+     * @param list The list of String to write to the file.
+     * @return If the file was successfully written.
+     */
+    public static boolean writeToFile(File file, List<String> list){
+        return writeToFile(file,list,null);
+    }
 }
