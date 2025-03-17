@@ -5597,26 +5597,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         progressBar.setValue(progressBar.getValue()+1);
     }
     /**
-     * This reads in the remaining lines from the given Scanner and stores them 
-     * into the given List of Strings.
-     * @param scanner The Scanner to read the lines from (cannot be null).
-     * @param list The List of Strings to store the lines in (cannot be null).
-     * @return The amount of lines that were read.
-     */
-    private int readIntoList(Scanner scanner, List<String> list){
-        Objects.requireNonNull(list);
-        int count = 0;                      // The amount of lines that have been read
-        while (scanner.hasNextLine()){      // While the scanner has data in it
-            String temp = scanner.nextLine();   // Gets the next line
-            if (!temp.isBlank()){               // If the line is blank
-                list.add(temp.trim());
-                count++;
-            }
-            slowTestToggle.runSlowTest();
-        }
-        return count;
-    }
-    /**
      * This attempts to write the List of Strings to the given file.
      * @param file The file to write to.
      * @param list The list of String to write to the file.
@@ -6734,7 +6714,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected Void processLinks(LinksListPanel panel) {
                 // Creates a Scanner that goes through the entered list
             try (Scanner scanner = new Scanner(text)) {
-                readIntoList(scanner,list);
+                list = LinkManagerUtilities.readIntoList(scanner,list);
             }
             try{
                 panel.getModel().addAll(list);
@@ -7720,7 +7700,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // read from the file
             try(FileReader reader = new FileReader(file);
                     Scanner scanner = new Scanner(reader)){
-                readIntoList(scanner,list);
+                list = LinkManagerUtilities.readIntoList(scanner,list);
                     // If the file was a shortcut file and we're adding to a panel
                 if (panel != null && SHORTCUT_FILE_FILTER.accept(file)){
                         // Get the URL from the file
