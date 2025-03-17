@@ -5666,22 +5666,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setProgressValue(0);
     }
     /**
-     * This gets the String representing the URL from a shortcut file.
-     * @param lines A List of Strings extracted from the shortcut file.
-     * @return The URL, as a String, or null if not found.
-     */
-    private String getShortcutURL(List<String> lines){
-            // Starts from the shortcut flag and searches for the URL
-        for (int pos = lines.indexOf(SHORTCUT_HEADER);pos < lines.size();pos++){
-            String temp = lines.get(pos).trim();  // The string being checked
-                // If the current string starts with the URL flag
-            if (temp.startsWith(URL_FLAG)){
-                return temp.substring(URL_FLAG.length());
-            }
-        }
-        return null;
-    }
-    /**
      * This reads in the remaining lines from the given Scanner and stores them 
      * into the given List of Strings.
      * @param scanner The Scanner to read the lines from (cannot be null).
@@ -7809,7 +7793,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // If the file was a shortcut file and we're adding to a panel
                 if (panel != null && SHORTCUT_FILE_FILTER.accept(file)){
                         // Get the URL from the file
-                    String temp = getShortcutURL(list);
+                    String temp = LinkManagerUtilities.getShortcutURL(list);
                     list.clear();
                     if (temp != null)   // If a URL was found in the file
                         list.add(temp);

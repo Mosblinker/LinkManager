@@ -290,4 +290,22 @@ public class LinkManagerUtilities {
                     StandardCopyOption.COPY_ATTRIBUTES).toFile();
         }
     }
+    /**
+     * This gets the String representing the URL from a shortcut file.
+     * @param lines A List of Strings extracted from the shortcut file.
+     * @return The URL, as a String, or null if not found.
+     * @see LinkManager#SHORTCUT_HEADER
+     * @see LinkManager#URL_FLAG
+     */
+    public static String getShortcutURL(List<String> lines){
+            // Starts from the shortcut flag and searches for the URL
+        for (int pos = lines.indexOf(LinkManager.SHORTCUT_HEADER);
+                pos < lines.size();pos++){
+            String temp = lines.get(pos).trim();  // The string being checked
+                // If the current string starts with the URL flag
+            if (temp.startsWith(LinkManager.URL_FLAG))
+                return temp.substring(LinkManager.URL_FLAG.length());
+        }
+        return null;
+    }
 }
