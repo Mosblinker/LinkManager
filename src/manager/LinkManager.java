@@ -461,7 +461,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Create the configuration for the program
         config = new LinkManagerConfig(node);
         try{    // Try to load the configuration file into the properties
-            loadProperties(getConfigFile(),config.getProperties());
+            LinkManagerUtilities.loadProperties(getConfigFile(),config.getProperties());
         } catch (IOException ex){
             System.out.println("Config Load Error: " + ex);
             // TODO: Error message window
@@ -5758,41 +5758,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return true;
     }
     /**
-     * This attempts to read the contents of the given file and store it in the 
-     * given properties map. This will first clear the given properties map and 
-     * then load the properties into the map.
-     * @param file The file to read from.
-     * @param prop The properties map to load into.
-     * @return Whether the configuration was successfully loaded.
-     * @throws IOException If an error occurs while reading the file.
-     */
-    private boolean loadProperties(File file,Properties prop)throws IOException{
-            // If the file doesn't exist
-        if (!file.exists())
-            return false;
-            // Try to create a FileReader to read from the file
-        try(FileReader reader = new FileReader(file)){
-            prop.clear();
-            prop.load(reader);
-        }
-        return true;
-    }
-    /**
-     * This attempts to save the given properties map to the given file.
-     * @param file The file to write to.
-     * @param prop The properties map to save.
-     * @return If the file was successfully written.
-     * @throws IOException If an error occurs while writing to the file.
-     */
-    private boolean saveProperties(File file, Properties prop)throws IOException{
-            // Try to create a PrintWriter to write to the file
-        try (PrintWriter writer = new PrintWriter(file)) {
-                // Store the configuration
-            prop.store(writer, GENERAL_CONFIG_HEADER);
-        }
-        return true;
-    }
-    /**
      * 
      * @return 
      */
@@ -5802,7 +5767,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // If the configuration properties is not empty or the file exists
         if (!config.getProperties().isEmpty() || file.exists())
                 // Save the configuration properties to file
-            return saveProperties(file,config.getProperties());
+            return LinkManagerUtilities.saveProperties(file,config.getProperties(),GENERAL_CONFIG_HEADER);
         return true;
     }
     /**
@@ -7945,7 +7910,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             showHiddenListsToggle.setEnabled(false);
             try {   // Load the properties from the file and get if we are 
                     // successful
-                if (loadProperties(file, prop)){
+                if (LinkManagerUtilities.loadProperties(file, prop)){
                         // If the properties has a value for the database 
                         // location dialog's size
                     if (prop.containsKey(config.getComponentName(setLocationDialog)
@@ -8039,7 +8004,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // If the settings somehow failed to be exported
             if (prop == null)
                 return false;
-            return saveProperties(file,prop);
+            return LinkManagerUtilities.saveProperties(file,prop,GENERAL_CONFIG_HEADER);
         }
     }
     /**

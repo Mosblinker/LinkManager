@@ -217,4 +217,42 @@ public class LinkManagerUtilities {
         }
         return iconImages;
     }
+    /**
+     * This attempts to read the contents of the given file and store it in the 
+     * given properties map. This will first clear the given properties map and 
+     * then load the properties into the map.
+     * @param file The file to read from.
+     * @param prop The properties map to load into.
+     * @return Whether the configuration was successfully loaded.
+     * @throws IOException If an error occurs while reading the file.
+     */
+    public static boolean loadProperties(File file, Properties prop) 
+            throws IOException{
+            // If the file doesn't exist
+        if (!file.exists())
+            return false;
+            // Try to create a FileReader to read from the file
+        try(FileReader reader = new FileReader(file)){
+            prop.clear();
+            prop.load(reader);
+        }
+        return true;
+    }
+    /**
+     * This attempts to save the given properties map to the given file.
+     * @param file The file to write to.
+     * @param prop The properties map to save.
+     * @param comments A description of the property list.
+     * @return If the file was successfully written.
+     * @throws IOException If an error occurs while writing to the file.
+     */
+    public static boolean saveProperties(File file, Properties prop, 
+            String comments) throws IOException{
+            // Try to create a PrintWriter to write to the file
+        try (PrintWriter writer = new PrintWriter(file)) {
+                // Store the configuration
+            prop.store(writer, comments);
+        }
+        return true;
+    }
 }
