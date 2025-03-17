@@ -4783,22 +4783,33 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param linkID
+     * @param linkMap
+     * @param prefixMap
      * @throws SQLException 
      */
-    public void updateLinkPrefix(long linkID) throws SQLException{
+    protected void updateLinkPrefix(long linkID, LinkMap linkMap, 
+            PrefixMap prefixMap) throws SQLException{
             // Get the link for the given linkID
-        String link = getLinkMap().get(linkID);
+        String link = linkMap.get(linkID);
             // If there is no link mapped to the given linkID
         if (link == null)
             throw new IllegalArgumentException("No link with link ID "+linkID);
             // Get the entry for the longest matching prefix for the link
-        Map.Entry<Integer,String> prefix = getPrefixMap().getLongestPrefixEntryFor(link);
+        Map.Entry<Integer,String> prefix = prefixMap.getLongestPrefixEntryFor(link);
             // If the prefix is not null and not empty
         if (prefix.getValue() != null && !prefix.getValue().isEmpty())
                 // Get the link's suffix
             link = link.substring(prefix.getValue().length());
             // Update the link in the database
         updateLink(linkID,prefix.getKey(),link);
+    }
+    /**
+     * 
+     * @param linkID
+     * @throws SQLException 
+     */
+    public void updateLinkPrefix(long linkID) throws SQLException{
+        updateLinkPrefix(linkID,getLinkMap(),getPrefixMap());
     }
     /**
      * 
