@@ -308,4 +308,34 @@ public class LinkManagerUtilities {
         }
         return null;
     }
+    /**
+     * This reads in the remaining lines from the given Scanner and stores them 
+     * into the given List of Strings.
+     * @param scanner The Scanner to read the lines from (cannot be null).
+     * @param list The List of Strings to store the lines in, or null.
+     * @return The List of Strings with the lines stored in it.
+     */
+    public static List<String> readIntoList(Scanner scanner, List<String> list){
+            // If the given list is null
+        if (list == null)
+            list = new ArrayList<>();
+            // While the scanner has data in it
+        while (scanner.hasNextLine()){      
+                // Gets the next line
+            String temp = scanner.nextLine();
+                // If the line is blank
+            if (!temp.isBlank())
+                list.add(temp.trim());
+        }
+        return list;
+    }
+    /**
+     * This reads in the remaining lines from the given Scanner and stores them 
+     * into the given List of Strings.
+     * @param scanner The Scanner to read the lines from (cannot be null).
+     * @return The List of Strings with the lines stored in it.
+     */
+    public static List<String> readIntoList(Scanner scanner){
+        return readIntoList(scanner,new ArrayList<>());
+    }
 }
