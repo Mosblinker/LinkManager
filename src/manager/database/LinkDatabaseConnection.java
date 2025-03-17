@@ -4935,6 +4935,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
+     * @param model
+     * @param linkIDMap
+     * @throws SQLException 
+     */
+    public void updateListContents(LinksListModel model,
+            Map<String,Long> linkIDMap) throws SQLException{
+        updateListContents(model,linkIDMap,null);
+    }
+    /**
+     * 
      * @param <E> The type of elements stored in this set.
      */
     private abstract class AbstractQuerySet<E> extends AbstractSQLSet<E>{
