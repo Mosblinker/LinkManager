@@ -399,4 +399,18 @@ public class LinkManagerUtilities {
     public static boolean writeToFile(File file, List<String> list){
         return writeToFile(file,list,null);
     }
+    /**
+     * 
+     * @param fileSize
+     * @return 
+     */
+    public static double getFileSizeDivider(long fileSize){
+            // Get the value needed to divide the file length to get it back 
+            // into the range of integers
+        double divider = 1;
+            // While the divided file length is larger than the integer maximum
+        while (Math.ceil(fileSize / divider) > Integer.MAX_VALUE)
+            divider++;
+        return divider;
+    }
 }

@@ -9891,13 +9891,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         progressBar.setValue(0);
             // Get the value needed to divide the file length to get it back 
             // into the range of integers
-        int divider = 1;
-            // While the divided file length is larger than the integer maximum
-        while (Math.ceil(fileSize / ((double)divider)) > Integer.MAX_VALUE)
-            divider++;
-            // Create a copy of divisor to get around it needing to be 
-            // effectively final, since it's not going to change after this.
-        double div = divider;
+        double div = LinkManagerUtilities.getFileSizeDivider(fileSize);
             // Set the progress maximum to the file length divided by the 
             // divisor
         progressBar.setMaximum((int)Math.ceil(fileSize / div));
