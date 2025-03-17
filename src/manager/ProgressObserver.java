@@ -90,4 +90,26 @@ public interface ProgressObserver {
      * @return 
      */
     public ProgressObserver setMinimum(int min);
+    /**
+     * 
+     * @return 
+     */
+    public String getText();
+    /**
+     * 
+     * @param text 
+     * @return  
+     */
+    public ProgressObserver setText(String text);
+    /**
+     * 
+     * @return 
+     */
+    public boolean isTextShown();
+    /**
+     * 
+     * @param value 
+     * @return  
+     */
+    public ProgressObserver setTextShown(boolean value);
 }

@@ -782,6 +782,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 slowTestToggle.runSlowTest();
                 return this;
             }
+            @Override
+            public String getText() {
+                return progressDisplay.getString();
+            }
+            @Override
+            public DefaultProgressObserver setText(String text) {
+                progressDisplay.setString(text);
+                return this;
+            }
         };
         
         System.gc();        // Run the garbage collector

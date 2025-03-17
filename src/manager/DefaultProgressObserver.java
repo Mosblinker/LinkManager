@@ -4,6 +4,7 @@
  */
 package manager;
 
+import java.util.Objects;
 import javax.swing.*;
 
 /**
@@ -75,10 +76,30 @@ public class DefaultProgressObserver implements ProgressObserver{
         return (isIndeterminate()?"intermediate,":"")+
                 "value="+getValue()+
                 ",minimum="+getMinimum()+
-                ",maximum="+getMaximum();
+                ",maximum="+getMaximum()+
+                ",text="+Objects.toString(getText(),"")+
+                ",textShown="+isTextShown();
     }
     @Override
     public String toString(){
         return getClass().getName()+"["+paramString()+"]";
+    }
+    @Override
+    public String getText() {
+        return progressBar.getString();
+    }
+    @Override
+    public DefaultProgressObserver setText(String text) {
+        progressBar.setString(text);
+        return this;
+    }
+    @Override
+    public boolean isTextShown() {
+        return progressBar.isStringPainted();
+    }
+    @Override
+    public DefaultProgressObserver setTextShown(boolean value) {
+        progressBar.setStringPainted(value);
+        return this;
     }
 }
