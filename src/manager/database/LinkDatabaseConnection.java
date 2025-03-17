@@ -4945,6 +4945,63 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
+     * @param listIDs
+     * @param tabsPanel
+     * @param l
+     * @throws SQLException 
+     */
+    public void updateListIDList(ListIDList listIDs, 
+            LinksListTabsPanel tabsPanel,ProgressObserver l)throws SQLException{
+            // Get a copy of the list IDs in the list from the database
+        Set<Integer> missingIDs = new LinkedHashSet<>(listIDs);
+            // Remove null listIDs
+        missingIDs.remove(null);
+            // Remove any listIDs that are in the tabs panel
+        missingIDs.removeAll(tabsPanel.getListIDs());
+            // Remove any listIDs that have been removed
+        missingIDs.removeAll(tabsPanel.getRemovedListIDs());
+            // Clear the list in the database
+        listIDs.clear();
+            // Add all the listIDs that are in the tabs panel
+        listIDs.addAll(tabsPanel.getListIDs());
+            // Remove any that are null
+        listIDs.removeIf((Integer t) -> t == null);
+            // Add any that are missing from the tabs panel
+        listIDs.addAll(missingIDs);
+    }
+    /**
+     * 
+     * @param listIDs
+     * @param tabsPanel
+     * @throws SQLException 
+     */
+    public void updateListIDList(ListIDList listIDs, 
+            LinksListTabsPanel tabsPanel) throws SQLException{
+        updateListIDList(listIDs,tabsPanel,null);
+    }
+    /**
+     * 
+     * @param listType
+     * @param tabsPanel
+     * @param l
+     * @throws SQLException 
+     */
+    public void updateListIDList(int listType, LinksListTabsPanel tabsPanel,
+            ProgressObserver l) throws SQLException{
+        updateListIDList(getListIDs(listType),tabsPanel,l);
+    }
+    /**
+     * 
+     * @param listType
+     * @param tabsPanel
+     * @throws SQLException 
+     */
+    public void updateListIDList(int listType, LinksListTabsPanel tabsPanel) 
+            throws SQLException{
+        updateListIDList(listType,tabsPanel,null);
+    }
+    /**
+     * 
      * @param <E> The type of elements stored in this set.
      */
     private abstract class AbstractQuerySet<E> extends AbstractSQLSet<E>{
