@@ -687,16 +687,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         progressBar.addChangeListener(progressDisplay);
         progressBar.addPropertyChangeListener(progressDisplay);
         
-        textPopupMenus.put(linkTextField, editPopupMenu);
-        textPopupMenus.put(dbQueryField, queryPopupMenu);
-        textPopupMenus.put(prefixField, prefixPopupMenu);
-        textPopupMenus.put(dbTableStructText, dbStructurePopupMenu);
-        textPopupMenus.put(dbFileField, dbFilePopupMenu);
+        textPopupMenus.put(linkTextField, new JPopupMenu());
+        textPopupMenus.put(dbQueryField, new JPopupMenu());
+        textPopupMenus.put(prefixField, new JPopupMenu());
+        textPopupMenus.put(dbTableStructText, new JPopupMenu());
+        textPopupMenus.put(dbFileField, new JPopupMenu());
         textPopupMenus.put(searchPanel.getSearchTextField(), searchPanel.getSearchPopupMenu());
         textPopupMenus.put(addLinksPanel.getTextArea(), addLinksPanel.getTextPopupMenu());
         textPopupMenus.put(dropboxSetupPanel.getAuthorizationCodeField(), 
                 dropboxSetupPanel.getAuthorizationCodePopupMenu());
-        textPopupMenus.put(dbxDbFileField, dbxDbFilePopupMenu);
+        textPopupMenus.put(dbxDbFileField, new JPopupMenu());
         
         pasteAndAddAction = new PasteAndAddAction(){
             @Override
@@ -1076,12 +1076,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         exportFC = new javax.swing.JFileChooser();
         databaseUpdateFC = new javax.swing.JFileChooser();
         databaseFC = new javax.swing.JFileChooser();
-        editPopupMenu = new javax.swing.JPopupMenu();
-        queryPopupMenu = new javax.swing.JPopupMenu();
-        prefixPopupMenu = new javax.swing.JPopupMenu();
-        dbStructurePopupMenu = new javax.swing.JPopupMenu();
-        dbFilePopupMenu = new javax.swing.JPopupMenu();
-        dbxDbFilePopupMenu = new javax.swing.JPopupMenu();
         setLocationDialog = new javax.swing.JDialog(this);
         setLocationPanel = new javax.swing.JPanel();
         setExternalCard = new javax.swing.JPanel();
@@ -5490,7 +5484,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JTextField dbFileField;
     private javax.swing.JTextField dbFileNameField;
     private javax.swing.JPanel dbFilePanel;
-    private javax.swing.JPopupMenu dbFilePopupMenu;
     private javax.swing.JButton dbFileRelativeButton;
     private javax.swing.JLabel dbFileSizeLabel;
     private javax.swing.JLabel dbLastModLabel;
@@ -5530,7 +5523,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JTextField dbSearchField;
     private javax.swing.JCheckBox dbSearchPrefixCheckBox;
     private javax.swing.JComboBox<String> dbSearchPrefixCombo;
-    private javax.swing.JPopupMenu dbStructurePopupMenu;
     private javax.swing.JTabbedPane dbTabbedPane;
     private javax.swing.JPanel dbTablePanel;
     private javax.swing.JScrollPane dbTableScrollPane;
@@ -5551,7 +5543,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JSpinner dbxChunkSizeSpinner;
     private javax.swing.JPanel dbxDataPanel;
     private javax.swing.JTextField dbxDbFileField;
-    private javax.swing.JPopupMenu dbxDbFilePopupMenu;
     private javax.swing.JButton dbxLogInButton;
     private javax.swing.JButton dbxLogOutButton;
     private components.JThumbnailLabel dbxPfpLabel;
@@ -5564,7 +5555,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem dropboxRefreshTestButton;
     private manager.dropbox.DropboxSetupPanel dropboxSetupPanel;
     private javax.swing.JButton editLinkButton;
-    private javax.swing.JPopupMenu editPopupMenu;
     private javax.swing.JButton executeQueryButton;
     private javax.swing.JMenuItem exitButton;
     private javax.swing.JFileChooser exportFC;
@@ -5610,7 +5600,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton prefixApplyButton;
     private javax.swing.JButton prefixCopyButton;
     private javax.swing.JTextField prefixField;
-    private javax.swing.JPopupMenu prefixPopupMenu;
     private javax.swing.JTextField prefixSeparatorField;
     private javax.swing.JSpinner prefixThresholdSpinner;
     private javax.swing.JCheckBoxMenuItem printAutoHideEventsToggle;
@@ -5621,7 +5610,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JLabel programIDLabel;
     private javax.swing.JProgressBar progressBar;
     private components.progress.JProgressDisplayMenu progressDisplay;
-    private javax.swing.JPopupMenu queryPopupMenu;
     private javax.swing.JMenuItem reloadListsItem;
     private javax.swing.JButton removeLinkButton;
     private javax.swing.JButton removePrefixButton;
