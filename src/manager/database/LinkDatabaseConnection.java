@@ -3092,14 +3092,14 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * This updates the database to version 2.1.0. List names can no longer have 
      * an asterisks.
      * @param stmt
-     * @param progressBar
+     * @param l
      * @return
      * @throws SQLException 
      */
-    protected boolean updateToVersion2_1_0(Statement stmt, 
-            JProgressBar progressBar) throws SQLException{
-        if (progressBar != null)        // If a progress bar was provided
-            progressBar.setIndeterminate(true);
+    protected boolean updateToVersion2_1_0(Statement stmt, ProgressObserver l) 
+            throws SQLException{
+        if (l != null)      // If a progress observer has been provided
+            l.setIndeterminate(true);
             // This is a table to contain the list names
         TreeMap<Integer, String> listNames = new TreeMap<>();
             // This is a table to contain the list creation times
@@ -3151,18 +3151,18 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             lists.put(listType, new ArrayList<>(getListIDs(listType)));
         }   // This is a map that contains the list data, since that will be 
             // erased when the list table is deleted
-        Map<Integer, List<Long>> data = loadListDataIDs(stmt,toProgressObserver(progressBar));
+        Map<Integer, List<Long>> data = loadListDataIDs(stmt,l);
             // Get the total size of the lists
         int totalSize = getListDataMap().totalSize();
-        if (progressBar != null){       // If a progress bar was provided
-            progressBar.setIndeterminate(true);
-            progressBar.setValue(0);
-            progressBar.setMaximum(listNames.size());
+        if (l != null){         // If a progress observer has been provided
+            l.setIndeterminate(true);
+            l.clearValue();
+            l.setMaximum(listNames.size());
         }   // Delete the old list table
         deleteTable(LIST_TABLE_NAME,stmt);
         createTables(stmt);     // Create the new tables
-        if (progressBar != null)        // If a progress bar was provided
-            progressBar.setIndeterminate(false);
+        if (l != null)          // If a progress observer has been provided
+            l.setIndeterminate(false);
             // Go through the listIDs of the stored lists
         for (Integer listID : listNames.navigableKeySet()){
                 // Prepare a statement to insert the list back into the list table
@@ -3193,32 +3193,32 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // Execute the update
                 pstmt.executeUpdate();
             }
-            if (progressBar != null)    // If a progress bar was provided
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
-        if (progressBar != null)        // If a progress bar was provided
-            progressBar.setIndeterminate(true);
+        if (l != null)          // If a progress observer has been provided
+            l.setIndeterminate(true);
         commit();       // Commit the changes to the database
-        if (progressBar != null){       // If a progress bar was provided
-            progressBar.setValue(0);
-            progressBar.setMaximum(lists.size());
-            progressBar.setIndeterminate(false);
+        if (l != null){         // If a progress observer has been provided
+            l.clearValue();
+            l.setMaximum(lists.size());
+            l.setIndeterminate(false);
         }   // Go through the stored lists of lists
         for (Map.Entry<Integer,List<Integer>> entry : lists.entrySet()){
                 // Get the listID list from the database and add all the listIDs 
                 // back to the list in the database
             getListIDs(entry.getKey()).addAll(entry.getValue());
-            if (progressBar != null)    // If a progress bar was provided
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
-        if (progressBar != null)        // If a progress bar was provided
-            progressBar.setIndeterminate(true);
+        if (l != null)          // If a progress observer has been provided
+            l.setIndeterminate(true);
         commit();       // Commit the changes to the database
-        if (progressBar != null){       // If a progress bar was provided
-            progressBar.setValue(0);
-            progressBar.setMaximum(totalSize);
+        if (l != null){         // If a progress observer has been provided
+            l.clearValue();
+            l.setMaximum(totalSize);
         }   // Repopulate the list data in the database
-        repopulateListData(data,toProgressObserver(progressBar));
+        repopulateListData(data,l);
         return true;
     }
     /**
@@ -3332,14 +3332,14 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * was introduced to the list data table around version 2.0.0 where new 
      * databases would have a broken list data table.
      * @param stmt
-     * @param progressBar
+     * @param l
      * @return
      * @throws SQLException 
      */
-    protected boolean updateToVersion3_0_0(Statement stmt, 
-            JProgressBar progressBar) throws SQLException{
-        if (progressBar != null)        // If a progress bar was provided
-            progressBar.setIndeterminate(true);
+    protected boolean updateToVersion3_0_0(Statement stmt, ProgressObserver l) 
+            throws SQLException{
+        if (l != null)      // If a progress observer has been provided
+            l.setIndeterminate(true);
             // Delete the old distinct link view
         deleteView(DISTINCT_LINK_VIEW_NAME,stmt);
             // Delete the old tables view
@@ -3367,26 +3367,26 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             // I'm not even sure if this would fix this situation
             commit();       // Commit the changes to the database
                 // This is a map containing the list data from the database
-            Map<Integer, List<Long>> listData = loadListDataIDs(stmt,toProgressObserver(progressBar));
-            if (progressBar != null)    // If a progress bar was provided
-                progressBar.setIndeterminate(true);
+            Map<Integer, List<Long>> listData = loadListDataIDs(stmt,l);
+            if (l != null)      // If a progress observer has been provided
+                l.setIndeterminate(true);
                 // Delete the bugged list data table
             deleteTable(LIST_DATA_TABLE_NAME,stmt);
                 // Create the new tables
             createTables(stmt);
             commit();       // Commit the changes to the database
-            if (progressBar != null)    // If a progress bar was provided
-                progressBar.setValue(0);
+            if (l != null)      // If a progress observer has been provided
+                l.clearValue();
                 // This gets the total size of the lists
             int total = 0;
                 // Go through the list data to get the total size
             for (List<Long> temp : listData.values()){
                 total += temp.size();
             }
-            if (progressBar != null)    // If a progress bar was provided
-                progressBar.setMaximum(total);
+            if (l != null)      // If a progress observer has been provided
+                l.setMaximum(total);
                 // Repopulate the list data in the database
-            repopulateListData(listData,toProgressObserver(progressBar));
+            repopulateListData(listData,l);
         } else {
             createTables(stmt); // Create the new tables
         }
@@ -3491,7 +3491,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 createTables(stmt); // Create the new tables
             case("2.0.0"):      // If version 2.0.0
                     // Update the database to version 2.1.0
-                updateSuccess = updateToVersion2_1_0(stmt,progressBar);
+                updateSuccess = updateToVersion2_1_0(stmt,toProgressObserver(progressBar));
                     // If the update was not successful
                 if (!updateSuccess)
                     break;
@@ -3502,7 +3502,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 createTables(stmt);
             case("2.2.0"):      // If version 2.2.0
                     // Update the database to version 3.0.0
-                updateSuccess = updateToVersion3_0_0(stmt,progressBar);
+                updateSuccess = updateToVersion3_0_0(stmt,toProgressObserver(progressBar));
                     // If the update was not successful
                 if (!updateSuccess)
                     break;
