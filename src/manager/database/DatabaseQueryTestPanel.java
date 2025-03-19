@@ -266,6 +266,7 @@ public class DatabaseQueryTestPanel extends JPanel {
      */
     protected void setResultsCard(Component card){
         LinkManagerUtilities.setCard(dbQueryResultsPanel, card.getName());
+        fireStateChanged();
     }
     /**
      * 
@@ -277,14 +278,13 @@ public class DatabaseQueryTestPanel extends JPanel {
             Exception ex){
         resultsModel = model;
         updateCount = updates;
-        fireStateChanged();
     }
     /**
      * 
      */
     public void showBlank(){
-        setResultsCard(dbQueryBlankCard);
         setResultsData(null,null,null);
+        setResultsCard(dbQueryBlankCard);
     }
     /**
      * 
@@ -292,8 +292,8 @@ public class DatabaseQueryTestPanel extends JPanel {
      */
     public void showResults(TableModel model){
         dbQueryTable.setModel(model);
-        setResultsCard(dbQueryScrollPane);
         setResultsData(model,null,null);
+        setResultsCard(dbQueryScrollPane);
     }
     /**
      * 
@@ -309,8 +309,8 @@ public class DatabaseQueryTestPanel extends JPanel {
      */
     public void showUpdates(int updateCount){
         dbQueryUpdateLabel.setText(""+updateCount);
-        setResultsCard(dbQueryUpdatePanel);
         setResultsData(null,updateCount,null);
+        setResultsCard(dbQueryUpdatePanel);
     }
     
     /**
