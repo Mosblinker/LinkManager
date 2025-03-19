@@ -6,6 +6,7 @@ package manager.database;
 
 import java.awt.Component;
 import java.awt.event.*;
+import java.sql.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
@@ -282,6 +283,14 @@ public class DatabaseQueryTestPanel extends JPanel {
         resultsModel = model;
         dbQueryTable.setModel(model);
         setResultsCard(dbQueryScrollPane);
+    }
+    /**
+     * 
+     * @param resultSet
+     * @throws java.sql.SQLException
+     */
+    public void showResults(ResultSet resultSet) throws SQLException{
+        showResults(LinkDatabaseConnection.getTableModelForResultSet(resultSet));
     }
     
     /**
