@@ -47,10 +47,21 @@ public class DatabaseQueryTestPanel extends javax.swing.JPanel {
         javax.swing.JLabel jLabel10 = new javax.swing.JLabel();
         dbQueryErrorCodeLabel = new javax.swing.JLabel();
 
+        dbQueryField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                executeQueryActionPerformed(evt);
+            }
+        });
+
         dbQueryLabel.setText("Query:");
 
         executeQueryButton.setText("Execute");
         executeQueryButton.setEnabled(false);
+        executeQueryButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                executeQueryActionPerformed(evt);
+            }
+        });
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Results"));
         jPanel1.setLayout(new java.awt.GridBagLayout());
@@ -200,6 +211,10 @@ public class DatabaseQueryTestPanel extends javax.swing.JPanel {
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void executeQueryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_executeQueryActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_executeQueryActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
