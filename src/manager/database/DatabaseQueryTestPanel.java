@@ -266,23 +266,33 @@ public class DatabaseQueryTestPanel extends JPanel {
      */
     protected void setResultsCard(Component card){
         LinkManagerUtilities.setCard(dbQueryResultsPanel, card.getName());
+    }
+    /**
+     * 
+     * @param model
+     * @param updates
+     * @param ex
+     */
+    protected void setResultsData(TableModel model, Integer updates, 
+            Exception ex){
+        resultsModel = model;
         fireStateChanged();
     }
     /**
      * 
      */
     public void showBlank(){
-        resultsModel = null;
         setResultsCard(dbQueryBlankCard);
+        setResultsData(null,null,null);
     }
     /**
      * 
      * @param model 
      */
     public void showResults(TableModel model){
-        resultsModel = model;
         dbQueryTable.setModel(model);
         setResultsCard(dbQueryScrollPane);
+        setResultsData(model,null,null);
     }
     /**
      * 
