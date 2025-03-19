@@ -44,7 +44,6 @@ public class DatabaseQueryTestPanel extends JPanel {
      * 
      */
     public static final int ERROR_SHOWN_STATE = 3;
-    
     /**
      * Creates new form DatabaseQueryTestPanel
      */
@@ -57,7 +56,6 @@ public class DatabaseQueryTestPanel extends JPanel {
             }
         });
     }
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -395,8 +393,10 @@ public class DatabaseQueryTestPanel extends JPanel {
         return BLANK_SHOWN_STATE;
     }
     /**
-     * 
-     * @param l 
+     * This adds the given {@code ActionListener} to this panel.
+     * @param l The listener to add.
+     * @see #removeActionListener(java.awt.event.ActionListener) 
+     * @see #getActionListeners() 
      */
     public void addActionListener(ActionListener l){
             // If the listener is not null
@@ -404,15 +404,21 @@ public class DatabaseQueryTestPanel extends JPanel {
             listenerList.add(ActionListener.class, l);
     }
     /**
-     * 
-     * @param l 
+     * This removes the given {@code ActionListener} from this panel.
+     * @param l The listener to remove.
+     * @see #addActionListener(java.awt.event.ActionListener) 
+     * @see #getActionListeners() 
      */
     public void removeActionListener(ActionListener l){
         listenerList.remove(ActionListener.class, l);
     }
     /**
-     * 
-     * @return 
+     * This returns an array containing all the {@code ActionListener}s that 
+     * have been added to this panel.
+     * @return An array containing the {@code ActionListener}s that have been 
+     * added, or an empty array if none have been added.
+     * @see #addActionListener(java.awt.event.ActionListener) 
+     * @see #removeActionListener(java.awt.event.ActionListener) 
      */
     public ActionListener[] getActionListeners(){
         return listenerList.getListeners(ActionListener.class);
