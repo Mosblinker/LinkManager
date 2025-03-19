@@ -262,6 +262,41 @@ public class DatabaseQueryTestPanel extends JPanel {
      * 
      * @return 
      */
+    public JTextField getQueryTextField(){
+        return dbQueryField;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public JPopupMenu getQueryPopupMenu(){
+        return popupMenu;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public JButton getQueryExecuteButton(){
+        return executeQueryButton;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public JScrollPane getResultsScrollPane(){
+        return dbQueryScrollPane;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public JTable getResultsTable(){
+        return dbQueryTable;
+    }
+    /**
+     * 
+     * @return 
+     */
     public String getQuery(){
         return dbQueryField.getText();
     }
