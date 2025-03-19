@@ -254,13 +254,13 @@ public class LinkManagerConfig {
      * list type is used as the name of the preference node that corresponds to 
      * that list type.
      */
-    public static final String LIST_TYPE_PREFERENCE_NODE_NAME = "listType=";
+    public static final String LIST_TYPE_PREFERENCE_NODE_NAME = "listType";
     /**
      * This is the name of the preference node used to store the preference 
      * nodes that store the settings relating to a specific list. The listID is 
      * used as the name of the preference node that corresponds to that list.
      */
-    public static final String LIST_ID_PREFERENCE_NODE_NAME = "listID=";
+    public static final String LIST_ID_PREFERENCE_NODE_NAME = "listID";
     /**
      * This is the preference node containing all the preferences for 
      * LinkManager. This is the parent preference node for all other nodes, and 
@@ -455,7 +455,7 @@ public class LinkManagerConfig {
             // If the cache does not have the preference node
         if (node == null){
                 // Get the node
-            node = getPreferences().node(prefix+key);
+            node = getPreferences().node(prefix+"="+key);
                 // Cache the node
             cache.put(key, node);
         }
@@ -2207,9 +2207,9 @@ public class LinkManagerConfig {
             // If there is no node cached for the listID
         if (node == null){
                 // If there is a node for the list with the given listID
-            if (nodeExists(getPreferences(),LIST_TYPE_PREFERENCE_NODE_NAME+listID))
+            if (nodeExists(getPreferences(),LIST_TYPE_PREFERENCE_NODE_NAME+"="+listID))
                     // Get that node
-                node = getPreferences().node(LIST_TYPE_PREFERENCE_NODE_NAME+listID);
+                node = getPreferences().node(LIST_TYPE_PREFERENCE_NODE_NAME+"="+listID);
         }   // If there is a list preference node for the given listID
         if (node != null)
                 // Remove the node
@@ -2498,7 +2498,7 @@ public class LinkManagerConfig {
                     if (child != null && child.startsWith(getPrefixForNodes())){
                         try{    // Parse the number at the end
                             int value = Integer.parseInt(child.substring(
-                                    getPrefixForNodes().length()));
+                                    getPrefixForNodes().length()+1));
                                 // If this map contains a non-null value for 
                             if (containsKey(value))     // that key
                                 keys.add(value);

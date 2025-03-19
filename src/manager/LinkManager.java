@@ -8702,7 +8702,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 for (String child : childNodes){
                         // Add all the values in the child node
                     addConfigRows(String.format(sourceTemplate, 
-                            child.substring(prefix.length())), 
+                            child.substring(prefix.length()+1)), 
                             config.getPreferences().node(child));
                 }
             } catch (BackingStoreException ex) {}
