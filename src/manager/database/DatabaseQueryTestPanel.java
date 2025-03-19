@@ -50,6 +50,12 @@ public class DatabaseQueryTestPanel extends JPanel {
      */
     public DatabaseQueryTestPanel() {
         initComponents();
+        dbQueryField.getDocument().addDocumentListener(new SingleMethodDocumentListener(){
+            @Override
+            public void documentUpdate(DocumentEvent evt, DocumentEvent.EventType type) {
+                updateExecuteQueryEnabled();
+            }
+        });
     }
 
     /**
