@@ -261,6 +261,20 @@ public class DatabaseQueryTestPanel extends JPanel {
      * 
      * @return 
      */
+    public String getQuery(){
+        return dbQueryField.getText();
+    }
+    /**
+     * 
+     * @param query 
+     */
+    public void setQuery(String query){
+        dbQueryField.setText(query);
+    }
+    /**
+     * 
+     * @return 
+     */
     public long getExecutionTime(){
         return time;
     }
