@@ -473,6 +473,25 @@ public class DatabaseQueryTestPanel extends JPanel {
                 l.stateChanged(evt);
         }
     }
+    @Override
+    protected String paramString(){
+        String stateStr = "";
+        int state = getState();
+        switch(state){
+            case(RESULTS_SHOWN_STATE):
+                stateStr = "resultsModel="+Objects.toString(getResultsModel(),"");
+                break;
+            case(UPDATES_SHOWN_STATE):
+                stateStr = "updateCount="+Objects.toString(getUpdateCount(),"");
+                break;
+            case(ERROR_SHOWN_STATE):
+                stateStr = "exception="+Objects.toString(getException(), "")+
+                        ((getErrorCode()!=null)?",errorCode="+getErrorCode():"");
+        }
+        return super.paramString()+
+                ",executionTime="+getExecutionTime()+
+                ",state="+getState()+" ["+stateStr+"]";
+    }
     /**
      * The time it took to execute the most recent query.
      */
