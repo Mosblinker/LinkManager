@@ -28,6 +28,22 @@ public class DatabaseQueryTestPanel extends JPanel {
      */
     public static final String EXECUTION_TIME_PROPERTY_CHANGED = 
             "TimePropertyChanged";
+    /**
+     * 
+     */
+    public static final int BLANK_SHOWN_STATE = 0;
+    /**
+     * 
+     */
+    public static final int RESULTS_SHOWN_STATE = 1;
+    /**
+     * 
+     */
+    public static final int UPDATES_SHOWN_STATE = 2;
+    /**
+     * 
+     */
+    public static final int ERROR_SHOWN_STATE = 3;
     
     /**
      * Creates new form DatabaseQueryTestPanel
@@ -358,6 +374,19 @@ public class DatabaseQueryTestPanel extends JPanel {
      */
     public Integer getErrorCode(){
         return errorCode;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public int getState(){
+        if (resultsModel != null)
+            return RESULTS_SHOWN_STATE;
+        else if (updateCount != null)
+            return UPDATES_SHOWN_STATE;
+        else if (ex != null)
+            return ERROR_SHOWN_STATE;
+        return BLANK_SHOWN_STATE;
     }
     /**
      * 
