@@ -4830,9 +4830,42 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Update the chunk size in the configuration
         config.setDropboxChunkSizeMultiplier(dbxChunkSizeModel.getMultiplier());
     }//GEN-LAST:event_dbxChunkSizeSpinnerStateChanged
-
+    /**
+     * This executes a query directly on the database.
+     * @param evt The ActionEvent.
+     */
     private void dbQueryPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbQueryPanelActionPerformed
-        // TODO add your handling code here:
+            // This gets if we need to update the tables
+        boolean updated = false;
+            // Try to connect to the database and create an SQL statement for it
+        try(LinkDatabaseConnection conn = connect(getDatabaseFile());
+            Statement stmt = conn.createStatement()){
+                // Get the current time
+            long time = System.currentTimeMillis();
+                // Execute the query and get if the query returns a ResultSet
+            boolean hasResults = stmt.execute(dbQueryPanel.getQuery());
+                // Get the time it took to execute the query
+            dbQueryPanel.setExecutionTime(System.currentTimeMillis() - time);
+                // This gets the number of updated rows.
+            int updateCount = stmt.getUpdateCount();
+            if (hasResults)     // If the query returned a ResultSet
+                    // Create and display a table model from the results
+                dbQueryPanel.showResults(stmt.getResultSet());
+            else
+                dbQueryPanel.showUpdates(updateCount);
+            updated = updateCount > 0;
+        } catch (SQLException | UncheckedSQLException ex) {
+            dbQueryPanel.setExecutionTime(0);
+            dbQueryPanel.showError(ex);
+            System.out.println("Error: "+dbQueryPanel.getErrorCode() + " "+ex);
+            JOptionPane.showMessageDialog(this, "Database Error: " + ex,
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+        System.gc();
+        if (updated){   // Update the database view if there were changes
+            loader = new LoadDatabaseViewer(true);
+            loader.execute();
+        }
     }//GEN-LAST:event_dbQueryPanelActionPerformed
     
     private CustomTableModel getListSearchTableModel(){
