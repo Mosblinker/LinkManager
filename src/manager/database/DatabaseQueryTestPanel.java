@@ -4,11 +4,18 @@
  */
 package manager.database;
 
+import java.awt.event.*;
+import javax.swing.*;
+
 /**
  *
  * @author Mosblinker
  */
-public class DatabaseQueryTestPanel extends javax.swing.JPanel {
+public class DatabaseQueryTestPanel extends JPanel {
+    /**
+     * 
+     */
+    public static final String DATABASE_QUERY_EXECUTE_COMMAND = "ExecuteQuery";
 
     /**
      * Creates new form DatabaseQueryTestPanel
@@ -211,12 +218,70 @@ public class DatabaseQueryTestPanel extends javax.swing.JPanel {
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
-
+    /**
+     * 
+     * @param evt 
+     */
     private void executeQueryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_executeQueryActionPerformed
-        // TODO add your handling code here:
+            // If the execute query button is disabled
+        if (!executeQueryButton.isEnabled())
+            UIManager.getLookAndFeel().provideErrorFeedback(dbQueryField);
+        else
+            fireActionPerformed(evt.getID(),DATABASE_QUERY_EXECUTE_COMMAND,
+                    evt.getWhen(),evt.getModifiers());
     }//GEN-LAST:event_executeQueryActionPerformed
-
-
+    /**
+     * 
+     * @param l 
+     */
+    public void addActionListener(ActionListener l){
+            // If the listener is not null
+        if (l != null)
+            listenerList.add(ActionListener.class, l);
+    }
+    /**
+     * 
+     * @param l 
+     */
+    public void removeActionListener(ActionListener l){
+        listenerList.remove(ActionListener.class, l);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public ActionListener[] getActionListeners(){
+        return listenerList.getListeners(ActionListener.class);
+    }
+    /**
+     * 
+     * @param evt 
+     */
+    protected void fireActionPerformed(ActionEvent evt){
+        for (ActionListener l : getActionListeners()){
+            if (l != null)
+                l.actionPerformed(evt);
+        }
+    }
+    /**
+     * 
+     * @param id
+     * @param command
+     * @param when
+     * @param modifiers 
+     */
+    protected void fireActionPerformed(int id, String command, long when, int 
+            modifiers){
+        fireActionPerformed(new ActionEvent(this,id,command,when,modifiers));
+    }
+    /**
+     * 
+     * @param id
+     * @param command 
+     */
+    protected void fireActionPerformed(int id, String command){
+        fireActionPerformed(new ActionEvent(this,id,command));
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel dbQueryBlankCard;
     private javax.swing.JLabel dbQueryErrorCodeLabel;
