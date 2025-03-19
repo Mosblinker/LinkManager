@@ -49,12 +49,7 @@ public class DatabaseQueryTestPanel extends JPanel {
      */
     public DatabaseQueryTestPanel() {
         initComponents();
-        dbQueryField.getDocument().addDocumentListener(new SingleMethodDocumentListener(){
-            @Override
-            public void documentUpdate(DocumentEvent evt, DocumentEvent.EventType type) {
-                updateExecuteQueryEnabled();
-            }
-        });
+        dbQueryField.getDocument().addDocumentListener(new Handler());
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -485,6 +480,28 @@ public class DatabaseQueryTestPanel extends JPanel {
                 l.stateChanged(evt);
         }
     }
+    /**
+     * 
+     * @param l 
+     */
+    public void addDocumentListener(DocumentListener l){
+        if (l != null)
+            listenerList.add(DocumentListener.class, l);
+    }
+    /**
+     * 
+     * @param l 
+     */
+    public void removeDocumentListener(DocumentListener l){
+        listenerList.remove(DocumentListener.class, l);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public DocumentListener[] getDocumentListeners(){
+        return listenerList.getListeners(DocumentListener.class);
+    }
     @Override
     protected String paramString(){
         String stateStr = "";
@@ -553,4 +570,33 @@ public class DatabaseQueryTestPanel extends JPanel {
     private javax.swing.JButton executeQueryButton;
     private javax.swing.JPopupMenu popupMenu;
     // End of variables declaration//GEN-END:variables
+    /**
+     * 
+     */
+    private class Handler implements DocumentListener{
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            updateExecuteQueryEnabled();
+            for (DocumentListener l : getDocumentListeners()){
+                if (l != null)
+                    l.insertUpdate(e);
+            }
+        }
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            updateExecuteQueryEnabled();
+            for (DocumentListener l : getDocumentListeners()){
+                if (l != null)
+                    l.removeUpdate(e);
+            }
+        }
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            updateExecuteQueryEnabled();
+            for (DocumentListener l : getDocumentListeners()){
+                if (l != null)
+                    l.changedUpdate(e);
+            }
+        }
+    }
 }
