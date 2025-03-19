@@ -630,7 +630,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         progressBar.addPropertyChangeListener(progressDisplay);
         
         textPopupMenus.put(linkTextField, new JPopupMenu());
-        textPopupMenus.put(dbQueryField, new JPopupMenu());
+        textPopupMenus.put(dbQueryPanel.getQueryTextField(), dbQueryPanel.getQueryPopupMenu());
         textPopupMenus.put(prefixField, new JPopupMenu());
         textPopupMenus.put(dbTableStructText, new JPopupMenu());
         textPopupMenus.put(dbFileField, new JPopupMenu());
@@ -701,13 +701,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             @Override
             public void documentUpdate(DocumentEvent evt, DocumentEvent.EventType type) {
                 updateNewLinkButton();
-            }
-        });
-        
-        dbQueryField.getDocument().addDocumentListener(new SingleMethodDocumentListener(){
-            @Override
-            public void documentUpdate(DocumentEvent evt, DocumentEvent.EventType type) {
-                updateExecuteQueryEnabled();
             }
         });
         
@@ -1059,25 +1052,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         databaseDialog = new javax.swing.JDialog(this);
         dbTabbedPane = new javax.swing.JTabbedPane();
         dbViewer = new manager.database.DatabaseTableViewer();
-        dbQueryPanel = new javax.swing.JPanel();
-        javax.swing.JLabel dbQueryLabel = new javax.swing.JLabel();
-        dbQueryField = new javax.swing.JTextField();
-        executeQueryButton = new javax.swing.JButton();
-        javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
-        javax.swing.JLabel jLabel4 = new javax.swing.JLabel();
-        dbQueryTimeLabel = new javax.swing.JLabel();
-        dbQueryResultsPanel = new javax.swing.JPanel();
-        dbQueryBlankCard = new javax.swing.JLabel();
-        dbQueryScrollPane = new javax.swing.JScrollPane();
-        dbQueryTable = new javax.swing.JTable();
-        dbQueryUpdatePanel = new javax.swing.JPanel();
-        javax.swing.JLabel jLabel3 = new javax.swing.JLabel();
-        dbQueryUpdateLabel = new javax.swing.JLabel();
-        dbQueryErrorPanel = new javax.swing.JPanel();
-        javax.swing.JLabel jLabel6 = new javax.swing.JLabel();
-        dbQueryErrorLabel = new javax.swing.JLabel();
-        javax.swing.JLabel jLabel10 = new javax.swing.JLabel();
-        dbQueryErrorCodeLabel = new javax.swing.JLabel();
+        dbQueryPanel = new manager.database.DatabaseQueryTestPanel();
         dbFilePanel = new javax.swing.JPanel();
         javax.swing.JLabel dbFileNameLabel = new javax.swing.JLabel();
         dbFileNameField = new javax.swing.JTextField();
@@ -1579,175 +1554,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         dbTabbedPane.addTab("Table View", dbViewer);
 
-        dbQueryLabel.setLabelFor(dbQueryField);
-        dbQueryLabel.setText("Query:");
-
-        dbQueryField.addActionListener(new java.awt.event.ActionListener() {
+        dbQueryPanel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                executeQueryActionPerformed(evt);
+                dbQueryPanelActionPerformed(evt);
             }
         });
-
-        executeQueryButton.setText("Execute");
-        executeQueryButton.setEnabled(false);
-        executeQueryButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                executeQueryActionPerformed(evt);
-            }
-        });
-
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Results"));
-        jPanel1.setLayout(new java.awt.GridBagLayout());
-
-        jLabel4.setLabelFor(dbQueryTimeLabel);
-        jLabel4.setText("Time:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(13, 12, 0, 0);
-        jPanel1.add(jLabel4, gridBagConstraints);
-
-        dbQueryTimeLabel.setText("0 ms");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(13, 6, 0, 12);
-        jPanel1.add(dbQueryTimeLabel, gridBagConstraints);
-
-        dbQueryResultsPanel.setLayout(new java.awt.CardLayout());
-
-        dbQueryBlankCard.setName("blank"); // NOI18N
-        dbQueryResultsPanel.add(dbQueryBlankCard, "blank");
-
-        dbQueryScrollPane.setName("table"); // NOI18N
-
-        dbQueryTable.setAutoCreateRowSorter(true);
-        dbQueryTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
-        dbQueryScrollPane.setViewportView(dbQueryTable);
-
-        dbQueryResultsPanel.add(dbQueryScrollPane, "table");
-
-        dbQueryUpdatePanel.setName("update"); // NOI18N
-
-        jLabel3.setLabelFor(dbQueryUpdateLabel);
-        jLabel3.setText("Update Count: ");
-
-        dbQueryUpdateLabel.setText("-1");
-
-        javax.swing.GroupLayout dbQueryUpdatePanelLayout = new javax.swing.GroupLayout(dbQueryUpdatePanel);
-        dbQueryUpdatePanel.setLayout(dbQueryUpdatePanelLayout);
-        dbQueryUpdatePanelLayout.setHorizontalGroup(
-            dbQueryUpdatePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dbQueryUpdatePanelLayout.createSequentialGroup()
-                .addGap(1, 1, 1)
-                .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(dbQueryUpdateLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        dbQueryUpdatePanelLayout.setVerticalGroup(
-            dbQueryUpdatePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dbQueryUpdatePanelLayout.createSequentialGroup()
-                .addGroup(dbQueryUpdatePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(dbQueryUpdateLabel))
-                .addGap(0, 208, Short.MAX_VALUE))
-        );
-
-        dbQueryResultsPanel.add(dbQueryUpdatePanel, "update");
-
-        dbQueryErrorPanel.setName("error"); // NOI18N
-
-        jLabel6.setLabelFor(dbQueryErrorLabel);
-        jLabel6.setText("Error:");
-
-        dbQueryErrorLabel.setText("N/A");
-
-        jLabel10.setLabelFor(dbQueryErrorCodeLabel);
-        jLabel10.setText("Error Code:");
-
-        dbQueryErrorCodeLabel.setText("-1");
-
-        javax.swing.GroupLayout dbQueryErrorPanelLayout = new javax.swing.GroupLayout(dbQueryErrorPanel);
-        dbQueryErrorPanel.setLayout(dbQueryErrorPanelLayout);
-        dbQueryErrorPanelLayout.setHorizontalGroup(
-            dbQueryErrorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dbQueryErrorPanelLayout.createSequentialGroup()
-                .addComponent(jLabel6)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(dbQueryErrorLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(dbQueryErrorPanelLayout.createSequentialGroup()
-                .addComponent(jLabel10)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(dbQueryErrorCodeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 456, Short.MAX_VALUE))
-        );
-        dbQueryErrorPanelLayout.setVerticalGroup(
-            dbQueryErrorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dbQueryErrorPanelLayout.createSequentialGroup()
-                .addGroup(dbQueryErrorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel6)
-                    .addComponent(dbQueryErrorLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(dbQueryErrorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel10)
-                    .addComponent(dbQueryErrorCodeLabel))
-                .addGap(0, 185, Short.MAX_VALUE))
-        );
-
-        dbQueryResultsPanel.add(dbQueryErrorPanel, "error");
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.weightx = 0.9;
-        gridBagConstraints.weighty = 0.9;
-        gridBagConstraints.insets = new java.awt.Insets(7, 12, 13, 12);
-        jPanel1.add(dbQueryResultsPanel, gridBagConstraints);
-
-        javax.swing.GroupLayout dbQueryPanelLayout = new javax.swing.GroupLayout(dbQueryPanel);
-        dbQueryPanel.setLayout(dbQueryPanelLayout);
-        dbQueryPanelLayout.setHorizontalGroup(
-            dbQueryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dbQueryPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(dbQueryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(dbQueryPanelLayout.createSequentialGroup()
-                        .addComponent(dbQueryLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbQueryField)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(executeQueryButton)))
-                .addContainerGap())
-        );
-        dbQueryPanelLayout.setVerticalGroup(
-            dbQueryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dbQueryPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(dbQueryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(executeQueryButton)
-                    .addComponent(dbQueryField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(dbQueryLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-
         dbTabbedPane.addTab("Query", dbQueryPanel);
 
         dbFileNameLabel.setLabelFor(dbFileNameField);
@@ -3407,65 +3218,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         loader = new LoadDatabaseViewer(true);
         loader.execute();
     }//GEN-LAST:event_removePrefixButtonActionPerformed
-    /**
-     * This executes a query directly on the database.
-     * @param evt The ActionEvent.
-     */
-    private void executeQueryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_executeQueryActionPerformed
-            // If the execute query button is disabled
-        if (!executeQueryButton.isEnabled()){
-            beep();
-            return;
-        }   // The name of the card to display on the results panel
-        String cardName = dbQueryBlankCard.getName();
-            // This gets if we need to update the tables
-        boolean updated = false;
-            // Get the current time
-        long time = System.currentTimeMillis();
-            // Try to connect to the database and create an SQL statement for it
-        try(LinkDatabaseConnection conn = connect(getDatabaseFile());
-            Statement stmt = conn.createStatement()){
-                // Execute the query and get if the query returns a ResultSet
-            boolean hasResults = stmt.execute(dbQueryField.getText());
-                // Get the time it took to execute the query
-            time = System.currentTimeMillis() - time;
-                // This gets the number of updated rows.
-            int updateCount = stmt.getUpdateCount();
-            if (hasResults){    // If the query returned a ResultSet
-                    // Create and display a table model from the results
-                dbQueryTable.setModel(LinkDatabaseConnection.getTableModelForResultSet(stmt.getResultSet()));
-                cardName = dbQueryScrollPane.getName();
-            }
-            else{
-                dbQueryUpdateLabel.setText(""+updateCount);
-                cardName = dbQueryUpdatePanel.getName();
-            }
-            updated = updateCount > 0;
-        }
-        catch (SQLException | UncheckedSQLException ex) {
-            int errorCode = -1;
-            if (ex instanceof SQLException){
-                errorCode = ((SQLException)ex).getErrorCode();
-            }
-            else if (ex instanceof UncheckedSQLException)
-                errorCode = ((UncheckedSQLException)ex).getErrorCode();
-            System.out.println("Error: "+errorCode + " "+ex);
-            JOptionPane.showMessageDialog(this, "Database Error: " + ex,
-                "Database Error", JOptionPane.ERROR_MESSAGE);
-            dbQueryErrorLabel.setText(""+ex);
-            dbQueryErrorCodeLabel.setText(""+errorCode);
-            cardName = dbQueryErrorPanel.getName();
-            time = 0;
-        }
-            // Set the label to display the time
-        dbQueryTimeLabel.setText(time + " ms");
-        System.gc();
-        LinkManagerUtilities.setCard(dbQueryResultsPanel, cardName);
-        if (updated){   // Update the database view if there were changes
-            loader = new LoadDatabaseViewer(true);
-            loader.execute();
-        }
-    }//GEN-LAST:event_executeQueryActionPerformed
     
     private void setDBFileNameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBFileNameButtonActionPerformed
         config.setDatabaseFileName(dbFileNameField.getText());
@@ -4822,6 +4574,43 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Update the chunk size in the configuration
         config.setDropboxChunkSizeMultiplier(dbxChunkSizeModel.getMultiplier());
     }//GEN-LAST:event_dbxChunkSizeSpinnerStateChanged
+    /**
+     * This executes a query directly on the database.
+     * @param evt The ActionEvent.
+     */
+    private void dbQueryPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbQueryPanelActionPerformed
+            // This gets if we need to update the tables
+        boolean updated = false;
+            // Try to connect to the database and create an SQL statement for it
+        try(LinkDatabaseConnection conn = connect(getDatabaseFile());
+            Statement stmt = conn.createStatement()){
+                // Get the current time
+            long time = System.currentTimeMillis();
+                // Execute the query and get if the query returns a ResultSet
+            boolean hasResults = stmt.execute(dbQueryPanel.getQuery());
+                // Get the time it took to execute the query
+            dbQueryPanel.setExecutionTime(System.currentTimeMillis() - time);
+                // This gets the number of updated rows.
+            int updateCount = stmt.getUpdateCount();
+            if (hasResults)     // If the query returned a ResultSet
+                    // Create and display a table model from the results
+                dbQueryPanel.showResults(stmt.getResultSet());
+            else
+                dbQueryPanel.showUpdates(updateCount);
+            updated = updateCount > 0;
+        } catch (SQLException | UncheckedSQLException ex) {
+            dbQueryPanel.setExecutionTime(0);
+            dbQueryPanel.showError(ex);
+            System.out.println("Error: "+dbQueryPanel.getErrorCode() + " "+ex);
+            JOptionPane.showMessageDialog(this, "Database Error: " + ex,
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+        System.gc();
+        if (updated){   // Update the database view if there were changes
+            loader = new LoadDatabaseViewer(true);
+            loader.execute();
+        }
+    }//GEN-LAST:event_dbQueryPanelActionPerformed
     
     private CustomTableModel getListSearchTableModel(){
         CustomTableModel model = new CustomTableModel("ListID", "List Name", 
@@ -5045,8 +4834,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbSearchField.setEnabled(enabled);
         dbSearchPrefixCheckBox.setEnabled(dbUsedPrefixCombo.isEnabled());
         dbUpdateLastModButton.setEnabled(enabled);
+        dbQueryPanel.setEnabled(enabled);
         updateDBSearchPrefixCombo();
-        updateExecuteQueryEnabled();
         updatePrefixButtons();
         updateListEditButtons();
         updateExternalDBButtons();
@@ -5113,12 +4902,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private void updateListEditButtons(){
         dbListEditApplyButton.setEnabled(active && dbListIDCombo.isEnabled());
-    }
-    
-    private void updateExecuteQueryEnabled(){
-        executeQueryButton.setEnabled(isInputEnabled() && 
-                dbQueryField.getText() != null &&
-                !dbQueryField.getText().isBlank());
     }
     
     private void updatePrefixButtons(){
@@ -5454,18 +5237,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JTable dbPrefixTable;
     private javax.swing.JPanel dbPrefixesPanel;
     private javax.swing.JPanel dbPropPanel;
-    private javax.swing.JLabel dbQueryBlankCard;
-    private javax.swing.JLabel dbQueryErrorCodeLabel;
-    private javax.swing.JLabel dbQueryErrorLabel;
-    private javax.swing.JPanel dbQueryErrorPanel;
-    private javax.swing.JTextField dbQueryField;
-    private javax.swing.JPanel dbQueryPanel;
-    private javax.swing.JPanel dbQueryResultsPanel;
-    private javax.swing.JScrollPane dbQueryScrollPane;
-    private javax.swing.JTable dbQueryTable;
-    private javax.swing.JLabel dbQueryTimeLabel;
-    private javax.swing.JLabel dbQueryUpdateLabel;
-    private javax.swing.JPanel dbQueryUpdatePanel;
+    private manager.database.DatabaseQueryTestPanel dbQueryPanel;
     private javax.swing.JButton dbRefreshButton;
     private javax.swing.JButton dbRemoveDuplDataButton;
     private javax.swing.JButton dbRemoveUnusedDataButton;
@@ -5506,7 +5278,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem dropboxRefreshTestButton;
     private manager.dropbox.DropboxSetupPanel dropboxSetupPanel;
     private javax.swing.JButton editLinkButton;
-    private javax.swing.JButton executeQueryButton;
     private javax.swing.JMenuItem exitButton;
     private javax.swing.JFileChooser exportFC;
     private javax.swing.JMenuItem exportListsItem;
