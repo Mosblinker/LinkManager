@@ -8740,10 +8740,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             addConfigRows("Preferences",config.getPreferences());
                 // Add all the list type nodes
             addNodeChildConfigRows("List Type %s Preferences",
-                    LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX);
+                    LIST_TYPE_PREFERENCE_NODE_NAME);
                 // Add all the list ID nodes
             addNodeChildConfigRows("List ID %s Preferences",
-                    LIST_ID_PREFERENCE_NODE_NAME_PREFIX);
+                    LIST_ID_PREFERENCE_NODE_NAME);
                 // Add all the Dropbox preferences for this program
             addConfigRows("Dropbox Preferences",config.getDropboxPreferences());
             

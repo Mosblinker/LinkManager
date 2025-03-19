@@ -249,18 +249,18 @@ public class LinkManagerConfig {
      */
     public static final String DROPBOX_PREFERENCE_NODE_NAME = "dropbox";
     /**
-     * This is the prefix for the name of the preference nodes used to store 
-     * the settings relating to a specific type of list. The list type is 
-     * appended to the end of this to get the preference node specific for that 
-     * list type.
+     * This is the name of the preference node used to store the preference 
+     * nodes that store the settings relating to a specific type of list. The 
+     * list type is used as the name of the preference node that corresponds to 
+     * that list type.
      */
-    public static final String LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX="listType=";
+    public static final String LIST_TYPE_PREFERENCE_NODE_NAME = "listType=";
     /**
-     * This is the prefix for the name of the preference nodes used to store 
-     * the settings relating to a specific list. The list's listID is appended 
-     * to the end of this to get the preference node specific for that list.
+     * This is the name of the preference node used to store the preference 
+     * nodes that store the settings relating to a specific list. The listID is 
+     * used as the name of the preference node that corresponds to that list.
      */
-    public static final String LIST_ID_PREFERENCE_NODE_NAME_PREFIX = "listID=";
+    public static final String LIST_ID_PREFERENCE_NODE_NAME = "listID=";
     /**
      * This is the preference node containing all the preferences for 
      * LinkManager. This is the parent preference node for all other nodes, and 
@@ -467,7 +467,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public ConfigPreferences getListTypePreferences(int type){
-        return getListDataPreferences(type,LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX,
+        return getListDataPreferences(type,LIST_TYPE_PREFERENCE_NODE_NAME,
                 listTypeNodeMap);
     }
     /**
@@ -476,7 +476,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public ConfigPreferences getListPreferences(int listID){
-        return getListDataPreferences(listID,LIST_ID_PREFERENCE_NODE_NAME_PREFIX,
+        return getListDataPreferences(listID,LIST_ID_PREFERENCE_NODE_NAME,
                 listIDNodeMap);
     }
     /**
@@ -1916,7 +1916,7 @@ public class LinkManagerConfig {
                 }
                 @Override
                 protected String getPrefixForNodes() {
-                    return LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX;
+                    return LIST_TYPE_PREFERENCE_NODE_NAME;
                 }
             };
         }
@@ -1959,7 +1959,7 @@ public class LinkManagerConfig {
                 }
                 @Override
                 protected String getPrefixForNodes() {
-                    return LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX;
+                    return LIST_TYPE_PREFERENCE_NODE_NAME;
                 }
             };
         }
@@ -2019,7 +2019,7 @@ public class LinkManagerConfig {
                 }
                 @Override
                 protected String getPrefixForNodes() {
-                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                    return LIST_ID_PREFERENCE_NODE_NAME;
                 }
             };
         }
@@ -2064,7 +2064,7 @@ public class LinkManagerConfig {
                 }
                 @Override
                 protected String getPrefixForNodes() {
-                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                    return LIST_ID_PREFERENCE_NODE_NAME;
                 }
             };
         }
@@ -2105,7 +2105,7 @@ public class LinkManagerConfig {
                 }
                 @Override
                 protected String getPrefixForNodes() {
-                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                    return LIST_ID_PREFERENCE_NODE_NAME;
                 }
             };
         }
@@ -2146,7 +2146,7 @@ public class LinkManagerConfig {
                 }
                 @Override
                 protected String getPrefixForNodes() {
-                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                    return LIST_ID_PREFERENCE_NODE_NAME;
                 }
             };
         }
@@ -2207,9 +2207,9 @@ public class LinkManagerConfig {
             // If there is no node cached for the listID
         if (node == null){
                 // If there is a node for the list with the given listID
-            if (nodeExists(getPreferences(),LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX+listID))
+            if (nodeExists(getPreferences(),LIST_TYPE_PREFERENCE_NODE_NAME+listID))
                     // Get that node
-                node = getPreferences().node(LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX+listID);
+                node = getPreferences().node(LIST_TYPE_PREFERENCE_NODE_NAME+listID);
         }   // If there is a list preference node for the given listID
         if (node != null)
                 // Remove the node
