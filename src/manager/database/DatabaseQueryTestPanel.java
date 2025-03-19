@@ -351,7 +351,7 @@ public class DatabaseQueryTestPanel extends JPanel {
      * 
      * @return 
      */
-    public TableModel getResultsTableModel(){
+    public TableModel getResultsModel(){
         return resultsModel;
     }
     /**
