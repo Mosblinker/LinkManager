@@ -7,10 +7,12 @@ package manager.database;
 import java.awt.Component;
 import java.awt.event.*;
 import java.sql.*;
+import java.util.Objects;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
 import manager.*;
+import sql.UncheckedSQLException;
 
 /**
  *
@@ -278,6 +280,13 @@ public class DatabaseQueryTestPanel extends JPanel {
             Exception ex){
         resultsModel = model;
         updateCount = updates;
+        this.ex = ex;
+        if (ex instanceof SQLException)
+            errorCode = ((SQLException)ex).getErrorCode();
+        else if (ex instanceof UncheckedSQLException)
+            errorCode = ((UncheckedSQLException)ex).getErrorCode();
+        else
+            errorCode = null;
     }
     /**
      * 
@@ -291,8 +300,8 @@ public class DatabaseQueryTestPanel extends JPanel {
      * @param model 
      */
     public void showResults(TableModel model){
-        dbQueryTable.setModel(model);
         setResultsData(model,null,null);
+        dbQueryTable.setModel(model);
         setResultsCard(dbQueryScrollPane);
     }
     /**
@@ -308,11 +317,20 @@ public class DatabaseQueryTestPanel extends JPanel {
      * @param updateCount 
      */
     public void showUpdates(int updateCount){
-        dbQueryUpdateLabel.setText(""+updateCount);
         setResultsData(null,updateCount,null);
+        dbQueryUpdateLabel.setText(""+updateCount);
         setResultsCard(dbQueryUpdatePanel);
     }
-    
+    /**
+     * 
+     * @param ex 
+     */
+    public void showError(Exception ex){
+        setResultsData(null,null,ex);
+        dbQueryErrorLabel.setText(Objects.toString(ex,"N/A"));
+        dbQueryErrorCodeLabel.setText(Objects.toString(errorCode,"N/A"));
+        setResultsCard(dbQueryErrorPanel);
+    }
     /**
      * 
      * @return 
@@ -327,7 +345,20 @@ public class DatabaseQueryTestPanel extends JPanel {
     public Integer getUpdateCount(){
         return updateCount;
     }
-    
+    /**
+     * 
+     * @return 
+     */
+    public Exception getException(){
+        return ex;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Integer getErrorCode(){
+        return errorCode;
+    }
     /**
      * 
      * @param l 
@@ -425,6 +456,15 @@ public class DatabaseQueryTestPanel extends JPanel {
      * The update count of the most recent query.
      */
     private Integer updateCount = null;
+    /**
+     * The exception that was thrown during the most recent query.
+     */
+    private Exception ex = null;
+    /**
+     * The SQL error code for the exception that was thrown during the most 
+     * recent query.
+     */
+    private Integer errorCode = null;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel dbQueryBlankCard;
     private javax.swing.JLabel dbQueryErrorCodeLabel;
