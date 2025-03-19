@@ -276,6 +276,7 @@ public class DatabaseQueryTestPanel extends JPanel {
     protected void setResultsData(TableModel model, Integer updates, 
             Exception ex){
         resultsModel = model;
+        updateCount = updates;
         fireStateChanged();
     }
     /**
@@ -302,6 +303,15 @@ public class DatabaseQueryTestPanel extends JPanel {
     public void showResults(ResultSet resultSet) throws SQLException{
         showResults(LinkDatabaseConnection.getTableModelForResultSet(resultSet));
     }
+    /**
+     * 
+     * @param updateCount 
+     */
+    public void showUpdates(int updateCount){
+        dbQueryUpdateLabel.setText(""+updateCount);
+        setResultsCard(dbQueryUpdatePanel);
+        setResultsData(null,updateCount,null);
+    }
     
     /**
      * 
@@ -309,6 +319,13 @@ public class DatabaseQueryTestPanel extends JPanel {
      */
     public TableModel getResultsTableModel(){
         return resultsModel;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Integer getUpdateCount(){
+        return updateCount;
     }
     
     /**
@@ -404,6 +421,10 @@ public class DatabaseQueryTestPanel extends JPanel {
      * The table model showing the results of the most recent query.
      */
     private TableModel resultsModel = null;
+    /**
+     * The update count of the most recent query.
+     */
+    private Integer updateCount = null;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel dbQueryBlankCard;
     private javax.swing.JLabel dbQueryErrorCodeLabel;
