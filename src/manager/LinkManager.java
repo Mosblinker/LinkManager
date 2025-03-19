@@ -1059,7 +1059,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         databaseDialog = new javax.swing.JDialog(this);
         dbTabbedPane = new javax.swing.JTabbedPane();
         dbViewer = new manager.database.DatabaseTableViewer();
-        dbQueryPanel = new javax.swing.JPanel();
+        dbQueryPanel = new manager.database.DatabaseQueryTestPanel();
+        dbQueryPanel1 = new javax.swing.JPanel();
         javax.swing.JLabel dbQueryLabel = new javax.swing.JLabel();
         dbQueryField = new javax.swing.JTextField();
         executeQueryButton = new javax.swing.JButton();
@@ -1579,6 +1580,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         dbTabbedPane.addTab("Table View", dbViewer);
 
+        dbQueryPanel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbQueryPanelActionPerformed(evt);
+            }
+        });
+        dbTabbedPane.addTab("Query", dbQueryPanel);
+
         dbQueryLabel.setLabelFor(dbQueryField);
         dbQueryLabel.setText("Query:");
 
@@ -1719,15 +1727,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         gridBagConstraints.insets = new java.awt.Insets(7, 12, 13, 12);
         jPanel1.add(dbQueryResultsPanel, gridBagConstraints);
 
-        javax.swing.GroupLayout dbQueryPanelLayout = new javax.swing.GroupLayout(dbQueryPanel);
-        dbQueryPanel.setLayout(dbQueryPanelLayout);
-        dbQueryPanelLayout.setHorizontalGroup(
-            dbQueryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dbQueryPanelLayout.createSequentialGroup()
+        javax.swing.GroupLayout dbQueryPanel1Layout = new javax.swing.GroupLayout(dbQueryPanel1);
+        dbQueryPanel1.setLayout(dbQueryPanel1Layout);
+        dbQueryPanel1Layout.setHorizontalGroup(
+            dbQueryPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(dbQueryPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(dbQueryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(dbQueryPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(dbQueryPanelLayout.createSequentialGroup()
+                    .addGroup(dbQueryPanel1Layout.createSequentialGroup()
                         .addComponent(dbQueryLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(dbQueryField)
@@ -1735,11 +1743,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         .addComponent(executeQueryButton)))
                 .addContainerGap())
         );
-        dbQueryPanelLayout.setVerticalGroup(
-            dbQueryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dbQueryPanelLayout.createSequentialGroup()
+        dbQueryPanel1Layout.setVerticalGroup(
+            dbQueryPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(dbQueryPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(dbQueryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(dbQueryPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(executeQueryButton)
                     .addComponent(dbQueryField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(dbQueryLabel))
@@ -1748,7 +1756,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addContainerGap())
         );
 
-        dbTabbedPane.addTab("Query", dbQueryPanel);
+        dbTabbedPane.addTab("Query", dbQueryPanel1);
 
         dbFileNameLabel.setLabelFor(dbFileNameField);
         dbFileNameLabel.setText("File:");
@@ -4822,6 +4830,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Update the chunk size in the configuration
         config.setDropboxChunkSizeMultiplier(dbxChunkSizeModel.getMultiplier());
     }//GEN-LAST:event_dbxChunkSizeSpinnerStateChanged
+
+    private void dbQueryPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbQueryPanelActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_dbQueryPanelActionPerformed
     
     private CustomTableModel getListSearchTableModel(){
         CustomTableModel model = new CustomTableModel("ListID", "List Name", 
@@ -5459,7 +5471,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JLabel dbQueryErrorLabel;
     private javax.swing.JPanel dbQueryErrorPanel;
     private javax.swing.JTextField dbQueryField;
-    private javax.swing.JPanel dbQueryPanel;
+    private manager.database.DatabaseQueryTestPanel dbQueryPanel;
+    private javax.swing.JPanel dbQueryPanel1;
     private javax.swing.JPanel dbQueryResultsPanel;
     private javax.swing.JScrollPane dbQueryScrollPane;
     private javax.swing.JTable dbQueryTable;
