@@ -106,7 +106,7 @@ public class DatabaseQueryTestPanel extends JPanel {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(13, 12, 0, 0);
+        gridBagConstraints.insets = new java.awt.Insets(7, 12, 0, 0);
         jPanel1.add(jLabel4, gridBagConstraints);
 
         dbQueryTimeLabel.setText("0 ms");
@@ -115,7 +115,7 @@ public class DatabaseQueryTestPanel extends JPanel {
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(13, 6, 0, 12);
+        gridBagConstraints.insets = new java.awt.Insets(7, 6, 0, 12);
         jPanel1.add(dbQueryTimeLabel, gridBagConstraints);
 
         dbQueryResultsPanel.setLayout(new java.awt.CardLayout());
@@ -214,7 +214,7 @@ public class DatabaseQueryTestPanel extends JPanel {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.weightx = 0.9;
         gridBagConstraints.weighty = 0.9;
-        gridBagConstraints.insets = new java.awt.Insets(7, 12, 13, 12);
+        gridBagConstraints.insets = new java.awt.Insets(13, 12, 13, 12);
         jPanel1.add(dbQueryResultsPanel, gridBagConstraints);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
