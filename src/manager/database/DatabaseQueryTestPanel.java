@@ -16,7 +16,12 @@ public class DatabaseQueryTestPanel extends JPanel {
      * 
      */
     public static final String DATABASE_QUERY_EXECUTE_COMMAND = "ExecuteQuery";
-
+    /**
+     * 
+     */
+    public static final String EXECUTION_TIME_PROPERTY_CHANGED = 
+            "TimePropertyChanged";
+    
     /**
      * Creates new form DatabaseQueryTestPanel
      */
@@ -232,6 +237,27 @@ public class DatabaseQueryTestPanel extends JPanel {
     }//GEN-LAST:event_executeQueryActionPerformed
     /**
      * 
+     * @return 
+     */
+    public long getExecutionTime(){
+        return time;
+    }
+    /**
+     * 
+     * @param time 
+     */
+    public void setExecutionTime(long time){
+        if (time != this.time){
+            long old = this.time;
+            this.time = time;
+            firePropertyChange(EXECUTION_TIME_PROPERTY_CHANGED,old,time);
+                // Set the label to display the time
+            dbQueryTimeLabel.setText(time + " ms");
+        }
+    }
+    
+    /**
+     * 
      * @param l 
      */
     public void addActionListener(ActionListener l){
@@ -282,6 +308,10 @@ public class DatabaseQueryTestPanel extends JPanel {
     protected void fireActionPerformed(int id, String command){
         fireActionPerformed(new ActionEvent(this,id,command));
     }
+    /**
+     * The time it took to execute the most recent query.
+     */
+    private long time = 0;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel dbQueryBlankCard;
     private javax.swing.JLabel dbQueryErrorCodeLabel;
