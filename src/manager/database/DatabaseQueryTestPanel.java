@@ -7,6 +7,7 @@ package manager.database;
 import java.awt.Component;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import manager.*;
 
 /**
@@ -261,15 +262,18 @@ public class DatabaseQueryTestPanel extends JPanel {
      * 
      * @param card 
      */
-    protected void setCard(Component card){
+    protected void setResultsCard(Component card){
         LinkManagerUtilities.setCard(dbQueryResultsPanel, card.getName());
+        fireStateChanged();
     }
     /**
      * 
      */
     public void showBlank(){
-        setCard(dbQueryBlankCard);
+        setResultsCard(dbQueryBlankCard);
     }
+    
+    
     
     /**
      * 
@@ -322,6 +326,39 @@ public class DatabaseQueryTestPanel extends JPanel {
      */
     protected void fireActionPerformed(int id, String command){
         fireActionPerformed(new ActionEvent(this,id,command));
+    }
+    /**
+     * 
+     * @param l 
+     */
+    public void addChangeListener(ChangeListener l){
+            // If the listener is not null
+        if (l != null)
+            listenerList.add(ChangeListener.class, l);
+    }
+    /**
+     * 
+     * @param l 
+     */
+    public void removeChangeListener(ChangeListener l){
+        listenerList.remove(ChangeListener.class, l);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public ChangeListener[] getChangeListeners(){
+        return listenerList.getListeners(ChangeListener.class);
+    }
+    /**
+     * 
+     */
+    protected void fireStateChanged(){
+        ChangeEvent evt = new ChangeEvent(this);
+        for (ChangeListener l : getChangeListeners()){
+            if (l != null)
+                l.stateChanged(evt);
+        }
     }
     /**
      * The time it took to execute the most recent query.
