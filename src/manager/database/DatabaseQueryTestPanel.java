@@ -81,6 +81,7 @@ public class DatabaseQueryTestPanel extends JPanel {
         javax.swing.JLabel jLabel10 = new javax.swing.JLabel();
         dbQueryErrorCodeLabel = new javax.swing.JLabel();
 
+        dbQueryField.setComponentPopupMenu(popupMenu);
         dbQueryField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 executeQueryActionPerformed(evt);
