@@ -8,6 +8,7 @@ import java.awt.Component;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.table.*;
 import manager.*;
 
 /**
@@ -270,10 +271,26 @@ public class DatabaseQueryTestPanel extends JPanel {
      * 
      */
     public void showBlank(){
+        resultsModel = null;
         setResultsCard(dbQueryBlankCard);
     }
+    /**
+     * 
+     * @param model 
+     */
+    public void showResults(TableModel model){
+        resultsModel = model;
+        dbQueryTable.setModel(model);
+        setResultsCard(dbQueryScrollPane);
+    }
     
-    
+    /**
+     * 
+     * @return 
+     */
+    public TableModel getResultsTableModel(){
+        return resultsModel;
+    }
     
     /**
      * 
@@ -364,6 +381,10 @@ public class DatabaseQueryTestPanel extends JPanel {
      * The time it took to execute the most recent query.
      */
     private long time = 0;
+    /**
+     * The table model showing the results of the most recent query.
+     */
+    private TableModel resultsModel = null;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel dbQueryBlankCard;
     private javax.swing.JLabel dbQueryErrorCodeLabel;
