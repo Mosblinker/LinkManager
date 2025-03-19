@@ -492,6 +492,19 @@ public class DatabaseQueryTestPanel extends JPanel {
                 ",executionTime="+getExecutionTime()+
                 ",state="+getState()+" ["+stateStr+"]";
     }
+    @Override
+    public void setEnabled(boolean enabled){
+        super.setEnabled(enabled);
+        updateExecuteQueryEnabled();
+    }
+    /**
+     * 
+     */
+    private void updateExecuteQueryEnabled(){
+        executeQueryButton.setEnabled(isEnabled() && 
+                dbQueryField.getText() != null &&
+                !dbQueryField.getText().isBlank());
+    }
     /**
      * The time it took to execute the most recent query.
      */
