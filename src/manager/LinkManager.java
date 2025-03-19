@@ -631,6 +631,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         textPopupMenus.put(linkTextField, new JPopupMenu());
         textPopupMenus.put(dbQueryField, new JPopupMenu());
+        textPopupMenus.put(dbQueryPanel.getQueryTextField(), dbQueryPanel.getQueryPopupMenu());
         textPopupMenus.put(prefixField, new JPopupMenu());
         textPopupMenus.put(dbTableStructText, new JPopupMenu());
         textPopupMenus.put(dbFileField, new JPopupMenu());
@@ -5090,6 +5091,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbSearchField.setEnabled(enabled);
         dbSearchPrefixCheckBox.setEnabled(dbUsedPrefixCombo.isEnabled());
         dbUpdateLastModButton.setEnabled(enabled);
+        dbQueryPanel.setEnabled(enabled);
         updateDBSearchPrefixCombo();
         updateExecuteQueryEnabled();
         updatePrefixButtons();
