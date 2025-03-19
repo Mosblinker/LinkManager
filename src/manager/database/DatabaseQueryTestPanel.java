@@ -4,8 +4,10 @@
  */
 package manager.database;
 
+import java.awt.Component;
 import java.awt.event.*;
 import javax.swing.*;
+import manager.*;
 
 /**
  *
@@ -254,6 +256,19 @@ public class DatabaseQueryTestPanel extends JPanel {
                 // Set the label to display the time
             dbQueryTimeLabel.setText(time + " ms");
         }
+    }
+    /**
+     * 
+     * @param card 
+     */
+    protected void setCard(Component card){
+        LinkManagerUtilities.setCard(dbQueryResultsPanel, card.getName());
+    }
+    /**
+     * 
+     */
+    public void showBlank(){
+        setCard(dbQueryBlankCard);
     }
     
     /**
