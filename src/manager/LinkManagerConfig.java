@@ -373,6 +373,10 @@ public class LinkManagerConfig {
      */
     protected KeyGenerator keyGen = null;
     /**
+     * This is a utilities object for encrypting and decrypting values.
+     */
+    protected CipherUtils cipherUtils = null;
+    /**
      * 
      * @param sqlProp
      * @param node 
@@ -421,6 +425,7 @@ public class LinkManagerConfig {
         this.ivParam = linkConfig.ivParam;
         this.secureRand = linkConfig.secureRand;
         this.keyGen = linkConfig.keyGen;
+        this.cipherUtils = linkConfig.cipherUtils;
     }
     /**
      * This returns the preference node used to store the shared configuration 
@@ -671,6 +676,20 @@ public class LinkManagerConfig {
             // Set the program ID to the generated UUID
         setProgramID(id);
         return id;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public CipherUtils getCipher(){
+        return cipherUtils;
+    }
+    /**
+     * 
+     * @param utils 
+     */
+    public void setCipher(CipherUtils utils){
+        this.cipherUtils = utils;
     }
     /**
      * 
