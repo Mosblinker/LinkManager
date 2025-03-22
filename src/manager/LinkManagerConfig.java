@@ -2620,7 +2620,7 @@ public class LinkManagerConfig {
          * @return 
          */
         protected ConfigPreferences node(int key){
-            return getLocalChild(getParentPath()+"="+key);
+            return getParentNode().node(Integer.toString(key));
         }
         /**
          * 
@@ -2628,8 +2628,8 @@ public class LinkManagerConfig {
          * @return 
          */
         public boolean nodeExists(int key){
-            return LinkManagerConfig.this.nodeExists(getPreferences(),
-                    getParentPath()+"="+key);
+            return LinkManagerConfig.this.nodeExists(getParentNode(),
+                    Integer.toString(key));
         }
         /**
          * 
@@ -2675,16 +2675,14 @@ public class LinkManagerConfig {
         public Set<Integer> getKeys(){
                 // This will get the keys in this map
             Set<Integer> keys = new TreeSet<>();
-            try{    // Get the names of the child nodes in the local preference 
-                String[] childNodes = getPreferences().childrenNames(); // node
+            try{    // Get the names of the child nodes in the parent preference 
+                String[] childNodes = getParentNode().childrenNames(); // node
                     // Go through the names of the child nodes
                 for (String child : childNodes){
-                        // If the child's name is not null and starts with the 
-                        // prefix
-                    if (child != null && child.startsWith(getParentPath()+"=")){
-                        try{    // Parse the number at the end
-                            keys.add(Integer.valueOf(child.substring(
-                                    getParentPath().length()+1)));
+                        // If the child's name is not null
+                    if (child != null){
+                        try{    // Parse the number
+                            keys.add(Integer.valueOf(child));
                         } catch (NumberFormatException ex) {}
                     }
                 }
