@@ -326,22 +326,13 @@ public class LinkManagerConfig {
      */
     protected ConfigPreferences dropboxNode = null;
     /**
-     * This is the parent preference node for the the list type preference 
-     * nodes.
+     * This is used to handle the list type preference nodes.
      */
-    protected ConfigPreferences listTypeNode = null;
+    protected final ListConfigNodeParent listTypeNodes;
     /**
-     * This is a map that caches the list type preference nodes.
+     * This is used to handle the listID preference nodes.
      */
-    protected Map<Integer, ConfigPreferences> listTypeNodeMap;
-    /**
-     * This is the parent preference node for the the listID preference nodes.
-     */
-    protected ConfigPreferences listIDNode = null;
-    /**
-     * This is a map that caches the listID preference nodes.
-     */
-    protected Map<Integer, ConfigPreferences> listIDNodeMap;
+    protected final ListConfigNodeParent listIDNodes;
     /**
      * This is the ID for the program.
      */
@@ -377,8 +368,8 @@ public class LinkManagerConfig {
             sqlConfig = new SQLiteConfig();
         programNode = node;
         localDefaults = new ConfigProperties();
-        listTypeNodeMap = new HashMap<>();
-        listIDNodeMap = new HashMap<>();
+        listTypeNodes = new ListConfigNodeParent();
+        listIDNodes = new ListConfigNodeParent();
     }
     /**
      * 
@@ -477,7 +468,7 @@ public class LinkManagerConfig {
      */
     public ConfigPreferences getListTypePreferences(int type){
         return getListDataPreferences(type,LIST_TYPE_PREFERENCE_NODE_NAME,
-                listTypeNodeMap);
+                listTypeNodes.getNodeCache());
     }
     /**
      * 
@@ -486,7 +477,7 @@ public class LinkManagerConfig {
      */
     public ConfigPreferences getListPreferences(int listID){
         return getListDataPreferences(listID,LIST_ID_PREFERENCE_NODE_NAME,
-                listIDNodeMap);
+                listIDNodes.getNodeCache());
     }
     /**
      * This returns the SQLite configuration for the database used by 
@@ -578,14 +569,12 @@ public class LinkManagerConfig {
         programID = id;
             // Set the local preference node
         localNode = createPreferences();
-            // Clear the list type preference node cache
-        listTypeNodeMap.clear();
-            // Get the parent node for the list type preference nodes
-        listTypeNode = getLocalChild(LIST_TYPE_PREFERENCE_NODE_NAME);
-            // Clear the listID preference node cache
-        listIDNodeMap.clear();
-            // Get the parent node for the listID preference nodes
-        listIDNode = getLocalChild(LIST_ID_PREFERENCE_NODE_NAME);
+            // Get the parent node for the list type preference nodes and clear 
+            // the node cache
+        listTypeNodes.setParentNode(LIST_TYPE_PREFERENCE_NODE_NAME);
+            // Get the parent node for the listID preference nodes and clear the 
+            // node cache
+        listIDNodes.setParentNode(LIST_ID_PREFERENCE_NODE_NAME);
             // Reset the Dropbox node to null
         dropboxNode = null;
     }
@@ -2233,7 +2222,7 @@ public class LinkManagerConfig {
      */
     public boolean removeListPreferences(int listID){
             // Remove the node from the cache if there is one
-        Preferences node = listIDNodeMap.remove(listID);
+        Preferences node = listIDNodes.getNodeCache().remove(listID);
             // If there is no node cached for the listID
         if (node == null){
                 // If there is a node for the list with the given listID
@@ -2600,6 +2589,52 @@ public class LinkManagerConfig {
                 };
             }
             return entries;
+        }
+    }
+    /**
+     * This is a class that handles dealing with nodes used for list 
+     * configuration data.
+     */
+    protected class ListConfigNodeParent{
+        /**
+         * This is the parent preference node for the the list configuration 
+         * data preference nodes.
+         */
+        protected ConfigPreferences parentNode = null;
+        /**
+         * This is a map that caches the list configuration data preference 
+         * nodes.
+         */
+        protected Map<Integer, ConfigPreferences> nodeMap = new HashMap<>();
+        /**
+         * 
+         * @return 
+         */
+        public Map<Integer, ConfigPreferences> getNodeCache(){
+            return nodeMap;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public ConfigPreferences getParentNode(){
+            return parentNode;
+        }
+        /**
+         * 
+         * @param node 
+         */
+        public void setParentNode(ConfigPreferences node){
+            this.parentNode = node;
+                // Clear the listID preference node cache
+            nodeMap.clear();
+        }
+        /**
+         * 
+         * @param path 
+         */
+        public void setParentNode(String path){
+            setParentNode(getLocalChild(path));
         }
     }
 }
