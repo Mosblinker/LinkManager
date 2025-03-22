@@ -7,6 +7,7 @@ package manager.security;
 import java.security.*;
 import java.util.*;
 import javax.crypto.*;
+import javax.crypto.spec.*;
 
 /**
  *
@@ -21,6 +22,14 @@ public class CipherUtils {
      * The key generator used to generate the secret keys.
      */
     private KeyGenerator keyGen;
+    /**
+     * This is the secret key used for the cipher.
+     */
+    protected SecretKey secretKey = null;
+    /**
+     * This is the IV Parameter used for the cipher.
+     */
+    protected IvParameterSpec ivParam = null;
     /**
      * 
      * @param rand 
@@ -53,6 +62,8 @@ public class CipherUtils {
     public CipherUtils(CipherUtils utils){
         this.rand = utils.rand;
         this.keyGen = utils.keyGen;
+        this.secretKey = utils.secretKey;
+        this.ivParam = utils.ivParam;
     }
     /**
      * 
@@ -111,5 +122,44 @@ public class CipherUtils {
     public CipherUtils setKeyGenerator() throws NoSuchAlgorithmException{
         return setKeyGenerator(createKeyGenerator(getRandom()));
     }
-    
+    /**
+     * 
+     * @return 
+     */
+    public SecretKey getKey(){
+        return secretKey;
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    public CipherUtils setKey(SecretKey key){
+        this.secretKey = key;
+        return this;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public IvParameterSpec getIV(){
+        return ivParam;
+    }
+    /**
+     * 
+     * @param iv
+     * @return 
+     */
+    public CipherUtils setIV(IvParameterSpec iv){
+        this.ivParam = iv;
+        return this;
+    }
+    /**
+     * 
+     * @param iv
+     * @return 
+     */
+    public CipherUtils setIV(byte[] iv){
+        return setIV(new IvParameterSpec(iv));
+    }
 }
