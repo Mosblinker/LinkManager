@@ -162,4 +162,39 @@ public class CipherUtils {
     public CipherUtils setIV(byte[] iv){
         return setIV(new IvParameterSpec(iv));
     }
+    /**
+     * 
+     * @return 
+     */
+    public byte[] getEncryptionKey(){
+        return CipherUtilities.getEncryptionKey(getKey(), getIV());
+    }
+    /**
+     * 
+     * @param key
+     * @param iv
+     * @return 
+     */
+    public CipherUtils setEncryptionKey(SecretKey key, IvParameterSpec iv){
+        return setKey(key).setIV(iv);
+    }
+    /**
+     * 
+     * @param key
+     * @param iv
+     * @return 
+     */
+    public CipherUtils setEncryptionKey(SecretKey key, byte[] iv){
+        return setEncryptionKey(key,new IvParameterSpec(iv));
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    public CipherUtils setEncryptionKey(byte[] key){
+        return setEncryptionKey(
+                CipherUtilities.getSecretKeyFromEncryptionKey(key),
+                CipherUtilities.getIVFromEncryptionKey(key));
+    }
 }
