@@ -702,7 +702,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 updateNewLinkButton();
             }
         });
-        
         dbFileField.getDocument().addDocumentListener(new SingleMethodDocumentListener(){
             @Override
             public void documentUpdate(DocumentEvent evt, DocumentEvent.EventType type) {
