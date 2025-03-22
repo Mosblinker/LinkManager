@@ -721,19 +721,19 @@ public class LinkManagerConfig {
                 // Generate the secret key
             secretKey = getCipher().getKeyGenerator().generateKey();
                 // Generate the IV
-            ivParam = CipherUtilities.generateIV(getCipher().getSecureRandom());
+            ivParam = CipherUtilities.generateIV(getCipher().getRandom());
                 // Get the encryption key for the program
             localKey = CipherUtilities.getEncryptionKey(secretKey, ivParam);
                 // Encrypt the encryption key and store it
             setRawEncryptionKey(CipherUtilities.encryptByteArray(localKey, key,
-                    iv, getCipher().getSecureRandom()));
+                    iv, getCipher().getRandom()));
                 // Set the Dropbox access token, which should encrypt it now
             setDropboxAccessToken(accessToken);
                 // Set the Dropbox refresh token, which should encrypt it now
             setDropboxRefreshToken(refreshToken);
         } else {    // Decrypt the encryption key
             localKey = CipherUtilities.decryptByteArray(localKey, key, iv, 
-                    getCipher().getSecureRandom());
+                    getCipher().getRandom());
                 // Extract the secret key from the encryption key
             secretKey = CipherUtilities.getSecretKeyFromEncryptionKey(localKey);
                 // Extract the IV from the encryption key
@@ -794,7 +794,7 @@ public class LinkManagerConfig {
             // If the encryption is enabled and the value is not null
         if (isEncryptionEnabled() && value != null)
             return CipherUtilities.encryptByteArray(value, secretKey, ivParam, 
-                    getCipher().getSecureRandom());
+                    getCipher().getRandom());
         return value;
     }
     /**
@@ -815,7 +815,7 @@ public class LinkManagerConfig {
             // If the encryption is enabled and the value is not null
         if (isEncryptionEnabled() && value != null)
             return CipherUtilities.decryptByteArray(value, secretKey, ivParam, 
-                    getCipher().getSecureRandom());
+                    getCipher().getRandom());
         return value;
     }
     /**

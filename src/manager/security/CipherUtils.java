@@ -65,7 +65,7 @@ public class CipherUtils {
      * 
      * @return 
      */
-    public SecureRandom getSecureRandom(){
+    public SecureRandom getRandom(){
         return rand;
     }
     /**
@@ -73,7 +73,7 @@ public class CipherUtils {
      * @param rand 
      * @return  
      */
-    public CipherUtils setSecureRandom(SecureRandom rand){
+    public CipherUtils setRandom(SecureRandom rand){
         this.rand = Objects.requireNonNull(rand);
         return this;
     }
@@ -109,7 +109,7 @@ public class CipherUtils {
      * @throws java.security.NoSuchAlgorithmException 
      */
     public CipherUtils setKeyGenerator() throws NoSuchAlgorithmException{
-        return setKeyGenerator(createKeyGenerator(getSecureRandom()));
+        return setKeyGenerator(createKeyGenerator(getRandom()));
     }
     
 }
