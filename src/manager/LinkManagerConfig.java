@@ -368,8 +368,18 @@ public class LinkManagerConfig {
             sqlConfig = new SQLiteConfig();
         programNode = node;
         localDefaults = new ConfigProperties();
-        listTypeNodes = new ListConfigNodeParent();
-        listIDNodes = new ListConfigNodeParent();
+        listTypeNodes = new ListConfigNodeParent(){
+            @Override
+            public String getParentPath() {
+                return LIST_TYPE_PREFERENCE_NODE_NAME;
+            }
+        };
+        listIDNodes = new ListConfigNodeParent(){
+            @Override
+            public String getParentPath() {
+                return LIST_ID_PREFERENCE_NODE_NAME;
+            }
+        };;
     }
     /**
      * 
@@ -571,10 +581,10 @@ public class LinkManagerConfig {
         localNode = createPreferences();
             // Get the parent node for the list type preference nodes and clear 
             // the node cache
-        listTypeNodes.setParentNode(LIST_TYPE_PREFERENCE_NODE_NAME);
+        listTypeNodes.setParentNode();
             // Get the parent node for the listID preference nodes and clear the 
             // node cache
-        listIDNodes.setParentNode(LIST_ID_PREFERENCE_NODE_NAME);
+        listIDNodes.setParentNode();
             // Reset the Dropbox node to null
         dropboxNode = null;
     }
@@ -2595,7 +2605,7 @@ public class LinkManagerConfig {
      * This is a class that handles dealing with nodes used for list 
      * configuration data.
      */
-    protected class ListConfigNodeParent{
+    protected abstract class ListConfigNodeParent{
         /**
          * This is the parent preference node for the the list configuration 
          * data preference nodes.
@@ -2636,5 +2646,16 @@ public class LinkManagerConfig {
         public void setParentNode(String path){
             setParentNode(getLocalChild(path));
         }
+        /**
+         * 
+         */
+        public void setParentNode(){
+            setParentNode(getParentPath());
+        }
+        /**
+         * 
+         * @return 
+         */
+        public abstract String getParentPath();
     }
 }
