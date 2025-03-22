@@ -2239,6 +2239,33 @@ public class LinkManagerConfig {
     /**
      * 
      * @param listID
+     * @param value 
+     */
+    public void setVisibleRect(int listID, Rectangle value){
+        getListPreferences(listID).putObject(VISIBLE_RECTANGLE_FOR_LIST_KEY, 
+                value);
+    }
+    /**
+     * 
+     * @param listID
+     * @param defaultValue
+     * @return 
+     */
+    public Rectangle getVisibleRect(int listID, Rectangle defaultValue){
+        return getListPreferences(listID).getRectangle(
+                VISIBLE_RECTANGLE_FOR_LIST_KEY, defaultValue);
+    }
+    /**
+     * 
+     * @param listID
+     * @return 
+     */
+    public Rectangle getVisibleRect(int listID){
+        return getVisibleRect(listID,null);
+    }
+    /**
+     * 
+     * @param listID
      * @param panel 
      */
     public void setVisibleSection(int listID, LinksListPanel panel){
