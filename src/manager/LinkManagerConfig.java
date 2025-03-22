@@ -415,7 +415,7 @@ public class LinkManagerConfig {
         LinkManagerConfig.this.setProgramID(linkConfig.programID);
         this.secretKey = linkConfig.secretKey;
         this.ivParam = linkConfig.ivParam;
-        this.cipherUtils = linkConfig.cipherUtils;
+        this.cipherUtils = new CipherUtils(linkConfig.cipherUtils);
     }
     /**
      * This returns the preference node used to store the shared configuration 
