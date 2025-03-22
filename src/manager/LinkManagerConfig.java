@@ -231,6 +231,14 @@ public class LinkManagerConfig {
      */
     public static final String LIST_ID_PROPERTY_KEY_SUFFIX = "ForList";
     /**
+     * This is an array that contains the suffixes for the keys in properties 
+     * that deal with list stuff.
+     */
+    private static final String[] LIST_PROPERTY_KEY_SUFFIXES = {
+        LIST_TYPE_PROPERTY_KEY_SUFFIX,
+        LIST_ID_PROPERTY_KEY_SUFFIX
+    };
+    /**
      * This is an array that contains the prefixes for the keys in properties 
      * that deal with list types.
      */
@@ -1178,31 +1186,26 @@ public class LinkManagerConfig {
         });
             // Go through the property keys that deal with lists
         for (String key : listKeys){
-            String keyPrefix;   // Get the prefix for the current key
+                // The prefix for the current key
+            String keyPrefix = null;
                 // The suffix for the property version of the key
-            String keySuffix = LIST_ID_PROPERTY_KEY_SUFFIX;   
-                // If the key starts with the selected link key
-            if (key.startsWith(SELECTED_LINK_FOR_LIST_KEY))
-                keyPrefix = SELECTED_LINK_FOR_LIST_KEY;
-                // If the key starts with the selected link is visible key
-            else if (key.startsWith(SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
-                keyPrefix = SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY;
-                // If the key starts with the first visible index key
-            else if (key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY))
-                keyPrefix = FIRST_VISIBLE_INDEX_FOR_LIST_KEY;
-                // If the key starts with the last visible index key
-            else if (key.startsWith(LAST_VISIBLE_INDEX_FOR_LIST_KEY))
-                keyPrefix = LAST_VISIBLE_INDEX_FOR_LIST_KEY;
-                // If the key starts with the current tab listID key
-            else if (key.startsWith(CURRENT_TAB_LIST_ID_KEY)){
-                keyPrefix = CURRENT_TAB_LIST_ID_KEY;
-                keySuffix = LIST_TYPE_PROPERTY_KEY_SUFFIX;
-            }   // If the key starts with the current tab index key
-            else if (key.startsWith(CURRENT_TAB_INDEX_KEY)){
-                keyPrefix = CURRENT_TAB_INDEX_KEY;
-                keySuffix = LIST_TYPE_PROPERTY_KEY_SUFFIX;
-            } else  // Skip this key
-                continue;
+            String keySuffix = null;
+                // Go through the possible list property key suffixes
+            for (String suffix : LIST_PROPERTY_KEY_SUFFIXES){
+                    // Get the index of the start of the current suffix if 
+                    // present in the current key
+                int index = key.lastIndexOf(suffix);
+                    // If the suffix is present in the current key
+                if (index >= 0){
+                        // This is the suffix for the key
+                    keySuffix = suffix;
+                        // Get the prefix for the key
+                    keyPrefix = key.substring(0, index);
+                    break;
+                }
+            }   // If this key does not have a matching key prefix or suffix
+            if (keySuffix == null || keyPrefix == null)
+                continue;   // Skip this key
             try{    // Get the list or tabs panel that this key is for
                 int type = Integer.parseInt(key.substring(keyPrefix.length()+
                         keySuffix.length()));
