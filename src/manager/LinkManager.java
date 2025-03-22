@@ -53,7 +53,7 @@ import manager.dropbox.*;
 import manager.links.*;
 import manager.painters.LinkManagerIconPainter;
 import manager.renderer.*;
-import manager.security.CipherUtilities;
+import manager.security.*;
 import manager.timermenu.*;
 import measure.format.binary.ByteUnitFormat;
 import org.sqlite.*;
@@ -480,10 +480,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             config.getProperties().setProperty(PROGRAM_ID_KEY, 
                     config.setRandomProgramID());
         }
-        try{    // The SecureRandom object to use for a secure source of randomness
-            SecureRandom rand = config.setSecureRandom();
+        try{    // Create a CipherUtils object
+            CipherUtils cipher = new CipherUtils();
+                // Set the CipherUtils object for the configuration
+            config.setCipher(cipher);
+                // The SecureRandom object to use for a secure source of randomness
+            SecureRandom rand = cipher.getSecureRandom();
                 // The KeyGenerator to use to generate secret keys
-            KeyGenerator keyGen = config.setKeyGenerator();
+            KeyGenerator keyGen = cipher.getKeyGenerator();
                 // Get the encryption key from the config file if there is one
             byte[] encryptKey = config.getProperties().getByteArrayProperty(USER_ENCRYPTION_KEY_KEY);
                 // If there isn't an encryption key
