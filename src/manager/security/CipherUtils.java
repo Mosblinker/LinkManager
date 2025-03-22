@@ -5,7 +5,8 @@
 package manager.security;
 
 import java.security.*;
-import java.util.Objects;
+import java.util.*;
+import javax.crypto.*;
 
 /**
  *
@@ -17,11 +18,25 @@ public class CipherUtils {
      */
     private SecureRandom rand;
     /**
+     * The key generator used to generate the secret keys.
+     */
+    protected KeyGenerator keyGen;
+    /**
+     * 
+     * @param rand 
+     * @param keyGen 
+     */
+    public CipherUtils(SecureRandom rand, KeyGenerator keyGen){
+        this.rand = Objects.requireNonNull(rand);
+        this.keyGen = keyGen;
+    }
+    /**
      * 
      * @param rand 
      */
     public CipherUtils(SecureRandom rand){
-        this.rand = Objects.requireNonNull(rand);
+        this(rand,null);
+        
     }
     /**
      * 
@@ -36,6 +51,7 @@ public class CipherUtils {
      */
     public CipherUtils(CipherUtils utils){
         this.rand = utils.rand;
+        this.keyGen = utils.keyGen;
     }
     /**
      * 
@@ -47,9 +63,33 @@ public class CipherUtils {
     /**
      * 
      * @param rand 
+     * @return  
      */
     public CipherUtils setSecureRandom(SecureRandom rand){
         this.rand = Objects.requireNonNull(rand);
         return this;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public KeyGenerator getKeyGenerator(){
+        return keyGen;
+    }
+    /**
+     * 
+     * @param keyGen 
+     * @return  
+     */
+    public CipherUtils setKeyGenerator(KeyGenerator keyGen){
+        this.keyGen = keyGen;
+        return this;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public CipherUtils createKeyGenerator(){
+        return 
     }
 }
