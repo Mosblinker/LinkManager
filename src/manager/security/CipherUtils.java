@@ -43,4 +43,27 @@ public class CipherUtils {
         this.secureRand = utils.secureRand;
         this.keyGen = utils.keyGen;
     }
+    /**
+     * 
+     * @return 
+     */
+    public SecureRandom getSecureRandom(){
+        return secureRand;
+    }
+    /**
+     * 
+     * @param rand 
+     */
+    public void setSecureRandom(SecureRandom rand){
+        secureRand = rand;
+    }
+    /**
+     * 
+     * @return 
+     * @throws java.security.NoSuchAlgorithmException 
+     */
+    public SecureRandom setSecureRandom() throws NoSuchAlgorithmException{
+        setSecureRandom(SecureRandom.getInstanceStrong());
+        return getSecureRandom();
+    }
 }
