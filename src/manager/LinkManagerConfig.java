@@ -2209,19 +2209,7 @@ public class LinkManagerConfig {
      * @return  
      */
     public boolean removeListPreferences(int listID){
-            // Remove the node from the cache if there is one
-        Preferences node = listIDNodes.getNodeCache().remove(listID);
-            // If there is no node cached for the listID
-        if (node == null){
-                // If there is a node for the list with the given listID
-            if (nodeExists(getPreferences(),LIST_TYPE_PREFERENCE_NODE_NAME+"="+listID))
-                    // Get that node
-                node = getLocalChild(LIST_TYPE_PREFERENCE_NODE_NAME+"="+listID);
-        }   // If there is a list preference node for the given listID
-        if (node != null)
-                // Remove the node
-            removeNode(node);
-        return node != null;
+        return listIDNodes.removeNode(listID);
     }
     /**
      * 
@@ -2640,17 +2628,54 @@ public class LinkManagerConfig {
          * @param key
          * @return 
          */
+        protected ConfigPreferences node(int key){
+            return getLocalChild(getParentPath()+"="+key);
+        }
+        /**
+         * 
+         * @param key
+         * @return 
+         */
+        public boolean nodeExists(int key){
+            return LinkManagerConfig.this.nodeExists(getPreferences(),
+                    getParentPath()+"="+key);
+        }
+        /**
+         * 
+         * @param key
+         * @return 
+         */
         public ConfigPreferences getNode(int key){
                 // Check the preference node cache for the node
             ConfigPreferences node = nodeMap.get(key);
                 // If the cache does not have the preference node
             if (node == null){
                     // Get the node
-                node = getLocalChild(getParentPath()+"="+key);
+                node = node(key);
                     // Cache the node
                 nodeMap.put(key, node);
             }
             return node;
+        }
+        /**
+         * 
+         * @param key
+         * @return 
+         */
+        public boolean removeNode(int key){
+                // Remove the node from the cache if there is one
+            Preferences node = nodeMap.remove(key);
+                // If there is no node cached for the key
+            if (node == null){
+                    // If there is a node for the list with the given listID
+                if (nodeExists(key))
+                        // Get that node
+                    node = node(key);
+            }   // If there is a list preference node for the given key
+            if (node != null)
+                    // Remove the node
+                LinkManagerConfig.this.removeNode(node);
+            return node != null;
         }
     }
 }
