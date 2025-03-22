@@ -238,6 +238,50 @@ public class CipherUtils {
     }
     /**
      * 
+     * @param mode
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException 
+     * @throws IllegalStateException
+     */
+    public Cipher getCipher(int mode) throws 
+            NoSuchAlgorithmException,NoSuchPaddingException,InvalidKeyException, 
+            InvalidAlgorithmParameterException{
+        checkState();
+        return CipherUtilities.createCipher(mode,getKey(),getIV(),getRandom());
+    }
+    /**
+     * 
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException 
+     * @throws IllegalStateException
+     */
+    public Cipher getEncryptCipher() throws NoSuchAlgorithmException, 
+            NoSuchPaddingException, InvalidKeyException, 
+            InvalidAlgorithmParameterException{
+        return getCipher(Cipher.ENCRYPT_MODE);
+    }
+    /**
+     * 
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException 
+     * @throws IllegalStateException
+     */
+    public Cipher getDecryptCipher() throws NoSuchAlgorithmException, 
+            NoSuchPaddingException, InvalidKeyException, 
+            InvalidAlgorithmParameterException{
+        return getCipher(Cipher.DECRYPT_MODE);
+    }
+    /**
+     * 
      * @param value
      * @return
      * @throws NoSuchAlgorithmException
