@@ -5790,7 +5790,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // If the file size was loaded
         if (size != null){
                 // Setup the progress bar and get the progress listener
-            listener = createProgressListener(size);
+            listener = DropboxUtilities.setUpProgressListener(size, progressObserver);
                 // Set the progress bar to not be indeterminate
             progressBar.setIndeterminate(false);
         }   // Download the file from Dropbox
@@ -5812,7 +5812,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Setup the progress bar and get the progress listener used to 
             // update the progress bar to reflect the bytes that have been 
             // uploaded so far.
-        ProgressListener listener = createProgressListener(file.length());
+        ProgressListener listener = DropboxUtilities.setUpProgressListener(
+                file.length(), progressObserver);
             // Set the progress bar to not be indeterminate
         progressBar.setIndeterminate(false);
             // Upload the file to Dropbox, using the set chunk size and 
@@ -9632,27 +9633,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             saver = new ProgramConfigSaver(true);
             saver.execute();
         }
-    }
-    /**
-     * 
-     * @param fileSize
-     * @return 
-     */
-    private ProgressListener createProgressListener(long fileSize){
-            // Set the progress to be zero
-        progressBar.setValue(0);
-            // Get the value needed to divide the file length to get it back 
-            // into the range of integers
-        double div = LinkManagerUtilities.getFileSizeDivider(fileSize);
-            // Set the progress maximum to the file length divided by the 
-            // divisor
-        progressBar.setMaximum((int)Math.ceil(fileSize / div));
-            // Create and return a progress listener that will update the 
-            // progress bar to reflect the bytes that have been written so far
-        return (long bytesWritten) -> {
-                // Update the progress with the amount of bytes written
-            progressBar.setValue((int)Math.ceil(bytesWritten / div));
-        };
     }
     /**
      * 
