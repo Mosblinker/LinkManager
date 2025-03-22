@@ -297,9 +297,7 @@ public class CipherUtils {
             NoSuchAlgorithmException, NoSuchPaddingException, 
             InvalidKeyException, InvalidAlgorithmParameterException, 
             IllegalBlockSizeException, BadPaddingException{
-        checkState();
-        return CipherUtilities.encryptByteArray(value, getKey(), getIV(), 
-                getRandom());
+        return CipherUtilities.encryptByteArray(value, getEncryptCipher());
     }
     /**
      * 
@@ -318,8 +316,6 @@ public class CipherUtils {
             NoSuchAlgorithmException, NoSuchPaddingException, 
             InvalidKeyException, InvalidAlgorithmParameterException, 
             IllegalBlockSizeException, BadPaddingException{
-        checkState();
-        return CipherUtilities.decryptByteArray(value, getKey(), getIV(), 
-                getRandom());
+        return CipherUtilities.decryptByteArray(value, getDecryptCipher());
     }
 }
