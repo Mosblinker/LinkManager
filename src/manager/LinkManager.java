@@ -481,10 +481,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         try{    // Create a CipherUtils object
             CipherUtils cipher = new CipherUtils();
-                // Set the CipherUtils object for the configuration
-            config.setCipher(cipher.createBlankClone());
                 // Get the encryption key from the config file if there is one
-            byte[] encryptKey = config.getProperties().getByteArrayProperty(USER_ENCRYPTION_KEY_KEY);
+            byte[] encryptKey = config.getProperties().
+                    getByteArrayProperty(USER_ENCRYPTION_KEY_KEY);
                 // If there isn't an encryption key
             if (encryptKey == null){
                     // Reset the encryption on the config just in case there was 
@@ -497,9 +496,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         cipher.getEncryptionKey());
             } else {// Set the encryption key for the cipher
                 cipher.setEncryptionKey(encryptKey);
-            }
-                // Initialize the encryption on the configuration
-            config.initEncryption(cipher.getKey(), cipher.getIV());
+            }   // Initialize the encryption on the configuration
+            config.initEncryption(cipher);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | 
                 InvalidKeyException | InvalidAlgorithmParameterException | 
                 IllegalBlockSizeException | BadPaddingException ex) {
