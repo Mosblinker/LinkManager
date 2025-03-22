@@ -46,7 +46,6 @@ import javax.swing.table.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 import javax.swing.tree.*;
-import static manager.LinkManagerConfig.*;
 import manager.config.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
@@ -8685,28 +8684,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     System.out.println("Error: " + ex);
             }
         }
-        /**
-         * 
-         * @param sourceTemplate
-         * @param prefix 
-         */
-        private void addNodeChildConfigRows(String sourceTemplate, String prefix){
-            try{    // Get the children of the local preference node, as a 
-                    // tree set
-                TreeSet<String> childNodes = new TreeSet<>(Arrays.asList(
-                        config.getPreferences().childrenNames()));
-                    // Remove anything that doesn't have the given prefix
-                childNodes.removeIf((String t) -> t == null || 
-                        !t.startsWith(prefix));
-                    // Go through the child nodes
-                for (String child : childNodes){
-                        // Add all the values in the child node
-                    addConfigRows(String.format(sourceTemplate, 
-                            child.substring(prefix.length()+1)), 
-                            config.getPreferences().node(child));
-                }
-            } catch (BackingStoreException ex) {}
-        }
         @Override
         protected boolean loadFile(File file){
             if (file.exists())  // If the database file exists
@@ -8738,13 +8715,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             addConfigRows("Shared Preferences",config.getSharedPreferences());
                 // Add all the preferences for this program
             addConfigRows("Preferences",config.getPreferences());
-                // Add all the list type nodes
-            addNodeChildConfigRows("List Type %s Preferences",
-                    LIST_TYPE_PREFERENCE_NODE_NAME);
-                // Add all the list ID nodes
-            addNodeChildConfigRows("List ID %s Preferences",
-                    LIST_ID_PREFERENCE_NODE_NAME);
-                // Add all the Dropbox preferences for this program
+                // Go through the list type nodes
+            for (Integer type : config.getListTypes()){
+                    // Add all the preferences for this list type
+                addConfigRows("List Type "+type+" Preferences",
+                        config.getListTypePreferences(type));
+            }   // Go through the listID nodes
+            for (Integer id : config.getListIDs()){
+                    // Add all the preferences for this listID
+                addConfigRows("List ID "+id+" Preferences",
+                        config.getListPreferences(id));
+            }   // Add all the Dropbox preferences for this program
             addConfigRows("Dropbox Preferences",config.getDropboxPreferences());
             
             return null;
