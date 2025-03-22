@@ -326,6 +326,11 @@ public class LinkManagerConfig {
      */
     private Map<Integer, Integer> lastVisIndexMap = null;
     /**
+     * This is a map view of the visible rectangles for the lists. This is 
+     * initially null and is initialized when first used.
+     */
+    private Map<Integer, Rectangle> visRectMap = null;
+    /**
      * This is the preference node that stores the settings and tokens for 
      * Dropbox.
      */
@@ -2262,6 +2267,29 @@ public class LinkManagerConfig {
      */
     public Rectangle getVisibleRect(int listID){
         return getVisibleRect(listID,null);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<Integer, Rectangle> getVisibleRectMap(){
+        if (visRectMap == null){
+            visRectMap = new ListConfigDataMap<>(){
+                @Override
+                protected Rectangle getValue(int key) {
+                    return getVisibleRect(key);
+                }
+                @Override
+                protected void putValue(int key, Rectangle value) {
+                    setVisibleRect(key,value);
+                }
+                @Override
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
+                }
+            };
+        }
+        return visRectMap;
     }
     /**
      * 
