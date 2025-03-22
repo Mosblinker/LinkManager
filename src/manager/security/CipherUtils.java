@@ -197,4 +197,28 @@ public class CipherUtils {
                 CipherUtilities.getSecretKeyFromEncryptionKey(key),
                 CipherUtilities.getIVFromEncryptionKey(key));
     }
+    /**
+     * 
+     * @param keyGen
+     * @return 
+     */
+    protected SecretKey generateKey(KeyGenerator keyGen){
+        return keyGen.generateKey();
+    }
+    /**
+     * 
+     * @param rand
+     * @return 
+     */
+    protected IvParameterSpec generateIV(SecureRandom rand){
+        return CipherUtilities.generateIV(rand);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public CipherUtils generateEncryptionKey(){
+        return setEncryptionKey(generateKey(getKeyGenerator()),
+                generateIV(getRandom()));
+    }
 }
