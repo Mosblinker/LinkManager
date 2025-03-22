@@ -49,7 +49,7 @@ public class CipherUtils {
      * @param rand 
      */
     public CipherUtils setSecureRandom(SecureRandom rand){
-        this.rand = rand;
+        this.rand = Objects.requireNonNull(rand);
         return this;
     }
 }
