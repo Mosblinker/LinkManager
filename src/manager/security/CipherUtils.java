@@ -228,4 +228,11 @@ public class CipherUtils {
     public CipherUtils clearEncryptionKey(){
         return setKey(null).setIV((IvParameterSpec)null);
     }
+    /**
+     * 
+     * @return 
+     */
+    public boolean isEncryptionKeySet(){
+        return getKey() != null && getIV() != null;
+    }
 }
