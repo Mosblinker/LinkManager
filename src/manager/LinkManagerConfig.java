@@ -438,7 +438,7 @@ public class LinkManagerConfig {
     public ConfigPreferences getDropboxPreferences(){
             // If the Dropbox node is currently null
         if (dropboxNode == null)
-            dropboxNode = getPreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
+            dropboxNode = getLocalChild(DROPBOX_PREFERENCE_NODE_NAME);
         return dropboxNode;
     }
     /**
@@ -455,7 +455,7 @@ public class LinkManagerConfig {
             // If the cache does not have the preference node
         if (node == null){
                 // Get the node
-            node = getPreferences().node(prefix+"="+key);
+            node = getLocalChild(prefix+"="+key);
                 // Cache the node
             cache.put(key, node);
         }
@@ -526,6 +526,23 @@ public class LinkManagerConfig {
      */
     protected ConfigPreferences createPreferences(){
         return programNode.node(programID.toString(), getDefaults());
+    }
+    /**
+     * 
+     * @param path
+     * @param defaults
+     * @return 
+     */
+    protected ConfigPreferences getLocalChild(String path, Properties defaults){
+        return getPreferences().node(path, defaults);
+    }
+    /**
+     * 
+     * @param path
+     * @return 
+     */
+    protected ConfigPreferences getLocalChild(String path){
+        return getLocalChild(path,null);
     }
     /**
      * This returns the program ID set for this configuration.
@@ -2209,7 +2226,7 @@ public class LinkManagerConfig {
                 // If there is a node for the list with the given listID
             if (nodeExists(getPreferences(),LIST_TYPE_PREFERENCE_NODE_NAME+"="+listID))
                     // Get that node
-                node = getPreferences().node(LIST_TYPE_PREFERENCE_NODE_NAME+"="+listID);
+                node = getLocalChild(LIST_TYPE_PREFERENCE_NODE_NAME+"="+listID);
         }   // If there is a list preference node for the given listID
         if (node != null)
                 // Remove the node
