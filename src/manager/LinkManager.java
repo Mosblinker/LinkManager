@@ -483,7 +483,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try{    // Create a CipherUtils object
             CipherUtils cipher = new CipherUtils();
                 // Set the CipherUtils object for the configuration
-            config.setCipher(cipher);
+            config.setCipher(cipher.createBlankClone());
                 // The SecureRandom object to use for a secure source of randomness
             SecureRandom rand = cipher.getSecureRandom();
                 // The KeyGenerator to use to generate secret keys

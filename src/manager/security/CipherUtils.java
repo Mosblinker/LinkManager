@@ -20,7 +20,7 @@ public class CipherUtils {
     /**
      * The key generator used to generate the secret keys.
      */
-    protected KeyGenerator keyGen;
+    private KeyGenerator keyGen;
     /**
      * 
      * @param rand 
@@ -53,6 +53,13 @@ public class CipherUtils {
     public CipherUtils(CipherUtils utils){
         this.rand = utils.rand;
         this.keyGen = utils.keyGen;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public CipherUtils createBlankClone(){
+        return new CipherUtils(rand,keyGen);
     }
     /**
      * 
