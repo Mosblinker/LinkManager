@@ -353,7 +353,7 @@ public class LinkManagerConfig {
     /**
      * This is the IV Parameter used for the cipher.
      */
-    protected IvParameterSpec cipherIV = null;
+    protected IvParameterSpec ivParam = null;
     /**
      * This is the SecureRandom used to generate random numbers for the cipher.
      */
@@ -398,7 +398,7 @@ public class LinkManagerConfig {
         this.localDefaults.addProperties(linkConfig.localDefaults);
         LinkManagerConfig.this.setProgramID(linkConfig.programID);
         this.secretKey = linkConfig.secretKey;
-        this.cipherIV = linkConfig.cipherIV;
+        this.ivParam = linkConfig.ivParam;
         this.secureRand = linkConfig.secureRand;
         this.keyGen = linkConfig.keyGen;
     }
@@ -699,9 +699,9 @@ public class LinkManagerConfig {
                 // Generate the secret key
             secretKey = getKeyGenerator().generateKey();
                 // Generate the IV
-            cipherIV = CipherUtilities.generateIV(getSecureRandom());
+            ivParam = CipherUtilities.generateIV(getSecureRandom());
                 // Get the encryption key for the program
-            localKey = CipherUtilities.getEncryptionKey(secretKey, cipherIV);
+            localKey = CipherUtilities.getEncryptionKey(secretKey, ivParam);
                 // Encrypt the encryption key and store it
             setRawEncryptionKey(CipherUtilities.encryptByteArray(localKey, key,
                     iv, getSecureRandom()));
@@ -715,7 +715,7 @@ public class LinkManagerConfig {
                 // Extract the secret key from the encryption key
             secretKey = CipherUtilities.getSecretKeyFromEncryptionKey(localKey);
                 // Extract the IV from the encryption key
-            cipherIV = CipherUtilities.getIVFromEncryptionKey(localKey);
+            ivParam = CipherUtilities.getIVFromEncryptionKey(localKey);
         }
     }
     /**
@@ -740,7 +740,7 @@ public class LinkManagerConfig {
      * 
      */
     public void resetEncryption(){
-        cipherIV = null;
+        ivParam = null;
         secretKey = null;
             // If there was an encryption key set
         if (getRawEncryptionKey() != null)
@@ -752,7 +752,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean isEncryptionEnabled(){
-        return secretKey != null && cipherIV != null && getSecureRandom()!=null;
+        return secretKey != null && ivParam != null && getSecureRandom()!=null;
     }
     /**
      * 
@@ -771,7 +771,7 @@ public class LinkManagerConfig {
             IllegalBlockSizeException, BadPaddingException{
             // If the encryption is enabled and the value is not null
         if (isEncryptionEnabled() && value != null)
-            return CipherUtilities.encryptByteArray(value, secretKey, cipherIV, 
+            return CipherUtilities.encryptByteArray(value, secretKey, ivParam, 
                     getSecureRandom());
         return value;
     }
@@ -792,7 +792,7 @@ public class LinkManagerConfig {
             IllegalBlockSizeException, BadPaddingException{
             // If the encryption is enabled and the value is not null
         if (isEncryptionEnabled() && value != null)
-            return CipherUtilities.decryptByteArray(value, secretKey, cipherIV, 
+            return CipherUtilities.decryptByteArray(value, secretKey, ivParam, 
                     getSecureRandom());
         return value;
     }
