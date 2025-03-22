@@ -38,7 +38,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.prefs.*;
 import javax.crypto.*;
-import javax.crypto.spec.IvParameterSpec;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
@@ -484,10 +483,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             CipherUtils cipher = new CipherUtils();
                 // Set the CipherUtils object for the configuration
             config.setCipher(cipher.createBlankClone());
-                // The SecureRandom object to use for a secure source of randomness
-            SecureRandom rand = cipher.getRandom();
-                // The KeyGenerator to use to generate secret keys
-            KeyGenerator keyGen = cipher.getKeyGenerator();
                 // Get the encryption key from the config file if there is one
             byte[] encryptKey = config.getProperties().getByteArrayProperty(USER_ENCRYPTION_KEY_KEY);
                 // If there isn't an encryption key
@@ -495,19 +490,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Reset the encryption on the config just in case there was 
                     // one set previously
                 config.resetEncryption();
-                    // Generate a secret key
-                SecretKey key = keyGen.generateKey();
-                    // Generate the IVs
-                IvParameterSpec iv = CipherUtilities.generateIV(rand);
+                    // Generate a new encryption key
+                cipher.generateEncryptionKey();
                     // Store the encryption key
                 config.getProperties().setProperty(USER_ENCRYPTION_KEY_KEY, 
-                        CipherUtilities.getEncryptionKey(key, iv));
-                    // Initialize the encryption on the configuration
-                config.initializeEncryption(key, iv);
-            } else {
-                    // Initialize the encryption on the configuration
-                config.initializeEncryption(encryptKey);
+                        cipher.getEncryptionKey());
+            } else {// Set the encryption key for the cipher
+                cipher.setEncryptionKey(encryptKey);
             }
+                // Initialize the encryption on the configuration
+            config.initializeEncryption(cipher.getKey(), cipher.getIV());
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | 
                 InvalidKeyException | InvalidAlgorithmParameterException | 
                 IllegalBlockSizeException | BadPaddingException ex) {
