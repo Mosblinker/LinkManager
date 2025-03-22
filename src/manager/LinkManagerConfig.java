@@ -365,14 +365,6 @@ public class LinkManagerConfig {
      */
     protected IvParameterSpec ivParam = null;
     /**
-     * This is the SecureRandom used to generate random numbers for the cipher.
-     */
-    protected SecureRandom secureRand = null;
-    /**
-     * The key generator used to generate the secret keys.
-     */
-    protected KeyGenerator keyGen = null;
-    /**
      * This is a utilities object for encrypting and decrypting values.
      */
     protected CipherUtils cipherUtils = null;
@@ -423,8 +415,6 @@ public class LinkManagerConfig {
         LinkManagerConfig.this.setProgramID(linkConfig.programID);
         this.secretKey = linkConfig.secretKey;
         this.ivParam = linkConfig.ivParam;
-        this.secureRand = linkConfig.secureRand;
-        this.keyGen = linkConfig.keyGen;
         this.cipherUtils = linkConfig.cipherUtils;
     }
     /**
@@ -693,61 +683,6 @@ public class LinkManagerConfig {
     }
     /**
      * 
-     * @return 
-     */
-    public SecureRandom getSecureRandom(){
-        return secureRand;
-    }
-    /**
-     * 
-     * @param rand 
-     */
-    public void setSecureRandom(SecureRandom rand){
-        secureRand = rand;
-    }
-    /**
-     * 
-     * @return 
-     * @throws java.security.NoSuchAlgorithmException 
-     */
-    public SecureRandom setSecureRandom() throws NoSuchAlgorithmException{
-        setSecureRandom(SecureRandom.getInstanceStrong());
-        return getSecureRandom();
-    }
-    /**
-     * 
-     * @return 
-     */
-    public KeyGenerator getKeyGenerator(){
-        return keyGen;
-    }
-    /**
-     * 
-     * @param keyGen 
-     */
-    public void setKeyGenerator(KeyGenerator keyGen){
-        this.keyGen = keyGen;
-    }
-    /**
-     * 
-     * @param rand
-     * @return
-     * @throws NoSuchAlgorithmException 
-     */
-    public KeyGenerator setKeyGenerator(SecureRandom rand) throws NoSuchAlgorithmException{
-        setKeyGenerator(CipherUtilities.getKeyGenerator(rand));
-        return getKeyGenerator();
-    }
-    /**
-     * 
-     * @return
-     * @throws NoSuchAlgorithmException 
-     */
-    public KeyGenerator setKeyGenerator() throws NoSuchAlgorithmException{
-        return setKeyGenerator(getSecureRandom());
-    }
-    /**
-     * 
      * @param value 
      */
     protected void setRawEncryptionKey(byte[] value){
@@ -784,21 +719,21 @@ public class LinkManagerConfig {
                 // Get the unencrypted Dropbox refresh token
             String refreshToken = getDropboxRefreshToken();
                 // Generate the secret key
-            secretKey = getKeyGenerator().generateKey();
+            secretKey = getCipher().getKeyGenerator().generateKey();
                 // Generate the IV
-            ivParam = CipherUtilities.generateIV(getSecureRandom());
+            ivParam = CipherUtilities.generateIV(getCipher().getSecureRandom());
                 // Get the encryption key for the program
             localKey = CipherUtilities.getEncryptionKey(secretKey, ivParam);
                 // Encrypt the encryption key and store it
             setRawEncryptionKey(CipherUtilities.encryptByteArray(localKey, key,
-                    iv, getSecureRandom()));
+                    iv, getCipher().getSecureRandom()));
                 // Set the Dropbox access token, which should encrypt it now
             setDropboxAccessToken(accessToken);
                 // Set the Dropbox refresh token, which should encrypt it now
             setDropboxRefreshToken(refreshToken);
         } else {    // Decrypt the encryption key
             localKey = CipherUtilities.decryptByteArray(localKey, key, iv, 
-                    getSecureRandom());
+                    getCipher().getSecureRandom());
                 // Extract the secret key from the encryption key
             secretKey = CipherUtilities.getSecretKeyFromEncryptionKey(localKey);
                 // Extract the IV from the encryption key
@@ -839,7 +774,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean isEncryptionEnabled(){
-        return secretKey != null && ivParam != null && getSecureRandom()!=null;
+        return secretKey != null && ivParam != null && getCipher() != null;
     }
     /**
      * 
@@ -859,7 +794,7 @@ public class LinkManagerConfig {
             // If the encryption is enabled and the value is not null
         if (isEncryptionEnabled() && value != null)
             return CipherUtilities.encryptByteArray(value, secretKey, ivParam, 
-                    getSecureRandom());
+                    getCipher().getSecureRandom());
         return value;
     }
     /**
@@ -880,7 +815,7 @@ public class LinkManagerConfig {
             // If the encryption is enabled and the value is not null
         if (isEncryptionEnabled() && value != null)
             return CipherUtilities.decryptByteArray(value, secretKey, ivParam, 
-                    getSecureRandom());
+                    getCipher().getSecureRandom());
         return value;
     }
     /**
