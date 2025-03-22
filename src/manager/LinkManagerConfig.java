@@ -780,8 +780,7 @@ public class LinkManagerConfig {
             IllegalBlockSizeException, BadPaddingException{
             // If the encryption is enabled and the value is not null
         if (isEncryptionEnabled() && value != null)
-            return CipherUtilities.encryptByteArray(value, getCipher().getKey(), 
-                    getCipher().getIV(), getCipher().getRandom());
+            return getCipher().encryptByteArray(value);
         return value;
     }
     /**
@@ -801,8 +800,7 @@ public class LinkManagerConfig {
             IllegalBlockSizeException, BadPaddingException{
             // If the encryption is enabled and the value is not null
         if (isEncryptionEnabled() && value != null)
-            return CipherUtilities.decryptByteArray(value, getCipher().getKey(), 
-                    getCipher().getIV(), getCipher().getRandom());
+            return getCipher().decryptByteArray(value);
         return value;
     }
     /**

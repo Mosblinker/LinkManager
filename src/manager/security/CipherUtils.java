@@ -235,4 +235,54 @@ public class CipherUtils {
     public boolean isEncryptionKeySet(){
         return getKey() != null && getIV() != null;
     }
+    /**
+     * 
+     * @throws IllegalStateException
+     */
+    protected void checkState(){
+        if (!isEncryptionKeySet())
+            throw new IllegalStateException("Encryption key is not set");
+    }
+    /**
+     * 
+     * @param value
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException 
+     * @throws NullPointerException
+     * @throws IllegalStateException
+     */
+    public byte[] encryptByteArray(byte[] value) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+        checkState();
+        return CipherUtilities.encryptByteArray(value, getKey(), getIV(), 
+                getRandom());
+    }
+    /**
+     * 
+     * @param value
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException 
+     * @throws NullPointerException
+     * @throws IllegalStateException
+     */
+    public byte[] decryptByteArray(byte[] value) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+        checkState();
+        return CipherUtilities.decryptByteArray(value, getKey(), getIV(), 
+                getRandom());
+    }
 }
