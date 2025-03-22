@@ -461,11 +461,25 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @return 
+     */
+    public Set<Integer> getListTypes(){
+        return Collections.unmodifiableSet(listTypeNodes.getKeys());
+    }
+    /**
+     * 
      * @param listID The list ID
      * @return 
      */
     public ConfigPreferences getListPreferences(int listID){
         return listIDNodes.getNode(listID);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Set<Integer> getListIDs(){
+        return Collections.unmodifiableSet(listIDNodes.getKeys());
     }
     /**
      * This returns the SQLite configuration for the database used by 
