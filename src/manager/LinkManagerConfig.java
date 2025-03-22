@@ -357,21 +357,9 @@ public class LinkManagerConfig {
      */
     private UUID programID = null;
     /**
-     * This is the secret key used for the cipher.
+     * This is a utilities object for encrypting and decrypting values.
      */
-    protected SecretKey secretKey = null;
-    /**
-     * This is the IV Parameter used for the cipher.
-     */
-    protected IvParameterSpec ivParam = null;
-    /**
-     * This is the SecureRandom used to generate random numbers for the cipher.
-     */
-    protected SecureRandom secureRand = null;
-    /**
-     * The key generator used to generate the secret keys.
-     */
-    protected KeyGenerator keyGen = null;
+    protected CipherUtils cipherUtils = null;
     /**
      * 
      * @param sqlProp
@@ -417,10 +405,7 @@ public class LinkManagerConfig {
         this.compNameMap.putAll(linkConfig.compNameMap);
         this.localDefaults.addProperties(linkConfig.localDefaults);
         LinkManagerConfig.this.setProgramID(linkConfig.programID);
-        this.secretKey = linkConfig.secretKey;
-        this.ivParam = linkConfig.ivParam;
-        this.secureRand = linkConfig.secureRand;
-        this.keyGen = linkConfig.keyGen;
+        this.cipherUtils = new CipherUtils(linkConfig.cipherUtils);
     }
     /**
      * This returns the preference node used to store the shared configuration 
@@ -676,56 +661,15 @@ public class LinkManagerConfig {
      * 
      * @return 
      */
-    public SecureRandom getSecureRandom(){
-        return secureRand;
+    public CipherUtils getCipher(){
+        return cipherUtils;
     }
     /**
      * 
-     * @param rand 
+     * @param utils 
      */
-    public void setSecureRandom(SecureRandom rand){
-        secureRand = rand;
-    }
-    /**
-     * 
-     * @return 
-     * @throws java.security.NoSuchAlgorithmException 
-     */
-    public SecureRandom setSecureRandom() throws NoSuchAlgorithmException{
-        setSecureRandom(SecureRandom.getInstanceStrong());
-        return getSecureRandom();
-    }
-    /**
-     * 
-     * @return 
-     */
-    public KeyGenerator getKeyGenerator(){
-        return keyGen;
-    }
-    /**
-     * 
-     * @param keyGen 
-     */
-    public void setKeyGenerator(KeyGenerator keyGen){
-        this.keyGen = keyGen;
-    }
-    /**
-     * 
-     * @param rand
-     * @return
-     * @throws NoSuchAlgorithmException 
-     */
-    public KeyGenerator setKeyGenerator(SecureRandom rand) throws NoSuchAlgorithmException{
-        setKeyGenerator(CipherUtilities.getKeyGenerator(rand));
-        return getKeyGenerator();
-    }
-    /**
-     * 
-     * @return
-     * @throws NoSuchAlgorithmException 
-     */
-    public KeyGenerator setKeyGenerator() throws NoSuchAlgorithmException{
-        return setKeyGenerator(getSecureRandom());
+    public void setCipher(CipherUtils utils){
+        this.cipherUtils = utils;
     }
     /**
      * 
@@ -743,16 +687,15 @@ public class LinkManagerConfig {
     }
     /**
      * 
-     * @param key
-     * @param iv 
-     * @throws java.security.NoSuchAlgorithmException 
-     * @throws javax.crypto.NoSuchPaddingException 
-     * @throws java.security.InvalidKeyException 
-     * @throws java.security.InvalidAlgorithmParameterException 
-     * @throws javax.crypto.IllegalBlockSizeException 
-     * @throws javax.crypto.BadPaddingException 
+     * @param userUtils
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException 
      */
-    public void initializeEncryption(SecretKey key, IvParameterSpec iv) throws 
+    protected void loadEncryptionKey(CipherUtils userUtils) throws 
             NoSuchAlgorithmException, NoSuchPaddingException, 
             InvalidKeyException, InvalidAlgorithmParameterException, 
             IllegalBlockSizeException, BadPaddingException{
@@ -764,27 +707,61 @@ public class LinkManagerConfig {
             String accessToken = getDropboxAccessToken();
                 // Get the unencrypted Dropbox refresh token
             String refreshToken = getDropboxRefreshToken();
-                // Generate the secret key
-            secretKey = getKeyGenerator().generateKey();
-                // Generate the IV
-            ivParam = CipherUtilities.generateIV(getSecureRandom());
-                // Get the encryption key for the program
-            localKey = CipherUtilities.getEncryptionKey(secretKey, ivParam);
+                // Generate the encryption key for the cipher
+            getCipher().generateEncryptionKey();
                 // Encrypt the encryption key and store it
-            setRawEncryptionKey(CipherUtilities.encryptByteArray(localKey, key,
-                    iv, getSecureRandom()));
+            setRawEncryptionKey(userUtils.encryptByteArray(
+                    getCipher().getEncryptionKey()));
                 // Set the Dropbox access token, which should encrypt it now
             setDropboxAccessToken(accessToken);
                 // Set the Dropbox refresh token, which should encrypt it now
             setDropboxRefreshToken(refreshToken);
         } else {    // Decrypt the encryption key
-            localKey = CipherUtilities.decryptByteArray(localKey, key, iv, 
-                    getSecureRandom());
-                // Extract the secret key from the encryption key
-            secretKey = CipherUtilities.getSecretKeyFromEncryptionKey(localKey);
-                // Extract the IV from the encryption key
-            ivParam = CipherUtilities.getIVFromEncryptionKey(localKey);
+            localKey = userUtils.decryptByteArray(localKey);
+                // Set the encryption key for the cipher
+            getCipher().setEncryptionKey(localKey);
         }
+    }
+    /**
+     * 
+     * @param userUtils
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException 
+     */
+    public void initEncryption(CipherUtils userUtils) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+            // Set the CipherUtils to use a copy of the user CipherUtils
+        setCipher(new CipherUtils(userUtils));
+            // If the user CipherUtils did not have a key generator
+        if (getCipher().getKeyGenerator() == null)
+            getCipher().setKeyGenerator();
+            // Initialize the encryption
+        loadEncryptionKey(userUtils);
+    }
+    /**
+     * 
+     * @param key
+     * @param iv 
+     * @throws java.security.NoSuchAlgorithmException 
+     * @throws javax.crypto.NoSuchPaddingException 
+     * @throws java.security.InvalidKeyException 
+     * @throws java.security.InvalidAlgorithmParameterException 
+     * @throws javax.crypto.IllegalBlockSizeException 
+     * @throws javax.crypto.BadPaddingException 
+     */
+    public void initEncryption(SecretKey key, IvParameterSpec iv) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+            // Initialize the encryption using the given key and IV parameters
+        loadEncryptionKey(new CipherUtils(getCipher()).setKey(key)
+                .setIV(iv));
     }
     /**
      * 
@@ -796,20 +773,22 @@ public class LinkManagerConfig {
      * @throws javax.crypto.IllegalBlockSizeException 
      * @throws javax.crypto.BadPaddingException 
      */
-    public void initializeEncryption(byte[] encryptKey) throws 
+    public void initEncryption(byte[] encryptKey) throws 
             NoSuchAlgorithmException, NoSuchPaddingException, 
             InvalidKeyException, InvalidAlgorithmParameterException, 
             IllegalBlockSizeException, BadPaddingException{
-        initializeEncryption(
-                CipherUtilities.getSecretKeyFromEncryptionKey(encryptKey),
-                CipherUtilities.getIVFromEncryptionKey(encryptKey));
+            // Initialize the encryption using the given encryption key
+        loadEncryptionKey(new CipherUtils(getCipher())
+                .setEncryptionKey(encryptKey));
     }
     /**
      * 
      */
     public void resetEncryption(){
-        ivParam = null;
-        secretKey = null;
+            // If the CipherUtils object is not null
+        if (getCipher() != null)
+                // Clear the encryption key
+            getCipher().clearEncryptionKey();
             // If there was an encryption key set
         if (getRawEncryptionKey() != null)
             clearDropboxToken();
@@ -820,7 +799,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean isEncryptionEnabled(){
-        return secretKey != null && ivParam != null && getSecureRandom()!=null;
+        return getCipher() != null && getCipher().isEncryptionKeySet();
     }
     /**
      * 
@@ -839,8 +818,7 @@ public class LinkManagerConfig {
             IllegalBlockSizeException, BadPaddingException{
             // If the encryption is enabled and the value is not null
         if (isEncryptionEnabled() && value != null)
-            return CipherUtilities.encryptByteArray(value, secretKey, ivParam, 
-                    getSecureRandom());
+            return getCipher().encryptByteArray(value);
         return value;
     }
     /**
@@ -860,8 +838,7 @@ public class LinkManagerConfig {
             IllegalBlockSizeException, BadPaddingException{
             // If the encryption is enabled and the value is not null
         if (isEncryptionEnabled() && value != null)
-            return CipherUtilities.decryptByteArray(value, secretKey, ivParam, 
-                    getSecureRandom());
+            return getCipher().decryptByteArray(value);
         return value;
     }
     /**
