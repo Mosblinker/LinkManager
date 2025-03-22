@@ -547,6 +547,62 @@ public class LinkManagerConfig {
         return getLocalChild(path,null);
     }
     /**
+     * 
+     */
+    protected void updatePreferences(){
+        try{    // Get the names of the child nodes in the parent preference 
+            String[] childNodes = getPreferences().childrenNames();     // node
+                // Go through the names of the child nodes
+            for (String child : childNodes){
+                    // If the child's name is not null
+                if (child != null){
+                        // Get the index of the equals sign in the child's name
+                    int index = child.indexOf("=");
+                        // If the child has an equals sign in its name
+                    if (index >= 0){
+                        try{    // Parse the number at the end of the child's 
+                                // name
+                            int value = Integer.parseInt(child.substring(index+1));
+                                // Get the prefix for the child name
+                            String prefix = child.substring(0,index);
+                                // This is the parent object for the node type
+                            ListConfigNodeParent parent;
+                                // Determine how to treat this node
+                            switch(prefix){
+                                    // If it's an old list type node
+                                case(LIST_TYPE_PREFERENCE_NODE_NAME):
+                                    parent = listTypeNodes;
+                                    break;
+                                    // If it's an old listID node
+                                case(LIST_ID_PREFERENCE_NODE_NAME):
+                                    parent = listIDNodes;
+                                    break;
+                                default:
+                                    continue;
+                            }   // Get the original node
+                            Preferences oldNode = getLocalChild(child);
+                                // Get the new node
+                            ConfigPreferences node = parent.getNode(value);
+                            try{    // Go through the keys in the old node
+                                for (String key : oldNode.keys()){
+                                        // If the new node doesn't have a value 
+                                        // set for the current key
+                                    if (!node.isKeySet(key))
+                                            // Put the value from the old node 
+                                            // into the new node
+                                        node.put(key, oldNode.get(key, ""));
+                                }
+                            } catch (BackingStoreException ex) {}
+                                // Remove the old node
+                            removeNode(oldNode);
+                        } catch (NumberFormatException | 
+                                IllegalStateException ex) {}
+                    }
+                }
+            }
+        } catch (BackingStoreException ex) {}
+    }
+    /**
      * This returns the program ID set for this configuration.
      * @return The program ID.
      */
@@ -579,6 +635,8 @@ public class LinkManagerConfig {
         listIDNodes.setParentNode();
             // Reset the Dropbox node to null
         dropboxNode = null;
+            // Update the values in the preference nodes
+        updatePreferences();
     }
     /**
      * This sets the program ID to be a random {@code UUID}.
