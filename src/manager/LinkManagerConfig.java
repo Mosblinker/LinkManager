@@ -326,9 +326,18 @@ public class LinkManagerConfig {
      */
     protected ConfigPreferences dropboxNode = null;
     /**
+     * This is the parent preference node for the the list type preference 
+     * nodes.
+     */
+    protected ConfigPreferences listTypeNode = null;
+    /**
      * This is a map that caches the list type preference nodes.
      */
     protected Map<Integer, ConfigPreferences> listTypeNodeMap;
+    /**
+     * This is the parent preference node for the the listID preference nodes.
+     */
+    protected ConfigPreferences listIDNode = null;
     /**
      * This is a map that caches the listID preference nodes.
      */
@@ -571,8 +580,12 @@ public class LinkManagerConfig {
         localNode = createPreferences();
             // Clear the list type preference node cache
         listTypeNodeMap.clear();
+            // Get the parent node for the list type preference nodes
+        listTypeNode = getLocalChild(LIST_TYPE_PREFERENCE_NODE_NAME);
             // Clear the listID preference node cache
         listIDNodeMap.clear();
+            // Get the parent node for the listID preference nodes
+        listIDNode = getLocalChild(LIST_ID_PREFERENCE_NODE_NAME);
             // Reset the Dropbox node to null
         dropboxNode = null;
     }
