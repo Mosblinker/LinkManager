@@ -499,7 +499,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 cipher.setEncryptionKey(encryptKey);
             }
                 // Initialize the encryption on the configuration
-            config.initializeEncryption(cipher.getKey(), cipher.getIV());
+            config.initEncryption(cipher.getKey(), cipher.getIV());
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | 
                 InvalidKeyException | InvalidAlgorithmParameterException | 
                 IllegalBlockSizeException | BadPaddingException ex) {

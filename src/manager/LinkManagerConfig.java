@@ -687,16 +687,15 @@ public class LinkManagerConfig {
     }
     /**
      * 
-     * @param key
-     * @param iv 
-     * @throws java.security.NoSuchAlgorithmException 
-     * @throws javax.crypto.NoSuchPaddingException 
-     * @throws java.security.InvalidKeyException 
-     * @throws java.security.InvalidAlgorithmParameterException 
-     * @throws javax.crypto.IllegalBlockSizeException 
-     * @throws javax.crypto.BadPaddingException 
+     * @param userUtils
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException 
      */
-    public void initializeEncryption(SecretKey key, IvParameterSpec iv) throws 
+    protected void loadEncryptionKey(CipherUtils userUtils) throws 
             NoSuchAlgorithmException, NoSuchPaddingException, 
             InvalidKeyException, InvalidAlgorithmParameterException, 
             IllegalBlockSizeException, BadPaddingException{
@@ -711,19 +710,58 @@ public class LinkManagerConfig {
                 // Generate the encryption key for the cipher
             getCipher().generateEncryptionKey();
                 // Encrypt the encryption key and store it
-            setRawEncryptionKey(CipherUtilities.encryptByteArray(
-                    getCipher().getEncryptionKey(), key, iv, 
-                    getCipher().getRandom()));
+            setRawEncryptionKey(userUtils.encryptByteArray(
+                    getCipher().getEncryptionKey()));
                 // Set the Dropbox access token, which should encrypt it now
             setDropboxAccessToken(accessToken);
                 // Set the Dropbox refresh token, which should encrypt it now
             setDropboxRefreshToken(refreshToken);
         } else {    // Decrypt the encryption key
-            localKey = CipherUtilities.decryptByteArray(localKey, key, iv, 
-                    getCipher().getRandom());
+            localKey = userUtils.decryptByteArray(localKey);
                 // Set the encryption key for the cipher
             getCipher().setEncryptionKey(localKey);
         }
+    }
+    /**
+     * 
+     * @param userUtils
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException 
+     */
+    public void initEncryption(CipherUtils userUtils) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+            // Set the CipherUtils to use a copy of the user CipherUtils
+        setCipher(new CipherUtils(userUtils));
+            // If the user CipherUtils did not have a key generator
+        if (getCipher().getKeyGenerator() == null)
+            getCipher().setKeyGenerator();
+            // Initialize the encryption
+        loadEncryptionKey(userUtils);
+    }
+    /**
+     * 
+     * @param key
+     * @param iv 
+     * @throws java.security.NoSuchAlgorithmException 
+     * @throws javax.crypto.NoSuchPaddingException 
+     * @throws java.security.InvalidKeyException 
+     * @throws java.security.InvalidAlgorithmParameterException 
+     * @throws javax.crypto.IllegalBlockSizeException 
+     * @throws javax.crypto.BadPaddingException 
+     */
+    public void initEncryption(SecretKey key, IvParameterSpec iv) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+            // Initialize the encryption using the given key and IV parameters
+        loadEncryptionKey(new CipherUtils(getCipher()).setKey(key)
+                .setIV(iv));
     }
     /**
      * 
@@ -735,13 +773,13 @@ public class LinkManagerConfig {
      * @throws javax.crypto.IllegalBlockSizeException 
      * @throws javax.crypto.BadPaddingException 
      */
-    public void initializeEncryption(byte[] encryptKey) throws 
+    public void initEncryption(byte[] encryptKey) throws 
             NoSuchAlgorithmException, NoSuchPaddingException, 
             InvalidKeyException, InvalidAlgorithmParameterException, 
             IllegalBlockSizeException, BadPaddingException{
-        initializeEncryption(
-                CipherUtilities.getSecretKeyFromEncryptionKey(encryptKey),
-                CipherUtilities.getIVFromEncryptionKey(encryptKey));
+            // Initialize the encryption using the given encryption key
+        loadEncryptionKey(new CipherUtils(getCipher())
+                .setEncryptionKey(encryptKey));
     }
     /**
      * 
