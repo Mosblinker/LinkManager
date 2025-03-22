@@ -357,14 +357,6 @@ public class LinkManagerConfig {
      */
     private UUID programID = null;
     /**
-     * This is the secret key used for the cipher.
-     */
-    protected SecretKey secretKey = null;
-    /**
-     * This is the IV Parameter used for the cipher.
-     */
-    protected IvParameterSpec ivParam = null;
-    /**
      * This is a utilities object for encrypting and decrypting values.
      */
     protected CipherUtils cipherUtils = null;
@@ -413,8 +405,6 @@ public class LinkManagerConfig {
         this.compNameMap.putAll(linkConfig.compNameMap);
         this.localDefaults.addProperties(linkConfig.localDefaults);
         LinkManagerConfig.this.setProgramID(linkConfig.programID);
-        this.secretKey = linkConfig.secretKey;
-        this.ivParam = linkConfig.ivParam;
         this.cipherUtils = new CipherUtils(linkConfig.cipherUtils);
     }
     /**
@@ -718,15 +708,12 @@ public class LinkManagerConfig {
             String accessToken = getDropboxAccessToken();
                 // Get the unencrypted Dropbox refresh token
             String refreshToken = getDropboxRefreshToken();
-                // Generate the secret key
-            secretKey = getCipher().getKeyGenerator().generateKey();
-                // Generate the IV
-            ivParam = CipherUtilities.generateIV(getCipher().getRandom());
-                // Get the encryption key for the program
-            localKey = CipherUtilities.getEncryptionKey(secretKey, ivParam);
+                // Generate the encryption key for the cipher
+            getCipher().generateEncryptionKey();
                 // Encrypt the encryption key and store it
-            setRawEncryptionKey(CipherUtilities.encryptByteArray(localKey, key,
-                    iv, getCipher().getRandom()));
+            setRawEncryptionKey(CipherUtilities.encryptByteArray(
+                    getCipher().getEncryptionKey(), key, iv, 
+                    getCipher().getRandom()));
                 // Set the Dropbox access token, which should encrypt it now
             setDropboxAccessToken(accessToken);
                 // Set the Dropbox refresh token, which should encrypt it now
@@ -734,10 +721,8 @@ public class LinkManagerConfig {
         } else {    // Decrypt the encryption key
             localKey = CipherUtilities.decryptByteArray(localKey, key, iv, 
                     getCipher().getRandom());
-                // Extract the secret key from the encryption key
-            secretKey = CipherUtilities.getSecretKeyFromEncryptionKey(localKey);
-                // Extract the IV from the encryption key
-            ivParam = CipherUtilities.getIVFromEncryptionKey(localKey);
+                // Set the encryption key for the cipher
+            getCipher().setEncryptionKey(localKey);
         }
     }
     /**
@@ -762,8 +747,10 @@ public class LinkManagerConfig {
      * 
      */
     public void resetEncryption(){
-        ivParam = null;
-        secretKey = null;
+            // If the CipherUtils object is not null
+        if (getCipher() != null)
+                // Clear the encryption key
+            getCipher().clearEncryptionKey();
             // If there was an encryption key set
         if (getRawEncryptionKey() != null)
             clearDropboxToken();
@@ -774,7 +761,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean isEncryptionEnabled(){
-        return secretKey != null && ivParam != null && getCipher() != null;
+        return getCipher() != null && getCipher().isEncryptionKeySet();
     }
     /**
      * 
@@ -793,8 +780,8 @@ public class LinkManagerConfig {
             IllegalBlockSizeException, BadPaddingException{
             // If the encryption is enabled and the value is not null
         if (isEncryptionEnabled() && value != null)
-            return CipherUtilities.encryptByteArray(value, secretKey, ivParam, 
-                    getCipher().getRandom());
+            return CipherUtilities.encryptByteArray(value, getCipher().getKey(), 
+                    getCipher().getIV(), getCipher().getRandom());
         return value;
     }
     /**
@@ -814,8 +801,8 @@ public class LinkManagerConfig {
             IllegalBlockSizeException, BadPaddingException{
             // If the encryption is enabled and the value is not null
         if (isEncryptionEnabled() && value != null)
-            return CipherUtilities.decryptByteArray(value, secretKey, ivParam, 
-                    getCipher().getRandom());
+            return CipherUtilities.decryptByteArray(value, getCipher().getKey(), 
+                    getCipher().getIV(), getCipher().getRandom());
         return value;
     }
     /**
