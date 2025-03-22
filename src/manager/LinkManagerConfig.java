@@ -175,6 +175,11 @@ public class LinkManagerConfig {
     public static final String LAST_VISIBLE_INDEX_FOR_LIST_KEY = 
             "LastVisibleIndex";
     /**
+     * 
+     */
+    public static final String VISIBLE_RECTANGLE_FOR_LIST_KEY = 
+            "VisibleRect";
+    /**
      * This is the user and program specific encryption key for the program. 
      * This encryption key is, in it of itself, encrypted by another encryption 
      * key stored along side the program ID.
@@ -226,6 +231,14 @@ public class LinkManagerConfig {
      */
     public static final String LIST_ID_PROPERTY_KEY_SUFFIX = "ForList";
     /**
+     * This is an array that contains the suffixes for the keys in properties 
+     * that deal with list stuff.
+     */
+    private static final String[] LIST_PROPERTY_KEY_SUFFIXES = {
+        LIST_TYPE_PROPERTY_KEY_SUFFIX,
+        LIST_ID_PROPERTY_KEY_SUFFIX
+    };
+    /**
      * This is an array that contains the prefixes for the keys in properties 
      * that deal with list types.
      */
@@ -241,7 +254,8 @@ public class LinkManagerConfig {
         SELECTED_LINK_FOR_LIST_KEY,
         SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY,
         FIRST_VISIBLE_INDEX_FOR_LIST_KEY,
-        LAST_VISIBLE_INDEX_FOR_LIST_KEY
+        LAST_VISIBLE_INDEX_FOR_LIST_KEY,
+        VISIBLE_RECTANGLE_FOR_LIST_KEY
     };
     /**
      * This is the name of the preference node used to store the data for 
@@ -320,6 +334,11 @@ public class LinkManagerConfig {
      * initially null and is initialized when first used.
      */
     private Map<Integer, Integer> lastVisIndexMap = null;
+    /**
+     * This is a map view of the visible rectangles for the lists. This is 
+     * initially null and is initialized when first used.
+     */
+    private Map<Integer, Rectangle> visRectMap = null;
     /**
      * This is the preference node that stores the settings and tokens for 
      * Dropbox.
@@ -1159,6 +1178,8 @@ public class LinkManagerConfig {
             // This maps the list types to the selected index of the tab for 
             // that list type
         Map<Integer,Integer> selListMap = new HashMap<>();
+            // This maps the listIDs to the visible rectangle for that list
+        Map<Integer,Rectangle> visRectMap = new HashMap<>();
             // This gets a set of keys for the properties that deal with lists
         Set<String> listKeys = new HashSet<>(cProp.stringPropertyNames());
             // Remove any null keys and keys that aren't prefixed keys for the 
@@ -1168,31 +1189,26 @@ public class LinkManagerConfig {
         });
             // Go through the property keys that deal with lists
         for (String key : listKeys){
-            String keyPrefix;   // Get the prefix for the current key
+                // The prefix for the current key
+            String keyPrefix = null;
                 // The suffix for the property version of the key
-            String keySuffix = LIST_ID_PROPERTY_KEY_SUFFIX;   
-                // If the key starts with the selected link key
-            if (key.startsWith(SELECTED_LINK_FOR_LIST_KEY))
-                keyPrefix = SELECTED_LINK_FOR_LIST_KEY;
-                // If the key starts with the selected link is visible key
-            else if (key.startsWith(SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
-                keyPrefix = SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY;
-                // If the key starts with the first visible index key
-            else if (key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY))
-                keyPrefix = FIRST_VISIBLE_INDEX_FOR_LIST_KEY;
-                // If the key starts with the last visible index key
-            else if (key.startsWith(LAST_VISIBLE_INDEX_FOR_LIST_KEY))
-                keyPrefix = LAST_VISIBLE_INDEX_FOR_LIST_KEY;
-                // If the key starts with the current tab listID key
-            else if (key.startsWith(CURRENT_TAB_LIST_ID_KEY)){
-                keyPrefix = CURRENT_TAB_LIST_ID_KEY;
-                keySuffix = LIST_TYPE_PROPERTY_KEY_SUFFIX;
-            }   // If the key starts with the current tab index key
-            else if (key.startsWith(CURRENT_TAB_INDEX_KEY)){
-                keyPrefix = CURRENT_TAB_INDEX_KEY;
-                keySuffix = LIST_TYPE_PROPERTY_KEY_SUFFIX;
-            } else  // Skip this key
-                continue;
+            String keySuffix = null;
+                // Go through the possible list property key suffixes
+            for (String suffix : LIST_PROPERTY_KEY_SUFFIXES){
+                    // Get the index of the start of the current suffix if 
+                    // present in the current key
+                int index = key.lastIndexOf(suffix);
+                    // If the suffix is present in the current key
+                if (index >= 0){
+                        // This is the suffix for the key
+                    keySuffix = suffix;
+                        // Get the prefix for the key
+                    keyPrefix = key.substring(0, index);
+                    break;
+                }
+            }   // If this key does not have a matching key prefix or suffix
+            if (keySuffix == null || keyPrefix == null)
+                continue;   // Skip this key
             try{    // Get the list or tabs panel that this key is for
                 int type = Integer.parseInt(key.substring(keyPrefix.length()+
                         keySuffix.length()));
@@ -1221,6 +1237,10 @@ public class LinkManagerConfig {
                         // If this is the current tab index key
                     case(CURRENT_TAB_INDEX_KEY):
                         selListMap.put(type, cProp.getIntProperty(key));
+                        break;
+                        // If this is the visible rectangle index key
+                    case(VISIBLE_RECTANGLE_FOR_LIST_KEY):
+                        visRectMap.put(type, cProp.getRectangleProperty(key));
                 }
             } catch(NumberFormatException ex){ }
         }   // Remove all null values from the selected links
@@ -1235,6 +1255,8 @@ public class LinkManagerConfig {
         selListIDMap.values().removeIf((Integer t) -> t == null);
             // Remove all null values from the current tab indexes
         selListMap.values().removeIf((Integer t) -> t == null);
+            // Remove all null values from the visible rectangles
+        visRectMap.values().removeIf((Rectangle t) -> t == null);
             // Add all the values for the selected links in the lists
         getSelectedLinkMap().putAll(selMap);
             // Add all the values for the selected links are visible in the lists
@@ -1247,6 +1269,8 @@ public class LinkManagerConfig {
         getCurrentTabListIDMap().putAll(selListIDMap);
             // Add all the values for the current tab indexes
         getCurrentTabIndexMap().putAll(selListMap);
+            // Add all the values for the visible rectangles for the lists
+        getVisibleRectMap().putAll(visRectMap);
     }
     /**
      * 
@@ -1294,6 +1318,10 @@ public class LinkManagerConfig {
                 // Add the last visible index data to the properties
             addListDataToProperties(getLastVisibleIndexMap(),
                     LAST_VISIBLE_INDEX_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
+                    prop);
+                // Add the visible rectangle data to the properties
+            addListDataToProperties(getVisibleRectMap(),
+                    VISIBLE_RECTANGLE_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
                     prop);
                 // Remove the encryption key from the properties
             prop.remove(ENCRYPTION_KEY_KEY);
@@ -2234,6 +2262,56 @@ public class LinkManagerConfig {
     /**
      * 
      * @param listID
+     * @param value 
+     */
+    public void setVisibleRect(int listID, Rectangle value){
+        getListPreferences(listID).putObject(VISIBLE_RECTANGLE_FOR_LIST_KEY, 
+                value);
+    }
+    /**
+     * 
+     * @param listID
+     * @param defaultValue
+     * @return 
+     */
+    public Rectangle getVisibleRect(int listID, Rectangle defaultValue){
+        return getListPreferences(listID).getRectangle(
+                VISIBLE_RECTANGLE_FOR_LIST_KEY, defaultValue);
+    }
+    /**
+     * 
+     * @param listID
+     * @return 
+     */
+    public Rectangle getVisibleRect(int listID){
+        return getVisibleRect(listID,null);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<Integer, Rectangle> getVisibleRectMap(){
+        if (visRectMap == null){
+            visRectMap = new ListConfigDataMap<>(){
+                @Override
+                protected Rectangle getValue(int key) {
+                    return getVisibleRect(key);
+                }
+                @Override
+                protected void putValue(int key, Rectangle value) {
+                    setVisibleRect(key,value);
+                }
+                @Override
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
+                }
+            };
+        }
+        return visRectMap;
+    }
+    /**
+     * 
+     * @param listID
      * @param panel 
      */
     public void setVisibleSection(int listID, LinksListPanel panel){
@@ -2243,6 +2321,8 @@ public class LinkManagerConfig {
         Integer lastVisIndex = null;
             // This will get whether the selected index is visible
         Boolean isSelVis = null;
+            // This will get the visible rectangle for the list
+        Rectangle visRect = null;
             // If the panel is not null
         if (panel != null){
                 // Get the first visible index for the list
@@ -2259,12 +2339,16 @@ public class LinkManagerConfig {
             if (!panel.isSelectionEmpty())
                     // Get whether the selected indes is visible
                 isSelVis = panel.isIndexVisible(panel.getSelectedIndex());
+                // Get the panel's list's visible rectangle
+            visRect = panel.getList().getVisibleRect();
         }   // Set the first visible index for the list
         setFirstVisibleIndex(listID,firstVisIndex);
             // Set the last visible index for the list
         setLastVisibleIndex(listID,lastVisIndex);
             // Set whether the selected link is visible
         setSelectedLinkIsVisible(listID,isSelVis);
+            // Set the visible rectangle for the list
+        setVisibleRect(listID,visRect);
     }
     /**
      * 

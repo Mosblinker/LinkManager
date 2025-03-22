@@ -5546,12 +5546,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         Map<Integer,Boolean> selVisMap = config.getSelectedLinkIsVisibleMap();
             // This maps the listIDs to the first visible index for that list
         Map<Integer,Integer> firstVisMap = config.getFirstVisibleIndexMap();
+            // This maps the listIDs to the last visible index for that list
+        Map<Integer,Integer> lastVisMap = config.getLastVisibleIndexMap();
             // This maps the tabs panel indexes to the listID of the selected 
             // list for that tabs panel
         Map<Integer,Integer> selListIDMap = new HashMap<>(config.getCurrentTabListIDMap());
             // This maps the tabs panel indexes to the selected index of the 
             // tab for that tabs panel
         Map<Integer,Integer> selListMap = config.getCurrentTabIndexMap();
+            // This maps the listIDs to the visible rectangle for that list
+        Map<Integer,Rectangle> visRectMap = config.getVisibleRectMap();
             // Go through the list tabs panels
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
                 // Go through the list panels in the current list tabs panel
@@ -5561,12 +5565,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     continue;
                     // Get the current list panel's listID
                 int listID = panel.getListID();
-                    // Get the first visible index for the list
-                Integer firstVisible = firstVisMap.get(listID);
-                    // If there is a first visible index for the list
-                if (firstVisible != null)
-                        // Ensure the first visible index is visible
-                    panel.getList().ensureIndexIsVisible(firstVisible);
                     // If the link selection map contains the listID for the list
                 if (selMap.containsKey(listID)){
                         // Get the selected link for the list
@@ -5579,7 +5577,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // link if it is meant to be visible
                     panel.setSelectedValue(selected, 
                             selVisMap.getOrDefault(listID, false));
-                }
+                }   // Get the visible rectangle for the list
+                Rectangle rect = visRectMap.get(listID);
+                    // If there is a visible rectangle for the list
+                if (rect != null)
+                        // Scroll the list to the visbile rectangle
+                    panel.getList().scrollRectToVisible(rect);
+                    // Get the first visible index for the list, defaulting to 
+                    // the last visible index if there isn't one
+                Integer visIndex = firstVisMap.getOrDefault(listID,
+                        lastVisMap.get(listID));
+                    // If there is a visible index for the list
+                if (visIndex != null)
+                        // Ensure the visible index is visible
+                    panel.getList().ensureIndexIsVisible(visIndex);
             }
         }   // Replace the selected listIDs with the indexes for those listIDs
         selListIDMap.replaceAll((Integer listType, Integer listID) -> {
