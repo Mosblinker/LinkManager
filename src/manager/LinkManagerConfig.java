@@ -175,6 +175,11 @@ public class LinkManagerConfig {
     public static final String LAST_VISIBLE_INDEX_FOR_LIST_KEY = 
             "LastVisibleIndex";
     /**
+     * 
+     */
+    public static final String VISIBLE_RECTANGLE_FOR_LIST_KEY = 
+            "VisibleRect";
+    /**
      * This is the user and program specific encryption key for the program. 
      * This encryption key is, in it of itself, encrypted by another encryption 
      * key stored along side the program ID.
