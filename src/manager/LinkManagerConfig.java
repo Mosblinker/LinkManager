@@ -254,7 +254,8 @@ public class LinkManagerConfig {
         SELECTED_LINK_FOR_LIST_KEY,
         SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY,
         FIRST_VISIBLE_INDEX_FOR_LIST_KEY,
-        LAST_VISIBLE_INDEX_FOR_LIST_KEY
+        LAST_VISIBLE_INDEX_FOR_LIST_KEY,
+        VISIBLE_RECTANGLE_FOR_LIST_KEY
     };
     /**
      * This is the name of the preference node used to store the data for 
@@ -1177,6 +1178,8 @@ public class LinkManagerConfig {
             // This maps the list types to the selected index of the tab for 
             // that list type
         Map<Integer,Integer> selListMap = new HashMap<>();
+            // This maps the listIDs to the visible rectangle for that list
+        Map<Integer,Rectangle> visRectMap = new HashMap<>();
             // This gets a set of keys for the properties that deal with lists
         Set<String> listKeys = new HashSet<>(cProp.stringPropertyNames());
             // Remove any null keys and keys that aren't prefixed keys for the 
@@ -1234,6 +1237,10 @@ public class LinkManagerConfig {
                         // If this is the current tab index key
                     case(CURRENT_TAB_INDEX_KEY):
                         selListMap.put(type, cProp.getIntProperty(key));
+                        break;
+                        // If this is the visible rectangle index key
+                    case(VISIBLE_RECTANGLE_FOR_LIST_KEY):
+                        visRectMap.put(type, cProp.getRectangleProperty(key));
                 }
             } catch(NumberFormatException ex){ }
         }   // Remove all null values from the selected links
@@ -1248,6 +1255,8 @@ public class LinkManagerConfig {
         selListIDMap.values().removeIf((Integer t) -> t == null);
             // Remove all null values from the current tab indexes
         selListMap.values().removeIf((Integer t) -> t == null);
+            // Remove all null values from the visible rectangles
+        visRectMap.values().removeIf((Rectangle t) -> t == null);
             // Add all the values for the selected links in the lists
         getSelectedLinkMap().putAll(selMap);
             // Add all the values for the selected links are visible in the lists
@@ -1260,6 +1269,8 @@ public class LinkManagerConfig {
         getCurrentTabListIDMap().putAll(selListIDMap);
             // Add all the values for the current tab indexes
         getCurrentTabIndexMap().putAll(selListMap);
+            // Add all the values for the visible rectangles for the lists
+        getVisibleRectMap().putAll(visRectMap);
     }
     /**
      * 
@@ -1307,6 +1318,10 @@ public class LinkManagerConfig {
                 // Add the last visible index data to the properties
             addListDataToProperties(getLastVisibleIndexMap(),
                     LAST_VISIBLE_INDEX_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
+                    prop);
+                // Add the visible rectangle data to the properties
+            addListDataToProperties(getVisibleRectMap(),
+                    VISIBLE_RECTANGLE_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
                     prop);
                 // Remove the encryption key from the properties
             prop.remove(ENCRYPTION_KEY_KEY);
