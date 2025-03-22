@@ -5563,18 +5563,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     continue;
                     // Get the current list panel's listID
                 int listID = panel.getListID();
-                    // Get the visible rectangle for the list
-                Rectangle rect = visRectMap.get(listID);
-                    // If there is a visible rectangle for the list
-                if (rect != null)
-                        // Scroll the list to the visbile rectangle
-                    panel.getList().scrollRectToVisible(rect);
-                    // Get the first visible index for the list
-                Integer firstVisible = firstVisMap.get(listID);
-                    // If there is a first visible index for the list
-                if (firstVisible != null)
-                        // Ensure the first visible index is visible
-                    panel.getList().ensureIndexIsVisible(firstVisible);
                     // If the link selection map contains the listID for the list
                 if (selMap.containsKey(listID)){
                         // Get the selected link for the list
@@ -5587,7 +5575,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // link if it is meant to be visible
                     panel.setSelectedValue(selected, 
                             selVisMap.getOrDefault(listID, false));
-                }
+                }   // Get the visible rectangle for the list
+                Rectangle rect = visRectMap.get(listID);
+                    // If there is a visible rectangle for the list
+                if (rect != null)
+                        // Scroll the list to the visbile rectangle
+                    panel.getList().scrollRectToVisible(rect);
+                    // Get the first visible index for the list
+                Integer visIndex = firstVisMap.get(listID);
+                    // If there is a first visible index for the list
+                if (visIndex != null)
+                        // Ensure the first visible index is visible
+                    panel.getList().ensureIndexIsVisible(visIndex);
             }
         }   // Replace the selected listIDs with the indexes for those listIDs
         selListIDMap.replaceAll((Integer listType, Integer listID) -> {
