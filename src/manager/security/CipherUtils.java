@@ -48,7 +48,8 @@ public class CipherUtils {
      * 
      * @param rand 
      */
-    public void setSecureRandom(SecureRandom rand){
+    public CipherUtils setSecureRandom(SecureRandom rand){
         this.rand = rand;
+        return this;
     }
 }
