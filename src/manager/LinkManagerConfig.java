@@ -453,32 +453,11 @@ public class LinkManagerConfig {
     }
     /**
      * 
-     * @param key
-     * @param prefix
-     * @param cache
-     * @return 
-     */
-    private ConfigPreferences getListDataPreferences(int key, String prefix, 
-            Map<Integer, ConfigPreferences> cache){
-            // Check the preference node cache for the node
-        ConfigPreferences node = cache.get(key);
-            // If the cache does not have the preference node
-        if (node == null){
-                // Get the node
-            node = getLocalChild(prefix+"="+key);
-                // Cache the node
-            cache.put(key, node);
-        }
-        return node;
-    }
-    /**
-     * 
      * @param type The list type
      * @return 
      */
     public ConfigPreferences getListTypePreferences(int type){
-        return getListDataPreferences(type,LIST_TYPE_PREFERENCE_NODE_NAME,
-                listTypeNodes.getNodeCache());
+        return listTypeNodes.getNode(type);
     }
     /**
      * 
@@ -486,8 +465,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public ConfigPreferences getListPreferences(int listID){
-        return getListDataPreferences(listID,LIST_ID_PREFERENCE_NODE_NAME,
-                listIDNodes.getNodeCache());
+        return listIDNodes.getNode(listID);
     }
     /**
      * This returns the SQLite configuration for the database used by 
@@ -2657,5 +2635,22 @@ public class LinkManagerConfig {
          * @return 
          */
         public abstract String getParentPath();
+        /**
+         * 
+         * @param key
+         * @return 
+         */
+        public ConfigPreferences getNode(int key){
+                // Check the preference node cache for the node
+            ConfigPreferences node = nodeMap.get(key);
+                // If the cache does not have the preference node
+            if (node == null){
+                    // Get the node
+                node = getLocalChild(getParentPath()+"="+key);
+                    // Cache the node
+                nodeMap.put(key, node);
+            }
+            return node;
+        }
     }
 }
