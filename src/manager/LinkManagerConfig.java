@@ -1922,8 +1922,8 @@ public class LinkManagerConfig {
                     setCurrentTabListID(key,value);
                 }
                 @Override
-                protected String getPrefixForNodes() {
-                    return LIST_TYPE_PREFERENCE_NODE_NAME;
+                protected ListConfigNodeParent getNodes() {
+                    return listTypeNodes;
                 }
             };
         }
@@ -1965,8 +1965,8 @@ public class LinkManagerConfig {
                     setCurrentTabIndex(key,value);
                 }
                 @Override
-                protected String getPrefixForNodes() {
-                    return LIST_TYPE_PREFERENCE_NODE_NAME;
+                protected ListConfigNodeParent getNodes() {
+                    return listTypeNodes;
                 }
             };
         }
@@ -2025,8 +2025,8 @@ public class LinkManagerConfig {
                     setSelectedLink(key,value);
                 }
                 @Override
-                protected String getPrefixForNodes() {
-                    return LIST_ID_PREFERENCE_NODE_NAME;
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
                 }
             };
         }
@@ -2070,8 +2070,8 @@ public class LinkManagerConfig {
                     setSelectedLinkIsVisible(key,value);
                 }
                 @Override
-                protected String getPrefixForNodes() {
-                    return LIST_ID_PREFERENCE_NODE_NAME;
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
                 }
             };
         }
@@ -2111,8 +2111,8 @@ public class LinkManagerConfig {
                     setFirstVisibleIndex(key,value);
                 }
                 @Override
-                protected String getPrefixForNodes() {
-                    return LIST_ID_PREFERENCE_NODE_NAME;
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
                 }
             };
         }
@@ -2152,8 +2152,8 @@ public class LinkManagerConfig {
                     setLastVisibleIndex(key,value);
                 }
                 @Override
-                protected String getPrefixForNodes() {
-                    return LIST_ID_PREFERENCE_NODE_NAME;
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
                 }
             };
         }
@@ -2476,31 +2476,22 @@ public class LinkManagerConfig {
          * 
          * @return 
          */
-        protected abstract String getPrefixForNodes();
+        protected abstract ListConfigNodeParent getNodes();
         /**
          * This returns a set containing the keys for this map.
          * @return The set containing the keys for this map.
          */
         protected Set<Integer> getKeys(){
                 // This will get the keys in this map
-            Set<Integer> keys = new TreeSet<>();
-            try{    // Get the names of the child nodes in the local preference 
-                String[] childNodes = getPreferences().childrenNames(); // node
-                    // Go through the names of the child nodes
-                for (String child : childNodes){
-                        // If the child's name is not null and starts with the 
-                        // prefix
-                    if (child != null && child.startsWith(getPrefixForNodes())){
-                        try{    // Parse the number at the end
-                            int value = Integer.parseInt(child.substring(
-                                    getPrefixForNodes().length()+1));
-                                // If this map contains a non-null value for 
-                            if (containsKey(value))     // that key
-                                keys.add(value);
-                        } catch (NumberFormatException ex) {}
-                    }
-                }
-            } catch (BackingStoreException ex) {}
+            Set<Integer> keys = getNodes().getKeys();
+                // An iterator to check for keys that don't have a value
+            Iterator<Integer> itr = keys.iterator();
+                // Go through the keys
+            while(itr.hasNext()){
+                    // If this map does not contain a non-null value for that 
+                if (!containsKey(itr.next()))   // key
+                    itr.remove();
+            }
             return keys;
         }
         @Override
@@ -2676,6 +2667,29 @@ public class LinkManagerConfig {
                     // Remove the node
                 LinkManagerConfig.this.removeNode(node);
             return node != null;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public Set<Integer> getKeys(){
+                // This will get the keys in this map
+            Set<Integer> keys = new TreeSet<>();
+            try{    // Get the names of the child nodes in the local preference 
+                String[] childNodes = getPreferences().childrenNames(); // node
+                    // Go through the names of the child nodes
+                for (String child : childNodes){
+                        // If the child's name is not null and starts with the 
+                        // prefix
+                    if (child != null && child.startsWith(getParentPath()+"=")){
+                        try{    // Parse the number at the end
+                            keys.add(Integer.valueOf(child.substring(
+                                    getParentPath().length()+1)));
+                        } catch (NumberFormatException ex) {}
+                    }
+                }
+            } catch (BackingStoreException ex) {}
+            return keys;
         }
     }
 }
