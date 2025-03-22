@@ -33,10 +33,11 @@ public class CipherUtils {
     /**
      * 
      * @param rand 
+     * @throws java.security.NoSuchAlgorithmException 
      */
-    public CipherUtils(SecureRandom rand){
+    public CipherUtils(SecureRandom rand) throws NoSuchAlgorithmException{
         this(rand,null);
-        
+        CipherUtils.this.setKeyGenerator();
     }
     /**
      * 
@@ -87,9 +88,21 @@ public class CipherUtils {
     }
     /**
      * 
-     * @return 
+     * @param rand
+     * @return
+     * @throws NoSuchAlgorithmException 
      */
-    public CipherUtils createKeyGenerator(){
-        return 
+    protected KeyGenerator createKeyGenerator(SecureRandom rand) throws 
+            NoSuchAlgorithmException{
+        return CipherUtilities.getKeyGenerator(rand);
     }
+    /**
+     * 
+     * @return 
+     * @throws java.security.NoSuchAlgorithmException 
+     */
+    public CipherUtils setKeyGenerator() throws NoSuchAlgorithmException{
+        return setKeyGenerator(createKeyGenerator(getSecureRandom()));
+    }
+    
 }
