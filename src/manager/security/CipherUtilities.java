@@ -7,6 +7,7 @@ package manager.security;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.security.*;
+import java.util.Objects;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 
@@ -168,12 +169,15 @@ public class CipherUtilities {
      * @throws InvalidAlgorithmParameterException
      * @throws IllegalBlockSizeException
      * @throws BadPaddingException 
+     * @throws NullPointerException
      */
     public static byte[] encryptByteArray(byte[] value, SecretKey key, 
             IvParameterSpec iv, SecureRandom rand) throws NoSuchAlgorithmException, 
             NoSuchPaddingException, InvalidKeyException, 
             InvalidAlgorithmParameterException, IllegalBlockSizeException, 
             BadPaddingException{
+            // Check that the value is not null
+        Objects.requireNonNull(value);
             // Encrypt the given byte array
         byte[] encrypted = createEncryptCipher(key,iv,rand).doFinal(value);
             // This will get the encrypted byte array expanded by two bytes
@@ -199,12 +203,15 @@ public class CipherUtilities {
      * @throws InvalidAlgorithmParameterException
      * @throws IllegalBlockSizeException
      * @throws BadPaddingException 
+     * @throws NullPointerException
      */
     public static byte[] decryptByteArray(byte[] encryptedValue, SecretKey key, 
             IvParameterSpec iv, SecureRandom rand) throws NoSuchAlgorithmException, 
             NoSuchPaddingException, InvalidKeyException, 
             InvalidAlgorithmParameterException, IllegalBlockSizeException, 
             BadPaddingException{
+            // Check that the value is not null
+        Objects.requireNonNull(encryptedValue);
             // Wrap the byte array with a read only byte buffer to read from to 
             // it
         ByteBuffer buffer = ByteBuffer.wrap(encryptedValue).asReadOnlyBuffer(); 
