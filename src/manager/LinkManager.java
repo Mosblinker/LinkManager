@@ -5552,6 +5552,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // This maps the tabs panel indexes to the selected index of the 
             // tab for that tabs panel
         Map<Integer,Integer> selListMap = config.getCurrentTabIndexMap();
+            // This maps the listIDs to the visible rectangle for that list
+        Map<Integer,Rectangle> visRectMap = config.getVisibleRectMap();
             // Go through the list tabs panels
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
                 // Go through the list panels in the current list tabs panel
@@ -5561,6 +5563,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     continue;
                     // Get the current list panel's listID
                 int listID = panel.getListID();
+                    // Get the visible rectangle for the list
+                Rectangle rect = visRectMap.get(listID);
+                    // If there is a visible rectangle for the list
+                if (rect != null)
+                        // Scroll the list to the visbile rectangle
+                    panel.getList().scrollRectToVisible(rect);
                     // Get the first visible index for the list
                 Integer firstVisible = firstVisMap.get(listID);
                     // If there is a first visible index for the list
