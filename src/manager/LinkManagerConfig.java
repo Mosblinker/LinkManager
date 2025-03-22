@@ -2303,6 +2303,8 @@ public class LinkManagerConfig {
         Integer lastVisIndex = null;
             // This will get whether the selected index is visible
         Boolean isSelVis = null;
+            // This will get the visible rectangle for the list
+        Rectangle visRect = null;
             // If the panel is not null
         if (panel != null){
                 // Get the first visible index for the list
@@ -2319,12 +2321,16 @@ public class LinkManagerConfig {
             if (!panel.isSelectionEmpty())
                     // Get whether the selected indes is visible
                 isSelVis = panel.isIndexVisible(panel.getSelectedIndex());
+                // Get the panel's list's visible rectangle
+            visRect = panel.getList().getVisibleRect();
         }   // Set the first visible index for the list
         setFirstVisibleIndex(listID,firstVisIndex);
             // Set the last visible index for the list
         setLastVisibleIndex(listID,lastVisIndex);
             // Set whether the selected link is visible
         setSelectedLinkIsVisible(listID,isSelVis);
+            // Set the visible rectangle for the list
+        setVisibleRect(listID,visRect);
     }
     /**
      * 
