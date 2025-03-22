@@ -69,13 +69,6 @@ public class CipherUtils {
      * 
      * @return 
      */
-    public CipherUtils createBlankClone(){
-        return new CipherUtils(rand,keyGen);
-    }
-    /**
-     * 
-     * @return 
-     */
     public SecureRandom getRandom(){
         return rand;
     }
