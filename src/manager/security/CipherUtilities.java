@@ -114,8 +114,8 @@ public class CipherUtilities {
      * @throws InvalidKeyException
      * @throws InvalidAlgorithmParameterException 
      */
-    private static Cipher createCipher(int mode, SecretKey key, 
-            IvParameterSpec iv, SecureRandom rand) throws 
+    public static Cipher createCipher(int mode,SecretKey key,IvParameterSpec iv, 
+            SecureRandom rand) throws 
             NoSuchAlgorithmException,NoSuchPaddingException,InvalidKeyException, 
             InvalidAlgorithmParameterException{
         Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
