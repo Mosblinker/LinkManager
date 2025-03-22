@@ -25,11 +25,11 @@ public class CipherUtils {
     /**
      * This is the secret key used for the cipher.
      */
-    protected SecretKey secretKey = null;
+    private SecretKey secretKey = null;
     /**
      * This is the IV Parameter used for the cipher.
      */
-    protected IvParameterSpec ivParam = null;
+    private IvParameterSpec ivParam = null;
     /**
      * 
      * @param rand 
@@ -220,5 +220,12 @@ public class CipherUtils {
     public CipherUtils generateEncryptionKey(){
         return setEncryptionKey(generateKey(getKeyGenerator()),
                 generateIV(getRandom()));
+    }
+    /**
+     * 
+     * @return 
+     */
+    public CipherUtils clearEncryptionKey(){
+        return setKey(null).setIV((IvParameterSpec)null);
     }
 }
