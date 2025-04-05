@@ -57,6 +57,13 @@ public class LinkManagerUtilities {
         Desktop.getDesktop().browse(new URL(link).toURI());
     }
     /**
+     * This returns the working directory for this program.
+     * @return The working directory for the program.
+     */
+    public static String getWorkingDirectory(){
+        return System.getProperty("user.dir");
+    }
+    /**
      * This gets the hexadecimal String representation of the given UUID.
      * @param uuid The UUID to get the hexadecimal representation of (cannot be 
      * null).

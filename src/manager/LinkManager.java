@@ -274,13 +274,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     protected static final SimpleDateFormat DEBUG_DATE_FORMAT = 
             new SimpleDateFormat("M/d/yyyy h:mm:ss a");
     /**
-     * This returns the working directory for this program.
-     * @return The working directory for the program.
-     */
-    private String getWorkingDirectory(){
-        return System.getProperty("user.dir");
-    }
-    /**
      * This returns the directory of this program.
      * @return The directory containing this program.
      */
@@ -296,7 +289,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (isInDebug())
                     System.out.println("Error: " + ex);
             }
-        return getWorkingDirectory();
+        return LinkManagerUtilities.getWorkingDirectory();
     }
     /**
      * This returns the file used to store the configuration of the program.
@@ -327,7 +320,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         File file = new File(fileName);
             // If the database file is relative
         if (!file.isAbsolute()){
-            return new File(getWorkingDirectory(),fileName);
+            return new File(LinkManagerUtilities.getWorkingDirectory(),fileName);
         }
         return file;
     }
@@ -4378,7 +4371,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     "Cannot Relativize File Name", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        File progFile = new File(getWorkingDirectory());
+        File progFile = new File(LinkManagerUtilities.getWorkingDirectory());
         File file = getDatabaseFile(fileName);
         Path progPath = progFile.toPath().normalize();
         Path filePath = file.toPath().normalize();
