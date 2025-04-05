@@ -4733,7 +4733,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         } catch (ClassNotFoundException | InstantiationException | 
                 IllegalAccessException | UnsupportedLookAndFeelException ex) {
-            getLogger().log(java.util.logging.Level.SEVERE, null, ex);
+            getLogger().log(java.util.logging.Level.SEVERE, 
+                    "Failed to load Nimbus LnF.", ex);
         }
         //</editor-fold>
 
