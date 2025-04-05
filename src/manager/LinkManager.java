@@ -5041,35 +5041,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private File showOpenFileChooser(JFileChooser fc, String title){
-        if (beepWhenDisabled())     // If input is disabled
-            return null;
-        int option;     // This is used to store which button the user pressed
-        File file = null;           // This gets the file to open
-        if (title != null)
-            fc.setDialogTitle(title);
-        do{
-            if (fc.getApproveButtonText() != null)
-                option = fc.showDialog(this, fc.getApproveButtonText());
-            else
-                option = fc.showOpenDialog(this);
-            fc.setPreferredSize(fc.getSize());
-                // Set the file chooser's size in the config if it's saved
-            config.setComponentSize(fc);
-            if (option == JFileChooser.APPROVE_OPTION){
-                file = fc.getSelectedFile();
-                if (!file.exists()){
-                    JOptionPane.showMessageDialog(this, 
-                        "\""+file.getName()+"\"\nFile not found.\nCheck the "
-                                + "file name and try again.", 
-                        "File Not Found", JOptionPane.WARNING_MESSAGE);
-                    file = null;
-                }
-            }
-            else
-                file = null;
-        }
-        while (option == JFileChooser.APPROVE_OPTION && file == null);
-        return file;
+        return LinkManagerUtilities.showOpenFileChooser(fc, this, config,title);
     }
     /**
      * 
@@ -5078,23 +5050,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private File showSaveFileChooser(JFileChooser fc, String title){
-        if (beepWhenDisabled())     // If input is disabled
-            return null;
-        if (title != null)
-            fc.setDialogTitle(title);
-        int option;     // This is used to store which button the user pressed
-        if (fc.getApproveButtonText() != null)
-            option = fc.showDialog(this, fc.getApproveButtonText());
-        else
-            option = fc.showSaveDialog(this);
-        fc.setPreferredSize(fc.getSize());
-            // Set the file chooser's size in the config if it's saved
-        config.setComponentSize(fc);
-            // If the user wants to save the file
-        if (option == JFileChooser.APPROVE_OPTION)
-            return fc.getSelectedFile();
-        else
-            return null;
+        return LinkManagerUtilities.showSaveFileChooser(fc, this, config,title);
     }
     /**
      * This is the model used for the spinner to set the chunk size for 

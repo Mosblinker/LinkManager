@@ -4,8 +4,10 @@
  */
 package manager;
 
+import components.disable.DisableInput;
 import components.text.action.commands.*;
 import files.FilesExtended;
+import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
@@ -412,5 +414,106 @@ public class LinkManagerUtilities {
         while (Math.ceil(fileSize / divider) > Integer.MAX_VALUE)
             divider++;
         return divider;
+    }
+    /**
+     * 
+     * @param parent
+     * @return 
+     */
+    public static boolean beepIfParentDisabled(Component parent){
+        if (parent instanceof DisableInput){
+            return ((DisableInput)parent).beepWhenDisabled();
+        }
+        return false;
+    }
+    /**
+     * 
+     * @param fc
+     * @param parent
+     * @param config
+     * @param title
+     * @return 
+     */
+    public static File showOpenFileChooser(JFileChooser fc, Component parent, 
+            LinkManagerConfig config, String title){
+        if (beepIfParentDisabled(parent))     // If input is disabled
+            return null;
+        int option;     // This is used to store which button the user pressed
+        File file = null;           // This gets the file to open
+        if (title != null)
+            fc.setDialogTitle(title);
+        do{
+            if (fc.getApproveButtonText() != null)
+                option = fc.showDialog(parent, fc.getApproveButtonText());
+            else
+                option = fc.showOpenDialog(parent);
+            fc.setPreferredSize(fc.getSize());
+                // Set the file chooser's size in the config if it's saved
+            config.setComponentSize(fc);
+            if (option == JFileChooser.APPROVE_OPTION){
+                file = fc.getSelectedFile();
+                if (!file.exists()){
+                    JOptionPane.showMessageDialog(parent, 
+                        "\""+file.getName()+"\"\nFile not found.\nCheck the "
+                                + "file name and try again.", 
+                        "File Not Found", JOptionPane.WARNING_MESSAGE);
+                    file = null;
+                }
+            }
+            else
+                file = null;
+        }
+        while (option == JFileChooser.APPROVE_OPTION && file == null);
+        return file;
+    }
+    /**
+     * 
+     * @param fc
+     * @param parent
+     * @param config
+     * @return 
+     */
+    public static File showOpenFileChooser(JFileChooser fc, Component parent, 
+            LinkManagerConfig config){
+        return showOpenFileChooser(fc,parent,config,null);
+    }
+    /**
+     * 
+     * @param fc
+     * @param parent
+     * @param config
+     * @param title
+     * @return 
+     */
+    public static File showSaveFileChooser(JFileChooser fc, Component parent, 
+            LinkManagerConfig config, String title){
+        if (beepIfParentDisabled(parent))     // If input is disabled
+            return null;
+        if (title != null)
+            fc.setDialogTitle(title);
+        int option;     // This is used to store which button the user pressed
+        if (fc.getApproveButtonText() != null)
+            option = fc.showDialog(parent, fc.getApproveButtonText());
+        else
+            option = fc.showSaveDialog(parent);
+        fc.setPreferredSize(fc.getSize());
+            // Set the file chooser's size in the config if it's saved
+        config.setComponentSize(fc);
+            // If the user wants to save the file
+        if (option == JFileChooser.APPROVE_OPTION)
+            return fc.getSelectedFile();
+        else
+            return null;
+    }
+    /**
+     * 
+     * @param fc
+     * @param parent
+     * @param config
+     * @return 
+     */
+    public static File showSaveFileChooser(JFileChooser fc, Component parent, 
+            LinkManagerConfig config){
+        return showSaveFileChooser(fc,parent,config,null);
     }
 }
