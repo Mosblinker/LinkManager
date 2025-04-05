@@ -281,14 +281,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return System.getProperty("user.dir");
     }
     /**
-     * This returns the file located in the working directory
-     * @param fileName
-     * @return 
-     */
-    private File getRelativeFile(String fileName){
-        return new File(getWorkingDirectory(),fileName);
-    }
-    /**
      * This returns the directory of this program.
      * @return The directory containing this program.
      */
@@ -335,7 +327,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         File file = new File(fileName);
             // If the database file is relative
         if (!file.isAbsolute()){
-            return getRelativeFile(fileName);
+            return new File(getWorkingDirectory(),fileName);
         }
         return file;
     }
