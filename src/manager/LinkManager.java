@@ -3330,7 +3330,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_foreignKeysToggleActionPerformed
 
     private void updateDBFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateDBFileButtonActionPerformed
-        File file = showOpenFileChooser(databaseUpdateFC);
+        File file = showOpenFileChooser(databaseUpdateFC, null);
         if (file != null){
             saver = new UpdateDatabase(file,updateDBFileCombo.getSelectedIndex());
             saver.execute();
@@ -3882,7 +3882,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void exportListsItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportListsItemActionPerformed
             // Gets the file to save to
-        File file = showSaveFileChooser(exportFC);
+        File file = showSaveFileChooser(exportFC,null);
         if (file != null){  // If the user selected a file
             saver = new ExportDatabase(file);
             saver.execute();
@@ -4352,7 +4352,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_setDBResetButtonActionPerformed
     
     private void dbFileBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileBrowseButtonActionPerformed
-        File file = showSaveFileChooser(databaseFC);
+        File file = showSaveFileChooser(databaseFC,null);
         if (file != null){
             if (file.isDirectory()){
                 String fileName = dbFileField.getText();
@@ -5034,7 +5034,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // program name
         setTitle(((isEdited())?"*":"")+PROGRAM_NAME);
     }
-    
+    /**
+     * 
+     * @param fc
+     * @param title
+     * @return 
+     */
     private File showOpenFileChooser(JFileChooser fc, String title){
         if (beepWhenDisabled())     // If input is disabled
             return null;
@@ -5066,11 +5071,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         while (option == JFileChooser.APPROVE_OPTION && file == null);
         return file;
     }
-    
-    private File showOpenFileChooser(JFileChooser fc){
-        return showOpenFileChooser(fc,null);
-    }
-    
+    /**
+     * 
+     * @param fc
+     * @param title
+     * @return 
+     */
     private File showSaveFileChooser(JFileChooser fc, String title){
         if (beepWhenDisabled())     // If input is disabled
             return null;
@@ -5089,10 +5095,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return fc.getSelectedFile();
         else
             return null;
-    }
-    
-    private File showSaveFileChooser(JFileChooser fc){
-        return showSaveFileChooser(fc,null);
     }
     /**
      * This is the model used for the spinner to set the chunk size for 
@@ -5824,7 +5826,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // overwriting the file if it already exists
         return DropboxUtilities.upload(file, path, client.files(), 
                 dbxChunkSizeModel.getChunkSize(), true, listener);
-    } 
+    }
     /**
      * This is a LinksListTabAction that saves the links from a list to a 
      * file.
