@@ -329,7 +329,7 @@ public class LinkManagerUtilities {
         } catch(FileAlreadyExistsException ex) {
                 // How does the target file still exist?
             LinkManager.getLogger().log(java.util.logging.Level.WARNING, 
-                        "Target file already exists", ex);
+                        "Target backup file already exists.", ex);
             target = FilesExtended.getNextAvailableFilePath(target);
             LinkManager.getLogger().info("New Target Backup File: "+target);
                 // Create a copy of the file using the next available file path
@@ -399,6 +399,11 @@ public class LinkManagerUtilities {
      */
     public static boolean writeToFile(File file, List<String> list, 
             boolean blankLines, ProgressObserver listener){
+        LinkManager.getLogger().entering("LinkManagerUtilities", "writeToFile", 
+                file);
+            // If there is to be a blank line between each line
+        if (blankLines)
+            LinkManager.getLogger().fine("Adding blank lines between each line.");
             // Try to create a PrintWriter to write to the file
         try (PrintWriter writer = new PrintWriter(file)) {
                 // If a progress observer was given
@@ -415,8 +420,14 @@ public class LinkManagerUtilities {
                     listener.incrementValue();
             }
         } catch (FileNotFoundException ex) {
+            LinkManager.getLogger().log(java.util.logging.Level.WARNING, 
+                        "File not found.", ex);
+            LinkManager.getLogger().exiting("LinkManagerUtilities","writeToFile", 
+                    false);
             return false;
         }
+        LinkManager.getLogger().exiting("LinkManagerUtilities", "writeToFile", 
+                true);
         return true;
     }
     /**
