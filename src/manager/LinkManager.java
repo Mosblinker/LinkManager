@@ -289,24 +289,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return linkManLogger;
     }
     /**
-     * This returns the directory of this program.
-     * @return The directory containing this program.
-     */
-    private String getProgramDirectory(){
-            // Get the location of this program, as a URL
-        URL url = LinkManager.class.getProtectionDomain().getCodeSource().getLocation();
-            // If a URL was found
-        if (url != null)
-            try {   // Get the parent of this program
-                return new File(url.toURI()).getParent();
-            } catch (URISyntaxException ex) {
-                    // If this is in debug mode
-                if (isInDebug())
-                    System.out.println("Error: " + ex);
-            }
-        return LinkManagerUtilities.getWorkingDirectory();
-    }
-    /**
      * This returns the file used to store the configuration of the program.
      * @return The configuration file.
      */
@@ -314,14 +296,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // If a configuration file was specified
         if (configFile != null)
             return configFile;
-        return new File(getProgramDirectory(),CONFIG_FILE);
+        return new File(LinkManagerUtilities.getProgramDirectory(),CONFIG_FILE);
     }
     /**
      * This returns the file containing the Dropbox API keys for this program.
      * @return The dropbox API key file.
      */
     private File getDropboxAPIFile(){
-        return new File(getProgramDirectory(),DROPBOX_API_KEY_FILE);
+        return new File(LinkManagerUtilities.getProgramDirectory(),DROPBOX_API_KEY_FILE);
     }
     /**
      * 

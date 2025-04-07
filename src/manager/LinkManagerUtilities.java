@@ -29,6 +29,12 @@ public class LinkManagerUtilities {
      */
     private LinkManagerUtilities() {}
     /**
+     * This is the directory that contains this program. This is initially null 
+     * and is initialized the first time it is requested and successfully 
+     * loaded.
+     */
+    private static String programDir = null;
+    /**
      * This adds the given string to the the system clipboard.
      * @param text The text to place into the system clipboard.
      */
@@ -62,6 +68,28 @@ public class LinkManagerUtilities {
      */
     public static String getWorkingDirectory(){
         return System.getProperty("user.dir");
+    }
+    /**
+     * This returns the directory of this program.
+     * @return The directory containing this program.
+     */
+    public static String getProgramDirectory(){
+            // If the program directory has been previously retrieved
+        if (programDir != null)
+            return programDir;
+            // Get the location of this program, as a URL
+        URL url = LinkManager.class.getProtectionDomain().getCodeSource().getLocation();
+            // If a URL was found
+        if (url != null)
+            try {   // Get the parent of this program
+                programDir = new File(url.toURI()).getParent();
+                return programDir;
+            } catch (URISyntaxException ex) {
+                LinkManager.getLogger().log(java.util.logging.Level.WARNING, 
+                        "Failed to retrieve program directory, defaulting to "
+                                + "working directory.", ex);
+            }
+        return getWorkingDirectory();
     }
     /**
      * This gets the hexadecimal String representation of the given UUID.
