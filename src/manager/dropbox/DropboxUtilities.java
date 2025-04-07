@@ -195,12 +195,18 @@ public class DropboxUtilities {
             throws IOException, DbxException{
         try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file));
                 DbxDownloader<FileMetadata> dbxDown = dbxFiles.downloadBuilder(path).start()){
+                // This is the metadata of the file that will be downloaded
+            FileMetadata metadata;
                 // If no progress listener was provided
             if (l == null)
                     // Download the file from Dropbox
-                return dbxDown.download(out);
-                // Download the file from Dropbox
-            return dbxDown.download(out, l);
+                metadata = dbxDown.download(out);
+            else
+                    // Download the file from Dropbox
+                metadata = dbxDown.download(out, l);
+                // Set the last modified time of the file from the server
+            file.setLastModified(metadata.getServerModified().getTime());
+            return metadata;
         }
     }
     /**
