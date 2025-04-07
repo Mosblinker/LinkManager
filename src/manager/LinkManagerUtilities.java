@@ -326,11 +326,12 @@ public class LinkManagerUtilities {
         try{    // Create a copy of the file
             copy = Files.copy(file.toPath(), target.toPath(), 
                     StandardCopyOption.COPY_ATTRIBUTES);
-        }
-        catch(FileAlreadyExistsException ex){
+        } catch(FileAlreadyExistsException ex) {
                 // How does the target file still exist?
+            LinkManager.getLogger().log(java.util.logging.Level.WARNING, 
+                        "Target file already exists", ex);
             target = FilesExtended.getNextAvailableFilePath(target);
-            LinkManager.getLogger().info("Target Backup File exists, alternate file: "+target);
+            LinkManager.getLogger().info("New Target Backup File: "+target);
                 // Create a copy of the file using the next available file path
             copy = Files.copy(file.toPath(), target.toPath(), 
                     StandardCopyOption.COPY_ATTRIBUTES);
