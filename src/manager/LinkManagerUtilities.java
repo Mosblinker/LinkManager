@@ -314,18 +314,31 @@ public class LinkManagerUtilities {
             // If the original file is null or does not exist
         if (file == null || !file.exists())
             return null;
+        LinkManager.getLogger().entering("LinkManagerUtilities", 
+                "createBackupCopy", file);
             // Get the file to use as the backup file
         File target = new File(file.toString()+"."+LinkManager.BACKUP_FILE_EXTENSION);
+            // If the target file already exists
+        if (target.exists())
+            target = FilesExtended.getNextAvailableFilePath(target);
+        LinkManager.getLogger().fine("Target Backup File: "+target);
+        Path copy;  // This is the path to the backup file.
         try{    // Create a copy of the file
-            return Files.copy(file.toPath(), target.toPath(), 
-                    StandardCopyOption.COPY_ATTRIBUTES).toFile();
+            copy = Files.copy(file.toPath(), target.toPath(), 
+                    StandardCopyOption.COPY_ATTRIBUTES);
         }
         catch(FileAlreadyExistsException ex){
+                // How does the target file still exist?
+            target = FilesExtended.getNextAvailableFilePath(target);
+            LinkManager.getLogger().info("Target Backup File exists, alternate file: "+target);
                 // Create a copy of the file using the next available file path
-            return Files.copy(file.toPath(), 
-                    FilesExtended.getNextAvailableFilePath(target).toPath(), 
-                    StandardCopyOption.COPY_ATTRIBUTES).toFile();
+            copy = Files.copy(file.toPath(), target.toPath(), 
+                    StandardCopyOption.COPY_ATTRIBUTES);
         }
+        target = copy.toFile();
+        LinkManager.getLogger().exiting("LinkManagerUtilities", 
+                "createBackupCopy", target);
+        return target;
     }
     /**
      * This gets the String representing the URL from a shortcut file.
