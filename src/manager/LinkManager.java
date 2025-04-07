@@ -4700,7 +4700,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        getLogger().addHandler(new java.util.logging.ConsoleHandler());
+//        getLogger().setLevel(java.util.logging.Level.ALL);
+//        java.util.logging.ConsoleHandler handler = new java.util.logging.ConsoleHandler();
+//        handler.setLevel(java.util.logging.Level.ALL);
+//        getLogger().addHandler(handler);
+//        System.out.println(Arrays.toString(getLogger().getHandlers()));
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
