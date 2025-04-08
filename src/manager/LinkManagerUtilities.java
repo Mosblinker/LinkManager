@@ -315,7 +315,7 @@ public class LinkManagerUtilities {
             // If the original file is null or does not exist
         if (file == null || !file.exists())
             return null;
-        LinkManager.getLogger().entering("LinkManagerUtilities", 
+        LinkManager.getLogger().entering(LinkManagerUtilities.class.getName(), 
                 "createBackupCopy", file);
             // Get the file to use as the backup file
         File target = new File(file.toString()+"."+LinkManager.BACKUP_FILE_EXTENSION);
@@ -337,7 +337,7 @@ public class LinkManagerUtilities {
                     StandardCopyOption.COPY_ATTRIBUTES);
         }
         target = copy.toFile();
-        LinkManager.getLogger().exiting("LinkManagerUtilities", 
+        LinkManager.getLogger().exiting(LinkManagerUtilities.class.getName(), 
                 "createBackupCopy", target);
         return target;
     }
@@ -399,8 +399,8 @@ public class LinkManagerUtilities {
      */
     public static boolean writeToFile(File file, List<String> list, 
             boolean blankLines, ProgressObserver listener){
-        LinkManager.getLogger().entering("LinkManagerUtilities", "writeToFile", 
-                file);
+        LinkManager.getLogger().entering(LinkManagerUtilities.class.getName(), 
+                "writeToFile", file);
             // If there is to be a blank line between each line
         if (blankLines)
             LinkManager.getLogger().fine("Adding blank lines between each line.");
@@ -421,8 +421,8 @@ public class LinkManagerUtilities {
             }
         } catch (FileNotFoundException ex) {
             LinkManager.getLogger().warning("File not found.");
-            LinkManager.getLogger().exiting("LinkManagerUtilities","writeToFile", 
-                    false);
+            LinkManager.getLogger().exiting(LinkManagerUtilities.class.getName(),
+                    "writeToFile", false);
             return false;
         }
         LinkManager.getLogger().exiting("LinkManagerUtilities", "writeToFile", 
