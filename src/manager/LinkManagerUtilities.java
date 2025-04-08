@@ -420,8 +420,7 @@ public class LinkManagerUtilities {
                     listener.incrementValue();
             }
         } catch (FileNotFoundException ex) {
-            LinkManager.getLogger().log(java.util.logging.Level.WARNING, 
-                        "File not found.", ex);
+            LinkManager.getLogger().warning("File not found.");
             LinkManager.getLogger().exiting("LinkManagerUtilities","writeToFile", 
                     false);
             return false;
