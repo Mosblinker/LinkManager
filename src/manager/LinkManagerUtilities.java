@@ -85,9 +85,10 @@ public class LinkManagerUtilities {
                 programDir = new File(url.toURI()).getParent();
                 return programDir;
             } catch (URISyntaxException ex) {
-                LinkManager.getLogger().log(java.util.logging.Level.WARNING, 
-                        "Failed to retrieve program directory, defaulting to "
-                                + "working directory.", ex);
+                LinkManager.logWarningThrown(
+                        "Failed to retrieve program directory.", ex);
+                LinkManager.getLogger().info(
+                        "Defaulting to \"user.dir\" system property.");
             }
         return getWorkingDirectory();
     }
@@ -328,8 +329,7 @@ public class LinkManagerUtilities {
                     StandardCopyOption.COPY_ATTRIBUTES);
         } catch(FileAlreadyExistsException ex) {
                 // How does the target file still exist?
-            LinkManager.getLogger().log(java.util.logging.Level.WARNING, 
-                        "Target backup file already exists.", ex);
+            LinkManager.getLogger().warning("Target backup file already exists.");
             target = FilesExtended.getNextAvailableFilePath(target);
             LinkManager.getLogger().info("New Target Backup File: "+target);
                 // Create a copy of the file using the next available file path
