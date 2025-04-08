@@ -6421,6 +6421,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected Void processLinks(LinksListPanel panel) {
             getLogger().entering(CopyOrMoveLinks.class.getName(), 
                         "processLinks", panel);
+            getLogger().fine("Source list: " + source);
                 // Get the model of the given list
             LinksListModel model = panel.getModel();
                 // If the given list is read only or full
@@ -6429,7 +6430,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     getLogger().fine("Links list is read only.");
                 else
                     getLogger().fine("Links list is full (limit: "+
-                            model.getSizeLimit()+", size: "+model.getS);
+                            model.getSizeLimit()+", size: "+model.size()+").");
                 getLogger().exiting(CopyOrMoveLinks.class.getName(), 
                         "processLinks");
                 return null;
@@ -6444,9 +6445,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             } catch(Exception ex){
                 getLogger().throwing(CopyOrMoveLinks.class.getName(), 
                         "processLinks", ex);
-                    // If the program is in debug mode
-                if (isInDebug())
-                    System.out.println(ex);
             }   // If this is moving links between lists, a source list has been 
                 // provided, and that source list is not read only
             if (move && source != null && !source.isReadOnly()){
@@ -6462,11 +6460,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         source.updateModelContents(temp);
                     }
                 } catch(Exception ex){
-                        // If the program is in debug mode
-                    if (isInDebug())
-                        System.out.println(ex);
+                    getLogger().throwing(CopyOrMoveLinks.class.getName(), 
+                            "processLinks", ex);
                 }
             }
+            getLogger().exiting(CopyOrMoveLinks.class.getName(),"processLinks");
             return null;
         }
         @Override
