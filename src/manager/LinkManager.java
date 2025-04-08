@@ -285,8 +285,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     public static java.util.logging.Logger getLogger(){
             // If the logger has not been initialized
         if (linkManLogger == null)
-            linkManLogger = java.util.logging.Logger.getLogger(LinkManager.class.getName());
+            linkManLogger = java.util.logging.Logger.getLogger(
+                    LinkManager.class.getName());
         return linkManLogger;
+    }
+    /**
+     * 
+     * @param message
+     * @param thrown 
+     */
+    public static void logWarningThrown(String message, Throwable thrown){
+        getLogger().warning(message+": "+thrown);
     }
     /**
      * This returns the file used to store the configuration of the program.
@@ -375,15 +384,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Get the file containing the API keys
         File dbxKey = getDropboxAPIFile();
             // If the file is null or doesn't exist
-        if (dbxKey == null || !dbxKey.exists())
+        if (dbxKey == null || !dbxKey.exists()){
+            getLogger().info("Dropbox API file not found.");
             return null;
+        }
         if (dbxUtils == null){
             DbxAppInfo appInfo;
             try{
                 appInfo = DbxAppInfo.Reader.readFromFile(dbxKey);
             } catch (JsonReader.FileLoadException ex){
-                if (isInDebug())
-                    System.out.println("Error Reading File: " + ex);
+                logWarningThrown("Dropbox API file failed to load", ex);
                 return null;
             }
             dbxUtils = config.new DropboxLinkUtilsConfig(){
@@ -436,7 +446,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try{    // Try to get the preference node used for the program
             node = Preferences.userRoot().node(PREFERENCE_NODE_NAME);
         } catch (SecurityException | IllegalStateException ex){
-            System.out.println("Unable to load preference node: " +ex);
+            logWarningThrown("Unable to load preference node",ex);
             // TODO: Error message window
         }
         
@@ -445,7 +455,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try{    // Try to load the configuration file into the properties
             LinkManagerUtilities.loadProperties(getConfigFile(),config.getProperties());
         } catch (IOException ex){
-            System.out.println("Config Load Error: " + ex);
+            logWarningThrown("Config Load Error",ex);
             // TODO: Error message window
         }
             // If no program ID was provided to the program
@@ -487,13 +497,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | 
                 InvalidKeyException | InvalidAlgorithmParameterException | 
                 IllegalBlockSizeException | BadPaddingException ex) {
-            System.out.println("Encryption Error: " + ex);
+            logWarningThrown("Encryption Error",ex);
             config.resetEncryption();
         }
         try{    // Try to save the properties to the configuration file
             saveConfigFile();
         } catch (IOException ex) {
-            System.out.println("Config Save Error: " + ex);
+            logWarningThrown("Config Save Error",ex);
             // TODO: Error message window
         }
         
@@ -642,12 +652,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 entry.getValue().add(textCmd.getSelectAllAction());
                 continue;
             }
-            UndoManagerCommands undoCmd = new UndoManagerCommands(new CompoundUndoManager(),false);
+            UndoManagerCommands undoCmd = new UndoManagerCommands(
+                    new CompoundUndoManager(),false);
             undoCommands.put(comp, undoCmd);
             if (comp == linkTextField)
-                LinkManagerUtilities.addToPopupMenu(entry.getValue(),undoCmd,textCmd,pasteAndAddAction);
+                LinkManagerUtilities.addToPopupMenu(entry.getValue(),undoCmd,
+                        textCmd,pasteAndAddAction);
             else
-                LinkManagerUtilities.addToPopupMenu(entry.getValue(),undoCmd,textCmd);
+                LinkManagerUtilities.addToPopupMenu(entry.getValue(),undoCmd,
+                        textCmd);
             comp.setComponentPopupMenu(entry.getValue());
         }
         
@@ -3522,6 +3535,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             LinkManagerUtilities.openLink(link);
         } catch (URISyntaxException | IOException ex) {
             beep();
+            logWarningThrown("Failed to open link", ex);
             JOptionPane.showMessageDialog(this,
                     "Could not open \""+link+"\". Please check the URL and try "
                             + "again."+((isInDebug())?"\n"+ex:""),
@@ -3690,9 +3704,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }   // If the event source is found in the list tabs panel array (it 
             if (type >= 0)  // should be)
                 config.setCurrentTab(type, listsTabPanels[type]);
-                // If the program is in debug mode
-            else if (isInDebug())
-                System.out.println("Not found in list tabs panels: " +evt.getSource());
+            else{
+                getLogger().fine("Source not found in list tabs panel: "+
+                        evt.getSource());
+                    // If the program is in debug mode
+                if (isInDebug())
+                    System.out.println("Source not found in list tabs panels: " +evt.getSource());
+            }
         }
     }//GEN-LAST:event_listsTabsPanelStateChanged
     /**
@@ -3817,9 +3835,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Make sure the file is deleted on exit
                 file.deleteOnExit();
             } catch (IOException ex) {
-                    // If the program is in debug mode
-                if (isInDebug())
-                    System.out.print("Temp File Error: " + ex);
+                logWarningThrown("Temporary file creation error", ex);
             }
         }   // If this will sync the database to the cloud and the user is 
             // logged into dropbox
@@ -4484,8 +4500,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Load the external account data
             loadExternalAccountData();
         } catch (DbxException ex){
-            if (isInDebug())
-                System.out.println("Error: " + ex);
+            logWarningThrown("Dropbox login error", ex);
             String message = "An error occurred while setting up Dropbox.";
             if (showDBErrorDetailsToggle.isSelected())
                 message += "\nError: " + ex;
