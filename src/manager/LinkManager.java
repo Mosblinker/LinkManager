@@ -6419,12 +6419,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected Void processLinks(LinksListPanel panel) {
+            getLogger().entering(CopyOrMoveLinks.class.getName(), 
+                        "processLinks", panel);
                 // Get the model of the given list
             LinksListModel model = panel.getModel();
                 // If the given list is read only or full
-            if (panel.isReadOnly() || model.isFull())
+            if (panel.isReadOnly() || model.isFull()){
+                if (panel.isReadOnly())
+                    getLogger().fine("Links list is read only.");
+                else
+                    getLogger().fine("Links list is full (limit: "+
+                            model.getSizeLimit()+", size: "+model.getS);
+                getLogger().exiting(CopyOrMoveLinks.class.getName(), 
+                        "processLinks");
                 return null;
-                // If the source list is not null
+            }    // If the source list is not null
             if (source != null)
                 source.setEnabled(false);
                 // This gets a list of items that can and will be added to the 
@@ -6433,6 +6442,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             try{    // Try to add all the item this can add
                 model.addAll(added);
             } catch(Exception ex){
+                getLogger().throwing(CopyOrMoveLinks.class.getName(), 
+                        "processLinks", ex);
                     // If the program is in debug mode
                 if (isInDebug())
                     System.out.println(ex);
