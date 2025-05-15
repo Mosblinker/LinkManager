@@ -4,6 +4,8 @@
  */
 package manager.config;
 
+import config.ConfigUtilities;
+import static config.ConfigUtilities.*;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -11,7 +13,6 @@ import java.io.*;
 import java.util.*;
 import java.util.prefs.*;
 import javax.swing.event.EventListenerList;
-import static manager.config.ConfigUtilities.*;
 
 /**
  *
