@@ -4,11 +4,12 @@
  */
 package manager.config;
 
+import config.ConfigUtilities;
+import static config.ConfigUtilities.*;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.*;
-import static manager.config.ConfigUtilities.*;
 
 /**
  *
