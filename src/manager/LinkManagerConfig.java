@@ -4,11 +4,11 @@
  */
 package manager;
 
+import config.ConfigUtilities;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Window;
 import java.security.*;
 import java.util.*;
 import java.util.prefs.*;
@@ -1681,20 +1681,9 @@ public class LinkManagerConfig {
         Dimension dim = getComponentSize(comp,defaultValue);
             // If the size for the component is not null and the component is 
             // not null
-        if (dim != null && comp != null){
-                // Get the minimum size for the component. This will be used to 
-                // ensure that the component does not go below its minimum size
-            Dimension size = comp.getMinimumSize();
-                // Make sure the width and height are within range
-            size.width = Math.max(dim.width, size.width);
-            size.height = Math.max(dim.height, size.height);
-                // If the component is a window
-            if (comp instanceof Window)
-                    // Set the size of the window
-                comp.setSize(size);
-            else    // Set the preferred size of the component
-                comp.setPreferredSize(size);
-        }
+        if (dim != null && comp != null)
+                // Set the size of the component
+            ConfigUtilities.setComponentSize(comp, dim);
         return dim;
     }
     /**
@@ -1933,14 +1922,8 @@ public class LinkManagerConfig {
                     // If the component bounds are not set
                 if (!isComponentBoundsSet(comp))
                     return rect;
-            }   // Get the minimum size for the component
-            Dimension min = comp.getMinimumSize();
-                // Set the bounds for the component
-            comp.setBounds(rect.x, rect.y, 
-                        // Make sure the width is within range
-                    Math.max(rect.width, min.width), 
-                        // Make sure the height is within range
-                    Math.max(rect.height, min.height));
+            }   // Set the bounds for the component
+            ConfigUtilities.setComponentBounds(comp, rect);
         }
         return rect;
     }
