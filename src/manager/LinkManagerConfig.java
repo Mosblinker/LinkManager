@@ -4,7 +4,6 @@
  */
 package manager;
 
-import config.ConfigUtilities;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -19,6 +18,7 @@ import manager.dropbox.DropboxLinkUtils;
 import manager.links.*;
 import manager.security.*;
 import org.sqlite.SQLiteConfig;
+import utils.SwingExtendedUtilities;
 
 /**
  * This is a class that is used to store and manage the configuration for 
@@ -1683,7 +1683,7 @@ public class LinkManagerConfig {
             // not null
         if (dim != null && comp != null)
                 // Set the size of the component
-            ConfigUtilities.setComponentSize(comp, dim);
+            SwingExtendedUtilities.setComponentSize(comp, dim);
         return dim;
     }
     /**
@@ -1923,7 +1923,7 @@ public class LinkManagerConfig {
                 if (!isComponentBoundsSet(comp))
                     return rect;
             }   // Set the bounds for the component
-            ConfigUtilities.setComponentBounds(comp, rect);
+            SwingExtendedUtilities.setComponentBounds(comp, rect);
         }
         return rect;
     }
