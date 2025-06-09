@@ -354,6 +354,52 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         getLogger().throwing(sourceClass.getName(), method, thrown);
     }
     /**
+     * 
+     * @param sourceClass
+     * @param method 
+     */
+    public static void logEntering(Class sourceClass, String method){
+        getLogger().entering(sourceClass.getName(), method);
+    }
+    /**
+     * 
+     * @param sourceClass
+     * @param method
+     * @param param1 
+     */
+    public static void logEntering(Class sourceClass, String method, 
+            Object param1){
+        getLogger().entering(sourceClass.getName(), method, param1);
+    }
+    /**
+     * 
+     * @param sourceClass
+     * @param method
+     * @param params 
+     */
+    public static void logEntering(Class sourceClass, String method, 
+            Object[] params){
+        getLogger().entering(sourceClass.getName(), method, params);
+    }
+    /**
+     * 
+     * @param sourceClass
+     * @param method 
+     */
+    public static void logExiting(Class sourceClass, String method){
+        getLogger().exiting(sourceClass.getName(), method);
+    }
+    /**
+     * 
+     * @param sourceClass
+     * @param method
+     * @param result 
+     */
+    public static void logExiting(Class sourceClass, String method, 
+            Object result){
+        getLogger().exiting(sourceClass.getName(), method, result);
+    }
+    /**
      * This returns the file used to store the configuration of the program.
      * @return The configuration file.
      */
@@ -6524,21 +6570,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected Void processLinks(LinksListPanel panel) {
-            getLogger().entering(CopyOrMoveLinks.class.getName(), 
-                        "processLinks", panel);
-            getLogger().log(Level.FINE, "Source list: {0}", source);
+            logEntering(this.getClass(), "processLinks", panel);
+            getLogger().log(Level.FINER, "Source list: {0}", source);
+                // If this is moving links
+            if (move)
+                getLogger().finer("Moving links between lists");
+            else
+                getLogger().finer("Copying links between lists");
                 // Get the model of the given list
             LinksListModel model = panel.getModel();
                 // If the given list is read only or full
             if (panel.isReadOnly() || model.isFull()){
                 if (panel.isReadOnly())
-                    getLogger().fine("Links list is read only.");
+                    getLogger().finer("Links list is read only.");
                 else
-                    getLogger().log(Level.FINE, "Links list is full (limit: {0},"
+                    getLogger().log(Level.FINER, "Links list is full (limit: {0},"
                             + " size: {1}).", new Object[]{model.getSizeLimit(), 
                                 model.size()});
-                getLogger().exiting(CopyOrMoveLinks.class.getName(), 
-                        "processLinks");
+                logExiting(this.getClass(),"processLinks");
                 return null;
             }    // If the source list is not null
             if (source != null)
@@ -6572,7 +6621,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                             ex);
                 }
             }
-            getLogger().exiting(CopyOrMoveLinks.class.getName(),"processLinks");
+            logExiting(this.getClass(),"processLinks");
             return null;
         }
         @Override
