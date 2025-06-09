@@ -4764,8 +4764,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return null;
             // If there are too many arguments
         if (argsList.size() > 1){
+                // Log that there are too many arguments that match
+            getLogger().log(Level.INFO, "Too many arguments for {0}, expected at most 1", name);
                 // Tell the user that there are too many arguments that match
-            System.out.println("Too many arguments for "+name+", expected at most 1.");
             JOptionPane.showMessageDialog(null, 
                     "Too many arguments provided for the "+name+".\n"+
                             "This program expects at most one.", 
@@ -4848,8 +4849,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             } catch (IllegalStateException ex){
                 return;
             } catch (IllegalArgumentException ex){
+                    // Log the fact that the program ID is invalid
+                getLogger().log(Level.INFO, "Program ID is invalid, expected UUID", ex);
                     // Tell the user that the program ID is invalid
-                System.out.println("Program ID is invalid, expected UUID.");
                 JOptionPane.showMessageDialog(null, 
                         "The program ID is invalid.\n"+ 
                                 "The program ID should be a UUID.", 
@@ -4874,16 +4876,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         configFile = new File(value);
                             // Try to turn the file into a path to test if it's valid
                         configFile.toPath();
+                    } else {
+                            // Log the fact that the config file is invalid
+                        getLogger().log(Level.INFO, "Configuration file is invalid (empty path)");
                     }
                 }
             } catch (IllegalStateException ex){
                 return;
             } catch (InvalidPathException ex){
                 invalidFile = true;
+                     // Log the fact that the config file is invalid
+                getLogger().log(Level.INFO, "Configuration file is invalid", ex);
             }   // If the configuration file is invalid
             if (invalidFile){
-                    // Tell the user that the configuration file is invalid
-                System.out.println("Configuration file is invalid.");
                 JOptionPane.showMessageDialog(null, 
                         "The configuration file is invalid.", 
                         "ERROR - Invalid Configuration File",
