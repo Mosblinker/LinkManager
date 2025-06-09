@@ -279,19 +279,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     protected static final SimpleDateFormat DEBUG_DATE_FORMAT = 
             new SimpleDateFormat("M/d/yyyy h:mm:ss a");
     /**
-     * This is a logger used to log messages for the program. This is initially 
-     * null and is initialized the first time it's used.
+     * This is a logger used to log messages for the program.
      */
-    private static java.util.logging.Logger linkManLogger = null;
+    private static final Logger linkManLogger = 
+            Logger.getLogger(INTERNAL_PROGRAM_NAME+PROGRAM_VERSION);
     /**
      * This returns the logger used to log messages for this program.
      * @return The logger used to log message for the program.
      */
-    public static java.util.logging.Logger getLogger(){
-            // If the logger has not been initialized
-        if (linkManLogger == null)
-            linkManLogger = java.util.logging.Logger.getLogger(
-                    LinkManager.class.getName());
+    public static Logger getLogger(){
         return linkManLogger;
     }
     /**
