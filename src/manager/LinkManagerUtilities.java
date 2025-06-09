@@ -85,10 +85,9 @@ public class LinkManagerUtilities {
                 programDir = new File(url.toURI()).getParent();
                 return programDir;
             } catch (URISyntaxException ex) {
-                LinkManager.logWarningThrown(
+                LinkManager.log(java.util.logging.Level.WARNING,
+                        LinkManagerUtilities.class,"getProgramDirectory",
                         "Failed to retrieve program directory.", ex);
-                LinkManager.getLogger().info(
-                        "Defaulting to \"user.dir\" system property.");
             }
         return getWorkingDirectory();
     }

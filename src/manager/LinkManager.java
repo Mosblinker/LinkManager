@@ -354,14 +354,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         getLogger().throwing(sourceClass.getName(), method, thrown);
     }
     /**
-     * 
-     * @param message
-     * @param thrown 
-     */
-    public static void logWarningThrown(String message, Throwable thrown){
-        getLogger().warning(message+": "+thrown);
-    }
-    /**
      * This returns the file used to store the configuration of the program.
      * @return The configuration file.
      */
@@ -449,7 +441,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         File dbxKey = getDropboxAPIFile();
             // If the file is null or doesn't exist
         if (dbxKey == null || !dbxKey.exists()){
-            getLogger().info("Dropbox API file not found.");
+            getLogger().warning("Dropbox API file not found.");
             return null;
         }
         if (dbxUtils == null){
@@ -457,7 +449,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             try{
                 appInfo = DbxAppInfo.Reader.readFromFile(dbxKey);
             } catch (JsonReader.FileLoadException ex){
-                logWarningThrown("Dropbox API file failed to load", ex);
+                log(Level.WARNING,this.getClass(),"loadDbxUtils",
+                        "Dropbox API file failed to load", ex);
                 return null;
             }
             dbxUtils = config.new DropboxLinkUtilsConfig(){
@@ -510,7 +503,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try{    // Try to get the preference node used for the program
             node = Preferences.userRoot().node(PREFERENCE_NODE_NAME);
         } catch (SecurityException | IllegalStateException ex){
-            logWarningThrown("Unable to load preference node",ex);
+            log(Level.SEVERE, this.getClass(), "LinkManager", 
+                    "Unable to load preference node", ex);
             // TODO: Error message window
         }
         
@@ -519,7 +513,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try{    // Try to load the configuration file into the properties
             LinkManagerUtilities.loadProperties(getConfigFile(),config.getProperties());
         } catch (IOException ex){
-            logWarningThrown("Config Load Error",ex);
+            log(Level.WARNING, this.getClass(), "LinkManager", 
+                    "Unable to load configuration file", ex);
             // TODO: Error message window
         }
             // If no program ID was provided to the program
@@ -561,13 +556,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | 
                 InvalidKeyException | InvalidAlgorithmParameterException | 
                 IllegalBlockSizeException | BadPaddingException ex) {
-            logWarningThrown("Encryption Error",ex);
+            log(Level.WARNING, this.getClass(), "LinkManager", 
+                    "Unable to load encryption keys", ex);
             config.resetEncryption();
         }
         try{    // Try to save the properties to the configuration file
             saveConfigFile();
         } catch (IOException ex) {
-            logWarningThrown("Config Save Error",ex);
+            log(Level.WARNING, this.getClass(), "LinkManager", 
+                    "Unable to save configuration to file", ex);
             // TODO: Error message window
         }
         
@@ -3598,8 +3595,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try {
             LinkManagerUtilities.openLink(link);
         } catch (URISyntaxException | IOException ex) {
+            if (ex instanceof MalformedURLException){
+                log(Level.WARNING, this.getClass(), "openLinkButtonActionPerformed", 
+                        "Failed to open link (malformed URL {0})", link);
+            } else
+                log(Level.WARNING, this.getClass(), "openLinkButtonActionPerformed", 
+                        "Failed to open link", ex);
             beep();
-            logWarningThrown("Failed to open link", ex);
             JOptionPane.showMessageDialog(this,
                     "Could not open \""+link+"\". Please check the URL and try "
                             + "again."+((isInDebug())?"\n"+ex:""),
@@ -3899,7 +3901,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Make sure the file is deleted on exit
                 file.deleteOnExit();
             } catch (IOException ex) {
-                logWarningThrown("Temporary file creation error", ex);
+                log(Level.WARNING, this.getClass(), "loadDatabase", 
+                        "Failed to create temporary database file", ex);
             }
         }   // If this will sync the database to the cloud and the user is 
             // logged into dropbox
@@ -4564,7 +4567,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Load the external account data
             loadExternalAccountData();
         } catch (DbxException ex){
-            logWarningThrown("Dropbox login error", ex);
+            log(Level.WARNING, this.getClass(), "dbxLogInButtonActionPerformed", 
+                    "Failed to login to Dropbox", ex);
             String message = "An error occurred while setting up Dropbox.";
             if (showDBErrorDetailsToggle.isSelected())
                 message += "\nError: " + ex;
