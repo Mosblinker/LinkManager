@@ -78,6 +78,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     protected static final String INTERNAL_PROGRAM_NAME = "LinkManager";
     /**
+     * This is the pattern for the file handler to use for the log files of this 
+     * program.
+     */
+    private static final String PROGRAM_LOG_PATTERN = 
+            "%h/.mosblinker/logs/"+INTERNAL_PROGRAM_NAME+"-%u.%g.log";
+    /**
      * This is an array containing the widths and heights for the icon images 
      * for this program. The icon images are generated on the fly.
      */
@@ -4716,11 +4722,26 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-//        getLogger().setLevel(java.util.logging.Level.ALL);
-//        java.util.logging.ConsoleHandler handler = new java.util.logging.ConsoleHandler();
-//        handler.setLevel(java.util.logging.Level.ALL);
-//        getLogger().addHandler(handler);
-//        System.out.println(Arrays.toString(getLogger().getHandlers()));
+            // Set the logger's level to the lowest level in order to log all
+        getLogger().setLevel(Level.FINEST);
+        try {   // Get the parent file for the log file
+            File file = new File(PROGRAM_LOG_PATTERN.replace("%h", 
+                    System.getProperty("user.home"))
+                    .replace('/', File.separatorChar)).getParentFile();
+                // If the parent of the log file doesn't exist
+            if (!file.exists()){
+                try{    // Try to create the directories for the log file
+                    Files.createDirectories(file.toPath());
+                } catch (IOException ex){
+                    getLogger().log(Level.WARNING, 
+                            "Failed to create directories for log file", ex);
+                }
+            }   // Add a file handler to log messages to a log file
+            getLogger().addHandler(new java.util.logging.FileHandler(
+                    PROGRAM_LOG_PATTERN,0,8));
+        } catch (IOException | SecurityException ex) {
+            getLogger().log(Level.SEVERE, "Failed to get log file", ex);
+        }
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
