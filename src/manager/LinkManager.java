@@ -36,6 +36,7 @@ import java.security.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.*;
 import java.util.prefs.*;
 import javax.crypto.*;
 import javax.swing.*;
@@ -73,16 +74,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public static final String PROGRAM_VERSION = "0.6.0";
     /**
+     * This is the internal name for the program.
+     */
+    protected static final String INTERNAL_PROGRAM_NAME = "LinkManager";
+    /**
      * This is an array containing the widths and heights for the icon images 
      * for this program. The icon images are generated on the fly.
      */
     private static final int[] ICON_SIZES = {16, 24, 32, 48, 64, 96, 128, 256, 512};
     /**
      * This is the client identifier to pass to Dropbox for this program. This 
-     * contains the name of this program (without any spaces) and the version.
+     * contains the name of this program and the version.
      */
-    private static final String DROPBOX_CLIENT_ID = PROGRAM_NAME.replaceAll(" ",
-            "")+"/"+PROGRAM_VERSION;
+    private static final String DROPBOX_CLIENT_ID = INTERNAL_PROGRAM_NAME+"/"+
+            PROGRAM_VERSION;
     /**
      * This is a list containing the default names for the lists of links. <p>
      * 0: Links
@@ -109,7 +114,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is the name of the preference node used to store the settings for 
      * this program.
      */
-    private static final String PREFERENCE_NODE_NAME = "milo/link/LinkManager";
+    private static final String PREFERENCE_NODE_NAME = "milo/link/"+INTERNAL_PROGRAM_NAME;
     /**
      * This is the name of the file used to store the configuration.
      */
@@ -122,7 +127,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is the header  for the general settings in the configuration 
      * file.
      */
-    private static final String GENERAL_CONFIG_HEADER = "[LinkManager Config]";
+    private static final String GENERAL_CONFIG_HEADER = "["+INTERNAL_PROGRAM_NAME+" Config]";
     /**
      * This is the configuration key for the program ID. This is used to
      * determine what preference node to use for the program.
@@ -160,7 +165,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private static final String SEARCH_DIALOG_NAME = "SearchDialog";
     
-    private static final String LINK_MANAGER_NAME = "LinkManager";
+    private static final String LINK_MANAGER_NAME = INTERNAL_PROGRAM_NAME;
     /**
      * This is a collection storing the required Dropbox scope for the program. 
      * If this is null, then the program does not specify the scope it requires. 
