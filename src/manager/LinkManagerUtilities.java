@@ -314,29 +314,32 @@ public class LinkManagerUtilities {
             // If the original file is null or does not exist
         if (file == null || !file.exists())
             return null;
-        LinkManager.getLogger().entering(LinkManagerUtilities.class.getName(), 
-                "createBackupCopy", file);
+        LinkManager.logEntering(LinkManagerUtilities.class, "createBackupCopy", 
+                file);
             // Get the file to use as the backup file
         File target = new File(file.toString()+"."+LinkManager.BACKUP_FILE_EXTENSION);
             // If the target file already exists
         if (target.exists())
             target = FilesExtended.getNextAvailableFilePath(target);
-        LinkManager.getLogger().fine("Target Backup File: "+target);
         Path copy;  // This is the path to the backup file.
         try{    // Create a copy of the file
             copy = Files.copy(file.toPath(), target.toPath(), 
                     StandardCopyOption.COPY_ATTRIBUTES);
         } catch(FileAlreadyExistsException ex) {
-                // How does the target file still exist?
-            LinkManager.getLogger().warning("Target backup file already exists.");
+                // How does the target file already exist?
+            LinkManager.log(java.util.logging.Level.WARNING, 
+                    LinkManagerUtilities.class, "createBackupCopy", 
+                    "Target backup file already exists.", ex);
             target = FilesExtended.getNextAvailableFilePath(target);
-            LinkManager.getLogger().info("New Target Backup File: "+target);
+            LinkManager.log(java.util.logging.Level.INFO, 
+                    LinkManagerUtilities.class, "createBackupCopy", 
+                    "New Target backup file {0}", target);
                 // Create a copy of the file using the next available file path
             copy = Files.copy(file.toPath(), target.toPath(), 
                     StandardCopyOption.COPY_ATTRIBUTES);
         }
         target = copy.toFile();
-        LinkManager.getLogger().exiting(LinkManagerUtilities.class.getName(), 
+        LinkManager.logExiting(LinkManagerUtilities.class, 
                 "createBackupCopy", target);
         return target;
     }
@@ -398,11 +401,8 @@ public class LinkManagerUtilities {
      */
     public static boolean writeToFile(File file, List<String> list, 
             boolean blankLines, ProgressObserver listener){
-        LinkManager.getLogger().entering(LinkManagerUtilities.class.getName(), 
-                "writeToFile", file);
-            // If there is to be a blank line between each line
-        if (blankLines)
-            LinkManager.getLogger().fine("Adding blank lines between each line.");
+        LinkManager.logEntering(LinkManagerUtilities.class, "writeToFile", 
+                file);
             // Try to create a PrintWriter to write to the file
         try (PrintWriter writer = new PrintWriter(file)) {
                 // If a progress observer was given
@@ -419,13 +419,14 @@ public class LinkManagerUtilities {
                     listener.incrementValue();
             }
         } catch (FileNotFoundException ex) {
-            LinkManager.getLogger().warning("File not found.");
-            LinkManager.getLogger().exiting(LinkManagerUtilities.class.getName(),
-                    "writeToFile", false);
+            LinkManager.log(java.util.logging.Level.WARNING, 
+                    LinkManagerUtilities.class, "writeToFile", "File not found", 
+                    ex);
+            LinkManager.logExiting(LinkManagerUtilities.class,"writeToFile", 
+                    false);
             return false;
         }
-        LinkManager.getLogger().exiting("LinkManagerUtilities", "writeToFile", 
-                true);
+        LinkManager.logExiting(LinkManagerUtilities.class, "writeToFile", true);
         return true;
     }
     /**
