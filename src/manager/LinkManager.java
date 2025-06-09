@@ -3771,8 +3771,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (type >= 0)  // should be)
                 config.setCurrentTab(type, listsTabPanels[type]);
             else{
-                getLogger().fine("Source not found in list tabs panel: "+
-                        evt.getSource());
+                getLogger().log(Level.WARNING, 
+                        "Source not found in list tabs panels: {0}", evt.getSource());
                     // If the program is in debug mode
                 if (isInDebug())
                     System.out.println("Source not found in list tabs panels: " +evt.getSource());
@@ -6526,7 +6526,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected Void processLinks(LinksListPanel panel) {
             getLogger().entering(CopyOrMoveLinks.class.getName(), 
                         "processLinks", panel);
-            getLogger().fine("Source list: " + source);
+            getLogger().log(Level.FINE, "Source list: {0}", source);
                 // Get the model of the given list
             LinksListModel model = panel.getModel();
                 // If the given list is read only or full
@@ -6534,8 +6534,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (panel.isReadOnly())
                     getLogger().fine("Links list is read only.");
                 else
-                    getLogger().fine("Links list is full (limit: "+
-                            model.getSizeLimit()+", size: "+model.size()+").");
+                    getLogger().log(Level.FINE, "Links list is full (limit: {0},"
+                            + " size: {1}).", new Object[]{model.getSizeLimit(), 
+                                model.size()});
                 getLogger().exiting(CopyOrMoveLinks.class.getName(), 
                         "processLinks");
                 return null;
@@ -6548,8 +6549,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             try{    // Try to add all the item this can add
                 model.addAll(added);
             } catch(Exception ex){
-                getLogger().throwing(CopyOrMoveLinks.class.getName(), 
-                        "processLinks", ex);
+                log(Level.WARNING, this.getClass(), "processLinks", 
+                        "Issue encountered while adding compatible list to model",
+                        ex);
             }   // If this is moving links between lists, a source list has been 
                 // provided, and that source list is not read only
             if (move && source != null && !source.isReadOnly()){
@@ -6565,8 +6567,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         source.updateModelContents(temp);
                     }
                 } catch(Exception ex){
-                    getLogger().throwing(CopyOrMoveLinks.class.getName(), 
-                            "processLinks", ex);
+                    log(Level.WARNING, this.getClass(), "processLinks", 
+                            "Issue encountered while removing shared links from source",
+                            ex);
                 }
             }
             getLogger().exiting(CopyOrMoveLinks.class.getName(),"processLinks");
