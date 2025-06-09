@@ -29,6 +29,12 @@ public class LinkManagerUtilities {
      */
     private LinkManagerUtilities() {}
     /**
+     * This is the directory that contains this program. This is initially null 
+     * and is initialized the first time it is requested and successfully 
+     * loaded.
+     */
+    private static String programDir = null;
+    /**
      * This adds the given string to the the system clipboard.
      * @param text The text to place into the system clipboard.
      */
@@ -55,6 +61,35 @@ public class LinkManagerUtilities {
         if (link.isBlank())             // If the link is blank
             throw new IllegalArgumentException("Link cannot be blank");
         Desktop.getDesktop().browse(new URL(link).toURI());
+    }
+    /**
+     * This returns the working directory for this program.
+     * @return The working directory for the program.
+     */
+    public static String getWorkingDirectory(){
+        return System.getProperty("user.dir");
+    }
+    /**
+     * This returns the directory of this program.
+     * @return The directory containing this program.
+     */
+    public static String getProgramDirectory(){
+            // If the program directory has been previously retrieved
+        if (programDir != null)
+            return programDir;
+            // Get the location of this program, as a URL
+        URL url = LinkManager.class.getProtectionDomain().getCodeSource().getLocation();
+            // If a URL was found
+        if (url != null)
+            try {   // Get the parent of this program
+                programDir = new File(url.toURI()).getParent();
+                return programDir;
+            } catch (URISyntaxException ex) {
+                LinkManager.log(java.util.logging.Level.WARNING,
+                        LinkManagerUtilities.class,"getProgramDirectory",
+                        "Failed to retrieve program directory.", ex);
+            }
+        return getWorkingDirectory();
     }
     /**
      * This gets the hexadecimal String representation of the given UUID.
@@ -279,18 +314,34 @@ public class LinkManagerUtilities {
             // If the original file is null or does not exist
         if (file == null || !file.exists())
             return null;
+        LinkManager.logEntering(LinkManagerUtilities.class, "createBackupCopy", 
+                file);
             // Get the file to use as the backup file
         File target = new File(file.toString()+"."+LinkManager.BACKUP_FILE_EXTENSION);
+            // If the target file already exists
+        if (target.exists())
+            target = FilesExtended.getNextAvailableFilePath(target);
+        Path copy;  // This is the path to the backup file.
         try{    // Create a copy of the file
-            return Files.copy(file.toPath(), target.toPath(), 
-                    StandardCopyOption.COPY_ATTRIBUTES).toFile();
-        }
-        catch(FileAlreadyExistsException ex){
+            copy = Files.copy(file.toPath(), target.toPath(), 
+                    StandardCopyOption.COPY_ATTRIBUTES);
+        } catch(FileAlreadyExistsException ex) {
+                // How does the target file already exist?
+            LinkManager.log(java.util.logging.Level.WARNING, 
+                    LinkManagerUtilities.class, "createBackupCopy", 
+                    "Target backup file already exists.", ex);
+            target = FilesExtended.getNextAvailableFilePath(target);
+            LinkManager.log(java.util.logging.Level.INFO, 
+                    LinkManagerUtilities.class, "createBackupCopy", 
+                    "New Target backup file {0}", target);
                 // Create a copy of the file using the next available file path
-            return Files.copy(file.toPath(), 
-                    FilesExtended.getNextAvailableFilePath(target).toPath(), 
-                    StandardCopyOption.COPY_ATTRIBUTES).toFile();
+            copy = Files.copy(file.toPath(), target.toPath(), 
+                    StandardCopyOption.COPY_ATTRIBUTES);
         }
+        target = copy.toFile();
+        LinkManager.logExiting(LinkManagerUtilities.class, 
+                "createBackupCopy", target);
+        return target;
     }
     /**
      * This gets the String representing the URL from a shortcut file.
@@ -350,6 +401,8 @@ public class LinkManagerUtilities {
      */
     public static boolean writeToFile(File file, List<String> list, 
             boolean blankLines, ProgressObserver listener){
+        LinkManager.logEntering(LinkManagerUtilities.class, "writeToFile", 
+                file);
             // Try to create a PrintWriter to write to the file
         try (PrintWriter writer = new PrintWriter(file)) {
                 // If a progress observer was given
@@ -366,8 +419,14 @@ public class LinkManagerUtilities {
                     listener.incrementValue();
             }
         } catch (FileNotFoundException ex) {
+            LinkManager.log(java.util.logging.Level.WARNING, 
+                    LinkManagerUtilities.class, "writeToFile", "File not found", 
+                    ex);
+            LinkManager.logExiting(LinkManagerUtilities.class,"writeToFile", 
+                    false);
             return false;
         }
+        LinkManager.logExiting(LinkManagerUtilities.class, "writeToFile", true);
         return true;
     }
     /**

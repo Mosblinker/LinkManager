@@ -36,6 +36,7 @@ import java.security.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.*;
 import java.util.prefs.*;
 import javax.crypto.*;
 import javax.swing.*;
@@ -73,16 +74,26 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public static final String PROGRAM_VERSION = "0.6.0";
     /**
+     * This is the internal name for the program.
+     */
+    protected static final String INTERNAL_PROGRAM_NAME = "LinkManager";
+    /**
+     * This is the pattern for the file handler to use for the log files of this 
+     * program.
+     */
+    private static final String PROGRAM_LOG_PATTERN = 
+            "%h/.mosblinker/logs/"+INTERNAL_PROGRAM_NAME+"-%u.%g.log";
+    /**
      * This is an array containing the widths and heights for the icon images 
      * for this program. The icon images are generated on the fly.
      */
     private static final int[] ICON_SIZES = {16, 24, 32, 48, 64, 96, 128, 256, 512};
     /**
      * This is the client identifier to pass to Dropbox for this program. This 
-     * contains the name of this program (without any spaces) and the version.
+     * contains the name of this program and the version.
      */
-    private static final String DROPBOX_CLIENT_ID = PROGRAM_NAME.replaceAll(" ",
-            "")+"/"+PROGRAM_VERSION;
+    private static final String DROPBOX_CLIENT_ID = INTERNAL_PROGRAM_NAME+"/"+
+            PROGRAM_VERSION;
     /**
      * This is a list containing the default names for the lists of links. <p>
      * 0: Links
@@ -109,7 +120,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is the name of the preference node used to store the settings for 
      * this program.
      */
-    private static final String PREFERENCE_NODE_NAME = "milo/link/LinkManager";
+    private static final String PREFERENCE_NODE_NAME = "milo/link/"+INTERNAL_PROGRAM_NAME;
     /**
      * This is the name of the file used to store the configuration.
      */
@@ -122,7 +133,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is the header  for the general settings in the configuration 
      * file.
      */
-    private static final String GENERAL_CONFIG_HEADER = "[LinkManager Config]";
+    private static final String GENERAL_CONFIG_HEADER = "["+INTERNAL_PROGRAM_NAME+" Config]";
     /**
      * This is the configuration key for the program ID. This is used to
      * determine what preference node to use for the program.
@@ -160,7 +171,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private static final String SEARCH_DIALOG_NAME = "SearchDialog";
     
-    private static final String LINK_MANAGER_NAME = "LinkManager";
+    private static final String LINK_MANAGER_NAME = INTERNAL_PROGRAM_NAME;
     /**
      * This is a collection storing the required Dropbox scope for the program. 
      * If this is null, then the program does not specify the scope it requires. 
@@ -168,10 +179,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final Collection<String> DROPBOX_SCOPE_PERMISSIONS = null;
     /**
+     * This is the file extension for log files.
+     */
+    public static final String LOG_FILE_EXTENSION = "log";
+    /**
      * This contains the file filter for log files.
      */
     public static final FileNameExtensionFilter LOG_FILE_FILTER = 
-            generateExtensionFilter("Log File","log");
+            generateExtensionFilter("Log File",LOG_FILE_EXTENSION);
     /**
      * This contains the file filter for Internet Shortcut files.
      */
@@ -270,37 +285,119 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     protected static final SimpleDateFormat DEBUG_DATE_FORMAT = 
             new SimpleDateFormat("M/d/yyyy h:mm:ss a");
     /**
-     * This returns the working directory for this program.
-     * @return The working directory for the program.
+     * This is a logger used to log messages for the program.
      */
-    private String getWorkingDirectory(){
-        return System.getProperty("user.dir");
+    private static final Logger linkManLogger = 
+            Logger.getLogger(INTERNAL_PROGRAM_NAME+PROGRAM_VERSION);
+    /**
+     * This returns the logger used to log messages for this program.
+     * @return The logger used to log message for the program.
+     */
+    public static Logger getLogger(){
+        return linkManLogger;
     }
     /**
-     * This returns the file located in the working directory
-     * @param fileName
-     * @return 
+     * 
+     * @param level
+     * @param sourceClass
+     * @param method
+     * @param msg
      */
-    private File getRelativeFile(String fileName){
-        return new File(getWorkingDirectory(),fileName);
+    public static void log(Level level, Class sourceClass, String method, 
+            String msg){
+        getLogger().logp(level, sourceClass.getName(), method, msg);
     }
     /**
-     * This returns the directory of this program.
-     * @return The directory containing this program.
+     * 
+     * @param level
+     * @param sourceClass
+     * @param method
+     * @param msg
+     * @param thrown
      */
-    private String getProgramDirectory(){
-            // Get the location of this program, as a URL
-        URL url = LinkManager.class.getProtectionDomain().getCodeSource().getLocation();
-            // If a URL was found
-        if (url != null)
-            try {   // Get the parent of this program
-                return new File(url.toURI()).getParent();
-            } catch (URISyntaxException ex) {
-                    // If this is in debug mode
-                if (isInDebug())
-                    System.out.println("Error: " + ex);
-            }
-        return getWorkingDirectory();
+    public static void log(Level level, Class sourceClass, String method, 
+            String msg, Throwable thrown){
+        getLogger().logp(level, sourceClass.getName(), method, msg, thrown);
+    }
+    /**
+     * 
+     * @param level
+     * @param sourceClass
+     * @param method
+     * @param msg
+     * @param param1
+     */
+    public static void log(Level level, Class sourceClass, String method, 
+            String msg, Object param1){
+        getLogger().logp(level, sourceClass.getName(), method, msg, param1);
+    }
+    /**
+     * 
+     * @param level
+     * @param sourceClass
+     * @param method
+     * @param msg
+     * @param params
+     */
+    public static void log(Level level, Class sourceClass, String method, 
+            String msg, Object[] params){
+        getLogger().logp(level, sourceClass.getName(), method, msg, params);
+    }
+    /**
+     * 
+     * @param sourceClass
+     * @param method
+     * @param thrown 
+     */
+    public static void logThrown(Class sourceClass, String method, 
+            Throwable thrown){
+        getLogger().throwing(sourceClass.getName(), method, thrown);
+    }
+    /**
+     * 
+     * @param sourceClass
+     * @param method 
+     */
+    public static void logEntering(Class sourceClass, String method){
+        getLogger().entering(sourceClass.getName(), method);
+    }
+    /**
+     * 
+     * @param sourceClass
+     * @param method
+     * @param param1 
+     */
+    public static void logEntering(Class sourceClass, String method, 
+            Object param1){
+        getLogger().entering(sourceClass.getName(), method, param1);
+    }
+    /**
+     * 
+     * @param sourceClass
+     * @param method
+     * @param params 
+     */
+    public static void logEntering(Class sourceClass, String method, 
+            Object[] params){
+        getLogger().entering(sourceClass.getName(), method, params);
+    }
+    /**
+     * 
+     * @param sourceClass
+     * @param method 
+     */
+    public static void logExiting(Class sourceClass, String method){
+        getLogger().exiting(sourceClass.getName(), method);
+    }
+    /**
+     * 
+     * @param sourceClass
+     * @param method
+     * @param result 
+     */
+    public static void logExiting(Class sourceClass, String method, 
+            Object result){
+        getLogger().exiting(sourceClass.getName(), method, result);
     }
     /**
      * This returns the file used to store the configuration of the program.
@@ -310,14 +407,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // If a configuration file was specified
         if (configFile != null)
             return configFile;
-        return new File(getProgramDirectory(),CONFIG_FILE);
+        return new File(LinkManagerUtilities.getProgramDirectory(),CONFIG_FILE);
     }
     /**
      * This returns the file containing the Dropbox API keys for this program.
      * @return The dropbox API key file.
      */
     private File getDropboxAPIFile(){
-        return new File(getProgramDirectory(),DROPBOX_API_KEY_FILE);
+        return new File(LinkManagerUtilities.getProgramDirectory(),DROPBOX_API_KEY_FILE);
     }
     /**
      * 
@@ -331,7 +428,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         File file = new File(fileName);
             // If the database file is relative
         if (!file.isAbsolute()){
-            return getRelativeFile(fileName);
+            return new File(LinkManagerUtilities.getWorkingDirectory(),fileName);
         }
         return file;
     }
@@ -389,15 +486,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Get the file containing the API keys
         File dbxKey = getDropboxAPIFile();
             // If the file is null or doesn't exist
-        if (dbxKey == null || !dbxKey.exists())
+        if (dbxKey == null || !dbxKey.exists()){
+            getLogger().warning("Dropbox API file not found.");
             return null;
+        }
         if (dbxUtils == null){
             DbxAppInfo appInfo;
             try{
                 appInfo = DbxAppInfo.Reader.readFromFile(dbxKey);
             } catch (JsonReader.FileLoadException ex){
-                if (isInDebug())
-                    System.out.println("Error Reading File: " + ex);
+                log(Level.WARNING,this.getClass(),"loadDbxUtils",
+                        "Dropbox API file failed to load", ex);
                 return null;
             }
             dbxUtils = config.new DropboxLinkUtilsConfig(){
@@ -450,7 +549,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try{    // Try to get the preference node used for the program
             node = Preferences.userRoot().node(PREFERENCE_NODE_NAME);
         } catch (SecurityException | IllegalStateException ex){
-            System.out.println("Unable to load preference node: " +ex);
+            log(Level.SEVERE, this.getClass(), "LinkManager", 
+                    "Unable to load preference node", ex);
             // TODO: Error message window
         }
         
@@ -459,7 +559,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try{    // Try to load the configuration file into the properties
             LinkManagerUtilities.loadProperties(getConfigFile(),config.getProperties());
         } catch (IOException ex){
-            System.out.println("Config Load Error: " + ex);
+            log(Level.WARNING, this.getClass(), "LinkManager", 
+                    "Unable to load configuration file", ex);
             // TODO: Error message window
         }
             // If no program ID was provided to the program
@@ -478,7 +579,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         else{   // Set and store a random program ID
             config.getProperties().setProperty(PROGRAM_ID_KEY, 
                     config.setRandomProgramID());
-        }
+        }   // Log the program ID
+        getLogger().log(Level.FINER, "Using program ID {0}", programID);
         try{    // Create a CipherUtils object
             CipherUtils cipher = new CipherUtils();
                 // Get the encryption key from the config file if there is one
@@ -501,13 +603,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | 
                 InvalidKeyException | InvalidAlgorithmParameterException | 
                 IllegalBlockSizeException | BadPaddingException ex) {
-            System.out.println("Encryption Error: " + ex);
+            log(Level.WARNING, this.getClass(), "LinkManager", 
+                    "Unable to load encryption keys", ex);
             config.resetEncryption();
         }
         try{    // Try to save the properties to the configuration file
             saveConfigFile();
         } catch (IOException ex) {
-            System.out.println("Config Save Error: " + ex);
+            log(Level.WARNING, this.getClass(), "LinkManager", 
+                    "Unable to save configuration to file", ex);
             // TODO: Error message window
         }
         
@@ -656,12 +760,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 entry.getValue().add(textCmd.getSelectAllAction());
                 continue;
             }
-            UndoManagerCommands undoCmd = new UndoManagerCommands(new CompoundUndoManager(),false);
+            UndoManagerCommands undoCmd = new UndoManagerCommands(
+                    new CompoundUndoManager(),false);
             undoCommands.put(comp, undoCmd);
             if (comp == linkTextField)
-                LinkManagerUtilities.addToPopupMenu(entry.getValue(),undoCmd,textCmd,pasteAndAddAction);
+                LinkManagerUtilities.addToPopupMenu(entry.getValue(),undoCmd,
+                        textCmd,pasteAndAddAction);
             else
-                LinkManagerUtilities.addToPopupMenu(entry.getValue(),undoCmd,textCmd);
+                LinkManagerUtilities.addToPopupMenu(entry.getValue(),undoCmd,
+                        textCmd);
             comp.setComponentPopupMenu(entry.getValue());
         }
         
@@ -3173,7 +3280,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 //            searchUsedPrefixes(conn,key);
         }
         catch (SQLException ex) {
-            System.out.println("Error: "+ex);
+            log(Level.WARNING, this.getClass(),"addPrefixButtonActionPerformed", 
+                    "Could not add prefix \""+prefixField.getText()+"\"", ex);
             JOptionPane.showMessageDialog(this, "Could Not Add Prefix \""+
                 prefixField.getText()+"\".\n"+
                         "Database Error: " + ex,
@@ -3196,11 +3304,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     dbPrefixTable.getValueAt(selRow, 0));
                // Ensure that the database last modified time is updated
             conn.setDatabaseLastModified();
-            System.out.println("Removed Prefix: \""+prefix+"\"");
+            log(Level.FINER,this.getClass(),"removePrefixButtonActionPerformed",
+                    "Removed prefix \"{0}\"",prefix);
             ((DefaultTableModel)dbPrefixTable.getModel()).removeRow(selRow);
         }
         catch (SQLException | IllegalArgumentException ex) {
-            System.out.println("Error: "+ex);
+            log(Level.WARNING, this.getClass(),"removePrefixButtonActionPerformed", 
+                    String.format("Could not remove prefix %d: \"%s\"",
+                            dbPrefixTable.getValueAt(selRow, 0),
+                            dbPrefixTable.getValueAt(selRow, 1)), ex);
             JOptionPane.showMessageDialog(this, "Could Not Remove Prefix "+
                     dbPrefixTable.getValueAt(selRow, 0)+": \""+
                     dbPrefixTable.getValueAt(selRow, 1)+"\".\n"+ 
@@ -3319,7 +3431,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             Statement stmt = conn.createStatement()){
             conn.createTables(stmt);
         }catch (SQLException | UncheckedSQLException ex) {
-            System.out.println("Error: "+ex);
+            log(Level.WARNING, this.getClass(), "dbCreateTablesButtonActionPerformed",
+                    "Error creating database tables", ex);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -3535,6 +3648,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try {
             LinkManagerUtilities.openLink(link);
         } catch (URISyntaxException | IOException ex) {
+            if (ex instanceof MalformedURLException){
+                log(Level.WARNING, this.getClass(), "openLinkButtonActionPerformed", 
+                        "Failed to open link (malformed URL {0})", link);
+            } else
+                log(Level.WARNING, this.getClass(), "openLinkButtonActionPerformed", 
+                        "Failed to open link", ex);
             beep();
             JOptionPane.showMessageDialog(this,
                     "Could not open \""+link+"\". Please check the URL and try "
@@ -3704,9 +3823,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }   // If the event source is found in the list tabs panel array (it 
             if (type >= 0)  // should be)
                 config.setCurrentTab(type, listsTabPanels[type]);
-                // If the program is in debug mode
-            else if (isInDebug())
-                System.out.println("Not found in list tabs panels: " +evt.getSource());
+            else{
+                getLogger().log(Level.WARNING, 
+                        "Source not found in list tabs panels: {0}", evt.getSource());
+                    // If the program is in debug mode
+                if (isInDebug())
+                    System.out.println("Source not found in list tabs panels: " +evt.getSource());
+            }
         }
     }//GEN-LAST:event_listsTabsPanelStateChanged
     /**
@@ -3831,9 +3954,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Make sure the file is deleted on exit
                 file.deleteOnExit();
             } catch (IOException ex) {
-                    // If the program is in debug mode
-                if (isInDebug())
-                    System.out.print("Temp File Error: " + ex);
+                log(Level.WARNING, this.getClass(), "loadDatabase", 
+                        "Failed to create temporary database file", ex);
             }
         }   // If this will sync the database to the cloud and the user is 
             // logged into dropbox
@@ -3917,7 +4039,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                // Ensure that the database last modified time is updated
             conn.setDatabaseLastModified();
         } catch (SQLException ex) {
-            System.out.println("Error: "+ex);
+            log(Level.WARNING, this.getClass(), "dbRemoveUnusedDataButtonActionPerformed",
+                    "Error removing unused data", ex);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -3969,7 +4092,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                // Ensure that the database last modified time is updated
             setDBLastModLabelText(conn.setDatabaseLastModified());
         }catch (SQLException | IllegalArgumentException ex) {
-            System.out.println("Error: "+ex);
+            log(Level.WARNING, this.getClass(), "prefixApplyButtonActionPerformed",
+                    "Error applying prefix settings", ex);
         }
     }//GEN-LAST:event_prefixApplyButtonActionPerformed
     /**
@@ -4031,7 +4155,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             setListEditSettings(conn,listID);
         }catch (SQLException | IllegalArgumentException ex) {
-            System.out.println("Error: "+ex);
+            log(Level.WARNING, this.getClass(), "dbListIDComboActionPerformed",
+                    "Error loading settings for list " + listID, ex);
         }
     }//GEN-LAST:event_dbListIDComboActionPerformed
 
@@ -4067,7 +4192,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                    // Ensure that the database last modified time is updated
                 setDBLastModLabelText(conn.setDatabaseLastModified());
             } catch (SQLException | IllegalArgumentException ex) {
-                System.out.println("Error: "+ex);
+                log(Level.WARNING, this.getClass(), "dbListEditApplyButtonActionPerformed",
+                        "Error changing settings for list " + listID, ex);
             }
         }
     }//GEN-LAST:event_dbListEditApplyButtonActionPerformed
@@ -4081,7 +4207,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             searchUsedPrefixes(conn,getSearchPrefix(prefixStr));
         } catch (SQLException | IllegalArgumentException ex) {
-            System.out.println("Error: "+ex);
+            log(Level.WARNING, this.getClass(), "dbUsedPrefixSearchButtonActionPerformed",
+                    "Error searching for prefix " + prefixStr, ex);
             JOptionPane.showMessageDialog(this, "Could Not Search For Prefix "+
                     prefixStr+".\nDatabase Error: " + ex,
                 "Database Error", JOptionPane.ERROR_MESSAGE);
@@ -4106,7 +4233,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                // Ensure that the database last modified time is updated
             conn.setDatabaseLastModified();
         } catch (SQLException ex) {
-            System.out.println("Error: "+ex);
+            log(Level.WARNING, this.getClass(), "dbRemoveDuplDataButtonActionPerformed",
+                    "Error removing duplicate data", ex);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -4143,7 +4271,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     getSearchPrefix(prefixStr) : null;
             searchListContents(conn,dbSearchField.getText(),prefixID);
         } catch (SQLException | IllegalArgumentException ex) {
-            System.out.println("Error: "+ex);
+            log(Level.WARNING, this.getClass(), "dbSearchButtonActionPerformed",
+                    "Error searching for prefix " + prefixStr, ex);
             JOptionPane.showMessageDialog(this, "Could Not Search For Prefix "+
                     prefixStr+".\nDatabase Error: " + ex,
                 "Database Error", JOptionPane.ERROR_MESSAGE);
@@ -4169,7 +4298,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             System.out.println("New Dropbox Access Token: " + dbxUtils.getAccessToken());
             System.out.println("New Dropbox Expiration Time: " + dbxUtils.getTokenExpiresAtDate());
         } catch (DbxException ex){
-            System.out.println("Error: " + ex);
+            log(Level.WARNING, this.getClass(), "dropboxRefreshTestButtonActionPerformed",
+                    "Failed to refresh Dropbox token", ex);
         }
     }//GEN-LAST:event_dropboxRefreshTestButtonActionPerformed
 
@@ -4295,6 +4425,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         return;
                     }
                 } catch (IOException ex) {
+                    log(Level.WARNING, this.getClass(), "setDBAcceptButtonActionPerformed",
+                            "Failed to check to see if the files are the same" , ex);
                         // We could not check if the files are the same file. 
                         // Ask the user if we should continue
                     int option = JOptionPane.showConfirmDialog(this, 
@@ -4382,7 +4514,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     "Cannot Relativize File Name", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        File progFile = new File(getWorkingDirectory());
+        File progFile = new File(LinkManagerUtilities.getWorkingDirectory());
         File file = getDatabaseFile(fileName);
         Path progPath = progFile.toPath().normalize();
         Path filePath = file.toPath().normalize();
@@ -4460,7 +4592,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Try to open the authorization web page in the user's browser
             try {
                 LinkManagerUtilities.openLink(authorizeURL);
-            } catch (URISyntaxException | IOException ex) {}
+            } catch (URISyntaxException | IOException ex) {
+                log(Level.WARNING, this.getClass(), "dbxLogInButtonActionPerformed",
+                        "Failed to open Dropbox authorization URL" , ex);
+            }
             
             if (dropboxSetupPanel.showDialog(setLocationDialog, authorizeURL) != 
                     DropboxSetupPanel.ACCEPT_OPTION){
@@ -4498,8 +4633,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Load the external account data
             loadExternalAccountData();
         } catch (DbxException ex){
-            if (isInDebug())
-                System.out.println("Error: " + ex);
+            log(Level.WARNING, this.getClass(), "dbxLogInButtonActionPerformed", 
+                    "Failed to login to Dropbox", ex);
             String message = "An error occurred while setting up Dropbox.";
             if (showDBErrorDetailsToggle.isSelected())
                 message += "\nError: " + ex;
@@ -4548,7 +4683,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             setDBLastModLabelText(conn.setDatabaseLastModified());
         }catch (SQLException | UncheckedSQLException ex) {
-            System.out.println("Error: "+ex);
+            log(Level.WARNING, this.getClass(), "dbUpdateLastModButtonActionPerformed",
+                    "Failed to update last modified time of database" , ex);
         }
     }//GEN-LAST:event_dbUpdateLastModButtonActionPerformed
 
@@ -4593,7 +4729,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         } catch (SQLException | UncheckedSQLException ex) {
             dbQueryPanel.setExecutionTime(0);
             dbQueryPanel.showError(ex);
-            System.out.println("Error: "+dbQueryPanel.getErrorCode() + " "+ex);
+            log(Level.WARNING, this.getClass(), "dbQueryPanelActionPerformed",
+                    "Failed to run query (code: "+dbQueryPanel.getErrorCode()+")",
+                    ex);
             JOptionPane.showMessageDialog(this, "Database Error: " + ex,
                     "Database Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -4699,8 +4837,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return null;
             // If there are too many arguments
         if (argsList.size() > 1){
+                // Log that there are too many arguments that match
+            getLogger().log(Level.INFO, "Too many arguments for {0}, expected at most 1", name);
                 // Tell the user that there are too many arguments that match
-            System.out.println("Too many arguments for "+name+", expected at most 1.");
             JOptionPane.showMessageDialog(null, 
                     "Too many arguments provided for the "+name+".\n"+
                             "This program expects at most one.", 
@@ -4714,6 +4853,37 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param args the command line arguments
      */
     public static void main(String args[]) {
+            // Set the logger's level to the lowest level in order to log all
+        getLogger().setLevel(Level.FINEST);
+        try {   // Get the parent file for the log file
+            File file = new File(PROGRAM_LOG_PATTERN.replace("%h", 
+                    System.getProperty("user.home"))
+                    .replace('/', File.separatorChar)).getParentFile();
+                // If the parent of the log file doesn't exist
+            if (!file.exists()){
+                try{    // Try to create the directories for the log file
+                    Files.createDirectories(file.toPath());
+                } catch (IOException ex){
+                    getLogger().log(Level.WARNING, 
+                            "Failed to create directories for log file", ex);
+                }
+            }   // Add a file handler to log messages to a log file
+            getLogger().addHandler(new java.util.logging.FileHandler(
+                    PROGRAM_LOG_PATTERN,0,8));
+        } catch (IOException | SecurityException ex) {
+            getLogger().log(Level.SEVERE, "Failed to get log file", ex);
+        }   // Log the user's OS name
+        getLogger().log(Level.CONFIG, "OS: {0}, version: {1}, arch: {2}", new Object[]{
+                System.getProperty("os.name"),
+                System.getProperty("os.version"),
+                System.getProperty("os.arch")});
+            // Log the Java vendor name and url
+        getLogger().log(Level.CONFIG, "Java vendor: {0}, URL: {1}", new Object[]{
+                System.getProperty("java.vendor"),
+                System.getProperty("java.vendor.url")});
+            // Log the Java version
+        getLogger().log(Level.CONFIG, "Java version: {0}", 
+                System.getProperty("java.version"));
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -4728,11 +4898,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         } catch (ClassNotFoundException | InstantiationException | 
                 IllegalAccessException | UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(LinkManager.class.getName()).
-                    log(java.util.logging.Level.SEVERE, null, ex);
+            getLogger().log(Level.SEVERE, 
+                    "Failed to load Nimbus LnF.", ex);
         }
         //</editor-fold>
-
+            // If there is no look and feel set
+        if (UIManager.getLookAndFeel() == null)
+            getLogger().log(Level.CONFIG, "Look and Feel: null");
+        else    // Log the current Look and Feel
+            getLogger().log(Level.CONFIG, "Look and Feel: {0}",
+                    UIManager.getLookAndFeel().getName());
+        
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
                 // This will get the program ID for the program
@@ -4746,8 +4922,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             } catch (IllegalStateException ex){
                 return;
             } catch (IllegalArgumentException ex){
+                    // Log the fact that the program ID is invalid
+                getLogger().log(Level.INFO, "Program ID is invalid, expected UUID", ex);
                     // Tell the user that the program ID is invalid
-                System.out.println("Program ID is invalid, expected UUID.");
                 JOptionPane.showMessageDialog(null, 
                         "The program ID is invalid.\n"+ 
                                 "The program ID should be a UUID.", 
@@ -4772,16 +4949,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         configFile = new File(value);
                             // Try to turn the file into a path to test if it's valid
                         configFile.toPath();
+                    } else {
+                            // Log the fact that the config file is invalid
+                        getLogger().log(Level.INFO, "Configuration file is invalid (empty path)");
                     }
                 }
             } catch (IllegalStateException ex){
                 return;
             } catch (InvalidPathException ex){
                 invalidFile = true;
+                     // Log the fact that the config file is invalid
+                getLogger().log(Level.INFO, "Configuration file is invalid", ex);
             }   // If the configuration file is invalid
             if (invalidFile){
-                    // Tell the user that the configuration file is invalid
-                System.out.println("Configuration file is invalid.");
                 JOptionPane.showMessageDialog(null, 
                         "The configuration file is invalid.", 
                         "ERROR - Invalid Configuration File",
@@ -5741,6 +5921,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 size = ((FileMetadata) metadata).getSize();
             }
         } catch (GetMetadataErrorException ex){
+            log(Level.WARNING, this.getClass(),"downloadFromDropbox", 
+                   "Failed to download from Dropbox", ex);
                 // If the error because the file doesn't exist
             if (DropboxUtilities.fileNotFound(ex))
                 return null;
@@ -6184,13 +6366,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected E doInBackground() throws Exception {
+            logEntering(this.getClass(),"doInBackground");
             useWaitCursor(true);
             setInputEnabled(false);
             updateProgressString();
             progressBar.setIndeterminate(true);
             progressBar.setStringPainted(true);
             progressBar.setValue(0);
-            return backgroundAction();
+            E value = backgroundAction();
+            logExiting(this.getClass(),"doInBackground",value);
+            return value;
         }
         @Override
         protected void done(){
@@ -6244,7 +6429,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected Void processLinks(LinksListPanel panel) {
-            panel.updateModelContents(list);
+            logEntering(this.getClass(),"processLinks",panel);
+            try{
+                panel.updateModelContents(list);
+            } catch (Exception ex){
+                log(Level.WARNING, this.getClass(),"processLinks", 
+                        "Error manipulating list", ex);
+            }
+            logExiting(this.getClass(),"processLinks");
             return null;
         }
         @Override
@@ -6349,9 +6541,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             try{
                 panel.getModel().addAll(list);
             } catch(Exception ex){
-                if (isInDebug()){   // If the program is in debug mode
-                    System.out.println("AddAll Error: " + ex);
-                }
+                log(Level.WARNING, this.getClass(),"processLinks", 
+                        "Failed to add all", ex);
             }
             return null;
         }
@@ -6413,12 +6604,26 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected Void processLinks(LinksListPanel panel) {
+            logEntering(this.getClass(), "processLinks", panel);
+            getLogger().log(Level.FINER, "Source list: {0}", source);
+                // If this is moving links
+            if (move)
+                getLogger().finer("Moving links between lists");
+            else
+                getLogger().finer("Copying links between lists");
                 // Get the model of the given list
             LinksListModel model = panel.getModel();
                 // If the given list is read only or full
-            if (panel.isReadOnly() || model.isFull())
+            if (panel.isReadOnly() || model.isFull()){
+                if (panel.isReadOnly())
+                    getLogger().finer("Links list is read only.");
+                else
+                    getLogger().log(Level.FINER, "Links list is full (limit: {0},"
+                            + " size: {1}).", new Object[]{model.getSizeLimit(), 
+                                model.size()});
+                logExiting(this.getClass(),"processLinks");
                 return null;
-                // If the source list is not null
+            }    // If the source list is not null
             if (source != null)
                 source.setEnabled(false);
                 // This gets a list of items that can and will be added to the 
@@ -6427,9 +6632,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             try{    // Try to add all the item this can add
                 model.addAll(added);
             } catch(Exception ex){
-                    // If the program is in debug mode
-                if (isInDebug())
-                    System.out.println(ex);
+                log(Level.WARNING, this.getClass(), "processLinks", 
+                        "Issue encountered while adding compatible list to model",
+                        ex);
             }   // If this is moving links between lists, a source list has been 
                 // provided, and that source list is not read only
             if (move && source != null && !source.isReadOnly()){
@@ -6445,11 +6650,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         source.updateModelContents(temp);
                     }
                 } catch(Exception ex){
-                        // If the program is in debug mode
-                    if (isInDebug())
-                        System.out.println(ex);
+                    log(Level.WARNING, this.getClass(), "processLinks", 
+                            "Issue encountered while removing shared links from source",
+                            ex);
                 }
             }
+            logExiting(this.getClass(),"processLinks");
             return null;
         }
         @Override
@@ -6690,6 +6896,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected abstract boolean processFile(File file);
         @Override
         protected Void backgroundAction() throws Exception {
+            logEntering(this.getClass(),"backgroundAction",file);
                 // Whether the user wants this to try processing the file again 
             boolean retry = false;  // if unsuccessful
             do{
@@ -6701,6 +6908,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     retry = showFailurePrompt(file);    // try again
             }   // While the file failed to be processed and the user wants to 
             while(!success && retry);   // try again
+            logExiting(this.getClass(),"backgroundAction");
             return null;
         }
     }
@@ -6769,6 +6977,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             try{
                 return FilesExtended.rename(file, target);
             } catch(IOException ex){
+                log(Level.WARNING, this.getClass(),"processLinks", 
+                        "Failed to rename file", ex);
                 exc = ex;
                 return false;
             }
@@ -7075,6 +7285,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     backupFile = LinkManagerUtilities.createBackupCopy(file);
                     backupFailed = false;
                 } catch (IOException ex) {
+                    log(Level.WARNING, this.getClass(),"processLinks", 
+                            "Failed to create backup file", ex);
                     backupFailed = true;    // The backup failed
                     return false;
                 }
@@ -7343,9 +7555,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     panel.getModel().addAll(list);
                 return true;
             } catch (IOException ex) {
-                    // If we are in debug mode
-                if (isInDebug())
-                    System.out.println(ex);
+                log(Level.WARNING, this.getClass(),"loadFile", 
+                        "Failed to load list into panel", ex);
                 return false;
             }
         }
@@ -7430,9 +7641,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     return true;
                 }
             } catch (IOException ex) {
-                    // If the program is in debug mode
-                if (isInDebug())
-                    System.out.println(ex);
+                log(Level.WARNING, this.getClass(),"loadFile", 
+                        "Failed to load configuration file", ex);
             }
             return false;
         }
@@ -7469,6 +7679,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             try {   // Try to save the properties to file
                 return savePropertiesFile(file);
             } catch (IOException ex) {
+                log(Level.WARNING, this.getClass(),"saveFile", 
+                        "Failed to save configuration file", ex);
                 return false;
             }
         }
@@ -7578,17 +7790,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             sqlExc = null;
             if (!file.exists())     // If the file doesn't exist
                 return false;
+            boolean value = false;
+            logEntering(this.getClass(),"loadFile", file);
                 // Connect to the database and create an SQL statement
             try(LinkDatabaseConnection conn = connect(file);
                     Statement stmt = conn.createStatement()){
-                return loadDatabase(conn,stmt); // Load from the database
+                value = loadDatabase(conn,stmt); // Load from the database
             } catch(SQLException ex){
+                log(Level.WARNING, this.getClass(),"loadFile", 
+                        "Failed to load database", ex);
                 sqlExc = ex;
-                return false;
             } catch (UncheckedSQLException ex){
+                log(Level.WARNING, this.getClass(),"loadFile", 
+                        "Failed to load database", ex);
                 sqlExc = ex.getCause();
-                return false;
             }
+            logExiting(this.getClass(),"loadFile", value);
+            return value;
         }
         /**
          * This returns any SQLExceptions that were thrown while this was 
@@ -7764,18 +7982,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean saveFile(File file){
+            logEntering(this.getClass(),"saveFile", file);
             sqlExc = null;
+            boolean value = false;
                 // Connect to the database and create an SQL statement
             try(LinkDatabaseConnection conn = connect(file);
                     Statement stmt = conn.createStatement()){
                 conn.setAutoCommit(getAutoCommit());
                     // Try to prepare the database
-                boolean value = prepareDatabase(file,conn,stmt);
+                value = prepareDatabase(file,conn,stmt);
                     // If the connection is not in auto-commit mode
                 if (!conn.getAutoCommit())
                     conn.commit();       // Commit the changes to the database
-                if (!value) // If the database failed to be prepared
+                if (!value){    // If the database failed to be prepared
+                    log(Level.WARNING, this.getClass(),"saveFile", 
+                            "Failed to prepare database");
+                    logExiting(this.getClass(),"saveFile",false);
                     return false;
+                }
                     // Save to the database and get if we are successful
                 value = saveDatabase(conn,stmt);
                    // Ensure that the database last modified time is updated
@@ -7787,20 +8011,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
                 return value;
             } catch(SQLException ex){
+                log(Level.WARNING, this.getClass(),"saveFile", 
+                        "Failed to save database", ex);
                 sqlExc = ex;
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
-                return false;
             } catch (UncheckedSQLException ex){
+                log(Level.WARNING, this.getClass(),"saveFile", 
+                        "Failed to save database", ex);
                 sqlExc = ex.getCause();
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
-                return false;
             } catch(Exception ex){
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
-                return false;
+                log(Level.WARNING, this.getClass(),"saveFile", 
+                        "Failed to save database", ex);
             }
+            logExiting(this.getClass(),"saveFile", value);
+            return value;
         }
         @Override
         protected String getSuccessMessage(File file){
@@ -8412,7 +8635,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (listID != null)
                         // Configure the values shown by the list edit settings
                     setListEditSettings(conn,listID);
-            } catch (IllegalArgumentException ex){}
+            } catch (IllegalArgumentException ex){
+                log(Level.WARNING, this.getClass(),"loadDatabase", 
+                        "Failed to load list settings for list "+listIDComboModel.getSelectedItem(),
+                        ex);
+            }
             progressBar.setValue(0);
             progressBar.setMaximum(listDataMap.size());
             progressBar.setIndeterminate(false);
@@ -8458,8 +8685,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             loadStructure(indexSet,structMap,"Index");
             
             progressBar.setIndeterminate(true);
-            
-            
             
             try{
                 prefixThreshold = Integer.valueOf(dbProperty.getProperty(
@@ -8642,9 +8867,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (node.nodeExists(""))
                     addConfigRows(source,node.toProperties());
             } catch (BackingStoreException | IllegalStateException ex) {
-                    // If the program is in debug mode
-                if (isInDebug())
-                    System.out.println("Error: " + ex);
+                log(Level.WARNING, this.getClass(),"addConfigRows", 
+                        "Failed to load settings from node "+source,
+                        ex);
             }
         }
         @Override
@@ -9060,26 +9285,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean saveFile(File file) {
+            logEntering(this.getClass(),"saveFile",file);
             try{
                 Path path = file.toPath();
                 switch(mode){
                     case(0):
+                        logExiting(this.getClass(),"saveFile",true);
                         return true;
                     case(1):
                         Files.copy(source.toPath(), path, 
                                 StandardCopyOption.COPY_ATTRIBUTES, 
                                 StandardCopyOption.REPLACE_EXISTING);
+                        logExiting(this.getClass(),"saveFile",true);
                         return true;
                     case(2):
                         Files.move(source.toPath(), path, 
                                 StandardCopyOption.REPLACE_EXISTING);
+                        logExiting(this.getClass(),"saveFile",true);
                         return true;
-                    default:
-                        return false;
                 }
             } catch(InvalidPathException | IOException ex){ 
+                log(Level.WARNING, this.getClass(),"saveFile", 
+                        "Failed to handle changing database file (mode: "+mode+")",
+                        ex);
                 exc = ex;
             }
+            logExiting(this.getClass(),"saveFile",false);
             return false;
         }
         @Override
@@ -9349,20 +9580,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected abstract boolean saveFile(File file, String path) throws IOException;
         @Override
         protected boolean saveFile(File file) {
+            logEntering(this.getClass(),"saveFile", file);
                 // Reset the exception to null
             ioEx = null;
                 // Set the progress to be zero
             progressBar.setValue(0);
                 // Set the progress to be indeterminate
             progressBar.setIndeterminate(true);
+            boolean value = false;
             try{    // Try to download the file from the path
-                return saveFile(file,filePath);
+                value = saveFile(file,filePath);
             } catch (IOException ex){
+                log(Level.WARNING, this.getClass(),"saveFile", 
+                        "Failed to process file",ex);
                 ioEx = ex;
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
             }
-            return false;
+            logExiting(this.getClass(),"saveFile", value);
+            return value;
         }
         @Override
         protected void done(){
@@ -9635,17 +9869,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean downloadFile(File file,String path) throws IOException{
+            logEntering(this.getClass(),"downloadFile",new Object[]{file,path});
                 // Reset the dropbox exception to null
             dbxEx = null;
             try{    // Try to download the file from Dropbox
                 FileMetadata data = downloadFromDropbox(file,path);
                 fileFound = data != null;
+                logExiting(this.getClass(),"downloadFile",fileFound);
                 return fileFound;
             } catch(DbxException ex){
+                log(Level.WARNING, this.getClass(),"downloadFile", 
+                        "Failed to download file from Dropbox", ex);
                 dbxEx = ex;
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
             }
+            logExiting(this.getClass(),"downloadFile",false);
             return false;
         }
     }
@@ -9694,16 +9931,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean uploadFile(File file, String path) throws IOException {
+            logEntering(this.getClass(),"uploadFile",new Object[]{file,path});
                 // Reset the dropbox exception to null
             dbxEx = null;
             try{    // Try to upload the file to Dropbox
                 uploadToDropbox(file,path);
+                logExiting(this.getClass(),"uploadFile",true);
                 return true;
             } catch(DbxException ex){
+                log(Level.WARNING, this.getClass(),"uploadFile", 
+                        "Failed to upload file to Dropbox", ex);
                 dbxEx = ex;
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
             }
+            logExiting(this.getClass(),"uploadFile",false);
             return false;
         }
     }
@@ -9782,6 +10022,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return 
          */
         protected boolean loadDropboxAccount(){
+            logEntering(this.getClass(),"loadDropboxAccount");
                 // Reset the exceptions
             dbxEx = null;
             try{    // Get a client to communicate with Dropbox, refreshing the 
@@ -9801,12 +10042,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 used = spaceUsage.getUsed();
                     // Get the amount of space allocated to the user
                 allocated = DropboxUtilities.getAllocatedSpace(spaceUsage);
+                logExiting(this.getClass(),"loadDropboxAccount",true);
                 return true;
             } catch (InvalidAccessTokenException ex){
+                log(Level.INFO, this.getClass(),"loadDropboxAccount", 
+                        "Dropbox account token has expired", ex);
                 validAccount = false;
             } catch(DbxException ex){
+                log(Level.INFO, this.getClass(),"loadDropboxAccount", 
+                        "Failed to load Dropbox account", ex);
                 dbxEx = ex;
             }
+            logExiting(this.getClass(),"loadDropboxAccount",false);
             return false;
         }
         @Override
