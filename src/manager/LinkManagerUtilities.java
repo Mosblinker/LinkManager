@@ -85,8 +85,7 @@ public class LinkManagerUtilities {
                 programDir = new File(url.toURI()).getParent();
                 return programDir;
             } catch (URISyntaxException ex) {
-                LinkManager.log(java.util.logging.Level.WARNING,
-                        LinkManagerUtilities.class,"getProgramDirectory",
+                LinkManager.getLogger().log(java.util.logging.Level.WARNING,
                         "Failed to retrieve program directory.", ex);
             }
         return getWorkingDirectory();
@@ -314,8 +313,8 @@ public class LinkManagerUtilities {
             // If the original file is null or does not exist
         if (file == null || !file.exists())
             return null;
-        LinkManager.logEntering(LinkManagerUtilities.class, "createBackupCopy", 
-                file);
+        LinkManager.getLogger().entering(LinkManagerUtilities.class.getName(), 
+                "createBackupCopy", file);
             // Get the file to use as the backup file
         File target = new File(file.toString()+"."+LinkManager.BACKUP_FILE_EXTENSION);
             // If the target file already exists
@@ -327,19 +326,17 @@ public class LinkManagerUtilities {
                     StandardCopyOption.COPY_ATTRIBUTES);
         } catch(FileAlreadyExistsException ex) {
                 // How does the target file already exist?
-            LinkManager.log(java.util.logging.Level.WARNING, 
-                    LinkManagerUtilities.class, "createBackupCopy", 
+            LinkManager.getLogger().log(java.util.logging.Level.WARNING, 
                     "Target backup file already exists.", ex);
             target = FilesExtended.getNextAvailableFilePath(target);
-            LinkManager.log(java.util.logging.Level.INFO, 
-                    LinkManagerUtilities.class, "createBackupCopy", 
+            LinkManager.getLogger().log(java.util.logging.Level.INFO, 
                     "New Target backup file {0}", target);
                 // Create a copy of the file using the next available file path
             copy = Files.copy(file.toPath(), target.toPath(), 
                     StandardCopyOption.COPY_ATTRIBUTES);
         }
         target = copy.toFile();
-        LinkManager.logExiting(LinkManagerUtilities.class, 
+        LinkManager.getLogger().exiting(LinkManagerUtilities.class.getName(), 
                 "createBackupCopy", target);
         return target;
     }
@@ -401,8 +398,8 @@ public class LinkManagerUtilities {
      */
     public static boolean writeToFile(File file, List<String> list, 
             boolean blankLines, ProgressObserver listener){
-        LinkManager.logEntering(LinkManagerUtilities.class, "writeToFile", 
-                file);
+        LinkManager.getLogger().entering(LinkManagerUtilities.class.getName(), 
+                "writeToFile", file);
             // Try to create a PrintWriter to write to the file
         try (PrintWriter writer = new PrintWriter(file)) {
                 // If a progress observer was given
@@ -419,14 +416,14 @@ public class LinkManagerUtilities {
                     listener.incrementValue();
             }
         } catch (FileNotFoundException ex) {
-            LinkManager.log(java.util.logging.Level.WARNING, 
-                    LinkManagerUtilities.class, "writeToFile", "File not found", 
-                    ex);
-            LinkManager.logExiting(LinkManagerUtilities.class,"writeToFile", 
-                    false);
+            LinkManager.getLogger().log(java.util.logging.Level.WARNING, 
+                    "File not found", ex);
+            LinkManager.getLogger().exiting(LinkManagerUtilities.class.getName(), 
+                    "writeToFile", false);
             return false;
         }
-        LinkManager.logExiting(LinkManagerUtilities.class, "writeToFile", true);
+        LinkManager.getLogger().exiting(LinkManagerUtilities.class.getName(), 
+                "writeToFile", true);
         return true;
     }
     /**
