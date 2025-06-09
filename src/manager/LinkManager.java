@@ -3740,7 +3740,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             case(AutosaveMenu.AUTOSAVE_PAUSED_PROPERTY_CHANGED):
             case(AutosaveMenu.AUTOSAVE_RUNNING_PROPERTY_CHANGED):
             case("enabled"):
-                getLogger().log(Level.FINER, "Autosave property changed "
+                getLogger().log(Level.FINER, "Autosave menu property changed "
                         + "(Name: {0}, Value: {1} -> {2})", 
                         new Object[]{evt.getPropertyName(), evt.getOldValue(), 
                             evt.getNewValue()});
@@ -4044,7 +4044,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                // Ensure that the database last modified time is updated
             conn.setDatabaseLastModified();
         } catch (SQLException ex) {
-            log(Level.WARNING, this.getClass(), "dbRemoveUnusedDataButtonActionPerformed",
+            log(Level.WARNING, this.getClass(), 
+                    "dbRemoveUnusedDataButtonActionPerformed",
                     "Error removing unused data", ex);
         }
         loader = new LoadDatabaseViewer(true);
@@ -4130,7 +4131,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             case(AutoHideMenu.AUTO_HIDE_PAUSED_PROPERTY_CHANGED):
             case(AutoHideMenu.AUTO_HIDE_RUNNING_PROPERTY_CHANGED):
             case("enabled"):
-                getLogger().log(Level.FINER, "Autosave property changed "
+                getLogger().log(Level.FINER, "Auto-Hide menu property changed "
                         + "(Name: {0}, Value: {1} -> {2})", 
                         new Object[]{evt.getPropertyName(), evt.getOldValue(), 
                             evt.getNewValue()});
