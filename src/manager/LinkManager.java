@@ -3724,6 +3724,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // the program is not currently saving files.
         if (AutosaveMenu.AUTOSAVE_COMMAND.equals(evt.getActionCommand()) && 
                 isEdited() && !isSavingFiles()){
+            getLogger().finer("Automatically saving database");
             saver = new DatabaseSaver();
             saver.execute();
         }
@@ -3739,6 +3740,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             case(AutosaveMenu.AUTOSAVE_PAUSED_PROPERTY_CHANGED):
             case(AutosaveMenu.AUTOSAVE_RUNNING_PROPERTY_CHANGED):
             case("enabled"):
+                getLogger().log(Level.FINER, "Autosave menu property changed "
+                        + "(Name: {0}, Value: {1} -> {2})", 
+                        new Object[]{evt.getPropertyName(), evt.getOldValue(), 
+                            evt.getNewValue()});
                 if (isInDebug() && printAutosaveEventsToggle.isSelected()){
                     System.out.println("Autosave Menu Prop Changed: " + evt);
                 }
@@ -4039,7 +4044,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                // Ensure that the database last modified time is updated
             conn.setDatabaseLastModified();
         } catch (SQLException ex) {
-            log(Level.WARNING, this.getClass(), "dbRemoveUnusedDataButtonActionPerformed",
+            log(Level.WARNING, this.getClass(), 
+                    "dbRemoveUnusedDataButtonActionPerformed",
                     "Error removing unused data", ex);
         }
         loader = new LoadDatabaseViewer(true);
@@ -4106,6 +4112,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             System.out.println("Auto-Hide Menu Action: " + evt);
         }   // If this is to automatically hide the hidden lists
         if (AutoHideMenu.AUTO_HIDE_COMMAND.equals(evt.getActionCommand())){
+            getLogger().log(Level.FINER, "Automatically hiding hidden lists (visible: {0})", 
+                    showHiddenListsToggle.isSelected());
             showHiddenListsToggle.setSelected(false);
             updateVisibleTabsPanel();
                 // Clear whether hidden lists are shown in the configuration
@@ -4123,6 +4131,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             case(AutoHideMenu.AUTO_HIDE_PAUSED_PROPERTY_CHANGED):
             case(AutoHideMenu.AUTO_HIDE_RUNNING_PROPERTY_CHANGED):
             case("enabled"):
+                getLogger().log(Level.FINER, "Auto-Hide menu property changed "
+                        + "(Name: {0}, Value: {1} -> {2})", 
+                        new Object[]{evt.getPropertyName(), evt.getOldValue(), 
+                            evt.getNewValue()});
                 if (isInDebug() && printAutoHideEventsToggle.isSelected()){
                     System.out.println("Auto-Hide Menu Prop Changed: " + evt);
                 }
