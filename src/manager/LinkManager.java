@@ -1189,6 +1189,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         jSeparator4 = new javax.swing.JPopupMenu.Separator();
         showAllListsItem = new javax.swing.JMenuItem();
         hideAllListsItem = new javax.swing.JMenuItem();
+        showHiddenListsToggle = new javax.swing.JCheckBoxMenuItem();
         searchMenu = new javax.swing.JMenu();
         searchMenuItem = new javax.swing.JMenuItem();
         optionsMenu = new javax.swing.JMenu();
@@ -1201,7 +1202,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setDBLocationItem = new javax.swing.JMenuItem();
         syncDBToggle = new javax.swing.JCheckBoxMenuItem();
         autosaveMenu = new manager.timermenu.AutosaveMenu();
-        showHiddenListsToggle = new javax.swing.JCheckBoxMenuItem();
         autoHideMenu = new manager.timermenu.AutoHideMenu();
         debugMenu = new javax.swing.JMenu();
         slowTestToggle = new components.debug.SlowTestMenuItem();
@@ -2682,6 +2682,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         listMenu.add(hideListsMenu);
 
+        showHiddenListsToggle.setText("Show Hidden Lists");
+        showHiddenListsToggle.setActionCommand(HIDDEN_LISTS_TOGGLE_COMMAND);
+        showHiddenListsToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showHiddenListsToggleActionPerformed(evt);
+            }
+        });
+        listMenu.add(showHiddenListsToggle);
+
         menuBar.add(listMenu);
 
         searchMenu.setText("Search");
@@ -2781,15 +2790,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         optionsMenu.add(autosaveMenu);
-
-        showHiddenListsToggle.setText("Show Hidden Lists");
-        showHiddenListsToggle.setActionCommand(HIDDEN_LISTS_TOGGLE_COMMAND);
-        showHiddenListsToggle.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                showHiddenListsToggleActionPerformed(evt);
-            }
-        });
-        optionsMenu.add(showHiddenListsToggle);
 
         autoHideMenu.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
