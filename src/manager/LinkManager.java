@@ -3856,7 +3856,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }   // If this will sync the database to the cloud and the user is 
             // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            saver = new DbxDownloader(file,config.getDropboxDatabaseFileName(),loadFlags);
+            saver = new FileDownloader(file,config.getDropboxDatabaseFileName(),loadFlags);
             saver.execute();
         } else {
             loader = new DatabaseLoader(LinkManagerUtilities.setFlag(loadFlags,
@@ -4554,13 +4554,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     protected void done(){
                         super.done();
                         if (!getExitAfterSaving()){
-                            saver = new DbxUploader(getDatabaseFile(),config.getDropboxDatabaseFileName());
+                            saver = new FileUploader(getDatabaseFile(),config.getDropboxDatabaseFileName());
                             saver.execute();
                         }
                     }
                 };
             } else {
-                saver = new DbxUploader(getDatabaseFile(),config.getDropboxDatabaseFileName());
+                saver = new FileUploader(getDatabaseFile(),config.getDropboxDatabaseFileName());
             }
             saver.execute();
         }
@@ -4568,7 +4568,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void downloadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadDBItemActionPerformed
         if (isLoggedInToDropbox()){
-            saver = new DbxDownloader(getDatabaseFile(),config.getDropboxDatabaseFileName());
+            saver = new FileDownloader(getDatabaseFile(),config.getDropboxDatabaseFileName());
             saver.execute();
         }
     }//GEN-LAST:event_downloadDBItemActionPerformed
@@ -7980,7 +7980,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          */
         protected void uploadDatabase(){
-            saver = new DbxUploader(file,config.getDropboxDatabaseFileName(),false,exitAfterSaving);
+            saver = new FileUploader(file,config.getDropboxDatabaseFileName(),false,exitAfterSaving);
             saver.execute();
         }
         @Override
@@ -9539,6 +9539,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Set the progress to be indeterminate
             progressBar.setIndeterminate(true);
             boolean value = false;
+            switch(mode){
+                case(0):
+                    filePath = DropboxUtilities.formatDropboxPath(filePath);
+            }
             try{    // Try to download the file from the path
                 value = saveFile(file,filePath,mode);
             } catch (IOException ex){
@@ -9561,7 +9565,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private abstract class FileDownloader extends FilePathSaver{
+    private class FileDownloader extends FilePathSaver{
         /**
          * The flags to use for loading the lists. If this is null, then the 
          * database will not be loaded after this.
@@ -9654,20 +9658,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             return "Failed to download file" + msg;
         }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @return
-         * @throws IOException 
-         * @throws DbxException
-         */
-        protected abstract boolean downloadFile(File file, String path) 
-                throws IOException, DbxException;
         @Override
         protected boolean saveFile(File file, String path, int mode) 
                 throws IOException, DbxException{
-            return downloadFile(file,path);
+            getLogger().entering(this.getClass().getName(), "saveFile",
+                    new Object[]{file,path,mode});
+            switch(mode){
+                case(0):    // Try to download the file from Dropbox
+                    FileMetadata data = downloadFromDropbox(file,path);
+                    fileFound = data != null;
+                    getLogger().exiting(this.getClass().getName(), "saveFile",fileFound);
+                    return fileFound;
+            }
+            getLogger().exiting(this.getClass().getName(), "saveFile",false);
+            return false;
         }
         /**
          * 
@@ -9688,7 +9692,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private abstract class FileUploader extends FilePathSaver{
+    private class FileUploader extends FilePathSaver{
         /**
          * Whether the success prompt should be shown.
          */
@@ -9780,20 +9784,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             return "Failed to upload file" + msg;
         }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @return
-         * @throws IOException 
-         * @throws DbxException
-         */
-        protected abstract boolean uploadFile(File file, String path) 
-                throws IOException, DbxException;
         @Override
         protected boolean saveFile(File file, String path, int mode) throws 
                 IOException, DbxException{
-            return uploadFile(file,path);
+            getLogger().entering(this.getClass().getName(),"saveFile",
+                    new Object[]{file,path,mode});
+            switch(mode){
+                case(0):     // Try to upload the file to Dropbox
+                    uploadToDropbox(file,path);
+                    getLogger().exiting(this.getClass().getName(), "saveFile",true);
+                    return true;
+            }
+            getLogger().exiting(this.getClass().getName(), "saveFile",false);
+            return false;
         }
         @Override
         protected boolean processFile(File file){
@@ -9808,80 +9811,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void exitProgram(){
             saver = new ProgramConfigSaver(true);
             saver.execute();
-        }
-    }
-    /**
-     * 
-     */
-    private class DbxDownloader extends FileDownloader{
-        /**
-         * 
-         * @param file
-         * @param dbxPath
-         * @param loadFlags 
-         */
-        DbxDownloader(File file,String dbxPath,Integer loadFlags){
-            super(file,DropboxUtilities.formatDropboxPath(dbxPath),loadFlags);
-        }
-        /**
-         * 
-         * @param file 
-         * @param dbxPath
-         */
-        DbxDownloader(File file,String dbxPath){
-            super(file,DropboxUtilities.formatDropboxPath(dbxPath));
-        }
-        @Override
-        protected boolean downloadFile(File file,String path) throws IOException, DbxException{
-            getLogger().entering(this.getClass().getName(), "downloadFile",
-                    new Object[]{file,path});
-                // Try to download the file from Dropbox
-            FileMetadata data = downloadFromDropbox(file,path);
-            fileFound = data != null;
-            getLogger().exiting(this.getClass().getName(), "downloadFile",fileFound);
-            return fileFound;
-        }
-    }
-    /**
-     * 
-     */
-    private class DbxUploader extends FileUploader{
-        /**
-         * 
-         * @param file
-         * @param dbxPath
-         * @param showSuccess
-         * @param exit 
-         */
-        DbxUploader(File file,String dbxPath,boolean showSuccess,boolean exit) {
-            super(file,DropboxUtilities.formatDropboxPath(dbxPath),showSuccess,exit);
-        }
-        /**
-         * 
-         * @param file
-         * @param dbxPath
-         * @param showSuccess 
-         */
-        DbxUploader(File file, String dbxPath, boolean showSuccess){
-            super(file,DropboxUtilities.formatDropboxPath(dbxPath),showSuccess);
-        }
-        /**
-         * 
-         * @param dbxPath
-         * @param file 
-         */
-        DbxUploader(File file,String dbxPath){
-            super(file,DropboxUtilities.formatDropboxPath(dbxPath));
-        }
-        @Override
-        protected boolean uploadFile(File file, String path) throws IOException, 
-                DbxException {
-            getLogger().entering(this.getClass().getName(),"uploadFile",
-                    new Object[]{file,path});
-                // Try to upload the file to Dropbox
-            uploadToDropbox(file,path);
-            getLogger().exiting(this.getClass().getName(), "uploadFile",true);
-            return true;
         }
     }
     /**
