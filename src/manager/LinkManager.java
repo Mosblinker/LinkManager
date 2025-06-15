@@ -3856,7 +3856,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }   // If this will sync the database to the cloud and the user is 
             // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            saver = new FileDownloader(file,config.getDropboxDatabaseFileName(),loadFlags);
+            saver = new FileDownloader(file,config.getDropboxDatabaseFileName(),0,loadFlags);
             saver.execute();
         } else {
             loader = new DatabaseLoader(LinkManagerUtilities.setFlag(loadFlags,
@@ -4554,13 +4554,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     protected void done(){
                         super.done();
                         if (!getExitAfterSaving()){
-                            saver = new FileUploader(getDatabaseFile(),config.getDropboxDatabaseFileName());
+                            saver = new FileUploader(getDatabaseFile(),config.getDropboxDatabaseFileName(),0);
                             saver.execute();
                         }
                     }
                 };
             } else {
-                saver = new FileUploader(getDatabaseFile(),config.getDropboxDatabaseFileName());
+                saver = new FileUploader(getDatabaseFile(),config.getDropboxDatabaseFileName(),0);
             }
             saver.execute();
         }
@@ -4568,7 +4568,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void downloadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadDBItemActionPerformed
         if (isLoggedInToDropbox()){
-            saver = new FileDownloader(getDatabaseFile(),config.getDropboxDatabaseFileName());
+            saver = new FileDownloader(getDatabaseFile(),config.getDropboxDatabaseFileName(),0);
             saver.execute();
         }
     }//GEN-LAST:event_downloadDBItemActionPerformed
@@ -7980,7 +7980,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          */
         protected void uploadDatabase(){
-            saver = new FileUploader(file,config.getDropboxDatabaseFileName(),false,exitAfterSaving);
+            saver = new FileUploader(file,config.getDropboxDatabaseFileName(),0,false,exitAfterSaving);
             saver.execute();
         }
         @Override
@@ -9575,29 +9575,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @param file
          * @param path
+         * @param mode
          * @param loadFlags
          * @param exit 
          */
-        FileDownloader(File file, String path, Integer loadFlags, boolean exit){
-            super(file,path,0,exit);
+        FileDownloader(File file, String path, int mode, Integer loadFlags, boolean exit){
+            super(file,path,mode,exit);
             this.loadFlags = loadFlags;
         }
         /**
          * 
          * @param file
          * @param path
+         * @param mode
          * @param loadFlags 
          */
-        FileDownloader(File file, String path, Integer loadFlags){
-            this(file,path,loadFlags,false);
+        FileDownloader(File file, String path, int mode, Integer loadFlags){
+            this(file,path,mode,loadFlags,false);
         }
         /**
          * 
          * @param file
          * @param path 
+         * @param mode
          */
-        FileDownloader(File file, String path){
-            this(file,path,null);
+        FileDownloader(File file, String path, int mode){
+            this(file,path,mode,null);
         }
         /**
          * 
@@ -9701,29 +9704,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @param file
          * @param path
+         * @param mode
          * @param showSuccess
          * @param exit 
          */
-        FileUploader(File file, String path, boolean showSuccess, boolean exit){
-            super(file, path, 0, exit);
+        FileUploader(File file, String path, int mode, boolean showSuccess, boolean exit){
+            super(file, path, mode, exit);
             this.showSuccess = showSuccess;
         }
         /**
          * 
          * @param file
          * @param path
+         * @param mode
          * @param showSuccess 
          */
-        FileUploader(File file, String path, boolean showSuccess){
-            this(file,path,showSuccess,false);
+        FileUploader(File file, String path, int mode, boolean showSuccess){
+            this(file,path,mode,showSuccess,false);
         }
         /**
          * 
          * @param file
          * @param path 
+         * @param mode
          */
-        FileUploader(File file, String path){
-            this(file,path,true);
+        FileUploader(File file, String path, int mode){
+            this(file,path,mode,true);
         }
         /**
          * This sets whether the program will exit after this finishes saving 
