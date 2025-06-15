@@ -8087,8 +8087,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Get whether the database is outdated
             isDBOutdated = conn.isDatabaseOutdated();
                 // If the database is incompatible with this version of the 
-            if (!conn.isDatabaseCompatible())   // program
+            if (!conn.isDatabaseCompatible()){      // program
+                getLogger().log(Level.INFO, 
+                        "Database is incompatible with this program (version: {0})", 
+                        dbVersion);
                 return false;
+            }
             // TODO: This should be made to backup the database, just in case
                 // If the database was not successfully updated to the latest 
                 // version this program supports
