@@ -9279,8 +9279,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected String filePath;
         /**
-         * This gets any IOExceptions that get thrown while downloading the 
-         * file.
+         * This gets any IOExceptions that get thrown while uploading or 
+         * downloading the file.
          */
         protected IOException ioEx = null;
         /**
@@ -9292,22 +9292,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected boolean showFileNotFound = true;
         /**
+         * The mode in which to use for uploading and downloading the file
+         */
+        protected int mode;
+        /**
          * 
          * @param file
          * @param path
+         * @param mode
          * @param exit 
          */
-        public FilePathSaver(File file, String path, boolean exit) {
+        public FilePathSaver(File file, String path, int mode, boolean exit) {
             super(file, exit);
             filePath = Objects.requireNonNull(path);
+            this.mode = mode;
         }
         /**
          * 
          * @param file
          * @param path 
+         * @param mode
          */
-        public FilePathSaver(File file, String path){
-            this(file,path,false);
+        public FilePathSaver(File file, String path, int mode){
+            this(file,path,mode,false);
         }
         /**
          * 
@@ -9322,6 +9329,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         public boolean getFileNotFound(){
             return !fileFound;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public int getMode(){
+            return mode;
         }
         /**
          * This returns whether this shows a failure prompt when the file is not 
@@ -9490,10 +9504,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @param file
          * @param path
+         * @param mode
          * @return
          * @throws IOException 
          */
-        protected abstract boolean saveFile(File file, String path) throws IOException;
+        protected abstract boolean saveFile(File file, String path, int mode) throws IOException;
         @Override
         protected boolean saveFile(File file) {
             getLogger().entering(this.getClass().getName(), "saveFile", file);
@@ -9505,7 +9520,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             progressBar.setIndeterminate(true);
             boolean value = false;
             try{    // Try to download the file from the path
-                value = saveFile(file,filePath);
+                value = saveFile(file,filePath,mode);
             } catch (IOException ex){
                 getLogger().log(Level.WARNING, "Failed to process file",ex);
                 ioEx = ex;
@@ -9537,7 +9552,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param exit 
          */
         FileDownloader(File file, String path, Integer loadFlags, boolean exit){
-            super(file,path,exit);
+            super(file,path,0,exit);
             this.loadFlags = loadFlags;
         }
         /**
@@ -9612,7 +9627,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected abstract boolean downloadFile(File file, String path) 
                 throws IOException;
         @Override
-        protected boolean saveFile(File file, String path) throws IOException{
+        protected boolean saveFile(File file, String path, int mode) throws IOException{
             return downloadFile(file,path);
         }
         /**
@@ -9647,7 +9662,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param exit 
          */
         FileUploader(File file, String path, boolean showSuccess, boolean exit){
-            super(file, path, exit);
+            super(file, path, 0, exit);
             this.showSuccess = showSuccess;
         }
         /**
@@ -9727,7 +9742,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected abstract boolean uploadFile(File file, String path) 
                 throws IOException;
         @Override
-        protected boolean saveFile(File file, String path) throws IOException{
+        protected boolean saveFile(File file, String path, int mode) throws IOException{
             return uploadFile(file,path);
         }
         @Override
