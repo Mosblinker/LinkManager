@@ -9060,6 +9060,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected boolean saveDatabase(LinkDatabaseConnection conn, 
                 Statement stmt) throws SQLException {
+            getLogger().entering(this.getClass().getName(), "saveDatabase", mode);
             boolean updateSuccess = true;
             if (mode != 0)
                 conn.setForeignKeysEnabled(false, stmt);
@@ -9093,6 +9094,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             if (mode != 0)
                 conn.setForeignKeysEnabled(true, stmt);
+            getLogger().exiting(this.getClass().getName(), "saveDatabase", updateSuccess);
             return updateSuccess;
         }
     }
