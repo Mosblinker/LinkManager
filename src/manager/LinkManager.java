@@ -9638,11 +9638,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected String getFileNotFoundMessage(File file, String path){
-            return "The file was not found at the path\n\""+path+"\"";
+            String msg = "";
+            switch(mode){
+                case (0):
+                    msg = " on Dropbox";
+            }
+            return "The file was not found"+msg+" at the path\n\""+path+"\"";
         }
         @Override
         protected String getLoggingExceptionMessage(int mode){
-            return "Failed to download file";
+            String msg = "";
+            switch(mode){
+                case(0):
+                    msg = " from Dropbox";
+            }
+            return "Failed to download file" + msg;
         }
         /**
          * 
@@ -9763,7 +9773,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected String getLoggingExceptionMessage(int mode){
-            return "Failed to upload file";
+            String msg = "";
+            switch(mode){
+                case(0):
+                    msg = " to Dropbox";
+            }
+            return "Failed to upload file" + msg;
         }
         /**
          * 
@@ -9817,14 +9832,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             super(file,DropboxUtilities.formatDropboxPath(dbxPath));
         }
         @Override
-        protected String getFileNotFoundMessage(File file, String path){
-            return "The file was not found on Dropbox.";
-        }
-        @Override
-        protected String getLoggingExceptionMessage(int mode){
-            return super.getLoggingExceptionMessage(mode)+" from Dropbox";
-        }
-        @Override
         protected boolean downloadFile(File file,String path) throws IOException, DbxException{
             getLogger().entering(this.getClass().getName(), "downloadFile",
                     new Object[]{file,path});
@@ -9865,10 +9872,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         DbxUploader(File file,String dbxPath){
             super(file,DropboxUtilities.formatDropboxPath(dbxPath));
-        }
-        @Override
-        protected String getLoggingExceptionMessage(int mode){
-            return super.getLoggingExceptionMessage(mode)+" to Dropbox";
         }
         @Override
         protected boolean uploadFile(File file, String path) throws IOException, 
