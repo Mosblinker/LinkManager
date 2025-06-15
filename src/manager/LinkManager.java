@@ -7983,12 +7983,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (success){   // If this was successful
                 allListsTabsPanel.clearEdited();
                 shownListsTabsPanel.clearEdited();
+                    // Stop the autosave
+                autosaveMenu.stopAutosave();
             }   // Update the program configuration
             updateProgramConfig();
             super.done();
                 // If we are not exiting the program after saving the database
             if (!exitAfterSaving){   
-                autosaveMenu.startAutosave();
                 if (success && syncDBToggle.isSelected() && isLoggedInToDropbox()){
                     uploadDatabase();
                 }
@@ -8305,6 +8306,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             fullyLoaded = fullyLoaded || getLoadsAll();
                 // Re-enable all the lists
             setTabsPanelListsEnabled(true);
+                // If all the lists were loaded and this successfully loaded the 
+                // lists
+            if (getLoadsAll() && success)
+                autosaveMenu.stopAutosave();
             super.done();
                 // If this should check the local file for any more up-to-date 
                 // lists and the file that was loaded is not the local file
@@ -8313,9 +8318,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 loader = new DatabaseLoader(LinkManagerUtilities.setFlag(loadFlags,
                         DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG, false));
                 loader.execute();
-                return;
             }
-            autosaveMenu.startAutosave();
         }
     }
 //    /**
