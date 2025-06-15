@@ -9284,6 +9284,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected IOException ioEx = null;
         /**
+         * This gets any Dropbox exceptions that get thrown while uploading or 
+         * downloading the file.
+         */
+        protected DbxException dbxEx = null;
+        /**
          * Whether the file was found.
          */
         protected boolean fileFound = true;
@@ -9451,8 +9456,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * null.
          */
         protected String getExceptionMessage(File file, String path){
+                // The message to provide for the exception
+            String msg = null;
+                // If a Dropbox exception occurred
+            if (dbxEx != null)
+                msg = dbxEx.toString();
                 // If an IOException occurred, say so. Otherwise, return null.
-            return (ioEx == null) ? null : ioEx.toString();
+            return (ioEx == null) ? msg : (((msg != null) ? msg +" " : "") + 
+                    ioEx.toString());
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected String getLoggingExceptionMessage(int mode){
+            return "Failed to process file";
         }
         /**
          * This returns the message to display if the file was not found.
@@ -9507,8 +9525,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @return
          * @throws IOException 
+         * @throws DbxException
          */
-        protected abstract boolean saveFile(File file, String path, int mode) throws IOException;
+        protected abstract boolean saveFile(File file, String path, int mode) 
+                throws IOException, DbxException;
         @Override
         protected boolean saveFile(File file) {
             getLogger().entering(this.getClass().getName(), "saveFile", file);
@@ -9522,8 +9542,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             try{    // Try to download the file from the path
                 value = saveFile(file,filePath,mode);
             } catch (IOException ex){
-                getLogger().log(Level.WARNING, "Failed to process file",ex);
+                getLogger().log(Level.WARNING, getLoggingExceptionMessage(mode),ex);
                 ioEx = ex;
+            } catch (DbxException ex) {
+                getLogger().log(Level.WARNING, getLoggingExceptionMessage(mode),ex);
+                dbxEx = ex;
             }
             getLogger().exiting(this.getClass().getName(), "saveFile", value);
             return value;
@@ -9617,17 +9640,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected String getFileNotFoundMessage(File file, String path){
             return "The file was not found at the path\n\""+path+"\"";
         }
+        @Override
+        protected String getLoggingExceptionMessage(int mode){
+            return "Failed to download file";
+        }
         /**
          * 
          * @param file
          * @param path
          * @return
          * @throws IOException 
+         * @throws DbxException
          */
         protected abstract boolean downloadFile(File file, String path) 
-                throws IOException;
+                throws IOException, DbxException;
         @Override
-        protected boolean saveFile(File file, String path, int mode) throws IOException{
+        protected boolean saveFile(File file, String path, int mode) 
+                throws IOException, DbxException{
             return downloadFile(file,path);
         }
         /**
@@ -9732,17 +9761,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected String getFailureMessage(File file, String path){
             return "The file failed to upload.";
         }
+        @Override
+        protected String getLoggingExceptionMessage(int mode){
+            return "Failed to upload file";
+        }
         /**
          * 
          * @param file
          * @param path
          * @return
          * @throws IOException 
+         * @throws DbxException
          */
         protected abstract boolean uploadFile(File file, String path) 
-                throws IOException;
+                throws IOException, DbxException;
         @Override
-        protected boolean saveFile(File file, String path, int mode) throws IOException{
+        protected boolean saveFile(File file, String path, int mode) throws 
+                IOException, DbxException{
             return uploadFile(file,path);
         }
         @Override
@@ -9765,11 +9800,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private class DbxDownloader extends FileDownloader{
         /**
-         * This gets any Dropbox exceptions that get thrown while downloading 
-         * the file.
-         */
-        private DbxException dbxEx = null;
-        /**
          * 
          * @param file
          * @param dbxPath
@@ -9791,41 +9821,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return "The file was not found on Dropbox.";
         }
         @Override
-        protected String getExceptionMessage(File file, String path){
-                // If a dropbox exception occurred
-            if (dbxEx != null)
-                return dbxEx.toString();
-            return super.getExceptionMessage(file, path);
+        protected String getLoggingExceptionMessage(int mode){
+            return super.getLoggingExceptionMessage(mode)+" from Dropbox";
         }
         @Override
-        protected boolean downloadFile(File file,String path) throws IOException{
+        protected boolean downloadFile(File file,String path) throws IOException, DbxException{
             getLogger().entering(this.getClass().getName(), "downloadFile",
                     new Object[]{file,path});
-                // Reset the dropbox exception to null
-            dbxEx = null;
-            try{    // Try to download the file from Dropbox
-                FileMetadata data = downloadFromDropbox(file,path);
-                fileFound = data != null;
-                getLogger().exiting(this.getClass().getName(), "downloadFile",fileFound);
-                return fileFound;
-            } catch(DbxException ex){
-                getLogger().log(Level.WARNING, 
-                        "Failed to download file from Dropbox", ex);
-                dbxEx = ex;
-            }
-            getLogger().exiting(this.getClass().getName(), "downloadFile",false);
-            return false;
+                // Try to download the file from Dropbox
+            FileMetadata data = downloadFromDropbox(file,path);
+            fileFound = data != null;
+            getLogger().exiting(this.getClass().getName(), "downloadFile",fileFound);
+            return fileFound;
         }
     }
     /**
      * 
      */
     private class DbxUploader extends FileUploader{
-        /**
-         * This gets any Dropbox exceptions that get thrown while uploading the 
-         * file.
-         */
-        private DbxException dbxEx = null;
         /**
          * 
          * @param file
@@ -9854,29 +9867,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             super(file,DropboxUtilities.formatDropboxPath(dbxPath));
         }
         @Override
-        protected String getExceptionMessage(File file, String path){
-                // If a dropbox exception occurred
-            if (dbxEx != null)
-                return dbxEx.toString();
-            return super.getExceptionMessage(file, path);
+        protected String getLoggingExceptionMessage(int mode){
+            return super.getLoggingExceptionMessage(mode)+" to Dropbox";
         }
         @Override
-        protected boolean uploadFile(File file, String path) throws IOException {
+        protected boolean uploadFile(File file, String path) throws IOException, 
+                DbxException {
             getLogger().entering(this.getClass().getName(),"uploadFile",
                     new Object[]{file,path});
-                // Reset the dropbox exception to null
-            dbxEx = null;
-            try{    // Try to upload the file to Dropbox
-                uploadToDropbox(file,path);
-                getLogger().exiting(this.getClass().getName(), "uploadFile",true);
-                return true;
-            } catch(DbxException ex){
-                getLogger().log(Level.WARNING,"Failed to upload file to Dropbox", 
-                        ex);
-                dbxEx = ex;
-            }
-            getLogger().exiting(this.getClass().getName(), "uploadFile",false);
-            return false;
+                // Try to upload the file to Dropbox
+            uploadToDropbox(file,path);
+            getLogger().exiting(this.getClass().getName(), "uploadFile",true);
+            return true;
         }
     }
     /**
