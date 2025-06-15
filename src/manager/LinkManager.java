@@ -5654,6 +5654,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void writeToDatabase(LinkDatabaseConnection conn, 
             Collection<LinksListModel> models) throws SQLException {
+        getLogger().entering(this.getClass().getName(), "writeToDatabase");
             // Get the current state of the connection's auto-commit
         boolean autoCommit = conn.getAutoCommit();
             // Turn off the connection's auto-commit to group the following 
@@ -5763,6 +5764,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         conn.commit();       // Commit the changes to the database
             // Restore the connection's auto-commit back to what it was set to 
         conn.setAutoCommit(autoCommit);     // before
+        getLogger().entering(this.getClass().getName(), "writeToDatabase");
     }
     /**
      * 
@@ -5771,6 +5773,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @throws SQLException 
      */
     private boolean saveDatabase(LinkDatabaseConnection conn) throws SQLException{
+        getLogger().entering(this.getClass().getName(), "saveDatabase");
             // Remove the listIDs of any lists that have been removed
         conn.getAllListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
             // Remove the listIDs of any lists that have been removed
@@ -5792,6 +5795,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         models.addAll(shownListsTabsPanel.getModels());
             // Write the models to the database
         writeToDatabase(conn, models);
+        getLogger().exiting(this.getClass().getName(), "saveDatabase", true);
         return true;
     }
     /**
