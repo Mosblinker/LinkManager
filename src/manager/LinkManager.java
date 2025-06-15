@@ -5804,6 +5804,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private FileMetadata downloadFromDropbox(File file, String path) throws 
             DbxException, IOException{
+        getLogger().entering(this.getClass().getName(), "downloadFromDropbox", 
+                new Object[]{file, path});
             // Get a client to communicate with Dropbox, refreshing the Dropbox 
             // credentials if necessary
         DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
@@ -5821,9 +5823,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         } catch (GetMetadataErrorException ex){
             getLogger().log(Level.WARNING,"Failed to download from Dropbox",ex);
                 // If the error because the file doesn't exist
-            if (DropboxUtilities.fileNotFound(ex))
+            if (DropboxUtilities.fileNotFound(ex)){
+                getLogger().exiting(this.getClass().getName(), 
+                        "downloadFromDropbox", null);
                 return null;
-            else 
+            }else 
                 throw ex;
         }   // This is the progress listener to use to listen to how many bytes 
             // have been downloaded so far.
@@ -5835,7 +5839,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Set the progress bar to not be indeterminate
             progressBar.setIndeterminate(false);
         }   // Download the file from Dropbox
-        return DropboxUtilities.download(file, path, dbxFiles, listener);
+        FileMetadata data = DropboxUtilities.download(file, path, dbxFiles, listener);
+        getLogger().exiting(this.getClass().getName(), "downloadFromDropbox", data);
+        return data;
     }
     /**
      * 
@@ -5847,6 +5853,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private FileMetadata uploadToDropbox(File file, String path) throws 
             DbxException, IOException{
+        getLogger().entering(this.getClass().getName(), "uploadToDropbox", 
+                new Object[]{file, path});
             // Get a client to communicate with Dropbox, refreshing the Dropbox 
             // credentials if necessary
         DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
@@ -5859,8 +5867,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         progressBar.setIndeterminate(false);
             // Upload the file to Dropbox, using the set chunk size and 
             // overwriting the file if it already exists
-        return DropboxUtilities.upload(file, path, client.files(), 
+        FileMetadata data = DropboxUtilities.upload(file, path, client.files(), 
                 dbxChunkSizeModel.getChunkSize(), true, listener);
+        getLogger().exiting(this.getClass().getName(), "uploadToDropbox", data);
+        return data;
     }
     /**
      * This is a LinksListTabAction that saves the links from a list to a 
