@@ -3632,7 +3632,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             case(AutosaveMenu.AUTOSAVE_RUNNING_PROPERTY_CHANGED):
             case("enabled"):
                 getLogger().log(Level.FINER, "Autosave menu property changed "
-                        + "(Name: {0}, Value: {1} -> {2})", 
+                        + "(Name: {0}, Old: {1}, New: {2})", 
                         new Object[]{evt.getPropertyName(), evt.getOldValue(), 
                             evt.getNewValue()});
                 if (isInDebug() && printAutosaveEventsToggle.isSelected()){
@@ -4020,7 +4020,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             case(AutoHideMenu.AUTO_HIDE_RUNNING_PROPERTY_CHANGED):
             case("enabled"):
                 getLogger().log(Level.FINER, "Auto-Hide menu property changed "
-                        + "(Name: {0}, Value: {1} -> {2})", 
+                        + "(Name: {0}, Old: {1}, New: {2})", 
                         new Object[]{evt.getPropertyName(), evt.getOldValue(), 
                             evt.getNewValue()});
                 if (isInDebug() && printAutoHideEventsToggle.isSelected()){
