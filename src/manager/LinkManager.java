@@ -8096,8 +8096,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // TODO: This should be made to backup the database, just in case
                 // If the database was not successfully updated to the latest 
                 // version this program supports
-            if (!conn.updateDatabaseDefinitions(stmt,progressObserver))
+            if (!conn.updateDatabaseDefinitions(stmt,progressObserver)){
+                getLogger().log(Level.WARNING, 
+                        "Database could not be updated (version: {0})", 
+                        dbVersion);
                 return false;
+            }
                 // Get a set of models that currently already exist
             Set<LinksListModel> oldModels = new HashSet<>(allListsTabsPanel.getModels());
                 // Make sure this set has ALL the models, even those that are 
