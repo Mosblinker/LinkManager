@@ -53,8 +53,8 @@ public abstract class PasteAndAddAction extends AbstractAction{
                     // Have the text component grab the focus.
                 getTextComponent().grabFocus();
             } catch (UnsupportedFlavorException | IOException ex) {
-                LinkManager.getLogger().log(Level.INFO, "Unable to add from "
-                        + "clipboard", ex);
+                LinkManager.getLogger().log(Level.INFO, 
+                        "Unable to add from clipboard", ex);
             }
         }
         LinkManager.getLogger().exiting(this.getClass().getName(), "actionPerformed");
