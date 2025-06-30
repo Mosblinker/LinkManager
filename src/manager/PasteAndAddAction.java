@@ -8,6 +8,7 @@ import java.awt.datatransfer.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
@@ -40,6 +41,7 @@ public abstract class PasteAndAddAction extends AbstractAction{
     public abstract JTextComponent getTextComponent();
     @Override
     public void actionPerformed(ActionEvent evt) {
+        LinkManager.getLogger().entering(this.getClass().getName(), "actionPerformed", evt);
             // Get the clipboard from the text component
         Clipboard clipboard = getTextComponent().getToolkit().getSystemClipboard();
             // If a String is currently in the clipboard
@@ -51,7 +53,10 @@ public abstract class PasteAndAddAction extends AbstractAction{
                     // Have the text component grab the focus.
                 getTextComponent().grabFocus();
             } catch (UnsupportedFlavorException | IOException ex) {
+                LinkManager.getLogger().log(Level.INFO, "Unable to add from "
+                        + "clipboard", ex);
             }
         }
+        LinkManager.getLogger().exiting(this.getClass().getName(), "actionPerformed");
     }
 }
