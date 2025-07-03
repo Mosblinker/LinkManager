@@ -91,8 +91,6 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
     private void requireListExists() throws SQLException{
             // If this list does not exist
         if (!exists()){
-            LinkManager.getLogger().log(Level.WARNING, 
-                    "List with ID {0} does not exist", listID);
             throw new IllegalStateException("List with ID "+listID+" does not exist");
         }
     }

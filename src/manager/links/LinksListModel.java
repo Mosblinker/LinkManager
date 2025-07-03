@@ -9,7 +9,6 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.*;
 import java.util.function.*;
-import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.Position;
@@ -759,9 +758,8 @@ public class LinksListModel extends ArrayListModel<String> implements
     private void checkIfReadOnly(){
             // If the modification limit is enabled and the list is read only
         if (modLimitEnabled && isReadOnly()){
-            LinkManager.getLogger().log(Level.WARNING, "List {0}: {1} is read only", 
-                    new Object[]{getListID(),getListName()});
-            throw new IllegalStateException("List is read only");
+            throw new IllegalStateException("List ("+getListID() + ": "+
+                    getListName()+") is read only");
         }
     }
     /**
@@ -770,10 +768,8 @@ public class LinksListModel extends ArrayListModel<String> implements
     private void checkIfFull(){
             // If the modification limit is enabled and the list is full
         if (modLimitEnabled && isFull()){
-            LinkManager.getLogger().log(Level.WARNING, 
-                    "List {0}: {1} is full (list size: {2}, size limit: {3})", 
-                    new Object[]{getListID(),getListName(),size(),sizeLimit});
-            throw new IllegalStateException("List is full (list size: " +size()+
+            throw new IllegalStateException("List ("+getListID() + ": "+
+                    getListName()+") is full (list size: " +size()+
                     ", size limit: " + sizeLimit+")");
         }
     }
@@ -841,8 +837,6 @@ public class LinksListModel extends ArrayListModel<String> implements
     }
     @Override
     public void add(int index, String element){
-        LinkManager.getLogger().entering(this.getClass().getName(), "add", 
-                new Object[]{index,element});
             // Check if the list is read only
         checkIfReadOnly();
             // Check the given element
@@ -858,7 +852,6 @@ public class LinksListModel extends ArrayListModel<String> implements
         addToSet(index,element);
             // The contents of the list have been modified
         setContentsModified();
-        LinkManager.getLogger().exiting(this.getClass().getName(), "add");
     }
     // TODO: Implement a helper method for the addAll method that throws 
     // exceptions, with the main addAll method catching those exceptions, 
@@ -967,8 +960,6 @@ public class LinksListModel extends ArrayListModel<String> implements
     }
     @Override
     public String set(int index, String element){
-        LinkManager.getLogger().entering(this.getClass().getName(), "set", 
-                new Object[]{index,element});
             // Check if the list is read only
         checkIfReadOnly();
             // Set the value in this list, getting the old value from the list
@@ -979,13 +970,10 @@ public class LinksListModel extends ArrayListModel<String> implements
         addToSet(index,element);
             // The contents of the list have been modified
         setContentsModified();
-        LinkManager.getLogger().exiting(this.getClass().getName(), "set", old);
         return old;
     }
     @Override
     public String remove(int index){
-        LinkManager.getLogger().entering(this.getClass().getName(), "remove", 
-                index);
             // Check if the list is read only
         checkIfReadOnly();
             // Get the value that was removed
@@ -994,7 +982,6 @@ public class LinksListModel extends ArrayListModel<String> implements
         removeFromSet(value);
             // The contents of the list have been modified
         setContentsModified();
-        LinkManager.getLogger().exiting(this.getClass().getName(), "remove", value);
         return value;
     }
     /**
