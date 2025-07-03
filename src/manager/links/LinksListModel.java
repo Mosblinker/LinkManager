@@ -9,9 +9,11 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.*;
 import java.util.function.*;
+import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.Position;
+import manager.LinkManager;
 
 /**
  *
@@ -651,9 +653,15 @@ public class LinksListModel extends ArrayListModel<String> implements
      * @return 
      */
     public List<String> getCompatibleList(List<String> list){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "getCompatibleList", list);
             // If this model is read only or full.
-        if (isReadOnly() || isFull())
-            return new ArrayList<>();
+        if (isReadOnly() || isFull()){
+            list = new ArrayList<>();
+            LinkManager.getLogger().exiting(this.getClass().getName(), 
+                    "getCompatibleList",list);
+            return list;
+        }
             // Create and use a copy of the given list
         list = new ArrayList<>(list);
             // Remove any elements from the list that can't be added to this 
@@ -662,8 +670,11 @@ public class LinksListModel extends ArrayListModel<String> implements
         Integer remaining = getSpaceRemaining();    // not have a size limit)
             // If this model does not have a size limit or the given list could 
             // fit within this model as is
-        if (remaining == null || remaining >= list.size())
+        if (remaining == null || remaining >= list.size()){
+            LinkManager.getLogger().exiting(this.getClass().getName(), 
+                    "getCompatibleList",list);
             return list;
+        }
             // If this model does not allow duplicates (i.e. adding an item will 
             // remove any previous instances of it from this model)
         if (!getAllowsDuplicates()){
@@ -693,11 +704,17 @@ public class LinksListModel extends ArrayListModel<String> implements
                 // between the checked sublist and this model)
             while (remaining < list.size() && startIndex < remaining);
                 // If, once the shared items are accounted for, this model can 
-            if (remaining >= list.size())   // fit the whole list
+            if (remaining >= list.size()){  // fit the whole list
+                LinkManager.getLogger().exiting(this.getClass().getName(), 
+                        "getCompatibleList",list);
                 return list;
+            }
         }   // Return a sublist of the given list that is the right size to be 
             // added to this model without exceeding the space remaining
-        return list.subList(0, remaining);
+        list = list.subList(0, remaining);
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "getCompatibleList",list);
+        return list;
     }
     /**
      * 
@@ -742,17 +759,24 @@ public class LinksListModel extends ArrayListModel<String> implements
      */
     private void checkIfReadOnly(){
             // If the modification limit is enabled and the list is read only
-        if (modLimitEnabled && isReadOnly())
+        if (modLimitEnabled && isReadOnly()){
+            LinkManager.getLogger().log(Level.WARNING, "List {0}: {1} is read only", 
+                    new Object[]{getListID(),getListName()});
             throw new IllegalStateException("List is read only");
+        }
     }
     /**
      * 
      */
     private void checkIfFull(){
             // If the modification limit is enabled and the list is full
-        if (modLimitEnabled && isFull())
+        if (modLimitEnabled && isFull()){
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "List {0}: {1} is full (list size: {2}, size limit: {3})", 
+                    new Object[]{getListID(),getListName(),size(),sizeLimit});
             throw new IllegalStateException("List is full (list size: " +size()+
                     ", size limit: " + sizeLimit+")");
+        }
     }
     /**
      * 
@@ -818,6 +842,8 @@ public class LinksListModel extends ArrayListModel<String> implements
     }
     @Override
     public void add(int index, String element){
+        LinkManager.getLogger().entering(this.getClass().getName(), "add", 
+                new Object[]{index,element});
             // Check if the list is read only
         checkIfReadOnly();
             // Check the given element
@@ -833,6 +859,7 @@ public class LinksListModel extends ArrayListModel<String> implements
         addToSet(index,element);
             // The contents of the list have been modified
         setContentsModified();
+        LinkManager.getLogger().exiting(this.getClass().getName(), "add");
     }
     // TODO: Implement a helper method for the addAll method that throws 
     // exceptions, with the main addAll method catching those exceptions, 
@@ -851,13 +878,18 @@ public class LinksListModel extends ArrayListModel<String> implements
 //    }
     @Override
     public boolean addAll(int index, Collection<? extends String> c){
+        LinkManager.getLogger().entering(this.getClass().getName(), "addAll", 
+                new Object[]{index,c});
             // Check if the list is read only
         checkIfReadOnly();
             // Check if the collection is null
         Objects.requireNonNull(c);
             // If the collection is empty
-        if (c.isEmpty())
+        if (c.isEmpty()){
+            LinkManager.getLogger().exiting(this.getClass().getName(), "addAll",
+                    false);
             return false;
+        }
             // If duplicates cannot be added to this list
         if (!canAddDuplicates()){
                 // Create a set version of the given collection
@@ -930,10 +962,14 @@ public class LinksListModel extends ArrayListModel<String> implements
             checkIfFull();
             // TODO: Check for invalid elements
         }
+        LinkManager.getLogger().exiting(this.getClass().getName(), "addAll",
+                true);
         return true;
     }
     @Override
     public String set(int index, String element){
+        LinkManager.getLogger().entering(this.getClass().getName(), "set", 
+                new Object[]{index,element});
             // Check if the list is read only
         checkIfReadOnly();
             // Set the value in this list, getting the old value from the list
@@ -944,10 +980,13 @@ public class LinksListModel extends ArrayListModel<String> implements
         addToSet(index,element);
             // The contents of the list have been modified
         setContentsModified();
+        LinkManager.getLogger().exiting(this.getClass().getName(), "set", old);
         return old;
     }
     @Override
     public String remove(int index){
+        LinkManager.getLogger().entering(this.getClass().getName(), "remove", 
+                index);
             // Check if the list is read only
         checkIfReadOnly();
             // Get the value that was removed
@@ -956,6 +995,7 @@ public class LinksListModel extends ArrayListModel<String> implements
         removeFromSet(value);
             // The contents of the list have been modified
         setContentsModified();
+        LinkManager.getLogger().exiting(this.getClass().getName(), "remove", value);
         return value;
     }
     /**
@@ -976,15 +1016,20 @@ public class LinksListModel extends ArrayListModel<String> implements
             // If the fromIndex and toIndex are the same
         if (fromIndex == toIndex)
             return;
+        LinkManager.getLogger().entering(this.getClass().getName(),"removeRange", 
+                new Object[]{fromIndex,toIndex});
             // Check if the list is read only
         checkIfReadOnly();
             // Remove the given range from this list
         super.removeRange(fromIndex, toIndex);
             // Retain only the items in the set that are in this list
         retainListInSet();
+        LinkManager.getLogger().exiting(this.getClass().getName(),"removeRange");
     }
     @Override
     protected void sort(Comparator<? super String> c,int fromIndex,int toIndex){
+        LinkManager.getLogger().entering(this.getClass().getName(),"sort", 
+                new Object[]{c,fromIndex,toIndex});
             // Check if the list is read only
         checkIfReadOnly();
             // Get whether the modification limits are enabled
@@ -997,32 +1042,43 @@ public class LinksListModel extends ArrayListModel<String> implements
         modLimitEnabled = modLimit;
             // The contents of the list have been modified
         setContentsModified();
+        LinkManager.getLogger().exiting(this.getClass().getName(),"sort");
     }
     @Override
     protected boolean removeIf(Predicate<? super String> filter, int fromIndex, 
             int toIndex){
+        LinkManager.getLogger().entering(this.getClass().getName(),"removeIf", 
+                new Object[]{filter,fromIndex,toIndex});
             // Remove all matching elements and get whether the list was modified
         boolean modified = super.removeIf(filter, fromIndex, toIndex);
             // If this list was modified
         if (modified)
                 // Retain only the items in the set that are in this list
             retainListInSet();
+        LinkManager.getLogger().exiting(this.getClass().getName(),"removeIf",
+                modified);
         return modified;
     }
     @Override
     protected boolean batchRemove(Collection<?> c, boolean retain, 
             int fromIndex, int toIndex){
+        LinkManager.getLogger().entering(this.getClass().getName(),"batchRemove", 
+                new Object[]{c,retain,fromIndex,toIndex});
             // Batch remove the elements and get whether this list was modified
         boolean modified = super.batchRemove(c, retain, fromIndex, toIndex);
             // If this list was modified
         if (modified)
                 // Retain only the items in the set that are in this list
             retainListInSet();
+        LinkManager.getLogger().exiting(this.getClass().getName(),"batchRemove",
+                modified);
         return modified;
     }
     @Override
     protected void replaceRange(UnaryOperator<String> operator, int fromIndex, 
             int toIndex){
+        LinkManager.getLogger().entering(this.getClass().getName(),"replaceRange", 
+                new Object[]{operator,fromIndex,toIndex});
             // Replace the elements that are in the given range
         super.replaceRange(operator, fromIndex, toIndex);
             // Clear the set
@@ -1031,12 +1087,14 @@ public class LinksListModel extends ArrayListModel<String> implements
         set.addAll(list);
             // The contents of the list have been modified
         setContentsModified();
+        LinkManager.getLogger().exiting(this.getClass().getName(),"replaceRange");
     }
     /**
      * 
      * @return 
      */
     public boolean removeDuplicates(){
+        LinkManager.getLogger().entering(this.getClass().getName(),"removeDuplicates");
             // Check if the list is read only
         checkIfReadOnly();
             // Get the current size of this list
@@ -1061,6 +1119,8 @@ public class LinksListModel extends ArrayListModel<String> implements
         set.addAll(list);
             // The contents of the list have been modified
         setContentsModified();
+        LinkManager.getLogger().exiting(this.getClass().getName(),
+                "removeDuplicates",size != size());
         return size != size();
     }
     /**
@@ -1068,6 +1128,8 @@ public class LinksListModel extends ArrayListModel<String> implements
      * @param c 
      */
     public void setContents(List<String> c){
+        LinkManager.getLogger().entering(this.getClass().getName(),"setContents",
+                c);
             // Check if the list is read only
         checkIfReadOnly();
             // Check if the collection is null
@@ -1076,6 +1138,7 @@ public class LinksListModel extends ArrayListModel<String> implements
         clear();
            // Add all the elements of the given list
         addAll(c);
+        LinkManager.getLogger().exiting(this.getClass().getName(),"setContents");
     }
     /**
      * 
@@ -1497,13 +1560,18 @@ public class LinksListModel extends ArrayListModel<String> implements
             // If the model is this model or the model is null
         if (model == this || model == null)
             return;
+        LinkManager.getLogger().entering(this.getClass().getName(),
+                "setSelectionFrom",model);
             // If this model's selection mode is different from the given model
         if (getSelectionMode() != model.getSelectionMode())
                 // Set this model's selection mode from the given model
             setSelectionMode(model.getSelectionMode());
             // If the selected items are the same for both models
-        if (Arrays.equals(getSelectedIndices(), model.getSelectedIndices()))
+        if (Arrays.equals(getSelectedIndices(), model.getSelectedIndices())){
+            LinkManager.getLogger().exiting(this.getClass().getName(),
+                    "setSelectionFrom");
             return;
+        }
             // Get if this model is currently adjusting the selection
         boolean adjusting = getValueIsAdjusting();
             // If the given model is not empty (we would only need to do one 
@@ -1512,8 +1580,11 @@ public class LinksListModel extends ArrayListModel<String> implements
             // Clear the current selection
         clearSelection();
             // If the given model is empty
-        if (model.isSelectionEmpty())
+        if (model.isSelectionEmpty()){
+            LinkManager.getLogger().exiting(this.getClass().getName(),
+                    "setSelectionFrom");
             return;
+        }
             // If only one item is selected
         if (model.getSelectedItemsCount() == 1){
                 // Get the index of the selected value in this list
@@ -1548,5 +1619,7 @@ public class LinksListModel extends ArrayListModel<String> implements
         }
             // Restore whether this model was being adjusted
         setValueIsAdjusting(adjusting);
+        LinkManager.getLogger().exiting(this.getClass().getName(),
+                "setSelectionFrom");
     }
 }
