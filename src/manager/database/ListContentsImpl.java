@@ -6,6 +6,8 @@ package manager.database;
 
 import java.sql.*;
 import java.util.*;
+import java.util.logging.Level;
+import manager.LinkManager;
 import manager.ProgressObserver;
 import static manager.database.LinkDatabaseConnection.*;
 import manager.links.LinksListModel;
@@ -60,6 +62,8 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
         try {
             return !getConnection().getShownListIDs().contains(listID);
         } catch (SQLException ex) {
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to get if list " + listID + " is hidden.", ex);
             appendWarning(ex);
             return false;
         }
@@ -86,8 +90,11 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
      */
     private void requireListExists() throws SQLException{
             // If this list does not exist
-        if (!exists())
+        if (!exists()){
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "List with ID {0} does not exist", listID);
             throw new IllegalStateException("List with ID "+listID+" does not exist");
+        }
     }
     /**
      * {@inheritDoc }
@@ -433,6 +440,8 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
     @Override
     public LinksListModel toModel(LinksListModel model, 
             ProgressObserver observer){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "toModel");
         try{    
             requireListExists();    // Require the list to exist
                 // Prepare a statement to get the properties of this list from 
@@ -451,9 +460,11 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
                     // Get the results of the query
                 ResultSet rs = pstmt.executeQuery();
                     // If the query had no results
-                if (!rs.next())
+                if (!rs.next()){
+                    LinkManager.getLogger().exiting(this.getClass().getName(), 
+                            "toModel");
                     return model;
-                    // Get the name of this list
+                }   // Get the name of this list
                 String name = rs.getString(LIST_NAME_COLUMN_NAME);
                     // If the given model is null (this is to create a new 
                 if (model == null)  // model)
@@ -504,7 +515,10 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
                                 // If an observer was provided
                             if (observer != null)
                                 observer.incrementValue();
-                        } catch(IllegalArgumentException | IllegalStateException ex){ }
+                        } catch(IllegalArgumentException | IllegalStateException ex){ 
+                            LinkManager.getLogger().log(Level.WARNING, 
+                                    "Issue adding value to model", ex);
+                        }
                     }
                 }
             }   // If the model does not allow duplicates
@@ -523,6 +537,8 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
             appendWarning(ex);
             throw new UncheckedSQLException(ex);
         }
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "toModel");
         return model;
     }
     /**
@@ -531,6 +547,8 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
     @Override
     public void updateContents(LinksListModel model, 
             ProgressObserver observer,Map<String,Long> linkIDMap){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "updateContents");
             // Check if the model is null
         Objects.requireNonNull(model);
         try{    // Get the current state of the auto-commit
@@ -592,5 +610,7 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
         model.setLastModified(setLastModified());   // current time
             // Clear whether the model has been edited
         model.clearEdited();
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "updateContents");
     }
 }

@@ -14,6 +14,7 @@ import java.awt.MediaTracker;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.logging.Level;
 import javax.swing.*;
 import manager.*;
 import manager.icons.DefaultPfpIcon;
@@ -77,7 +78,10 @@ public class DropboxUtilities {
                             // Set the description to state that it's the user's 
                             // profile picture
                         userName+"'s Profile Picture");
-            } catch (MalformedURLException ex){ }
+            } catch (MalformedURLException ex){ 
+                LinkManager.getLogger().log(Level.INFO, 
+                        "Dropbox user PFP URL is malformed", ex);
+            }
         }   // If the user did not have a profile picture set or the profile 
             // picture failed to load
         if (pfpIcon == null || (pfpIcon.getImageLoadStatus() 

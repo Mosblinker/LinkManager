@@ -10,6 +10,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.security.*;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.prefs.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
@@ -554,6 +555,8 @@ public class LinkManagerConfig {
      * 
      */
     protected void updatePreferences(){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "updatePreferences");
         try{    // Get the names of the child nodes in the parent preference 
             String[] childNodes = getPreferences().childrenNames();     // node
                 // Go through the names of the child nodes
@@ -596,15 +599,26 @@ public class LinkManagerConfig {
                                             // into the new node
                                         node.put(key, oldNode.get(key, ""));
                                 }
-                            } catch (BackingStoreException ex) {}
+                            } catch (BackingStoreException ex) {
+                                LinkManager.getLogger().log(Level.WARNING, 
+                                        "Failed to get keys for a node", ex);
+                            }
                                 // Remove the old node
                             removeNode(oldNode);
                         } catch (NumberFormatException | 
-                                IllegalStateException ex) {}
+                                IllegalStateException ex) {
+                            LinkManager.getLogger().log(Level.WARNING,
+                                    "Unable to get old node", ex);
+                        }
                     }
                 }
             }
-        } catch (BackingStoreException ex) {}
+        } catch (BackingStoreException ex) {
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Backing store exception thrown", ex);
+        }
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "updatePreferences");
     }
     /**
      * This returns the program ID set for this configuration.
@@ -2389,6 +2403,8 @@ public class LinkManagerConfig {
             try{    // Encrypt the token
                 value = encryptValue(token.getBytes());
             } catch (GeneralSecurityException ex){
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to encrypt value", ex);
 //                throw new UncheckedSecurityException(ex);
             }
         }   // Get the Dropbox preference node and put the token in it
@@ -2410,6 +2426,8 @@ public class LinkManagerConfig {
                 if (arr != null)
                     return new String(arr);
             } catch (GeneralSecurityException ex){
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to decrypt value", ex);
 //                throw new UncheckedSecurityException(ex);
             }
         }

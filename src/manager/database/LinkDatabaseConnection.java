@@ -7,6 +7,7 @@ package manager.database;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
+import java.util.logging.Level;
 import javax.swing.table.*;
 import manager.*;
 import manager.links.*;
@@ -3579,6 +3580,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             try{
                 verArr[i] = Integer.parseInt(arr[i]);
             } catch(NumberFormatException ex){
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to get database version value for index "+i,ex);
                 verArr[i] = -1;
             }
         }
@@ -3599,6 +3602,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         try{
             return Integer.parseInt(arr[index]);
         } catch(NumberFormatException ex){
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to get database version number at index "+index,ex);
             return -1;
         }
     }
@@ -3683,6 +3688,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         try{    // Try to parse the UUID from a string
             return UUID.fromString(value.trim());
         } catch (IllegalArgumentException ex){ 
+            LinkManager.getLogger().log(Level.WARNING, "Invalid database ID", 
+                    ex);
             return null;
         }
     }
@@ -3727,7 +3734,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         if (lastMod != null){
             try{
                 return Long.parseLong(lastMod);
-            } catch(NumberFormatException ex){}
+            } catch(NumberFormatException ex){
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Invalid database last modified time", ex);
+            }
         }
         return 0;
     }
@@ -4244,7 +4254,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     key = null;
             }
         }
-        catch(SQLException ex){ }
+        catch(SQLException ex){ 
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to get generated integer key", ex);
+        }
         return key;
     }
     /**
@@ -4266,7 +4279,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     key = null;
             }
         }
-        catch(SQLException ex){ }
+        catch(SQLException ex){ 
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to get generated long key", ex);
+        }
         return key;
     }
     /**
@@ -4721,13 +4737,20 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         String value = null;    // loaded from the database
         try {   // Get the threshold from the database
             value = getDatabaseProperties().getProperty(PREFIX_THRESHOLD_CONFIG_KEY);
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to get prefix threshold from database properties", 
+                    ex);
+        }
             // If the threshold property was successfully retrieved from the 
             // database
         if (value != null){
             try{    // Try to parse the value loaded
                 return Integer.parseInt(value);
-            } catch (NumberFormatException ex){ }
+            } catch (NumberFormatException ex){ 
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Invalid prefix threshold", ex);
+            }
         }   // Fall back to the default
         return PREFIX_THRESHOLD_CONFIG_DEFAULT;
     }
@@ -4747,6 +4770,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             return getDatabaseProperties().getProperty(
                     PREFIX_SEPARATORS_CONFIG_KEY,PREFIX_DEFAULT_SEPARATORS);
         } catch (SQLException ex) {
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to get prefix speparators from database", ex);
             return PREFIX_DEFAULT_SEPARATORS;
         }
     }
@@ -5103,6 +5128,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             try{
                 return iteratorSQL();
             } catch (SQLException ex) {
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to get iterator for query set", ex);
                 appendWarning(ex);
                 return Collections.emptyIterator();
             }
@@ -5194,6 +5221,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             try{
                 return entryIteratorSQL();
             } catch (SQLException ex) {
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to get iterator for entries in query map", ex);
                 appendWarning(ex);
                 return Collections.emptyIterator();
             }
@@ -6067,6 +6096,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             try{
                 return getTotalSizeOfLists(getListType());
             } catch (SQLException ex) {
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to get total size of lists", ex);
                 appendWarning(ex);
             }
             return 0;
@@ -6242,6 +6273,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             try{
                 return getTotalSizeOfLists();
             } catch (SQLException ex) {
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to get total size of lists", ex);
                 appendWarning(ex);
                 return 0;
             }
@@ -6634,6 +6667,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         cache.add(rs.getString(DATABASE_CONFIG_KEY_COLUMN_NAME));
                 }
             } catch (SQLException ex) {
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to create set of database property names", ex);
                 appendWarning(ex);
             }   // Return an unmodifiable version of the set
             return Collections.unmodifiableSet(cache);
@@ -6736,6 +6771,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     }
                 }
             } catch (SQLException ex) {
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to create set of database property entries", 
+                        ex);
                 appendWarning(ex);
             }   // Return an unmodifiable version of the set
             return Collections.unmodifiableSet(cache);

@@ -6,7 +6,9 @@ package manager.database;
 
 import java.sql.*;
 import java.util.Objects;
+import java.util.logging.Level;
 import manager.CustomTableModel;
+import manager.LinkManager;
 
 /**
  *
@@ -26,7 +28,10 @@ public class ResultTableModel extends CustomTableModel{
             try{    // Try to add the class for the column
                 setColumnClass(c, Class.forName(className));
             }
-            catch(Exception ex){ }
+            catch(Exception ex){ 
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to get column class", ex);
+            }
         }   // A while loop to read all the rows in the current table
         while (results.next()){ 
                 // This will get the current rows data

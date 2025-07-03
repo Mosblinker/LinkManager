@@ -10,9 +10,11 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.*;
 import java.util.*;
+import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.Position;
+import manager.LinkManager;
 
 /**
  *
@@ -823,7 +825,10 @@ public class LinksListTabsManipulator extends JListManipulator<LinksListModel>{
                 }
             }
         }
-        catch(NullPointerException ex){}
+        catch(NullPointerException ex){
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Null encountered when selection changed", ex);
+        }
         super.fireSelectionChanged(firstIndex, lastIndex, isAdjusting);
     }
     @Override

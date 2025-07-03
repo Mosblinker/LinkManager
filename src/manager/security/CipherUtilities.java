@@ -8,8 +8,10 @@ import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.security.*;
 import java.util.Objects;
+import java.util.logging.Level;
 import javax.crypto.*;
 import javax.crypto.spec.*;
+import manager.LinkManager;
 
 /**
  *
@@ -226,7 +228,10 @@ public class CipherUtilities {
                 return cipher.doFinal(encryptedValue, Short.BYTES, 
                         encryptedValue.length-Short.BYTES);
             }
-        } catch (BufferUnderflowException ex){ }
+        } catch (BufferUnderflowException ex){ 
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Buffer underflow encountered while checking header", ex);
+        }
         return null;
     }
     /**

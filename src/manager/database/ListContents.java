@@ -5,6 +5,8 @@
 package manager.database;
 
 import java.util.*;
+import java.util.logging.Level;
+import manager.LinkManager;
 import manager.ProgressObserver;
 import manager.links.LinksListModel;
 import sql.UncheckedSQLException;
@@ -177,6 +179,8 @@ public interface ListContents extends SQLList<String>{
         if (!exists())
             throw new IllegalStateException("List does not exist (listID: "+
                     getListID()+")");
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "toModel");
             // If the given model is null (this is to create a new model)
         if (model == null)
             model = new LinksListModel(getName(),getListID());
@@ -209,7 +213,10 @@ public interface ListContents extends SQLList<String>{
                 model.add(temp);        // Add the link to the model
                 if (observer != null)   // If an observer was provided
                     observer.incrementValue();
-            } catch(IllegalArgumentException | IllegalStateException ex){ }
+            } catch(IllegalArgumentException | IllegalStateException ex){ 
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Issue adding value to model", ex);
+            }
         }   // If the model does not allow duplicates
         if (!model.getAllowsDuplicates())
                 // Remove any duplicates from the model
@@ -220,6 +227,8 @@ public interface ListContents extends SQLList<String>{
         model.setHidden(isHidden());
             // Set the model to be edited if its size does not match this list's 
         model.setEdited(model.size() != size);  // size
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "toModel");
         return model;
     }
     /**
@@ -273,11 +282,16 @@ public interface ListContents extends SQLList<String>{
      * to, throw this if a database error occurs.
      */
     public default boolean updateProperties(LinksListModel model){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "updateProperties");
             // Check if the model is null
         Objects.requireNonNull(model);
             // If this list is up to date
-        if (!isOutdated(model))
+        if (!isOutdated(model)){
+            LinkManager.getLogger().exiting(this.getClass().getName(), 
+                    "updateProperties", false);
             return false;
+        }
             // This gets whether the list in the database was modified in any way
         boolean modified = false;
             // If this list's name is not the same as the model's name
@@ -306,6 +320,8 @@ public interface ListContents extends SQLList<String>{
         if (!model.getContentsModified())
                 // Clear whether the model is edited, since we've updated the 
             model.clearEdited();    // list
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "updateProperties", modified);
         return modified;
     }
     /**
@@ -320,6 +336,8 @@ public interface ListContents extends SQLList<String>{
      */
     public default void updateContents(LinksListModel model, 
             ProgressObserver observer, Map<String, Long> linkIDMap){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "updateContents");
             // Check if the model is null
         Objects.requireNonNull(model);
             // If an observer has been provided
@@ -345,6 +363,8 @@ public interface ListContents extends SQLList<String>{
         model.setLastModified(setLastModified());   // time
             // Clear whether the model has been edited
         model.clearEdited();
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "updateContents");
     }
     /**
      * 

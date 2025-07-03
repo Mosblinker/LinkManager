@@ -6,6 +6,8 @@ package manager.database;
 
 import java.sql.*;
 import java.util.*;
+import java.util.logging.Level;
+import manager.LinkManager;
 import manager.ProgressObserver;
 import static manager.database.LinkDatabaseConnection.*;
 import sql.*;
@@ -818,6 +820,8 @@ class LinkMapImpl extends AbstractQueryRowMap<Long,String> implements LinkMap {
                                 }
                             };
                         } catch (SQLException ex) {
+                            LinkManager.getLogger().log(Level.WARNING, 
+                                    "Failed to create iterator for inverse map's entries", ex);
                             appendWarning(ex);
                             return Collections.emptyIterator();
                         }
@@ -829,6 +833,8 @@ class LinkMapImpl extends AbstractQueryRowMap<Long,String> implements LinkMap {
                                     DISTINCT_LINK_VIEW_NAME, 
                                     LINK_ID_COLUMN_NAME);
                         } catch (SQLException ex) {
+                            LinkManager.getLogger().log(Level.WARNING, 
+                                    "Failed to get size of inverse map", ex);
                             appendWarning(ex);
                         }
                         return 0;
