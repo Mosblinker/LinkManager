@@ -389,10 +389,6 @@ public class AutosaveMenu extends JMenu{
             return "Every ";
         }
         @Override
-        protected boolean isRepeating(){
-            return true;
-        }
-        @Override
         protected String getTimerCommand() {
             return AUTOSAVE_COMMAND;
         }
