@@ -654,13 +654,12 @@ public class LinksListModel extends ArrayListModel<String> implements
      */
     public List<String> getCompatibleList(List<String> list){
         LinkManager.getLogger().entering(this.getClass().getName(), 
-                "getCompatibleList", list);
+                "getCompatibleList");
             // If this model is read only or full.
         if (isReadOnly() || isFull()){
-            list = new ArrayList<>();
             LinkManager.getLogger().exiting(this.getClass().getName(), 
-                    "getCompatibleList",list);
-            return list;
+                    "getCompatibleList");
+            return new ArrayList<>();
         }
             // Create and use a copy of the given list
         list = new ArrayList<>(list);
@@ -672,7 +671,7 @@ public class LinksListModel extends ArrayListModel<String> implements
             // fit within this model as is
         if (remaining == null || remaining >= list.size()){
             LinkManager.getLogger().exiting(this.getClass().getName(), 
-                    "getCompatibleList",list);
+                    "getCompatibleList");
             return list;
         }
             // If this model does not allow duplicates (i.e. adding an item will 
@@ -709,12 +708,12 @@ public class LinksListModel extends ArrayListModel<String> implements
                         "getCompatibleList",list);
                 return list;
             }
-        }   // Return a sublist of the given list that is the right size to be 
-            // added to this model without exceeding the space remaining
-        list = list.subList(0, remaining);
+        }
         LinkManager.getLogger().exiting(this.getClass().getName(), 
-                "getCompatibleList",list);
-        return list;
+                "getCompatibleList");
+            // Return a sublist of the given list that is the right size to be 
+            // added to this model without exceeding the space remaining
+        return list.subList(0, remaining);
     }
     /**
      * 
@@ -879,7 +878,7 @@ public class LinksListModel extends ArrayListModel<String> implements
     @Override
     public boolean addAll(int index, Collection<? extends String> c){
         LinkManager.getLogger().entering(this.getClass().getName(), "addAll", 
-                new Object[]{index,c});
+                new Object[]{index,c.size()});
             // Check if the list is read only
         checkIfReadOnly();
             // Check if the collection is null
@@ -1063,7 +1062,7 @@ public class LinksListModel extends ArrayListModel<String> implements
     protected boolean batchRemove(Collection<?> c, boolean retain, 
             int fromIndex, int toIndex){
         LinkManager.getLogger().entering(this.getClass().getName(),"batchRemove", 
-                new Object[]{c,retain,fromIndex,toIndex});
+                new Object[]{retain,fromIndex,toIndex});
             // Batch remove the elements and get whether this list was modified
         boolean modified = super.batchRemove(c, retain, fromIndex, toIndex);
             // If this list was modified
