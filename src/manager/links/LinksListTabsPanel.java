@@ -19,6 +19,7 @@ import java.util.*;
 import java.util.function.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import manager.LinkManager;
 import manager.icons.ListIndicatorIcon;
 
 /**
@@ -624,14 +625,19 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
             // Check if the given list contains null
         if (models.contains(null))
             throw new NullPointerException("Model cannot be null");
+        LinkManager.getLogger().entering(this.getClass().getName(), "setModels", 
+                new Object[]{models,restoreSelected});
             // If the list is empty
         if (models.isEmpty()){
                 // Remove all the models from this
             getModels().clear();
+            LinkManager.getLogger().exiting(this.getClass().getName(), "setModels");
             return;
         }   // If the list contains all the models in this panel in the exact 
-        if (models.equals(getModels())) // same order as this panel
+        if (models.equals(getModels())){// same order as this panel
+            LinkManager.getLogger().exiting(this.getClass().getName(), "setModels");
             return;
+        }
             // Get the currently selected panel
         LinksListPanel selPanel = getSelectedList();
             // The index of the currently selected panel
@@ -694,6 +700,7 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
         if (selIndex >= 0)
             setSelectedIndex(selIndex);
         setStructureEdited(!noChange);
+        LinkManager.getLogger().exiting(this.getClass().getName(), "setModels");
     }
     
     public void setModels(List<LinksListModel> models){
