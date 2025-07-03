@@ -4275,6 +4275,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try{
             newPath = newFile.toPath();
         } catch (InvalidPathException ex){
+            getLogger().log(Level.INFO,"Invalid path for database file", ex);
                 // If the new file name is not a valid path, do not allow it to 
                 // be used
             String message = null;      // The error message to print
