@@ -3476,6 +3476,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void manageLinksButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manageLinksButtonActionPerformed
+        getLogger().entering(this.getClass().getName(), 
+                "manageLinksButtonActionPerformed", evt);
             // If we can alter the currently selected list
         if (canActUponSelectedList()){ 
                 // Get the currently selected list
@@ -3498,6 +3500,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Set the list manipulator panel's size in the config
         config.setComponentSize(listManipulator);
         linkTextField.grabFocus();
+        getLogger().exiting(this.getClass().getName(), 
+                "manageLinksButtonActionPerformed");
     }//GEN-LAST:event_manageLinksButtonActionPerformed
     /**
      * This removes the currently selected link from the currently selected 
