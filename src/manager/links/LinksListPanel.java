@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.function.Function;
 import javax.swing.*;
 import javax.swing.event.*;
+import manager.LinkManager;
 
 /**
  *
@@ -294,10 +295,14 @@ public class LinksListPanel extends JPanel implements Comparable<LinksListPanel>
     }
     
     public void updateModelContents(List<String> values, boolean shouldScroll){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "updateModelContents", shouldScroll);
         String selected = list.getSelectedValue();
         model.setContents(values);
         if (selected == null || model.contains(selected))
             list.setSelectedValue(selected, shouldScroll);
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "updateModelContents");
     }
     
     public void updateModelContents(List<String> values){
