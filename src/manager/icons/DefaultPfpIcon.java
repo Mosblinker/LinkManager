@@ -60,6 +60,13 @@ public class DefaultPfpIcon implements Icon2D{
         this(Color.GRAY);
     }
     /**
+     * This returns the background color for this icon.
+     * @return The background color for this icon.
+     */
+    public Color getBackground(){
+        return bg;
+    }
+    /**
      * This constructs the shapes used to draw the icon.
      */
     private void constructShapes(){
