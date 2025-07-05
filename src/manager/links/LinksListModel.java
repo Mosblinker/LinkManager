@@ -1114,8 +1114,8 @@ public class LinksListModel extends ArrayListModel<String> implements
      * @param c 
      */
     public void setContents(List<String> c){
-        LinkManager.getLogger().entering(this.getClass().getName(),"setContents",
-                c);
+        LinkManager.getLogger().entering(this.getClass().getName(),
+                "setContents",c);
             // Check if the list is read only
         checkIfReadOnly();
             // Check if the collection is null
