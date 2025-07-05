@@ -9,6 +9,7 @@ import com.dropbox.core.util.IOUtil.ProgressListener;
 import com.dropbox.core.v2.*;
 import com.dropbox.core.v2.files.*;
 import com.dropbox.core.v2.users.*;
+import icons.DefaultPfpIcon;
 import java.awt.Color;
 import java.awt.MediaTracker;
 import java.io.*;
@@ -17,7 +18,6 @@ import java.util.*;
 import java.util.logging.Level;
 import javax.swing.*;
 import manager.*;
-import manager.icons.DefaultPfpIcon;
 
 /**
  * A utility library used with Dropbox stuff.
