@@ -626,7 +626,7 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
         if (models.contains(null))
             throw new NullPointerException("Model cannot be null");
         LinkManager.getLogger().entering(this.getClass().getName(), "setModels", 
-                new Object[]{models,restoreSelected});
+                restoreSelected);
             // If the list is empty
         if (models.isEmpty()){
                 // Remove all the models from this
