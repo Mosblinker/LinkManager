@@ -9,6 +9,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.*;
 import java.util.function.*;
+import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.Position;
@@ -902,6 +903,10 @@ public class LinksListModel extends ArrayListModel<String> implements
         if (!modLimitEnabled)
                 // Ignore the size limit
             remaining = null;
+            // Get whether the selection value is being adjusted
+        boolean adjusting = getValueIsAdjusting();
+            // The selection is being adjusted
+        setValueIsAdjusting(true);
             // Go through the elements in the given collection
         for (String temp : c){
                 // If the current element is not a valid element for this list
@@ -945,6 +950,8 @@ public class LinksListModel extends ArrayListModel<String> implements
                 subList(0,index).removeAll(c);
         }   // The contents of the list have been modified
         setContentsModified();
+            // Restore the selection adjustment value
+        setValueIsAdjusting(adjusting);
             // If the size of the interval that was added is less than the size 
             // of the collection that was to be added (i.e. if there was an 
             // interuption while adding the elements to this list, either 
@@ -1050,12 +1057,18 @@ public class LinksListModel extends ArrayListModel<String> implements
             int fromIndex, int toIndex){
         LinkManager.getLogger().entering(this.getClass().getName(),"batchRemove", 
                 new Object[]{retain,fromIndex,toIndex});
+            // Get whether the selection value is being adjusted
+        boolean adjusting = getValueIsAdjusting();
+            // The selection is being adjusted
+        setValueIsAdjusting(true);
             // Batch remove the elements and get whether this list was modified
         boolean modified = super.batchRemove(c, retain, fromIndex, toIndex);
             // If this list was modified
         if (modified)
                 // Retain only the items in the set that are in this list
             retainListInSet();
+            // Restore the selection adjustment value
+        setValueIsAdjusting(adjusting);
         LinkManager.getLogger().exiting(this.getClass().getName(),"batchRemove",
                 modified);
         return modified;
@@ -1490,7 +1503,16 @@ public class LinksListModel extends ArrayListModel<String> implements
     }
     @Override
     public void removeIndexInterval(int index0, int index1) {
-        listSelModel.removeIndexInterval(index0, index1);
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "removeIndexInterval", new Object[]{index0,index1});
+        try{
+            listSelModel.removeIndexInterval(index0, index1);
+        } catch (Exception ex){
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Exception thrown while removing selection interval", ex);
+        }
+        LinkManager.getLogger().exiting(this.getClass().getName(),
+                "removeIndexInterval");
     }
     @Override
     public void setValueIsAdjusting(boolean valueIsAdjusting) {
