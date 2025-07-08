@@ -9,6 +9,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.*;
 import java.util.function.*;
+import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.Position;
@@ -1502,7 +1503,16 @@ public class LinksListModel extends ArrayListModel<String> implements
     }
     @Override
     public void removeIndexInterval(int index0, int index1) {
-        listSelModel.removeIndexInterval(index0, index1);
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "removeIndexInterval", new Object[]{index0,index1});
+        try{
+            listSelModel.removeIndexInterval(index0, index1);
+        } catch (Exception ex){
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Exception thrown while removing selection interval", ex);
+        }
+        LinkManager.getLogger().exiting(this.getClass().getName(),
+                "removeIndexInterval");
     }
     @Override
     public void setValueIsAdjusting(boolean valueIsAdjusting) {
