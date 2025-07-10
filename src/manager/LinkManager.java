@@ -5068,6 +5068,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setCursor((isWaiting)?Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR):null);
     }
     /**
+     * 
+     * @param panel 
+     */
+    private void repaintIfSelected(LinksListPanel panel){
+        if (panel == getSelectedList())
+            panel.repaint();
+    }
+    /**
      * This returns whether the program is currently saving a file.
      * @return Whether the program is currently saving a file.
      */
@@ -6358,6 +6366,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public String getProgressString() {
             return "Updating List";
         }
+        @Override
+        protected void done(){
+            repaintIfSelected(panel);
+            super.done();
+        }
     }
     /**
      * This attempts to search for an element that contains a given String 
@@ -6463,6 +6476,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         public String getProgressString() {
             return "Adding Links";
+        }
+        @Override
+        protected void done(){
+            repaintIfSelected(panel);
+            super.done();
         }
     }
     /**
@@ -6580,8 +6598,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
                 // If a source list was given
-            if (source != null)
+            if (source != null){
+                if (move)
+                    repaintIfSelected(source);
                 source.setEnabled(true);
+            }
+            repaintIfSelected(panel);
             super.done();
         }
     }
@@ -6636,6 +6658,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void done(){
                 // Enable the source list
             source.setEnabled(true);
+            repaintIfSelected(panel);
             super.done();
         }
     }
@@ -6659,6 +6682,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          */
         private final LinksListTabsPanel tabsPanel;
+        /**
+         * 
+         */
+        private Set<LinksListPanel> panels = null;
         /**
          * 
          * @param panel
@@ -6709,7 +6736,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Disable all the lists
             setTabsPanelListsEnabled(false);
                 // Get a set of all the panels to go through
-            Set<LinksListPanel> panels = new LinkedHashSet<>(tabsPanel.getLists());
+            panels = new LinkedHashSet<>(tabsPanel.getLists());
                 // Remove the given panel
             panels.remove(panel);
                 // Remove any panels that are null, have the same model as the 
@@ -6743,6 +6770,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
+            if (isSource){
+                for (LinksListPanel temp : panels)
+                    repaintIfSelected(temp);
+            }
+            else
+                repaintIfSelected(panel);
                 // Re-enable the lists
             setTabsPanelListsEnabled(true);
             super.done();
@@ -7472,6 +7505,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         ex);
                 return false;
             }
+        }
+        @Override
+        protected void done(){
+            repaintIfSelected(panel);
+            super.done();
         }
     }
     /**
