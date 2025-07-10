@@ -13,6 +13,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.*;
 import manager.LinkManager;
@@ -440,11 +441,15 @@ public class LinksListPanel extends JPanel implements Comparable<LinksListPanel>
      * @see javax.swing.JList#ensureIndexIsVisible(int) 
      */
     protected void scrollAfterAdding(ListDataEvent evt){
-            // If elements were added to the end of the model and the last 
-            // visible index was previously the last index in the list
-        if(evt.getIndex1()==model.size()-1&&
-                evt.getIndex0()-1==list.getLastVisibleIndex()){
-            list.ensureIndexIsVisible(evt.getIndex1());
+        try{    // If elements were added to the end of the model and the last 
+                // visible index was previously the last index in the list
+            if(evt.getIndex1()==model.size()-1&&
+                    evt.getIndex0()-1==list.getLastVisibleIndex()){
+                list.ensureIndexIsVisible(evt.getIndex1());
+            }
+        } catch (Exception ex){
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Exception thrown while scrolling after addition", ex);
         }
     }
     @Override
