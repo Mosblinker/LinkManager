@@ -4921,7 +4921,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         doubleNewLinesToggle.setEnabled(enabled);
         linkOperationToggle.setEnabled(enabled);
         hiddenLinkOperationToggle.setEnabled(enabled&&linkOperationToggle.isSelected());
-        autosaveMenu.setEnabled(enabled);
+        autosaveMenu.setEnabled(enabled && !isSavingDatabase());
         autoHideMenu.setEnabled(enabled);
         manageListsItem.setEnabled(enabled);
         updateDatabaseItem.setEnabled(enabled);
