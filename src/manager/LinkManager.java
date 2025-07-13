@@ -7621,8 +7621,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected abstract boolean savePropertiesFile(File file) throws IOException;
         @Override
         protected boolean saveFile(File file) {
-                // Disable the hidden lists toggle
-            showHiddenListsToggle.setEnabled(false);
                 // Set the program to be indeterminate
             progressBar.setIndeterminate(true);
                 // Update the program configuration
@@ -7638,13 +7636,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public String getProgressString(){
             return "Saving Configuration";
         }
-        @Override
-        protected void done(){
-            super.done();
-                // Re-enable the hidden lists toggle if the program isn't 
-                // closing after this is done
-            showHiddenListsToggle.setEnabled(!exitAfterSaving);
-        }
     }
     
     private class ConfigSaver extends AbstractConfigSaver{
@@ -7654,12 +7645,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean savePropertiesFile(File file) throws IOException {
+                // Disable the hidden lists toggle
+            showHiddenListsToggle.setEnabled(false);
                 // Get the settings for the program, as a Properties object
             Properties prop = config.exportProperties();
                 // If the settings somehow failed to be exported
             if (prop == null)
                 return false;
             return LinkManagerUtilities.saveProperties(file,prop,GENERAL_CONFIG_HEADER);
+        }
+        @Override
+        protected void done(){
+            super.done();
+                // Re-enable the hidden lists toggle if the program isn't 
+                // closing after this is done
+            showHiddenListsToggle.setEnabled(!exitAfterSaving);
         }
     }
     /**
