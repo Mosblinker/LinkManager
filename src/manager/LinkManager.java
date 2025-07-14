@@ -5890,6 +5890,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return data;
     }
     /**
+     * 
+     * @param model
+     * @param list
+     * @return 
+     */
+    private LinksListModel addAllToCopy(LinksListModel model, Collection<String> list){
+            // Clone the model
+        model = new LinksListModel(model);
+        try{
+            model.addAll(list);
+        } catch(Exception ex){
+            getLogger().log(Level.WARNING, 
+                    "Issue encountered while adding collection to model", ex);
+        }
+        return model;
+    }
+    /**
+     * 
+     * @param panel
+     * @param list
+     * @return 
+     */
+    private LinksListModel addAllToCopy(LinksListPanel panel, Collection<String> list){
+        return addAllToCopy(panel.getModel(),list);
+    }
+    /**
      * This is a LinksListTabAction that saves the links from a list to a 
      * file.
      */
@@ -6478,13 +6504,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Creates a Scanner that goes through the entered list
             try (Scanner scanner = new Scanner(text)) {
                 list = LinkManagerUtilities.readIntoList(scanner,list);
-            }   // Clone the panel's model
-            model = new LinksListModel(panel.getModel());
-            try{
-                model.addAll(list);
-            } catch(Exception ex){
-                getLogger().log(Level.WARNING, "Failed to add all", ex);
             }
+            model = addAllToCopy(panel,list);
             return null;
         }
         @Override
@@ -6577,21 +6598,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                                 panel.getModel().size()});
                 getLogger().exiting(this.getClass().getName(), "processLinks");
                 return null;
-            }   // Clone the panel's model
-            model = new LinksListModel(panel.getModel());
-                // If the source list is not null
+            }   // If the source list is not null
             if (source != null)
                 source.setEnabled(false);
                 // This gets a list of items that can and will be added to the 
-                // given list
-            List<String> added = model.getCompatibleList(list);
-            try{    // Try to add all the item this can add
-                model.addAll(added);
-            } catch(Exception ex){
-                getLogger().log(Level.WARNING, 
-                        "Issue encountered while adding compatible list to model",
-                        ex);
-            }   // If this is moving links between lists, a source list has been 
+                // given panel's model
+            List<String> added = panel.getModel().getCompatibleList(list);
+            model = addAllToCopy(panel,added);
+                // If this is moving links between lists, a source list has been 
                 // provided, and that source list is not read only
             if (move && source != null && !source.isReadOnly()){
                 try{    // If the whole source list has been added to the target
@@ -7550,14 +7564,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     if (temp != null)   // If a URL was found in the file
                         list.add(temp);
                 }   // If we're adding the results to a panel's model
-                if (panel != null){
-                    model = new LinksListModel(panel.getModel());
-                    try{
-                        model.addAll(list);
-                    } catch(Exception ex){
-                        getLogger().log(Level.WARNING, "Failed to add all", ex);
-                    }
-                }
+                if (panel != null)
+                    model = addAllToCopy(panel,list);
                 return true;
             } catch (IOException ex) {
                 getLogger().log(Level.WARNING,"Failed to load list into panel", 
