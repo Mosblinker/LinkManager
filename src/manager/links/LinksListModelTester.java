@@ -778,6 +778,7 @@ public class LinksListModelTester extends javax.swing.JFrame {
         LinksListModel copy = new LinksListModel(model);
         list1.setModel(copy);
         list1.setSelectionModel(copy);
+        System.out.println(model.isEdited() + " " + copy.isEdited());
     }//GEN-LAST:event_createCopyItemActionPerformed
 
     private void list1ValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_list1ValueChanged
