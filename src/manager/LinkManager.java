@@ -4772,7 +4772,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
             }   // Add a file handler to log messages to a log file
             getLogger().addHandler(new java.util.logging.FileHandler(
-                    PROGRAM_LOG_PATTERN,0,8));
+                    PROGRAM_LOG_PATTERN,0,16));
         } catch (IOException | SecurityException ex) {
             getLogger().log(Level.SEVERE, "Failed to get log file", ex);
         }   // Log the user's OS name
