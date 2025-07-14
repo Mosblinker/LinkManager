@@ -6346,6 +6346,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private class ManipulateListWorker extends LinksListWorker<Void>{
         
         protected List<String> list;
+        /**
+         * A copy of the LinksListModel with the changes made.
+         */
+        protected LinksListModel model = null;
         
         ManipulateListWorker(LinksListPanel panel, List<String> list){
             super(panel);
@@ -6353,9 +6357,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected Void processLinks(LinksListPanel panel) {
+            if (panel.isReadOnly())
+                return null;
             getLogger().entering(this.getClass().getName(), "processLinks",panel);
+                // Clone the panel's model
+            model = new LinksListModel(panel.getModel());
             try{
-                panel.updateModelContents(list);
+                model.setContents(list);
             } catch (Exception ex){
                 getLogger().log(Level.WARNING, "Error manipulating list", ex);
             }
@@ -6368,7 +6376,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
-            repaintIfSelected(panel);
+            if (model != null)
+                panel.setModel(model,true);
+//            repaintIfSelected(panel);
             super.done();
         }
     }
@@ -6454,6 +6464,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected List<String> list;
         
         protected String text;
+        /**
+         * A copy of the LinksListModel with the changes made.
+         */
+        protected LinksListModel model = null;
 
         AddFromTextWorker(LinksListPanel panel, String text) {
             super(panel);
@@ -6465,9 +6479,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Creates a Scanner that goes through the entered list
             try (Scanner scanner = new Scanner(text)) {
                 list = LinkManagerUtilities.readIntoList(scanner,list);
-            }
+            }   // Clone the panel's model
+            model = new LinksListModel(panel.getModel());
             try{
-                panel.getModel().addAll(list);
+                model.addAll(list);
             } catch(Exception ex){
                 getLogger().log(Level.WARNING, "Failed to add all", ex);
             }
@@ -6479,7 +6494,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
-            repaintIfSelected(panel);
+            if (model != null)
+                panel.setModel(model);
+//            repaintIfSelected(panel);
             super.done();
         }
     }
@@ -6495,6 +6512,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          */
         private final LinksListPanel source;
+        /**
+         * A copy of the LinksListModel of the source with the changes made.
+         */
+        protected LinksListModel srcModel = null;
+        /**
+         * A copy of the LinksListModel of the target with the changes made.
+         */
+        protected LinksListModel model = null;
         /**
          * 
          */
@@ -6543,19 +6568,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 getLogger().finer("Moving links between lists");
             else
                 getLogger().finer("Copying links between lists");
-                // Get the model of the given list
-            LinksListModel model = panel.getModel();
                 // If the given list is read only or full
-            if (panel.isReadOnly() || model.isFull()){
+            if (panel.isReadOnly() || panel.getModel().isFull()){
                 if (panel.isReadOnly())
                     getLogger().finer("Links list is read only.");
                 else
                     getLogger().log(Level.FINER, "Links list is full (limit: {0},"
-                            + " size: {1}).", new Object[]{model.getSizeLimit(), 
-                                model.size()});
+                            + " size: {1}).", new Object[]{
+                                panel.getModel().getSizeLimit(), 
+                                panel.getModel().size()});
                 getLogger().exiting(this.getClass().getName(), "processLinks");
                 return null;
-            }    // If the source list is not null
+            }   // Clone the panel's model
+            model = new LinksListModel(panel.getModel());
+                // If the source list is not null
             if (source != null)
                 source.setEnabled(false);
                 // This gets a list of items that can and will be added to the 
@@ -6573,13 +6599,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 try{    // If the whole source list has been added to the target
                     if (added.size() == source.getModel().size())
                         source.getModel().clear();
-                    else{
-                        // Get a copy of the source's list
-                        ArrayList<String> temp = new ArrayList<>(source.getModel());
-                        // Remove all the links that were added.
-                        temp.removeAll(added);
-                        // Update the contents of the souce panel
-                        source.updateModelContents(temp);
+                    else{   // Copy the source model
+                        srcModel = new LinksListModel(source.getModel());
+                            // Remove all the links that were added.
+                        srcModel.removeAll(added);
                     }
                 } catch(Exception ex){
                     getLogger().log(Level.WARNING, 
@@ -6597,13 +6620,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
+            if (model != null)
+                panel.setModel(model);
                 // If a source list was given
             if (source != null){
-                if (move)
-                    repaintIfSelected(source);
+                if (move){
+                    if (srcModel != null)
+                        source.setModel(srcModel, true);
+                    else
+                        repaintIfSelected(source);
+                }
                 source.setEnabled(true);
             }
-            repaintIfSelected(panel);
+//            repaintIfSelected(panel);
             super.done();
         }
     }
@@ -6615,6 +6644,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          */
         private final LinksListPanel source;
+        /**
+         * A copy of the LinksListModel with the changes made.
+         */
+        protected LinksListModel model = null;
         /**
          * 
          * @param source
@@ -6645,9 +6678,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return null;
                 // Disable the source list
             source.setEnabled(false);
+                // Clone the panel's model
+            model = new LinksListModel(panel.getModel());
                 // Remove all the links that the given panel has in common with 
                 // the source list
-            panel.getModel().removeAll(source.getModel());
+            model.removeAll(source.getModel());
             return null;
         }
         @Override
@@ -6656,9 +6691,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
+            if (model != null)
+                panel.setModel(model);
                 // Enable the source list
             source.setEnabled(true);
-            repaintIfSelected(panel);
+//            repaintIfSelected(panel);
             super.done();
         }
     }
@@ -6686,6 +6723,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          */
         private Set<LinksListPanel> panels = null;
+        /**
+         * A list of the panels that were affected and the altered models for 
+         * those lists.
+         */
+        private Map<LinksListPanel,LinksListModel> models = new LinkedHashMap<>();
         /**
          * 
          * @param panel
@@ -6751,15 +6793,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // If this worker will be removing the given list from 
                         // the current list but the current list is read only
                     (isSource && t.isReadOnly()));
+                // Get the model for the panel
+            LinksListModel model = panel.getModel();
+                // If the current panel is to be removed from the other panels
+            if (!isSource){
+                    // Copy the model
+                model = new LinksListModel(model);
+                models.put(panel, model);
+            }
             progressBar.setMaximum(panels.size());
             progressBar.setIndeterminate(false);
                 // Go through the panels 
             for (LinksListPanel current : panels){
                     // If the given panel is to be removed from the current panel
-                if (isSource)
-                    current.getModel().removeAll(panel.getModel());
+                if (isSource){
+                        // Copy the current panel's model
+                    LinksListModel temp = new LinksListModel(current.getModel());
+                    temp.removeAll(model);
+                    models.put(current, temp);
+                }
                 else
-                    panel.getModel().removeAll(current.getModel());
+                    model.removeAll(current.getModel());
                 incrementProgressValue();
             }
             return null;
@@ -6770,12 +6824,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
-            if (isSource){
-                for (LinksListPanel temp : panels)
-                    repaintIfSelected(temp);
+            for (Map.Entry<LinksListPanel,LinksListModel> entry : models.entrySet()){
+                entry.getKey().setModel(entry.getValue());
             }
-            else
-                repaintIfSelected(panel);
+//            if (isSource){
+//                for (LinksListPanel temp : panels)
+//                    repaintIfSelected(temp);
+//            }
+//            else
+//                repaintIfSelected(panel);
                 // Re-enable the lists
             setTabsPanelListsEnabled(true);
             super.done();
