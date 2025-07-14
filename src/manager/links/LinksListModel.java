@@ -196,6 +196,38 @@ public class LinksListModel extends ArrayListModel<String> implements
         this(null,null);
     }
     /**
+     * 
+     * @param model 
+     */
+    public LinksListModel(LinksListModel model){
+        super(model);
+        this.listID = model.listID;
+        this.oldListID = model.oldListID;
+        this.name = model.name;
+        this.oldName = model.oldName;
+        this.lastMod = model.lastMod;
+        this.created = model.created;
+        this.flags = model.flags;
+        this.oldFlags = model.oldFlags;
+        this.sizeLimit = model.sizeLimit;
+        this.oldSizeLimit = model.oldSizeLimit;
+        this.hidden = model.hidden;
+        this.edited = model.edited;
+        this.contentsEdited = model.contentsEdited;
+        this.modLimitEnabled = model.modLimitEnabled;
+        this.set = new HashSet<>(model.set);
+        this.listSelModel = new DefaultListSelectionModel();
+        this.listSelModel.setSelectionMode(model.listSelModel.getSelectionMode());
+        this.listSelModel.setValueIsAdjusting(model.listSelModel.getValueIsAdjusting());
+        this.listSelModel.setLeadAnchorNotificationEnabled(model.listSelModel.isLeadAnchorNotificationEnabled());
+        for (int index : model.listSelModel.getSelectedIndices()){
+            this.listSelModel.addSelectionInterval(index, index);
+        }
+        this.listSelModel.setAnchorSelectionIndex(model.listSelModel.getAnchorSelectionIndex());
+        this.listSelModel.setLeadSelectionIndex(model.listSelModel.getLeadSelectionIndex());
+        changeSupport = new PropertyChangeSupport(this);
+    }
+    /**
      * This returns whether this list has been edited
      * @return 
      */
