@@ -121,11 +121,15 @@ public class LinksListPanel extends JPanel implements Comparable<LinksListPanel>
         return model;
     }
     
-    public void setModel(LinksListModel model){
+    public void setModel(LinksListModel model, boolean keepSelection, 
+            boolean shouldScroll){
             // Check if the model is null
         Objects.requireNonNull(model, "Model cannot be null");
         if (model == this.model)
             return;
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "setModel", new Object[]{keepSelection,shouldScroll});
+        String selected = list.getSelectedValue();
         LinksListModel old = this.model;
         this.model = model;
         if (old != null){
@@ -162,6 +166,19 @@ public class LinksListPanel extends JPanel implements Comparable<LinksListPanel>
         }
         updateActionNames();
         fireStateChanged();
+        if (keepSelection && (selected == null || model.contains(selected))){
+            list.setSelectedValue(selected, shouldScroll);
+        }
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "setModel");
+    }
+    
+    public void setModel(LinksListModel model, boolean keepSelection){
+        setModel(model,keepSelection,keepSelection);
+    }
+    
+    public void setModel(LinksListModel model){
+        setModel(model, false);
     }
     
     public Integer getListID(){
