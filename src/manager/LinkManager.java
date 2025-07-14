@@ -7494,6 +7494,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * The panel to add the loaded list's contents to (optional).
          */
         protected LinksListPanel panel;
+        /**
+         * A copy of the LinksListModel with the changes made.
+         */
+        protected LinksListModel model = null;
         
         ListLoader(File file, List<String> list, LinksListPanel panel){
             super(file);
@@ -7546,8 +7550,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     if (temp != null)   // If a URL was found in the file
                         list.add(temp);
                 }   // If we're adding the results to a panel's model
-                if (panel != null)
-                    panel.getModel().addAll(list);
+                if (panel != null){
+                    model = new LinksListModel(panel.getModel());
+                    try{
+                        model.addAll(list);
+                    } catch(Exception ex){
+                        getLogger().log(Level.WARNING, "Failed to add all", ex);
+                    }
+                }
                 return true;
             } catch (IOException ex) {
                 getLogger().log(Level.WARNING,"Failed to load list into panel", 
@@ -7557,7 +7567,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
-            repaintIfSelected(panel);
+            if (panel != null && model != null)
+                panel.setModel(model, true);
             super.done();
         }
     }
