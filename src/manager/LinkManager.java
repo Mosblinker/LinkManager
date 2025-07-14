@@ -6802,26 +6802,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Get the model for the panel
             LinksListModel model = panel.getModel();
                 // If the current panel is to be removed from the other panels
-            if (!isSource){
+            if (!isSource)
                     // Copy the model
                 model = new LinksListModel(model);
-                models.put(panel, model);
-            }
             progressBar.setMaximum(panels.size());
             progressBar.setIndeterminate(false);
+            boolean modified = false;
                 // Go through the panels 
             for (LinksListPanel current : panels){
                     // If the given panel is to be removed from the current panel
                 if (isSource){
                         // Copy the current panel's model
                     LinksListModel temp = new LinksListModel(current.getModel());
-                    temp.removeAll(model);
-                    models.put(current, temp);
+                    if (temp.removeAll(model))
+                        models.put(current, temp);
                 }
-                else
-                    model.removeAll(current.getModel());
+                else{
+                    boolean temp = model.removeAll(current.getModel());
+                    modified |= temp;
+                }
                 incrementProgressValue();
             }
+            if (!isSource && modified)
+                models.put(panel, model);
             return null;
         }
         @Override
