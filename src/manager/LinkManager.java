@@ -6833,12 +6833,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             for (Map.Entry<LinksListPanel,LinksListModel> entry : models.entrySet()){
                 entry.getKey().setModel(entry.getValue());
             }
-//            if (isSource){
-//                for (LinksListPanel temp : panels)
-//                    repaintIfSelected(temp);
-//            }
-//            else
-//                repaintIfSelected(panel);
                 // Re-enable the lists
             setTabsPanelListsEnabled(true);
             super.done();
