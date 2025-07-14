@@ -212,8 +212,6 @@ public class LinksListModel extends ArrayListModel<String> implements
         this.sizeLimit = model.sizeLimit;
         this.oldSizeLimit = model.oldSizeLimit;
         this.hidden = model.hidden;
-        this.edited = model.edited;
-        this.contentsEdited = model.contentsEdited;
         this.modLimitEnabled = model.modLimitEnabled;
         this.set = new HashSet<>(model.set);
         this.listSelModel = new DefaultListSelectionModel();
@@ -225,6 +223,8 @@ public class LinksListModel extends ArrayListModel<String> implements
         }
         this.listSelModel.setAnchorSelectionIndex(model.listSelModel.getAnchorSelectionIndex());
         this.listSelModel.setLeadSelectionIndex(model.listSelModel.getLeadSelectionIndex());
+        this.edited = model.edited;
+        this.contentsEdited = model.contentsEdited;
         changeSupport = new PropertyChangeSupport(this);
     }
     /**
