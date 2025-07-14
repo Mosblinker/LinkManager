@@ -5897,14 +5897,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private LinksListModel addAllToCopy(LinksListModel model, Collection<String> list){
             // Clone the model
-        model = new LinksListModel(model);
+        LinksListModel newModel = new LinksListModel(model);
         try{
-            model.addAll(list);
+            if (!newModel.addAll(list))
+                return model;
         } catch(Exception ex){
             getLogger().log(Level.WARNING, 
                     "Issue encountered while adding collection to model", ex);
         }
-        return model;
+        return newModel;
     }
     /**
      * 
@@ -6402,7 +6403,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
-            if (model != null)
+            if (model != null && !model.listEquals(panel.getModel()))
                 panel.setModel(model,true);
             super.done();
         }
@@ -6614,7 +6615,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     else{   // Copy the source model
                         srcModel = new LinksListModel(source.getModel());
                             // Remove all the links that were added.
-                        srcModel.removeAll(added);
+                        if (!srcModel.removeAll(added))
+                            srcModel = null;
                     }
                 } catch(Exception ex){
                     getLogger().log(Level.WARNING, 
@@ -6689,7 +6691,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             model = new LinksListModel(panel.getModel());
                 // Remove all the links that the given panel has in common with 
                 // the source list
-            model.removeAll(source.getModel());
+            if (!model.removeAll(source.getModel()))
+                    // There was no change, so set it back to null
+                model = null;
             return null;
         }
         @Override
