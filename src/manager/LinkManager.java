@@ -6378,7 +6378,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void done(){
             if (model != null)
                 panel.setModel(model,true);
-//            repaintIfSelected(panel);
             super.done();
         }
     }
@@ -6495,8 +6494,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             if (model != null)
-                panel.setModel(model);
-//            repaintIfSelected(panel);
+                panel.setModel(model, true);
             super.done();
         }
     }
@@ -6621,18 +6619,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             if (model != null)
-                panel.setModel(model);
+                panel.setModel(model, true);
                 // If a source list was given
             if (source != null){
-                if (move){
-                    if (srcModel != null)
-                        source.setModel(srcModel, true);
-                    else
-                        repaintIfSelected(source);
-                }
+                if (move && srcModel != null)
+                    source.setModel(srcModel, true);
                 source.setEnabled(true);
             }
-//            repaintIfSelected(panel);
             super.done();
         }
     }
@@ -6692,10 +6685,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             if (model != null)
-                panel.setModel(model);
+                panel.setModel(model, true);
                 // Enable the source list
             source.setEnabled(true);
-//            repaintIfSelected(panel);
             super.done();
         }
     }
