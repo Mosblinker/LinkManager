@@ -6838,7 +6838,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             for (Map.Entry<LinksListPanel,LinksListModel> entry : models.entrySet()){
-                entry.getKey().setModel(entry.getValue());
+                entry.getKey().setModel(entry.getValue(),true);
             }
                 // Re-enable the lists
             setTabsPanelListsEnabled(true);
