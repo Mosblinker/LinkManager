@@ -3593,6 +3593,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }   // If the program fully loaded initially and it is to save after the 
             // initial load
         if (fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
+            getLogger().log(Level.FINER, "Exiting and saving program");
                 // Ensure that the program's configuration is up-to-date
             updateProgramConfig();
             exitButton.setEnabled(false);
@@ -3600,8 +3601,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             saver = new DatabaseSaver(true);
             saver.execute();
         }
-        else
+        else{
+            getLogger().log(Level.FINER, "Exiting program normally");
             System.exit(0);
+        }
     }//GEN-LAST:event_exitButtonActionPerformed
 
     private void showHiddenListsToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showHiddenListsToggleActionPerformed
@@ -4811,7 +4814,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         else    // Log the current Look and Feel
             getLogger().log(Level.CONFIG, "Look and Feel: {0}",
                     UIManager.getLookAndFeel().getName());
-        
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
                 // This will get the program ID for the program
@@ -7403,6 +7405,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * This is used to exit the program after this finishes saving the file.
          */
         protected void exitProgram(){
+            getLogger().log(Level.FINER, "Exiting program normally");
             System.exit(0);         // Exit the program
         }
         @Override
