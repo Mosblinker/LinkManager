@@ -9057,6 +9057,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Add any models that are in the shown lists panel that are 
                 // missing from the all lists panel
             models.addAll(shownListsTabsPanel.getModels());
+                // Go through the models
+            for (LinksListModel model : models)
+                    // Set the model's list ID to null
+                model.setListID(null);
                 // Write the models to the database
             writeToDatabase(conn, models);
             
