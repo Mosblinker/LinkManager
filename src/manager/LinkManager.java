@@ -10258,7 +10258,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Save the database to file
             getLogger().log(Level.FINER, "Saving database to file \"{0}\"", 
                     file);
-            boolean retry = false;
+                // Whether the user wants this to try processing the file again 
+            boolean retry = false;  // if unsuccessful
             do{
                 SQLException exc = null;
                     // Try to create the directories for the file
@@ -10308,6 +10309,65 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().exiting(this.getClass().getName(), "saveDatabase", false);
             return false;
         }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @return 
+         */
+        private boolean uploadDatabase(File file, String path, int mode){
+            getLogger().entering(this.getClass().getName(), "uploadDatabase", 
+                    new Object[]{file,path,mode});
+                // Whether the user wants this to try processing the file again 
+            boolean retry = false;  // if unsuccessful
+                // Determine how to format the path and state where it's 
+                // going to be uploaded
+            switch(mode){
+                case(0):    // If the file will be uploaded to Dropbox
+                    getLogger().finer("Uploading database to Dropbox");
+                    path = DropboxUtilities.formatDropboxPath(path);
+            }
+            getLogger().log(Level.FINER, "Uploading file at path \"{0}\"",path);
+            do{     // The exception that was thrown, if any
+                Exception exc = null;
+                    // Set the progress to be zero
+                progressBar.setValue(0);
+                    // Set the program to be indeterminate
+                progressBar.setIndeterminate(true); 
+                try{    // Determine how to upload the file
+                    switch(mode){
+                        case(0):     // Try to upload the file to Dropbox
+                            uploadToDropbox(file,path);
+                    }
+                    getLogger().exiting(this.getClass().getName(), 
+                            "uploadDatabase", true);
+                    return true;
+                } catch (IOException | DbxException ex){
+                    getLogger().log(Level.WARNING, "Failed to upload file",ex);
+                    exc = ex;
+                }   // The message to return
+                String msg = "The file failed to upload";
+                    // Determine how the file was to be uploaded
+                switch(mode){
+                    case(0):    // If the file was to be uploaded to Dropbox
+                        msg += " to Dropbox";
+                }
+                msg += ".";
+                    // If the program is either in debug mode or 
+                    // if details are to be shown and there was an 
+                    // exception thrown
+                if ((isInDebug() || showDBErrorDetailsToggle.isSelected()) && 
+                        exc != null){
+                    msg += "\nError: " + exc;
+                }
+                retry = showFailurePrompt("ERROR - File Failed To Upload",msg,
+                        true);
+            }   // While the file failed to be processed and the user wants to 
+            while(retry);   // try again
+            getLogger().exiting(this.getClass().getName(), "uploadDatabase", false);
+            return false;
+        }
         @Override
         protected Void backgroundAction() throws Exception {
             getLogger().entering(this.getClass().getName(), "backgroundAction");
@@ -10318,16 +10378,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             File file = getDatabaseFile();
             
             success = saveDatabase(file);
+                // Set the program to be indeterminate
+            progressBar.setIndeterminate(true); 
             
                 // If the database is to be synced and the database was 
                 // successfully saved
             if (success && syncDBToggle.isSelected()){
                     // Upload the database file
-                
                 state = 1;  // Set state to uploading database
-                retry = false;
-                    // Set the program to be indeterminate
-                progressBar.setIndeterminate(true); 
                     // The mode to use to sync the database
                 int syncMode = -1;
                     // The file path for the uploaded file
@@ -10337,58 +10395,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     syncMode = 0;
                         // Get the Dropbox file path from the configuration
                     filePath = config.getDropboxDatabaseFileName();
-                        // If the Dropbox file path is not null
-                    if (filePath != null){
-                        filePath = DropboxUtilities.formatDropboxPath(filePath);
-                        getLogger().finer("Uploading database to Dropbox");
-                    }
                 }
-                    // If the database can be synced to somewhere and there is a 
-                    // file path for the uploaded file
                 if (syncMode >= 0 && filePath != null){
-                    getLogger().log(Level.FINER, "Uploading file at path \"{0}\"", 
-                            filePath);
                     progressDisplay.setString(getProgressString());
-                    success = false;
-                    do{     // The exception that was thrown, if any
-                        Exception exc = null;
-                            // Set the progress to be zero
-                        progressBar.setValue(0);
-                            // Set the program to be indeterminate
-                        progressBar.setIndeterminate(true); 
-                        try{    // Determine how to upload the file
-                            switch(syncMode){
-                                case(0):     // Try to upload the file to Dropbox
-                                    uploadToDropbox(file,filePath);
-                                default:
-                                    success = true;
-                            }
-                        } catch (IOException | DbxException ex){
-                            getLogger().log(Level.WARNING, "Failed to upload file",ex);
-                            exc = ex;
-                        }
-                        if (!success){
-                                // The message to return
-                            String msg = "The file failed to upload";
-                                // Determine how the file was to be uploaded
-                            switch(syncMode){
-                                case(0):    // If the file was to be uploaded to
-                                            // Dropbox
-                                    msg += " to Dropbox";
-                            }
-                            msg += ".";
-                                // If the program is either in debug mode or 
-                                // if details are to be shown and there was an 
-                                // exception thrown
-                            if ((isInDebug() || showDBErrorDetailsToggle.isSelected()) && 
-                                    exc != null){
-                                msg += "\nError: " + exc;
-                            }
-                            retry = showFailurePrompt(
-                                    "ERROR - File Failed To Upload",msg,true);
-                        }
-                    }   // While the file failed to be processed and the user wants to 
-                    while(!success && retry);   // try again
+                    success = uploadDatabase(file,filePath,syncMode);
+                        // Set the program to be indeterminate
+                    progressBar.setIndeterminate(true); 
                 }
             }
                 // If the program is to exit after saving the database
