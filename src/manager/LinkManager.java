@@ -1219,6 +1219,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxPrintButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
+        saveTestExitToggle = new javax.swing.JCheckBoxMenuItem();
         saveTestItem = new javax.swing.JMenuItem();
 
         openFC.addActionListener(new java.awt.event.ActionListener() {
@@ -2903,7 +2904,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         debugMenu.add(dropboxTestMenu);
 
+        saveTestExitToggle.setText("Exit After Test Save");
+        debugMenu.add(saveTestExitToggle);
+
         saveTestItem.setText("Save Test");
+        saveTestItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveTestItemActionPerformed(evt);
+            }
+        });
         debugMenu.add(saveTestItem);
 
         menuBar.add(debugMenu);
@@ -4651,6 +4660,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             loader.execute();
         }
     }//GEN-LAST:event_dbQueryPanelActionPerformed
+
+    private void saveTestItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveTestItemActionPerformed
+    }//GEN-LAST:event_saveTestItemActionPerformed
     
     private CustomTableModel getListSearchTableModel(){
         CustomTableModel model = new CustomTableModel("ListID", "List Name", 
@@ -5385,6 +5397,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton resetDBFilePathButton;
     private javax.swing.JMenuItem saveConfigItem;
     private javax.swing.JFileChooser saveFC;
+    private javax.swing.JCheckBoxMenuItem saveTestExitToggle;
     private javax.swing.JMenuItem saveTestItem;
     private javax.swing.JDialog searchDialog;
     private javax.swing.JMenu searchMenu;

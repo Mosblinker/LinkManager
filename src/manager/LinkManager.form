@@ -2400,10 +2400,18 @@
                 </MenuItem>
               </SubComponents>
             </Menu>
+            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="saveTestExitToggle">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Exit After Test Save"/>
+              </Properties>
+            </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="saveTestItem">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Save Test"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="saveTestItemActionPerformed"/>
+              </Events>
             </MenuItem>
           </SubComponents>
         </Menu>
