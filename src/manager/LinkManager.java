@@ -4662,6 +4662,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbQueryPanelActionPerformed
 
     private void saveTestItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveTestItemActionPerformed
+        new TestDatabaseSaver(saveTestExitToggle.isSelected()).execute();
     }//GEN-LAST:event_saveTestItemActionPerformed
     
     private CustomTableModel getListSearchTableModel(){
