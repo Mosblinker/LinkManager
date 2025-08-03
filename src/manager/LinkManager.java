@@ -10216,15 +10216,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             conn.createTables(stmt);
             return conn.updateDatabaseDefinitions(stmt,progressObserver);
         }
-        @Override
-        protected Void backgroundAction() throws Exception {
-            getLogger().entering(this.getClass().getName(), "backgroundAction");
-            saving = true;
-                // Whether the user wants this to try processing the file again 
-            boolean retry = false;  // if unsuccessful
-                // Get the database file to be saved
-            File file = getDatabaseFile();
-            
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        private boolean saveDatabase(File file){
+            getLogger().entering(this.getClass().getName(), "saveDatabase", file);
                 // If the database file already exists
             if (file.exists()){
                     // Back up the current database file just in case
@@ -10249,25 +10247,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (backupFailed && (retryOption == JOptionPane.CLOSED_OPTION || 
                         retryOption == JOptionPane.CANCEL_OPTION)){
                     exitAfterSaving = false;
-                    success = false;
                     showFailurePrompt("ERROR - Database Failed To Save",
                             "The database failed to save."
                                     + "\nError: Failed to create backup file.",
                             false);
-                    getLogger().exiting(this.getClass().getName(), "backgroundAction");
-                    return null;
+                    getLogger().exiting(this.getClass().getName(), "saveDatabase", false);
+                    return false;
                 }
             }
-            
                 // Save the database to file
             getLogger().log(Level.FINER, "Saving database to file \"{0}\"", 
                     file);
-            
-            do{     // Try to create the directories for the file
-                success = createDirectories(file);
+            boolean retry = false;
+            do{
                 SQLException exc = null;
-                    // If the directories were successfully created
-                if (success){
+                    // Try to create the directories for the file
+                if (createDirectories(file)){
                     progressBar.setValue(0);
                     progressBar.setIndeterminate(true);
                         // Connect to the database and create an SQL statement
@@ -10275,14 +10270,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                             Statement stmt = conn.createStatement()){
                         conn.setAutoCommit(false);
                             // Try to prepare the database
-                        success = prepareDatabase(file,conn,stmt);
+                        boolean value = prepareDatabase(file,conn,stmt);
                             // If the connection is not in auto-commit mode
                         if (!conn.getAutoCommit())
                             conn.commit();       // Commit the changes to the database
                             // If the database was prepared
-                        if (success){
+                        if (value){
                                 // Save to the database and get if we are successful
-                            success = LinkManager.this.saveDatabase(conn);
+                            value = LinkManager.this.saveDatabase(conn);
                                // Ensure that the database last modified time is updated
                             conn.setDatabaseLastModified();
                                 // If the connection is not in auto-commit mode
@@ -10290,27 +10285,39 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                                 progressBar.setIndeterminate(true);
                                 conn.commit();       // Commit the changes to the database
                             }
+                            getLogger().exiting(this.getClass().getName(), 
+                                    "saveDatabase", value);
+                            return value;
                         } else{
                             getLogger().log(Level.WARNING,"Failed to prepare database");
                         }
                     } catch(SQLException ex){
                         getLogger().log(Level.WARNING, "Failed to save database", ex);
-                        success = false;
                         exc = ex;
                     } catch (UncheckedSQLException ex){
                         getLogger().log(Level.WARNING, "Failed to save database", ex);
-                        success = false;
                         exc = ex.getCause();
                     } catch(Exception ex){
                         getLogger().log(Level.WARNING, "Failed to save database", ex);
-                        success = false;
                     }
                 }
-                if (!success)
-                    retry = showFailurePrompt("ERROR - Failed To Save Database",
-                            getDatabaseFailureMessage(file,exc),true);
+                retry = showFailurePrompt("ERROR - Failed To Save Database",
+                        getDatabaseFailureMessage(file,exc),true);
             }   // While the file failed to be processed and the user wants to 
-            while(!success && retry);   // try again
+            while(retry);   // try again
+            getLogger().exiting(this.getClass().getName(), "saveDatabase", false);
+            return false;
+        }
+        @Override
+        protected Void backgroundAction() throws Exception {
+            getLogger().entering(this.getClass().getName(), "backgroundAction");
+            saving = true;
+                // Whether the user wants this to try processing the file again 
+            boolean retry = false;  // if unsuccessful
+                // Get the database file to be saved
+            File file = getDatabaseFile();
+            
+            success = saveDatabase(file);
             
                 // If the database is to be synced and the database was 
                 // successfully saved
