@@ -10156,10 +10156,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         /**
          * This is the state in the process of working with the file.
          */
-        private int state = 0;
+        private int stage;
+        
+        TestDatabaseSaver(int stage, boolean exit){
+            if (stage < 0 || stage > 2)
+                throw new IllegalArgumentException("Invalid state " + stage);
+            this.stage = stage;
+            this.exitAfterSaving = exit;
+        }
+        
+        TestDatabaseSaver(int stage){
+            this(stage,false);
+        }
         
         TestDatabaseSaver(boolean exit){
-            this.exitAfterSaving = exit;
+            this(0,exit);
         }
         
         TestDatabaseSaver(){
@@ -10168,7 +10179,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         @Override
         public String getProgressString() {
-            switch(state){
+            switch(stage){
                 case(1):
                     return "Uploading Database";
                 case(2):
@@ -10404,20 +10415,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected Void backgroundAction() throws Exception {
-            getLogger().entering(this.getClass().getName(), "backgroundAction");
+            getLogger().entering(this.getClass().getName(), "backgroundAction", stage);
             saving = true;
                 // Get the database file to be saved
             File file = getDatabaseFile();
             
-            success = saveDatabase(file);
-                // Set the program to be indeterminate
-            progressBar.setIndeterminate(true); 
+            if (stage == 0){
+                success = saveDatabase(file);
+                    // Set the program to be indeterminate
+                progressBar.setIndeterminate(true);
+                if (success && syncDBToggle.isSelected())
+                    stage = 1;
+            }
             
-                // If the database is to be synced and the database was 
-                // successfully saved
-            if (success && syncDBToggle.isSelected()){
-                    // Upload the database file
-                state = 1;  // Set state to uploading database
+            if (stage == 1){
                     // The mode to use to sync the database
                 int syncMode = -1;
                     // The file path for the uploaded file
@@ -10435,11 +10446,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     progressBar.setIndeterminate(true); 
                 }
             }
+            
                 // If the program is to exit after saving the database
-            if (exitAfterSaving){
-                    // Save the configuration to file
-                
-                state = 2;  // Set state to saving configuration
+            if (exitAfterSaving)
+                    // Next stage is to save the program's configuration
+                stage = 2;
+            
+            if (stage == 2){
+                // Save the configuration to file
                 progressDisplay.setString(getProgressString());
                 success = saveConfig(getConfigFile());
             }
