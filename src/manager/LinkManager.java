@@ -5437,6 +5437,50 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         progressBar.setValue(progressBar.getValue()+1);
     }
     /**
+     * 
+     * @param title
+     * @param text 
+     */
+    protected void showSuccessPrompt(String title, String text){
+        JOptionPane.showMessageDialog(this, text, title, 
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+    /**
+     * 
+     * @param title
+     * @param text
+     * @param showCancel
+     * @return 
+     */
+    protected int showRetryPrompt(String title, String text, 
+            boolean showCancel){
+        return JOptionPane.showConfirmDialog(this, 
+                text+"\nWould you like to try again?",title,
+                (showCancel)?JOptionPane.YES_NO_CANCEL_OPTION:
+                        JOptionPane.YES_NO_OPTION,
+                JOptionPane.ERROR_MESSAGE);
+    }
+    /**
+     * 
+     * @param title
+     * @param text
+     * @param canRetry
+     * @param showCancel
+     * @return 
+     */
+    protected int showFailurePrompt(String title, String text,boolean canRetry, 
+            boolean showCancel){
+        if (canRetry){
+                // Show a dialog prompt asking the user if they would like to 
+                // try and save the file again and get their input. 
+            return showRetryPrompt(title,text,showCancel);
+        } else {
+            JOptionPane.showMessageDialog(this, text, title, 
+                    JOptionPane.ERROR_MESSAGE);
+            return JOptionPane.NO_OPTION;
+        }
+    }
+    /**
      * This attempts to write the List of Strings to the given file.
      * @param file The file to write to.
      * @param list The list of String to write to the file.
@@ -7118,21 +7162,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         @Override
         protected boolean showFailurePrompt(File file){
-            if (!file.exists()){    // If the file doesn't exist
-                    // If this should show file not found prompts
-                if (showFileNotFound){
-                    JOptionPane.showMessageDialog(LinkManager.this, 
-                            getFileNotFoundMessage(file), getFailureTitle(file), 
-                            JOptionPane.ERROR_MESSAGE);
-                }
+                // If the file doesn't exist and this shouldn't show the file 
+                // not found prompt
+            if (!file.exists() && !showFileNotFound)
                 return false;
-            }
-            else{   // Ask the user if they would like to try loading the file
-                return JOptionPane.showConfirmDialog(LinkManager.this, // again
-                        getFailureMessage(file)+"\nWould you like to try again?",
-                        getFailureTitle(file),JOptionPane.YES_NO_OPTION,
-                        JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
-            }
+            return LinkManager.this.showFailurePrompt(getFailureTitle(file), 
+                    getFailureMessage(file), file.exists(), false) ==
+                    JOptionPane.YES_OPTION;
         }
         /**
          * This returns the title for the dialog to display if the file fails to 
@@ -7381,9 +7417,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void showSuccessPrompt(File file){
                 // If the program is not to exit after saving the file
             if (!exitAfterSaving)   
-                JOptionPane.showMessageDialog(LinkManager.this, 
-                        getSuccessMessage(file), getSuccessTitle(file), 
-                        JOptionPane.INFORMATION_MESSAGE);
+                LinkManager.this.showSuccessPrompt(getSuccessTitle(file), 
+                        getSuccessMessage(file));
         }
         /**
          * This is used to display a failure and retry prompt to the user when 
@@ -7400,15 +7435,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     getFailureMessage(file);
                 // Show a dialog prompt asking the user if they would like to 
                 // try and save the file again and get their input. 
-            int option = JOptionPane.showConfirmDialog(LinkManager.this, 
-                    message+"\nWould you like to try again?",
-                    getFailureTitle(file),
-                        // If the program is to exit after saving the file, show 
-                        // a third "cancel" option to allow the user to cancel 
-                        // exiting the program
-                    (exitAfterSaving)?JOptionPane.YES_NO_CANCEL_OPTION:
-                            JOptionPane.YES_NO_OPTION,
-                    JOptionPane.ERROR_MESSAGE);
+                
+                // If the program is to exit after saving the file, show 
+                // a third "cancel" option to allow the user to cancel 
+                // exiting the program
+            int option = LinkManager.this.showFailurePrompt(getFailureTitle(file), 
+                    message, true, exitAfterSaving);
                 // If the program was going to exit after saving the file
             if (exitAfterSaving){   
                     // If the option selected was the cancel option or the user 
@@ -10392,61 +10424,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         /**
          * 
          * @param title
-         * @param text 
-         */
-        protected void showSuccessPrompt(String title, String text){
-            JOptionPane.showMessageDialog(LinkManager.this, text, title, 
-                    JOptionPane.INFORMATION_MESSAGE);
-        }
-        /**
-         * 
-         * @param title
-         * @param text
-         * @param showCancel
-         * @return 
-         */
-        protected int showRetryPrompt(String title, String text, 
-                boolean showCancel){
-            return JOptionPane.showConfirmDialog(LinkManager.this, 
-                    text+"\nWould you like to try again?",title,
-                        // If the program is to exit after saving the file, show 
-                        // a third "cancel" option to allow the user to cancel 
-                        // exiting the program
-                    (showCancel)?JOptionPane.YES_NO_CANCEL_OPTION:
-                            JOptionPane.YES_NO_OPTION,
-                    JOptionPane.ERROR_MESSAGE);
-        }
-        /**
-         * 
-         * @param title
          * @param text
          * @param canRetry
          * @return 
          */
         protected boolean showFailurePrompt(String title, String text, 
                 boolean canRetry){
-            if (canRetry){
-                    // Show a dialog prompt asking the user if they would like to 
-                    // try and save the file again and get their input. 
-                    
-                    // If the program is to exit after saving the file, show 
-                    // a third "cancel" option to allow the user to cancel 
-                    // exiting the program
-                int option = showRetryPrompt(title,text,exitAfterSaving);
-                    // If the program was going to exit after saving the file
-                if (exitAfterSaving){   
-                        // If the option selected was the cancel option or the user 
-                        // closed the dialog without selecting anything, then don't 
-                        // exit the program
-                    exitAfterSaving = option != JOptionPane.CLOSED_OPTION && 
-                            option != JOptionPane.CANCEL_OPTION;
-                }   // Return whether the user selected yes
-                return option == JOptionPane.YES_OPTION;    
-            } else {
-                JOptionPane.showMessageDialog(LinkManager.this, text, title, 
-                        JOptionPane.ERROR_MESSAGE);
-                return false;
-            }
+                // Show a dialog prompt asking the user if they would like to 
+                // try and save the file again and get their input. 
+
+                // If the program is to exit after saving the file, show 
+                // a third "cancel" option to allow the user to cancel 
+                // exiting the program
+            int option = LinkManager.this.showFailurePrompt(title, text, 
+                    canRetry, exitAfterSaving);
+                // If the program was going to exit after saving the file
+            if (exitAfterSaving){   
+                    // If the option selected was the cancel option or the user 
+                    // closed the dialog without selecting anything, then don't 
+                    // exit the program
+                exitAfterSaving = option != JOptionPane.CLOSED_OPTION && 
+                        option != JOptionPane.CANCEL_OPTION;
+            }   // Return whether the user selected yes
+            return option == JOptionPane.YES_OPTION;    
         }
         /**
          * 
