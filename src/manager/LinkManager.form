@@ -2369,7 +2369,7 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="listSetOpItemActionPerformed"/>
               </Events>
             </MenuItem>
-            <Menu class="javax.swing.JMenu" name="jMenu2">
+            <Menu class="javax.swing.JMenu" name="dropboxTestMenu">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Dropbox Tests"/>
               </Properties>
@@ -2400,6 +2400,11 @@
                 </MenuItem>
               </SubComponents>
             </Menu>
+            <MenuItem class="javax.swing.JMenuItem" name="saveTestItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Save Test"/>
+              </Properties>
+            </MenuItem>
           </SubComponents>
         </Menu>
       </SubComponents>

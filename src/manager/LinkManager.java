@@ -1215,10 +1215,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         clearSelTabItem = new javax.swing.JMenuItem();
         clearListSelItem = new javax.swing.JMenuItem();
         listSetOpItem = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
+        dropboxTestMenu = new javax.swing.JMenu();
         dbxPrintButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
+        saveTestItem = new javax.swing.JMenuItem();
 
         openFC.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -2874,7 +2875,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         });
         debugMenu.add(listSetOpItem);
 
-        jMenu2.setText("Dropbox Tests");
+        dropboxTestMenu.setText("Dropbox Tests");
 
         dbxPrintButton.setText("Print Dropbox Data");
         dbxPrintButton.addActionListener(new java.awt.event.ActionListener() {
@@ -2882,7 +2883,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxPrintButtonActionPerformed(evt);
             }
         });
-        jMenu2.add(dbxPrintButton);
+        dropboxTestMenu.add(dbxPrintButton);
 
         setDropboxTestButton.setText("Set Dropbox Access Token");
         setDropboxTestButton.addActionListener(new java.awt.event.ActionListener() {
@@ -2890,7 +2891,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 setDropboxTestButtonActionPerformed(evt);
             }
         });
-        jMenu2.add(setDropboxTestButton);
+        dropboxTestMenu.add(setDropboxTestButton);
 
         dropboxRefreshTestButton.setText("Refresh Dropbox Token");
         dropboxRefreshTestButton.addActionListener(new java.awt.event.ActionListener() {
@@ -2898,9 +2899,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dropboxRefreshTestButtonActionPerformed(evt);
             }
         });
-        jMenu2.add(dropboxRefreshTestButton);
+        dropboxTestMenu.add(dropboxRefreshTestButton);
 
-        debugMenu.add(jMenu2);
+        debugMenu.add(dropboxTestMenu);
+
+        saveTestItem.setText("Save Test");
+        debugMenu.add(saveTestItem);
 
         menuBar.add(debugMenu);
 
@@ -5320,6 +5324,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem downloadDBItem;
     private javax.swing.JMenuItem dropboxRefreshTestButton;
     private manager.dropbox.DropboxSetupPanel dropboxSetupPanel;
+    private javax.swing.JMenu dropboxTestMenu;
     private javax.swing.JButton editLinkButton;
     private javax.swing.JMenuItem exitButton;
     private javax.swing.JFileChooser exportFC;
@@ -5329,7 +5334,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JCheckBoxMenuItem hiddenLinkOperationToggle;
     private javax.swing.JMenuItem hideAllListsItem;
     private javax.swing.JMenu hideListsMenu;
-    private javax.swing.JMenu jMenu2;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
@@ -5381,6 +5385,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton resetDBFilePathButton;
     private javax.swing.JMenuItem saveConfigItem;
     private javax.swing.JFileChooser saveFC;
+    private javax.swing.JMenuItem saveTestItem;
     private javax.swing.JDialog searchDialog;
     private javax.swing.JMenu searchMenu;
     private javax.swing.JMenuItem searchMenuItem;
