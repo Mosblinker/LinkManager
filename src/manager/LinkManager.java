@@ -6311,18 +6311,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @throws Exception If an error occurs.
          */
         protected abstract E backgroundAction() throws Exception;
-        /**
-         * 
-         */
-        protected void updateProgressString(){
-            progressDisplay.setString(getProgressString());
-        }
         @Override
         protected E doInBackground() throws Exception {
             getLogger().entering(this.getClass().getName(), "doInBackground");
             useWaitCursor(true);
             setInputEnabled(false);
-            updateProgressString();
+            progressDisplay.setString(getProgressString());
             progressBar.setIndeterminate(true);
             progressBar.setStringPainted(true);
             progressBar.setValue(0);
@@ -7458,7 +7452,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public void setProgressString(String text){
             progressStr = text;
             if (super.isSaving())   // If this is currently saving a file
-                updateProgressString();
+                progressDisplay.setString(getProgressString());
         }
         @Override
         protected boolean willCreateBackup(){
@@ -7979,7 +7973,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected void setVerifyingDatabase(boolean value){
             verifying = value;
-            updateProgressString();
+            progressDisplay.setString(getProgressString());
         }
         /**
          * 
