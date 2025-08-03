@@ -10259,7 +10259,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.FINER, "Saving database to file \"{0}\"", 
                     file);
                 // Whether the user wants this to try processing the file again 
-            boolean retry = false;  // if unsuccessful
+            boolean retry;  // if unsuccessful
             do{
                 SQLException exc = null;
                     // Try to create the directories for the file
@@ -10320,7 +10320,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().entering(this.getClass().getName(), "uploadDatabase", 
                     new Object[]{file,path,mode});
                 // Whether the user wants this to try processing the file again 
-            boolean retry = false;  // if unsuccessful
+            boolean retry;  // if unsuccessful
                 // Determine how to format the path and state where it's 
                 // going to be uploaded
             switch(mode){
@@ -10368,12 +10368,44 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().exiting(this.getClass().getName(), "uploadDatabase", false);
             return false;
         }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        private boolean saveConfig(File file){
+            getLogger().entering(this.getClass().getName(), "saveConfig", file);
+                // Whether the user wants this to try processing the file again 
+            boolean retry;  // if unsuccessful
+            getLogger().finer("Saving configuration to config file");
+            getLogger().log(Level.FINER, "Saving config to file \"{0}\"", file);
+                // Set the program to be indeterminate
+                progressBar.setIndeterminate(true); 
+            do{     // Try to create the directories for the file
+                if (createDirectories(file)){
+                    try {    // Try to save the properties to file
+                        if (saveConfigFile(file)){
+                            getLogger().exiting(this.getClass().getName(), 
+                                    "saveConfig", true);
+                            return true;
+                        }
+                    } catch (IOException ex) {
+                        getLogger().log(Level.WARNING,
+                                "Failed to save configuration file", ex);
+                    }
+                }
+                retry = showFailurePrompt("ERROR - Configuration Failed To Save",
+                        "The configuration for the program failed to save to file.",
+                        true);
+            }   // While the file failed to be processed and the user wants to 
+            while(retry);   // try again
+            getLogger().exiting(this.getClass().getName(), "saveConfig", false);
+            return false;
+        }
         @Override
         protected Void backgroundAction() throws Exception {
             getLogger().entering(this.getClass().getName(), "backgroundAction");
             saving = true;
-                // Whether the user wants this to try processing the file again 
-            boolean retry = false;  // if unsuccessful
                 // Get the database file to be saved
             File file = getDatabaseFile();
             
@@ -10408,34 +10440,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Save the configuration to file
                 
                 state = 2;  // Set state to saving configuration
-                retry = false;
-                    // Get the configuration file
-                file = getConfigFile();
-                getLogger().finer("Saving configuration to config file");
-                getLogger().log(Level.FINER, "Saving config to file \"{0}\"", 
-                        file);
                 progressDisplay.setString(getProgressString());
-                    // Set the program to be indeterminate
-                progressBar.setIndeterminate(true); 
-                do{     // Try to create the directories for the file
-                    success = createDirectories(file);
-                        // If the directories were created successfully
-                    if (success){
-                        try {    // Try to save the properties to file
-                            success = saveConfigFile(file);
-                        } catch (IOException ex) {
-                            getLogger().log(Level.WARNING,
-                                    "Failed to save configuration file", ex);
-                        }
-                    }
-                    if (!success){
-                        retry = showFailurePrompt(
-                                "ERROR - Configuration Failed To Save",
-                                "The configuration for the program failed to save to file.",
-                                true);
-                    }
-                }   // While the file failed to be processed and the user wants to 
-                while(!success && retry);   // try again
+                success = saveConfig(getConfigFile());
             }
             getLogger().exiting(this.getClass().getName(), "backgroundAction");
             return null;
