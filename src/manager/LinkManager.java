@@ -10078,4 +10078,415 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             super.done();
         }
     }
+    
+    private class TestDatabaseSaver extends LinkManagerWorker<Void>{
+        /**
+         * Whether this is currently saving a file.
+         */
+        protected volatile boolean saving = false;
+        /**
+         * This stores whether this should exit the program after saving.
+         */
+        protected volatile boolean exitAfterSaving;
+        /**
+         * Whether this was successful at processing the file.
+         */
+        protected boolean success = false;
+        /**
+         * This stores the backup of the existing version of the file being 
+         * saved if a backup is to be created.
+         */
+        protected File backupFile = null;
+        /**
+         * This stores whether the file failed to save due to an error occurring 
+         * while creating the backup file.
+         */
+        private boolean backupFailed = false;
+        
+        private int state = 0;
+        
+        TestDatabaseSaver(boolean exit){
+            this.exitAfterSaving = exit;
+        }
+        
+        TestDatabaseSaver(){
+            this(false);
+        }
+
+        @Override
+        public String getProgressString() {
+            switch(state){
+                case(1):
+                    return "Uploading Database";
+                case(2):
+                    return "Saving Configuration";
+            }
+            return "Saving Database";
+        }
+        /**
+         * This returns whether the program will exit after this finishes saving 
+         * the file.
+         * @return Whether the program will exit once the file is saved.
+         */
+        public boolean getExitAfterSaving(){
+            return exitAfterSaving;
+        }
+        /**
+         * This sets whether the program will exit after this finishes saving 
+         * the file.
+         * @param value Whether the program will exit once the file is saved.
+         */
+        public void setExitAfterSaving(boolean value){
+            exitAfterSaving = value;
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        private boolean createDirectories(File file){
+                // Try to create the directories and if that fails, then give up 
+                // on saving the file.
+            return FilesExtended.createDirectories(LinkManager.this, 
+                    file.getParentFile());
+        }
+        /**
+         * 
+         * @param file
+         * @param conn
+         * @param stmt
+         * @return
+         * @throws SQLException 
+         */
+        protected boolean prepareDatabase(File file, LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException{
+            conn.createTables(stmt);
+            return conn.updateDatabaseDefinitions(stmt,progressObserver);
+        }
+        @Override
+        protected Void backgroundAction() throws Exception {
+            getLogger().entering(this.getClass().getName(), "backgroundAction");
+            saving = true;
+                // Whether the user wants this to try processing the file again 
+            boolean retry = false;  // if unsuccessful
+                // Get the database file to be saved
+            File file = getDatabaseFile();
+            
+                // If the database file already exists
+            if (file.exists()){
+                    // Back up the current database file just in case
+                getLogger().log(Level.FINER, "Creating backup of file \"{0}\"", 
+                    file);
+                int retryOption = JOptionPane.NO_OPTION;
+                do {
+                    try {   // Try to create a backup of the file
+                        backupFile = LinkManagerUtilities.createBackupCopy(file);
+                        backupFailed = false;
+                    } catch (IOException ex) {
+                        getLogger().log(Level.WARNING,"Failed to create backup file",
+                                ex);
+                        backupFailed = true;    // The backup failed
+                        retryOption = showRetryPrompt("ERROR - Failed To Create Backup",
+                                "The database backup file failed to be created.",
+                                true);
+                    }
+                } while (backupFailed && retryOption == JOptionPane.YES_OPTION);
+                    // If the option selected was the cancel option or the user 
+                    // closed the dialog without selecting anything
+                if (backupFailed && (retryOption == JOptionPane.CLOSED_OPTION || 
+                        retryOption == JOptionPane.CANCEL_OPTION)){
+                    exitAfterSaving = false;
+                    success = false;
+                    showFailurePrompt("ERROR - Database Failed To Save",
+                            "The database failed to save."
+                                    + "\nError: Failed to create backup file.",
+                            false);
+                    getLogger().exiting(this.getClass().getName(), "backgroundAction");
+                    return null;
+                }
+            }
+            
+                // Save the database to file
+            getLogger().log(Level.FINER, "Saving database to file \"{0}\"", 
+                    file);
+            
+            do{     // Try to create the directories for the file
+                success = createDirectories(file);
+                SQLException exc = null;
+                    // If the directories were successfully created
+                if (success){
+                    progressBar.setValue(0);
+                    progressBar.setIndeterminate(true);
+                        // Connect to the database and create an SQL statement
+                    try(LinkDatabaseConnection conn = connect(file);
+                            Statement stmt = conn.createStatement()){
+                        conn.setAutoCommit(false);
+                            // Try to prepare the database
+                        success = prepareDatabase(file,conn,stmt);
+                            // If the connection is not in auto-commit mode
+                        if (!conn.getAutoCommit())
+                            conn.commit();       // Commit the changes to the database
+                            // If the database was prepared
+                        if (success){
+                                // Save to the database and get if we are successful
+                            success = LinkManager.this.saveDatabase(conn);
+                               // Ensure that the database last modified time is updated
+                            conn.setDatabaseLastModified();
+                                // If the connection is not in auto-commit mode
+                            if (!conn.getAutoCommit()){
+                                progressBar.setIndeterminate(true);
+                                conn.commit();       // Commit the changes to the database
+                            }
+                        } else{
+                            getLogger().log(Level.WARNING,"Failed to prepare database");
+                        }
+                    } catch(SQLException ex){
+                        getLogger().log(Level.WARNING, "Failed to save database", ex);
+                        success = false;
+                        exc = ex;
+                    } catch (UncheckedSQLException ex){
+                        getLogger().log(Level.WARNING, "Failed to save database", ex);
+                        success = false;
+                        exc = ex.getCause();
+                    } catch(Exception ex){
+                        getLogger().log(Level.WARNING, "Failed to save database", ex);
+                        success = false;
+                    }
+                }
+                retry = showFailurePrompt("ERROR - Failed To Save Database",
+                        getDatabaseFailureMessage(file,exc),true);
+            }   // While the file failed to be processed and the user wants to 
+            while(!success && retry);   // try again
+            
+                // If the database is to be synced and the database was 
+                // successfully saved
+            if (success && syncDBToggle.isSelected()){
+                    // Upload the database file
+                
+                state = 1;  // Set state to uploading database
+                retry = false;
+                    // Set the program to be indeterminate
+                progressBar.setIndeterminate(true); 
+                    // The mode to use to sync the database
+                int syncMode = -1;
+                    // The file path for the uploaded file
+                String filePath = null;
+                    // If the user is logged into Dropbox
+                if (isLoggedInToDropbox()){
+                    syncMode = 0;
+                        // Get the Dropbox file path from the configuration
+                    filePath = config.getDropboxDatabaseFileName();
+                        // If the Dropbox file path is not null
+                    if (filePath != null){
+                        filePath = DropboxUtilities.formatDropboxPath(filePath);
+                        getLogger().finer("Uploading database to Dropbox");
+                    }
+                }
+                    // If the database can be synced to somewhere and there is a 
+                    // file path for the uploaded file
+                if (syncMode >= 0 && filePath != null){
+                    getLogger().log(Level.FINER, "Uploading file at path \"{0}\"", 
+                            filePath);
+                    progressDisplay.setString(getProgressString());
+                    success = false;
+                    do{     // The exception that was thrown, if any
+                        Exception exc = null;
+                            // Set the progress to be zero
+                        progressBar.setValue(0);
+                            // Set the program to be indeterminate
+                        progressBar.setIndeterminate(true); 
+                        try{    // Determine how to upload the file
+                            switch(syncMode){
+                                case(0):     // Try to upload the file to Dropbox
+                                    uploadToDropbox(file,filePath);
+                                default:
+                                    success = true;
+                            }
+                        } catch (IOException | DbxException ex){
+                            getLogger().log(Level.WARNING, "Failed to upload file",ex);
+                            exc = ex;
+                        }
+                        if (!success){
+                                // The message to return
+                            String msg = "The file failed to upload";
+                                // Determine how the file was to be uploaded
+                            switch(syncMode){
+                                case(0):    // If the file was to be uploaded to
+                                            // Dropbox
+                                    msg += " to Dropbox";
+                            }
+                            msg += ".";
+                                // If the program is either in debug mode or 
+                                // if details are to be shown and there was an 
+                                // exception thrown
+                            if ((isInDebug() || showDBErrorDetailsToggle.isSelected()) && 
+                                    exc != null){
+                                msg += "\nError: " + exc;
+                            }
+                            retry = showFailurePrompt(
+                                    "ERROR - File Failed To Upload",msg,true);
+                        }
+                    }   // While the file failed to be processed and the user wants to 
+                    while(!success && retry);   // try again
+                }
+            }
+                // If the program is to exit after saving the database
+            if (exitAfterSaving){
+                    // Save the configuration to file
+                
+                state = 2;  // Set state to saving configuration
+                retry = false;
+                    // Get the configuration file
+                file = getConfigFile();
+                getLogger().finer("Saving configuration to config file");
+                getLogger().log(Level.FINER, "Saving config to file \"{0}\"", 
+                        file);
+                progressDisplay.setString(getProgressString());
+                    // Set the program to be indeterminate
+                progressBar.setIndeterminate(true); 
+                do{     // Try to create the directories for the file
+                    success = createDirectories(file);
+                        // If the directories were created successfully
+                    if (success){
+                        try {    // Try to save the properties to file
+                            success = saveConfigFile(file);
+                        } catch (IOException ex) {
+                            getLogger().log(Level.WARNING,
+                                    "Failed to save configuration file", ex);
+                        }
+                    }
+                    if (!success){
+                        retry = showFailurePrompt(
+                                "ERROR - Configuration Failed To Save",
+                                "The configuration for the program failed to save to file.",
+                                true);
+                    }
+                }   // While the file failed to be processed and the user wants to 
+                while(!success && retry);   // try again
+            }
+            getLogger().exiting(this.getClass().getName(), "backgroundAction");
+            return null;
+        }
+        /**
+         * 
+         * @param title
+         * @param text 
+         */
+        protected void showSuccessPrompt(String title, String text){
+            JOptionPane.showMessageDialog(LinkManager.this, text, title, 
+                    JOptionPane.INFORMATION_MESSAGE);
+        }
+        /**
+         * 
+         * @param title
+         * @param text
+         * @param showCancel
+         * @return 
+         */
+        protected int showRetryPrompt(String title, String text, 
+                boolean showCancel){
+            return JOptionPane.showConfirmDialog(LinkManager.this, 
+                    text+"\nWould you like to try again?",title,
+                        // If the program is to exit after saving the file, show 
+                        // a third "cancel" option to allow the user to cancel 
+                        // exiting the program
+                    (showCancel)?JOptionPane.YES_NO_CANCEL_OPTION:
+                            JOptionPane.YES_NO_OPTION,
+                    JOptionPane.ERROR_MESSAGE);
+        }
+        /**
+         * 
+         * @param title
+         * @param text
+         * @param canRetry
+         * @return 
+         */
+        protected boolean showFailurePrompt(String title, String text, 
+                boolean canRetry){
+            if (canRetry){
+                    // Show a dialog prompt asking the user if they would like to 
+                    // try and save the file again and get their input. 
+                    
+                    // If the program is to exit after saving the file, show 
+                    // a third "cancel" option to allow the user to cancel 
+                    // exiting the program
+                int option = showRetryPrompt(title,text,exitAfterSaving);
+                    // If the program was going to exit after saving the file
+                if (exitAfterSaving){   
+                        // If the option selected was the cancel option or the user 
+                        // closed the dialog without selecting anything, then don't 
+                        // exit the program
+                    exitAfterSaving = option != JOptionPane.CLOSED_OPTION && 
+                            option != JOptionPane.CANCEL_OPTION;
+                }   // Return whether the user selected yes
+                return option == JOptionPane.YES_OPTION;    
+            } else {
+                JOptionPane.showMessageDialog(LinkManager.this, text, title, 
+                        JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected String getDatabaseFailureMessage(File file, SQLException ex){
+                // The message to return
+            String msg = "The database failed to save.";
+            if (ex != null){    // If an SQLException was thrown
+                    // Custom error messages for certain error codes
+                switch(ex.getErrorCode()){
+                        // If the database failed to save because it was busy
+                    case (Codes.SQLITE_BUSY):
+                        msg = "Please wait, the database is currently busy.";
+                        break;
+                        // If the database is read only
+                    case(Codes.SQLITE_READONLY):
+                        msg = "The database could not be saved due to being read only.";
+                        break;
+                        // If the database is full
+                    case(Codes.SQLITE_FULL):
+                        msg = "The database could not be saved due to being full.";
+                        break;
+                        // If the database could not be opened
+                    case(Codes.SQLITE_CANTOPEN):
+                        msg = "The database could not be opened for saving.";
+                        break;
+                        // If the database is corrupted
+                    case(Codes.SQLITE_CORRUPT):
+                        msg = "The database failed to save due to being corrupted.";
+                }   // If the program is either in debug mode or if details are to be shown
+                if (isInDebug() || showDBErrorDetailsToggle.isSelected())    
+                    msg += "\nError: " + ex + 
+                            "\nError Code: " + ex.getErrorCode();
+            }
+            return msg;
+        }
+        /**
+         * This is used to exit the program after this finishes saving the file.
+         */
+        protected void exitProgram(){
+            getLogger().log(Level.FINER, "Exiting program normally");
+            System.exit(0);         // Exit the program
+        }
+        @Override
+        protected void done(){
+            if (success){   // If this was successful
+                allListsTabsPanel.clearEdited();
+                shownListsTabsPanel.clearEdited();
+                    // Stop the autosave
+                autosaveMenu.stopAutosave();
+                    // If there is a backup file of the database
+                if (backupFile != null)
+                        // Delete it
+                    backupFile.delete();
+            }    // Update the program configuration
+            updateProgramConfig();
+            if (exitAfterSaving)    // If the program is to exit after saving
+                exitProgram();      // Exit the program
+            saving = false;
+            super.done();
+        }
+    }
 }
