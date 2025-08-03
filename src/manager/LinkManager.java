@@ -10102,7 +10102,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * while creating the backup file.
          */
         private boolean backupFailed = false;
-        
+        /**
+         * This is the state in the process of working with the file.
+         */
         private int state = 0;
         
         TestDatabaseSaver(boolean exit){
