@@ -5431,15 +5431,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      * @return 
      */
-    private boolean saveConfigFile() throws IOException{
-            // Get the configuration file
-        File file = getConfigFile();
+    private boolean saveConfigFile(File file) throws IOException{
             // If the configuration properties is not empty or the file exists
         if (!config.getProperties().isEmpty() || file.exists())
                 // Save the configuration properties to file
             return LinkManagerUtilities.saveProperties(file,config.getProperties(),
                     GENERAL_CONFIG_HEADER);
         return true;
+    }
+    /**
+     * 
+     * @return 
+     */
+    private boolean saveConfigFile() throws IOException{
+        return saveConfigFile(getConfigFile());
     }
     /**
      * This updates the values in the program's configuration that would update 
