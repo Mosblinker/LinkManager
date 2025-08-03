@@ -301,10 +301,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return The configuration file.
      */
     private File getConfigFile(){
-            // If a configuration file was specified
-        if (configFile != null)
-            return configFile;
-        return new File(LinkManagerUtilities.getProgramDirectory(),CONFIG_FILE);
+            // If no configuration file was specified and the default config 
+            // file has not been retrieved yet
+        if (configFile == null)
+            configFile = new File(LinkManagerUtilities.getProgramDirectory(),
+                    CONFIG_FILE);
+        return configFile;
     }
     /**
      * This returns the file containing the Dropbox API keys for this program.
