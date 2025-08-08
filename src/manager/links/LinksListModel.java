@@ -1601,7 +1601,7 @@ public class LinksListModel extends ArrayListModel<String> implements
         if (model == this || model == null)
             return;
         LinkManager.getLogger().entering(this.getClass().getName(),
-                "setSelectionFrom",model);
+                "setSelectionFrom");
             // If this model's selection mode is different from the given model
         if (getSelectionMode() != model.getSelectionMode())
                 // Set this model's selection mode from the given model
