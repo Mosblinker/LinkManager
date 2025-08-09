@@ -4698,11 +4698,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_saveTestItemActionPerformed
 
     private void uploadTestItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadTestItemActionPerformed
-        new TestDatabaseSaver(1).execute();
+        new TestDatabaseSaver(SavingStage.UPLOAD_FILE).execute();
     }//GEN-LAST:event_uploadTestItemActionPerformed
 
     private void saveConfigTestItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveConfigTestItemActionPerformed
-        new TestDatabaseSaver(2).execute();
+        new TestDatabaseSaver(SavingStage.SAVE_CONFIGURATION).execute();
     }//GEN-LAST:event_saveConfigTestItemActionPerformed
     
     private CustomTableModel getListSearchTableModel(){
@@ -10180,6 +10180,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
+    private enum SavingStage{
+        
+        SAVE_DATABASE,
+        
+        UPLOAD_FILE,
+        
+        SAVE_CONFIGURATION;
+    }
+    
     private class TestDatabaseSaver extends LinkManagerWorker<Void>{
         /**
          * Whether this is currently saving a file.
@@ -10206,7 +10215,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         /**
          * This is the state in the process of working with the file.
          */
-        private int stage;
+        private SavingStage stage;
         
         private File file;
         
@@ -10217,10 +10226,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         private File configFile;
         
         TestDatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
-                File configFile, int stage, boolean exit){
-            if (stage < 0 || stage > 2)
-                throw new IllegalArgumentException("Invalid state " + stage);
-            this.stage = stage;
+                File configFile, SavingStage stage, boolean exit){
+            this.stage = Objects.requireNonNull(stage);
             this.exitAfterSaving = exit;
             this.file = file;
             this.filePath = filePath;
@@ -10229,13 +10236,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         
         TestDatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
-                File configFile, int stage){
+                File configFile, SavingStage stage){
             this(file,filePath,mode,configFile,stage,false);
         }
         
         TestDatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
                 File configFile, boolean exit){
-            this(file,filePath,mode,configFile,(file == null)?2:0,exit);
+            this(file,filePath,mode,configFile,
+                    (file == null)?SavingStage.SAVE_CONFIGURATION:
+                            SavingStage.SAVE_DATABASE,exit);
         }
         
         TestDatabaseSaver(File file, String filePath, DatabaseSyncMode mode,
@@ -10252,19 +10261,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this(file,filePath,mode,false);
         }
         
-        TestDatabaseSaver(int stage, boolean exit){
-            if (stage < 0 || stage > 2)
-                throw new IllegalArgumentException("Invalid state " + stage);
-            this.stage = stage;
+        TestDatabaseSaver(SavingStage stage, boolean exit){
+            this.stage = Objects.requireNonNull(stage);
             this.exitAfterSaving = exit;
         }
         
-        TestDatabaseSaver(int stage){
+        TestDatabaseSaver(SavingStage stage){
             this(stage,false);
         }
         
         TestDatabaseSaver(boolean exit){
-            this(0,exit);
+            this(SavingStage.SAVE_DATABASE,exit);
         }
         
         TestDatabaseSaver(){
@@ -10274,12 +10281,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         public String getProgressString() {
             switch(stage){
-                case(1):
+                case UPLOAD_FILE:
                     return "Uploading Database";
-                case(2):
+                case SAVE_CONFIGURATION:
                     return "Saving Configuration";
+                default:
+                    return "Saving Database";
             }
-            return "Saving Database";
         }
         /**
          * This returns whether the program will exit after this finishes saving 
@@ -10510,15 +10518,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Get the database file to be saved
             File file = getDatabaseFile();
             
-            if (stage == 0){
+            if (SavingStage.SAVE_DATABASE.equals(stage)){
                 success = saveDatabase(file);
                     // Set the program to be indeterminate
                 progressBar.setIndeterminate(true);
                 if (success && syncDBToggle.isSelected())
-                    stage = 1;
+                    stage = SavingStage.UPLOAD_FILE;
             }
             
-            if (stage == 1){
+            if (SavingStage.UPLOAD_FILE.equals(stage)){
                     // The mode to use to sync the database
                 DatabaseSyncMode syncMode = getSyncMode();
                     // If the sync mode is not set
@@ -10544,9 +10552,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // If the program is to exit after saving the database
             if (exitAfterSaving)
                     // Next stage is to save the program's configuration
-                stage = 2;
+                stage = SavingStage.SAVE_CONFIGURATION;
             
-            if (stage == 2){
+            if (SavingStage.SAVE_CONFIGURATION.equals(stage)){
                 // Save the configuration to file
                 progressDisplay.setString(getProgressString());
                 success = saveConfig(getConfigFile());
