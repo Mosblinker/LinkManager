@@ -10188,6 +10188,48 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private int stage;
         
+        private File file;
+        
+        private String filePath;
+        
+        private int syncMode;
+        
+        private File configFile;
+        
+        TestDatabaseSaver(File file, String filePath, int mode, 
+                File configFile, int stage, boolean exit){
+            if (stage < 0 || stage > 2)
+                throw new IllegalArgumentException("Invalid state " + stage);
+            this.stage = stage;
+            this.exitAfterSaving = exit;
+            this.file = file;
+            this.filePath = filePath;
+            this.syncMode = mode;
+            this.configFile = configFile;
+        }
+        
+        TestDatabaseSaver(File file, String filePath, int mode, 
+                File configFile, int stage){
+            this(file,filePath,mode,configFile,stage,false);
+        }
+        
+        TestDatabaseSaver(File file, String filePath, int mode, File configFile, 
+                boolean exit){
+            this(file,filePath,mode,configFile,(file == null)?2:0,exit);
+        }
+        
+        TestDatabaseSaver(File file, String filePath, int mode,File configFile){
+            this(file,filePath,mode,configFile,false);
+        }
+        
+        TestDatabaseSaver(File file, String filePath, int mode, boolean exit){
+            this(file,filePath,mode,getConfigFile(),exit);
+        }
+        
+        TestDatabaseSaver(File file, String filePath, int mode){
+            this(file,filePath,mode,false);
+        }
+        
         TestDatabaseSaver(int stage, boolean exit){
             if (stage < 0 || stage > 2)
                 throw new IllegalArgumentException("Invalid state " + stage);
