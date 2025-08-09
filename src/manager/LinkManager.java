@@ -9758,10 +9758,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Set the progress to be indeterminate
             progressBar.setIndeterminate(true);
             boolean value = false;
-            switch(mode){
-                case DROPBOX:
-                    filePath = DropboxUtilities.formatDropboxPath(filePath);
-            }
+            filePath = LinkManagerUtilities.formatExternalFilePath(mode, filePath);
             try{    // Try to download the file from the path
                 value = saveFile(file,filePath,mode);
             } catch (IOException ex){
@@ -10436,12 +10433,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Whether the user wants this to try processing the file again 
             boolean retry;  // if unsuccessful
             getLogger().log(Level.FINER, "Uploading database to {0}", mode);
-                // Determine how to format the path and state where it's 
-                // going to be uploaded
-            switch(mode){
-                case DROPBOX:   // If the file will be uploaded to Dropbox
-                    path = DropboxUtilities.formatDropboxPath(path);
-            }
+                // Format the file path
+            path = LinkManagerUtilities.formatExternalFilePath(mode, path);
             getLogger().log(Level.FINER, "Uploading file at path \"{0}\"",path);
             do{     // The exception that was thrown, if any
                 Exception exc = null;
