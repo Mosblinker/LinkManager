@@ -10532,14 +10532,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // If the sync mode is not set
                 if (syncMode != null){
                         // The file path for the uploaded file
-                    String filePath = null;
-                        // Determine how to get the file path
-                    switch(syncMode){
-                            // If the file is being uploaded to Dropbox
-                        case DROPBOX:
-                                // Get the Dropbox file path from the configuration
-                            filePath = config.getDropboxDatabaseFileName();
-                    }
+                    String filePath = config.getDatabaseFileSyncPath(syncMode);
                     if (filePath != null){
                         progressDisplay.setString(getProgressString());
                         success = uploadDatabase(file,filePath,syncMode);

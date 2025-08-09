@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.prefs.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
+import static manager.DatabaseSyncMode.DROPBOX;
 import manager.config.*;
 import manager.dropbox.DropboxLinkUtils;
 import manager.links.*;
@@ -2491,6 +2492,33 @@ public class LinkManagerConfig {
         setDropboxRefreshToken(null);
             // Set the Dropbox token expiration time to null, clearing it
         setDropboxTokenExpiresAt(null);
+    }
+    /**
+     * 
+     * @param mode
+     * @return 
+     */
+    public String getDatabaseFileSyncPath(DatabaseSyncMode mode){
+        if (mode != null){
+            switch(mode){
+                case DROPBOX:
+                    return getDropboxDatabaseFileName();
+            }
+        }
+        return null;
+    }
+    /**
+     * 
+     * @param mode
+     * @param value 
+     */
+    public void setDatabaseFileSyncPath(DatabaseSyncMode mode, String value){
+        if (mode != null){
+            switch(mode){
+                case DROPBOX:
+                    setDropboxDatabaseFileName(value);
+            }
+        }
     }
     /**
      * 
