@@ -7412,8 +7412,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // file of the file to be saved)
             if (!createDirectories(file,isFileTheDirectory()))
                 return false;
-                // If this is to create a backup of the file
-            if (willCreateBackup()){
+                // If this is to create a backup of the file and the file exists
+            if (willCreateBackup() && file.exists()){
                     // Try to create a backup of the file
                 if (!createBackupFile(file))
                     return false;
