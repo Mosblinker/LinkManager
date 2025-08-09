@@ -46,7 +46,6 @@ import javax.swing.table.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 import javax.swing.tree.*;
-import static manager.DatabaseSyncMode.DROPBOX;
 import manager.config.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
@@ -7365,6 +7364,33 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return backupFailed;
         }
         /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected boolean createBackupFile(File file){
+            try {   // Try to create a backup of the file
+                backupFile = LinkManagerUtilities.createBackupCopy(file);
+                backupFailed = false;
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING,"Failed to create backup file",
+                        ex);
+                backupFailed = true;    // The backup failed
+                return false;
+            }
+            return true;
+        }
+        /**
+         * 
+         * @param file
+         * @param isDirectory
+         * @return 
+         */
+        protected boolean createDirectories(File file, boolean isDirectory){
+            return FilesExtended.createDirectories(LinkManager.this, 
+                    (isDirectory)?file:file.getParentFile());
+        }
+        /**
          * This attempts to save to the given file. This is called by {@link 
          * #processFile(File) processFile} in order to save the file.
          * @param file The file to save.
@@ -7384,20 +7410,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // on saving the file. (If the file is the directory, include it 
                 // as a directory to be created. Otherwise, create the parent 
                 // file of the file to be saved)
-            if (!FilesExtended.createDirectories(LinkManager.this, 
-                    (isFileTheDirectory())?file:file.getParentFile()))
+            if (!createDirectories(file,isFileTheDirectory()))
                 return false;
                 // If this is to create a backup of the file
             if (willCreateBackup()){
-                try {   // Try to create a backup of the file
-                    backupFile = LinkManagerUtilities.createBackupCopy(file);
-                    backupFailed = false;
-                } catch (IOException ex) {
-                    getLogger().log(Level.WARNING,"Failed to create backup file",
-                            ex);
-                    backupFailed = true;    // The backup failed
+                    // Try to create a backup of the file
+                if (!createBackupFile(file))
                     return false;
-                }
             }
             return saveFile(file);
         }
