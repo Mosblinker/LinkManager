@@ -3641,7 +3641,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             updateProgramConfig();
             exitButton.setEnabled(false);
                 // Save the database and close the program
-            saver = new DatabaseSaver(true);
+            saver = new DatabaseFileSaver(true);
             saver.execute();
         }
         else{
@@ -3666,7 +3666,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (AutosaveMenu.AUTOSAVE_COMMAND.equals(evt.getActionCommand()) && 
                 isEdited() && !isSavingFiles()){
             getLogger().finer("Automatically saving database");
-            saver = new DatabaseSaver();
+            saver = new DatabaseFileSaver();
             saver.execute();
         }
     }//GEN-LAST:event_autosaveMenuActionPerformed
@@ -3884,7 +3884,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void updateDatabaseItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateDatabaseItemActionPerformed
-        saver = new DatabaseSaver();
+        saver = new DatabaseFileSaver();
         saver.execute();
     }//GEN-LAST:event_updateDatabaseItemActionPerformed
     /**
@@ -4594,28 +4594,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
         DatabaseSyncMode mode = getSyncMode();
-        if (mode == null)
-            return;
-        if (!getDatabaseFile().exists()){
-            saver = new DatabaseSaver(){
-                @Override
-                protected void uploadDatabase(){
-                    if (getExitAfterSaving())
-                        super.uploadDatabase();
-                }
-                @Override
-                protected void done(){
-                    super.done();
-                    if (!getExitAfterSaving()){
-                        saver = new FileUploader(getDatabaseFile(),config.getDropboxDatabaseFileName(),mode);
-                        saver.execute();
-                    }
-                }
-            };
-        } else {
-            saver = new FileUploader(getDatabaseFile(),config.getDropboxDatabaseFileName(),mode);
+        if (mode != null){
+            SavingStage stage = SavingStage.SAVE_DATABASE;
+            if (getDatabaseFile().exists())
+                stage = SavingStage.UPLOAD_FILE;
+            saver = new DatabaseFileSaver(stage);
+            saver.execute();
         }
-        saver.execute();
     }//GEN-LAST:event_uploadDBItemActionPerformed
 
     private void downloadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadDBItemActionPerformed
@@ -7847,23 +7832,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     /**
-     * 
-     */
-    private class ProgramConfigSaver extends AbstractConfigSaver{
-
-        public ProgramConfigSaver(boolean exit) {
-            super(getConfigFile(), exit);
-        }
-        
-        public ProgramConfigSaver(){
-            this(false);
-        }
-        @Override
-        protected boolean savePropertiesFile(File file) throws IOException {
-            return saveConfigFile();
-        }
-    }
-    /**
      * This is an abstract class that provides the framework for loading from a 
      * database file.
      */
@@ -8208,17 +8176,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected void uploadDatabase(){
             DatabaseSyncMode mode = getSyncMode();
-            if (mode == null)
-                return;
-            saver = new FileUploader(file,config.getDropboxDatabaseFileName(),mode,false,exitAfterSaving);
-            saver.execute();
+            if (mode != null){
+                saver = new DatabaseFileSaver(file,config.getDatabaseFileSyncPath(mode)
+                        ,mode,getConfigFile(),SavingStage.UPLOAD_FILE,exitAfterSaving);
+                saver.execute();
+            }
         }
         @Override
         protected void exitProgram(){
             if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
                 uploadDatabase();
             } else {
-                saver = new ProgramConfigSaver(true);
+                saver = new DatabaseFileSaver(SavingStage.SAVE_CONFIGURATION,true);
                 saver.execute();
             }
         }
@@ -8571,56 +8540,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG, false));
                 loader.execute();
             }
-        }
-    }
-//    /**
-//     * This updates the database before loading the database
-//     */
-//    private class DatabaseLoadUpdater extends AbstractDatabaseSaver{
-//
-//        @Override
-//        protected boolean saveDatabase(LinkDatabaseConnection conn, 
-//                Statement stmt) throws SQLException {
-//                // This does nothing. Everything was handled in prepareDatabase
-//            return true;
-//        }
-//        @Override
-//        public String getNormalProgressString() {
-//            return "Updating Database";
-//        }
-//        @Override
-//        protected void done(){
-//            loader = new DatabaseLoader(true);
-//            loader.execute();
-//        }
-//    }
-    /**
-     * This saves the lists of links to the database.
-     */
-    private class DatabaseSaver extends AbstractDatabaseSaver{
-        
-        DatabaseSaver(boolean exit){
-            super(exit);
-        }
-        
-        DatabaseSaver(){
-            super();
-        }
-        @Override
-        public String getNormalProgressString(){
-            return "Saving Lists";
-        }
-        @Override
-        protected boolean saveDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException {
-            return LinkManager.this.saveDatabase(conn);
-        }
-        @Override
-        protected void showSuccessPrompt(File file){ }
-        @Override
-        protected void done(){
-            deleteBackupIfSuccessful();
-            super.done();
         }
     }
     /**
@@ -9925,133 +9844,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (willLoadDatabase()){
                 loadDatabase(getDatabaseLoaderFlags());
             }
-        }
-    }
-    /**
-     * 
-     */
-    private class FileUploader extends FilePathSaver{
-        /**
-         * Whether the success prompt should be shown.
-         */
-        protected boolean showSuccess;
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param mode
-         * @param showSuccess
-         * @param exit 
-         */
-        FileUploader(File file, String path, DatabaseSyncMode mode, boolean showSuccess, boolean exit){
-            super(file, path, mode, exit);
-            this.showSuccess = showSuccess;
-        }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param mode
-         * @param showSuccess 
-         */
-        FileUploader(File file, String path, DatabaseSyncMode mode, boolean showSuccess){
-            this(file,path,mode,showSuccess,false);
-        }
-        /**
-         * 
-         * @param file
-         * @param path 
-         * @param mode
-         */
-        FileUploader(File file, String path, DatabaseSyncMode mode){
-            this(file,path,mode,true);
-        }
-        /**
-         * This sets whether the program will exit after this finishes saving 
-         * the file.
-         * @param value Whether the program will exit once the file is saved.
-         * @return This FileUploader.
-         */
-        public FileUploader setExitAfterSaving(boolean value){
-            exitAfterSaving = value;
-            return this;
-        }
-        @Override
-        public String getProgressString(){
-            return "Uploading File";
-        }
-        /**
-         * 
-         * @return 
-         */
-        public boolean getShowSuccessPrompt(){
-            return showSuccess;
-        }
-        /**
-         * 
-         * @param value
-         * @return This FileUploader.
-         */
-        public FileUploader setShowSuccessPrompt(boolean value){
-            showSuccess = value;
-            return this;
-        }
-        @Override
-        protected boolean getShowSuccessPrompt(File file, String path){
-            return showSuccess && !exitAfterSaving;
-        }
-        @Override
-        protected String getSuccessTitle(File file, String path){
-            return "File Uploaded Successfully";
-        }
-        @Override
-        protected String getSuccessMessage(File file, String path){
-            return "The file was successfully uploaded.";
-        }
-        @Override
-        protected String getFailureTitle(File file, String path){
-            return "ERROR - File Failed To Upload";
-        }
-        @Override
-        protected String getFailureMessage(File file, String path){
-            return "The file failed to upload.";
-        }
-        @Override
-        protected String getLoggingExceptionMessage(DatabaseSyncMode mode){
-            String msg = "";
-            switch(mode){
-                case DROPBOX:
-                    msg = " to Dropbox";
-            }
-            return "Failed to upload file" + msg;
-        }
-        @Override
-        protected boolean saveFile(File file, String path, DatabaseSyncMode mode) throws 
-                IOException, DbxException{
-            getLogger().entering(this.getClass().getName(),"saveFile",
-                    new Object[]{file,path,mode});
-            switch(mode){
-                case DROPBOX:     // Try to upload the file to Dropbox
-                    uploadToDropbox(file,path);
-                    getLogger().exiting(this.getClass().getName(), "saveFile",true);
-                    return true;
-            }
-            getLogger().exiting(this.getClass().getName(), "saveFile",false);
-            return false;
-        }
-        @Override
-        protected boolean processFile(File file){
-                // If the file does not exist
-            if (!file.exists()){
-                fileFound = false;
-                return false;
-            }
-            return super.processFile(file);
-        }
-        @Override
-        protected void exitProgram(){
-            saver = new ProgramConfigSaver(true);
-            saver.execute();
         }
     }
     /**
