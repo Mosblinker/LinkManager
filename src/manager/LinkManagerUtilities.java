@@ -311,11 +311,14 @@ public class LinkManagerUtilities {
      * @see LinkManager#BACKUP_FILE_EXTENSION
      */
     public static File createBackupCopy(File file) throws IOException{
-            // If the original file is null or does not exist
-        if (file == null || !file.exists())
-            return null;
         LinkManager.getLogger().entering(LinkManagerUtilities.class.getName(), 
                 "createBackupCopy", file);
+            // If the original file is null or does not exist
+        if (file == null || !file.exists()){
+            LinkManager.getLogger().exiting(LinkManagerUtilities.class.getName(), 
+                    "createBackupCopy", null);
+            return null;
+        }
             // Get the file to use as the backup file
         File target = new File(file.toString()+"."+LinkManager.BACKUP_FILE_EXTENSION);
             // If the target file already exists
