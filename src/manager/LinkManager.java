@@ -10258,9 +10258,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this(file,filePath,mode,false);
         }
         
+        private TestDatabaseSaver(DatabaseSyncMode mode, SavingStage stage, 
+                boolean exit){
+            this(getDatabaseFile(),config.getDatabaseFileSyncPath(mode),mode,
+                    getConfigFile(),stage,exit);
+        }
+        
         TestDatabaseSaver(SavingStage stage, boolean exit){
-            this.stage = Objects.requireNonNull(stage);
-            this.exitAfterSaving = exit;
+            this(getSyncMode(),stage,exit);
         }
         
         TestDatabaseSaver(SavingStage stage){
@@ -10508,8 +10513,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected Void backgroundAction() throws Exception {
             getLogger().entering(this.getClass().getName(), "backgroundAction", stage);
             saving = true;
-                // Get the database file to be saved
-            File file = getDatabaseFile();
             
             if (SavingStage.SAVE_DATABASE.equals(stage)){
                 success = saveDatabase(file);
@@ -10519,19 +10522,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     stage = SavingStage.UPLOAD_FILE;
             }
             
-            if (SavingStage.UPLOAD_FILE.equals(stage)){
-                    // The mode to use to sync the database
-                DatabaseSyncMode syncMode = getSyncMode();
-                    // If the sync mode is not set
-                if (syncMode != null){
-                        // The file path for the uploaded file
-                    String filePath = config.getDatabaseFileSyncPath(syncMode);
-                    if (filePath != null){
-                        progressDisplay.setString(getProgressString());
-                        success = uploadDatabase(file,filePath,syncMode);
-                            // Set the program to be indeterminate
-                        progressBar.setIndeterminate(true); 
-                    }
+            if (SavingStage.UPLOAD_FILE.equals(stage) && syncMode != null && filePath != null){
+                if (filePath != null){
+                    progressDisplay.setString(getProgressString());
+                    success = uploadDatabase(file,filePath,syncMode);
+                        // Set the program to be indeterminate
+                    progressBar.setIndeterminate(true); 
                 }
             }
             
@@ -10543,7 +10539,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (SavingStage.SAVE_CONFIGURATION.equals(stage)){
                 // Save the configuration to file
                 progressDisplay.setString(getProgressString());
-                success = saveConfig(getConfigFile());
+                success = saveConfig(configFile);
             }
             getLogger().exiting(this.getClass().getName(), "backgroundAction");
             return null;
