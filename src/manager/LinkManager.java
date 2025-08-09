@@ -10619,6 +10619,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             updateProgramConfig();
             if (exitAfterSaving)    // If the program is to exit after saving
                 exitProgram();      // Exit the program
+            exitButton.setEnabled(!exitAfterSaving);
             saving = false;
             super.done();
         }
