@@ -72,7 +72,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This is the version of the program.
      */
-    public static final String PROGRAM_VERSION = "0.11.4";
+    public static final String PROGRAM_VERSION = "0.11.5";
     /**
      * This is the internal name for the program.
      */
