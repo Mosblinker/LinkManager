@@ -46,6 +46,7 @@ import javax.swing.table.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 import javax.swing.tree.*;
+import static manager.DatabaseSyncMode.DROPBOX;
 import manager.config.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
@@ -423,6 +424,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             };
         }
         return dbxUtils;
+    }
+    /**
+     * 
+     * @return 
+     */
+    private DatabaseSyncMode getSyncMode(){
+        if (isLoggedInToDropbox())
+            return DatabaseSyncMode.DROPBOX;
+        return null;
     }
     /**
      * This constructs a new LinkManager with the given value determining if it 
@@ -3060,6 +3070,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.out.println("Selected List: " + getSelectedList());
         System.out.println("Can Act Upon Selected List: " + canActUponSelectedList());
         System.out.println("Program Will Close Once Saved: " + (saver != null && saver.getExitAfterSaving()));
+        System.out.println("Sync Mode: " + getSyncMode());
         System.out.println();
         
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
@@ -3896,7 +3907,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }   // If this will sync the database to the cloud and the user is 
             // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            saver = new FileDownloader(file,config.getDropboxDatabaseFileName(),0,loadFlags);
+            saver = new FileDownloader(file,config.getDropboxDatabaseFileName(),getSyncMode(),loadFlags);
             saver.execute();
         } else {
             loader = new DatabaseLoader(LinkManagerUtilities.setFlag(loadFlags,
@@ -4583,33 +4594,34 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbxLogInButtonActionPerformed
 
     private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
-        if (isLoggedInToDropbox()){
-            if (!getDatabaseFile().exists()){
-                saver = new DatabaseSaver(){
-                    @Override
-                    protected void uploadDatabase(){
-                        if (getExitAfterSaving())
-                            super.uploadDatabase();
+        DatabaseSyncMode mode = getSyncMode();
+        if (mode == null)
+            return;
+        if (!getDatabaseFile().exists()){
+            saver = new DatabaseSaver(){
+                @Override
+                protected void uploadDatabase(){
+                    if (getExitAfterSaving())
+                        super.uploadDatabase();
+                }
+                @Override
+                protected void done(){
+                    super.done();
+                    if (!getExitAfterSaving()){
+                        saver = new FileUploader(getDatabaseFile(),config.getDropboxDatabaseFileName(),mode);
+                        saver.execute();
                     }
-                    @Override
-                    protected void done(){
-                        super.done();
-                        if (!getExitAfterSaving()){
-                            saver = new FileUploader(getDatabaseFile(),config.getDropboxDatabaseFileName(),0);
-                            saver.execute();
-                        }
-                    }
-                };
-            } else {
-                saver = new FileUploader(getDatabaseFile(),config.getDropboxDatabaseFileName(),0);
-            }
-            saver.execute();
+                }
+            };
+        } else {
+            saver = new FileUploader(getDatabaseFile(),config.getDropboxDatabaseFileName(),mode);
         }
+        saver.execute();
     }//GEN-LAST:event_uploadDBItemActionPerformed
 
     private void downloadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadDBItemActionPerformed
         if (isLoggedInToDropbox()){
-            saver = new FileDownloader(getDatabaseFile(),config.getDropboxDatabaseFileName(),0);
+            saver = new FileDownloader(getDatabaseFile(),config.getDropboxDatabaseFileName(),getSyncMode());
             saver.execute();
         }
     }//GEN-LAST:event_downloadDBItemActionPerformed
@@ -8176,7 +8188,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          */
         protected void uploadDatabase(){
-            saver = new FileUploader(file,config.getDropboxDatabaseFileName(),0,false,exitAfterSaving);
+            DatabaseSyncMode mode = getSyncMode();
+            if (mode == null)
+                return;
+            saver = new FileUploader(file,config.getDropboxDatabaseFileName(),mode,false,exitAfterSaving);
             saver.execute();
         }
         @Override
@@ -9499,7 +9514,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         /**
          * The mode in which to use for uploading and downloading the file
          */
-        protected int mode;
+        protected DatabaseSyncMode mode;
         /**
          * 
          * @param file
@@ -9507,7 +9522,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @param exit 
          */
-        public FilePathSaver(File file, String path, int mode, boolean exit) {
+        public FilePathSaver(File file, String path, DatabaseSyncMode mode, boolean exit) {
             super(file, exit);
             filePath = Objects.requireNonNull(path);
             this.mode = mode;
@@ -9518,7 +9533,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param path 
          * @param mode
          */
-        public FilePathSaver(File file, String path, int mode){
+        public FilePathSaver(File file, String path, DatabaseSyncMode mode){
             this(file,path,mode,false);
         }
         /**
@@ -9539,7 +9554,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @return 
          */
-        public int getMode(){
+        public DatabaseSyncMode getMode(){
             return mode;
         }
         /**
@@ -9669,7 +9684,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @return 
          */
-        protected String getLoggingExceptionMessage(int mode){
+        protected String getLoggingExceptionMessage(DatabaseSyncMode mode){
             return "Failed to process file";
         }
         /**
@@ -9727,11 +9742,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @throws IOException 
          * @throws DbxException
          */
-        protected abstract boolean saveFile(File file, String path, int mode) 
+        protected abstract boolean saveFile(File file, String path, DatabaseSyncMode mode) 
                 throws IOException, DbxException;
         @Override
         protected boolean saveFile(File file) {
             getLogger().entering(this.getClass().getName(), "saveFile", file);
+            if (mode == null){
+                getLogger().exiting(this.getClass().getName(), "saveFile", false);
+                return false;
+            }
                 // Reset the exception to null
             ioEx = null;
                 // Set the progress to be zero
@@ -9740,7 +9759,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             progressBar.setIndeterminate(true);
             boolean value = false;
             switch(mode){
-                case(0):
+                case DROPBOX:
                     filePath = DropboxUtilities.formatDropboxPath(filePath);
             }
             try{    // Try to download the file from the path
@@ -9779,7 +9798,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param loadFlags
          * @param exit 
          */
-        FileDownloader(File file, String path, int mode, Integer loadFlags, boolean exit){
+        FileDownloader(File file, String path, DatabaseSyncMode mode, Integer loadFlags, boolean exit){
             super(file,path,mode,exit);
             this.loadFlags = loadFlags;
         }
@@ -9790,7 +9809,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @param loadFlags 
          */
-        FileDownloader(File file, String path, int mode, Integer loadFlags){
+        FileDownloader(File file, String path, DatabaseSyncMode mode, Integer loadFlags){
             this(file,path,mode,loadFlags,false);
         }
         /**
@@ -9799,7 +9818,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param path 
          * @param mode
          */
-        FileDownloader(File file, String path, int mode){
+        FileDownloader(File file, String path, DatabaseSyncMode mode){
             this(file,path,mode,null);
         }
         /**
@@ -9847,27 +9866,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected String getFileNotFoundMessage(File file, String path){
             String msg = "";
             switch(mode){
-                case (0):
+                case DROPBOX:
                     msg = " on Dropbox";
             }
             return "The file was not found"+msg+" at the path\n\""+path+"\"";
         }
         @Override
-        protected String getLoggingExceptionMessage(int mode){
+        protected String getLoggingExceptionMessage(DatabaseSyncMode mode){
             String msg = "";
             switch(mode){
-                case(0):
+                case DROPBOX:
                     msg = " from Dropbox";
             }
             return "Failed to download file" + msg;
         }
         @Override
-        protected boolean saveFile(File file, String path, int mode) 
+        protected boolean saveFile(File file, String path, DatabaseSyncMode mode) 
                 throws IOException, DbxException{
             getLogger().entering(this.getClass().getName(), "saveFile",
                     new Object[]{file,path,mode});
             switch(mode){
-                case(0):    // Try to download the file from Dropbox
+                case DROPBOX:    // Try to download the file from Dropbox
                     FileMetadata data = downloadFromDropbox(file,path);
                     fileFound = data != null;
                     getLogger().exiting(this.getClass().getName(), "saveFile",fileFound);
@@ -9908,7 +9927,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param showSuccess
          * @param exit 
          */
-        FileUploader(File file, String path, int mode, boolean showSuccess, boolean exit){
+        FileUploader(File file, String path, DatabaseSyncMode mode, boolean showSuccess, boolean exit){
             super(file, path, mode, exit);
             this.showSuccess = showSuccess;
         }
@@ -9919,7 +9938,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @param showSuccess 
          */
-        FileUploader(File file, String path, int mode, boolean showSuccess){
+        FileUploader(File file, String path, DatabaseSyncMode mode, boolean showSuccess){
             this(file,path,mode,showSuccess,false);
         }
         /**
@@ -9928,7 +9947,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param path 
          * @param mode
          */
-        FileUploader(File file, String path, int mode){
+        FileUploader(File file, String path, DatabaseSyncMode mode){
             this(file,path,mode,true);
         }
         /**
@@ -9982,21 +10001,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return "The file failed to upload.";
         }
         @Override
-        protected String getLoggingExceptionMessage(int mode){
+        protected String getLoggingExceptionMessage(DatabaseSyncMode mode){
             String msg = "";
             switch(mode){
-                case(0):
+                case DROPBOX:
                     msg = " to Dropbox";
             }
             return "Failed to upload file" + msg;
         }
         @Override
-        protected boolean saveFile(File file, String path, int mode) throws 
+        protected boolean saveFile(File file, String path, DatabaseSyncMode mode) throws 
                 IOException, DbxException{
             getLogger().entering(this.getClass().getName(),"saveFile",
                     new Object[]{file,path,mode});
             switch(mode){
-                case(0):     // Try to upload the file to Dropbox
+                case DROPBOX:     // Try to upload the file to Dropbox
                     uploadToDropbox(file,path);
                     getLogger().exiting(this.getClass().getName(), "saveFile",true);
                     return true;
@@ -10193,11 +10212,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         private String filePath;
         
-        private int syncMode;
+        private DatabaseSyncMode syncMode;
         
         private File configFile;
         
-        TestDatabaseSaver(File file, String filePath, int mode, 
+        TestDatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
                 File configFile, int stage, boolean exit){
             if (stage < 0 || stage > 2)
                 throw new IllegalArgumentException("Invalid state " + stage);
@@ -10209,25 +10228,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this.configFile = configFile;
         }
         
-        TestDatabaseSaver(File file, String filePath, int mode, 
+        TestDatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
                 File configFile, int stage){
             this(file,filePath,mode,configFile,stage,false);
         }
         
-        TestDatabaseSaver(File file, String filePath, int mode, File configFile, 
-                boolean exit){
+        TestDatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
+                File configFile, boolean exit){
             this(file,filePath,mode,configFile,(file == null)?2:0,exit);
         }
         
-        TestDatabaseSaver(File file, String filePath, int mode,File configFile){
+        TestDatabaseSaver(File file, String filePath, DatabaseSyncMode mode,
+                File configFile){
             this(file,filePath,mode,configFile,false);
         }
         
-        TestDatabaseSaver(File file, String filePath, int mode, boolean exit){
+        TestDatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
+                boolean exit){
             this(file,filePath,mode,getConfigFile(),exit);
         }
         
-        TestDatabaseSaver(File file, String filePath, int mode){
+        TestDatabaseSaver(File file, String filePath, DatabaseSyncMode mode){
             this(file,filePath,mode,false);
         }
         
@@ -10400,16 +10421,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @return 
          */
-        private boolean uploadDatabase(File file, String path, int mode){
+        private boolean uploadDatabase(File file, String path, 
+                DatabaseSyncMode mode){
             getLogger().entering(this.getClass().getName(), "uploadDatabase", 
                     new Object[]{file,path,mode});
                 // Whether the user wants this to try processing the file again 
             boolean retry;  // if unsuccessful
+            getLogger().log(Level.FINER, "Uploading database to {0}", mode);
                 // Determine how to format the path and state where it's 
                 // going to be uploaded
             switch(mode){
-                case(0):    // If the file will be uploaded to Dropbox
-                    getLogger().finer("Uploading database to Dropbox");
+                case DROPBOX:   // If the file will be uploaded to Dropbox
                     path = DropboxUtilities.formatDropboxPath(path);
             }
             getLogger().log(Level.FINER, "Uploading file at path \"{0}\"",path);
@@ -10421,7 +10443,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 progressBar.setIndeterminate(true); 
                 try{    // Determine how to upload the file
                     switch(mode){
-                        case(0):     // Try to upload the file to Dropbox
+                        case DROPBOX:   // Try to upload the file to Dropbox
                             uploadToDropbox(file,path);
                     }
                     getLogger().exiting(this.getClass().getName(), 
@@ -10431,13 +10453,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     getLogger().log(Level.WARNING, "Failed to upload file",ex);
                     exc = ex;
                 }   // The message to return
-                String msg = "The file failed to upload";
-                    // Determine how the file was to be uploaded
-                switch(mode){
-                    case(0):    // If the file was to be uploaded to Dropbox
-                        msg += " to Dropbox";
-                }
-                msg += ".";
+                String msg = "The file failed to upload to "+mode+".";
                     // If the program is either in debug mode or 
                     // if details are to be shown and there was an 
                     // exception thrown
@@ -10449,7 +10465,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         true);
             }   // While the file failed to be processed and the user wants to 
             while(retry);   // try again
-            getLogger().exiting(this.getClass().getName(), "uploadDatabase", false);
+            getLogger().exiting(this.getClass().getName(), "uploadDatabase", 
+                    false);
             return false;
         }
         /**
@@ -10503,20 +10520,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             
             if (stage == 1){
                     // The mode to use to sync the database
-                int syncMode = -1;
-                    // The file path for the uploaded file
-                String filePath = null;
-                    // If the user is logged into Dropbox
-                if (isLoggedInToDropbox()){
-                    syncMode = 0;
-                        // Get the Dropbox file path from the configuration
-                    filePath = config.getDropboxDatabaseFileName();
-                }
-                if (syncMode >= 0 && filePath != null){
-                    progressDisplay.setString(getProgressString());
-                    success = uploadDatabase(file,filePath,syncMode);
-                        // Set the program to be indeterminate
-                    progressBar.setIndeterminate(true); 
+                DatabaseSyncMode syncMode = getSyncMode();
+                    // If the sync mode is not set
+                if (syncMode != null){
+                        // The file path for the uploaded file
+                    String filePath = null;
+                        // Determine how to get the file path
+                    switch(syncMode){
+                            // If the file is being uploaded to Dropbox
+                        case DROPBOX:
+                                // Get the Dropbox file path from the configuration
+                            filePath = config.getDropboxDatabaseFileName();
+                    }
+                    if (filePath != null){
+                        progressDisplay.setString(getProgressString());
+                        success = uploadDatabase(file,filePath,syncMode);
+                            // Set the program to be indeterminate
+                        progressBar.setIndeterminate(true); 
+                    }
                 }
             }
             
