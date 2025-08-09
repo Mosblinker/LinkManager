@@ -72,7 +72,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This is the version of the program.
      */
-    public static final String PROGRAM_VERSION = "0.11.5";
+    public static final String PROGRAM_VERSION = "0.11.6";
     /**
      * This is the internal name for the program.
      */
@@ -7492,6 +7492,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void done(){
             if (exitAfterSaving)    // If the program is to exit after saving
                 exitProgram();      // Exit the program
+            exitButton.setEnabled(!exitAfterSaving);
             saving = false;
             super.done();
         }
