@@ -18,6 +18,7 @@ import java.net.*;
 import java.nio.file.*;
 import java.util.*;
 import javax.swing.*;
+import manager.dropbox.DropboxUtilities;
 
 /**
  *
@@ -310,11 +311,14 @@ public class LinkManagerUtilities {
      * @see LinkManager#BACKUP_FILE_EXTENSION
      */
     public static File createBackupCopy(File file) throws IOException{
-            // If the original file is null or does not exist
-        if (file == null || !file.exists())
-            return null;
         LinkManager.getLogger().entering(LinkManagerUtilities.class.getName(), 
                 "createBackupCopy", file);
+            // If the original file is null or does not exist
+        if (file == null || !file.exists()){
+            LinkManager.getLogger().exiting(LinkManagerUtilities.class.getName(), 
+                    "createBackupCopy", null);
+            return null;
+        }
             // Get the file to use as the backup file
         File target = new File(file.toString()+"."+LinkManager.BACKUP_FILE_EXTENSION);
             // If the target file already exists
@@ -571,5 +575,20 @@ public class LinkManagerUtilities {
     public static File showSaveFileChooser(JFileChooser fc, Component parent, 
             LinkManagerConfig config){
         return showSaveFileChooser(fc,parent,config,null);
+    }
+    /**
+     * 
+     * @param mode
+     * @param filePath
+     * @return 
+     */
+    public static String formatExternalFilePath(DatabaseSyncMode mode, String filePath){
+        if (mode != null && filePath != null){
+            switch(mode){
+                case DROPBOX:
+                    return DropboxUtilities.formatDropboxPath(filePath);
+            }
+        }
+        return filePath;
     }
 }

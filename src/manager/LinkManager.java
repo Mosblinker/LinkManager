@@ -301,10 +301,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return The configuration file.
      */
     private File getConfigFile(){
-            // If a configuration file was specified
-        if (configFile != null)
-            return configFile;
-        return new File(LinkManagerUtilities.getProgramDirectory(),CONFIG_FILE);
+            // If no configuration file was specified and the default config 
+            // file has not been retrieved yet
+        if (configFile == null)
+            configFile = new File(LinkManagerUtilities.getProgramDirectory(),
+                    CONFIG_FILE);
+        return configFile;
     }
     /**
      * This returns the file containing the Dropbox API keys for this program.
@@ -421,6 +423,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             };
         }
         return dbxUtils;
+    }
+    /**
+     * 
+     * @return 
+     */
+    private DatabaseSyncMode getSyncMode(){
+        if (isLoggedInToDropbox())
+            return DatabaseSyncMode.DROPBOX;
+        return null;
     }
     /**
      * This constructs a new LinkManager with the given value determining if it 
@@ -1215,10 +1226,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         clearSelTabItem = new javax.swing.JMenuItem();
         clearListSelItem = new javax.swing.JMenuItem();
         listSetOpItem = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
+        dropboxTestMenu = new javax.swing.JMenu();
         dbxPrintButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
+        saveTestExitToggle = new javax.swing.JCheckBoxMenuItem();
+        saveTestItem = new javax.swing.JMenuItem();
+        uploadTestItem = new javax.swing.JMenuItem();
+        saveConfigTestItem = new javax.swing.JMenuItem();
 
         openFC.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -2874,7 +2889,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         });
         debugMenu.add(listSetOpItem);
 
-        jMenu2.setText("Dropbox Tests");
+        dropboxTestMenu.setText("Dropbox Tests");
 
         dbxPrintButton.setText("Print Dropbox Data");
         dbxPrintButton.addActionListener(new java.awt.event.ActionListener() {
@@ -2882,7 +2897,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxPrintButtonActionPerformed(evt);
             }
         });
-        jMenu2.add(dbxPrintButton);
+        dropboxTestMenu.add(dbxPrintButton);
 
         setDropboxTestButton.setText("Set Dropbox Access Token");
         setDropboxTestButton.addActionListener(new java.awt.event.ActionListener() {
@@ -2890,7 +2905,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 setDropboxTestButtonActionPerformed(evt);
             }
         });
-        jMenu2.add(setDropboxTestButton);
+        dropboxTestMenu.add(setDropboxTestButton);
 
         dropboxRefreshTestButton.setText("Refresh Dropbox Token");
         dropboxRefreshTestButton.addActionListener(new java.awt.event.ActionListener() {
@@ -2898,9 +2913,36 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dropboxRefreshTestButtonActionPerformed(evt);
             }
         });
-        jMenu2.add(dropboxRefreshTestButton);
+        dropboxTestMenu.add(dropboxRefreshTestButton);
 
-        debugMenu.add(jMenu2);
+        debugMenu.add(dropboxTestMenu);
+
+        saveTestExitToggle.setText("Exit After Test Save");
+        debugMenu.add(saveTestExitToggle);
+
+        saveTestItem.setText("Save Test");
+        saveTestItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveTestItemActionPerformed(evt);
+            }
+        });
+        debugMenu.add(saveTestItem);
+
+        uploadTestItem.setText("Upload Test");
+        uploadTestItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                uploadTestItemActionPerformed(evt);
+            }
+        });
+        debugMenu.add(uploadTestItem);
+
+        saveConfigTestItem.setText("Save Config Test");
+        saveConfigTestItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveConfigTestItemActionPerformed(evt);
+            }
+        });
+        debugMenu.add(saveConfigTestItem);
 
         menuBar.add(debugMenu);
 
@@ -3027,6 +3069,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.out.println("Selected List: " + getSelectedList());
         System.out.println("Can Act Upon Selected List: " + canActUponSelectedList());
         System.out.println("Program Will Close Once Saved: " + (saver != null && saver.getExitAfterSaving()));
+        System.out.println("Sync Mode: " + getSyncMode());
         System.out.println();
         
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
@@ -3598,7 +3641,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             updateProgramConfig();
             exitButton.setEnabled(false);
                 // Save the database and close the program
-            saver = new DatabaseSaver(true);
+            saver = new DatabaseFileSaver(true);
             saver.execute();
         }
         else{
@@ -3623,7 +3666,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (AutosaveMenu.AUTOSAVE_COMMAND.equals(evt.getActionCommand()) && 
                 isEdited() && !isSavingFiles()){
             getLogger().finer("Automatically saving database");
-            saver = new DatabaseSaver();
+            saver = new DatabaseFileSaver();
             saver.execute();
         }
     }//GEN-LAST:event_autosaveMenuActionPerformed
@@ -3841,7 +3884,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void updateDatabaseItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateDatabaseItemActionPerformed
-        saver = new DatabaseSaver();
+        saver = new DatabaseFileSaver();
         saver.execute();
     }//GEN-LAST:event_updateDatabaseItemActionPerformed
     /**
@@ -3863,7 +3906,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }   // If this will sync the database to the cloud and the user is 
             // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            saver = new FileDownloader(file,config.getDropboxDatabaseFileName(),0,loadFlags);
+            saver = new FileDownloader(file,config.getDropboxDatabaseFileName(),getSyncMode(),loadFlags);
             saver.execute();
         } else {
             loader = new DatabaseLoader(LinkManagerUtilities.setFlag(loadFlags,
@@ -4550,33 +4593,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbxLogInButtonActionPerformed
 
     private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
-        if (isLoggedInToDropbox()){
-            if (!getDatabaseFile().exists()){
-                saver = new DatabaseSaver(){
-                    @Override
-                    protected void uploadDatabase(){
-                        if (getExitAfterSaving())
-                            super.uploadDatabase();
-                    }
-                    @Override
-                    protected void done(){
-                        super.done();
-                        if (!getExitAfterSaving()){
-                            saver = new FileUploader(getDatabaseFile(),config.getDropboxDatabaseFileName(),0);
-                            saver.execute();
-                        }
-                    }
-                };
-            } else {
-                saver = new FileUploader(getDatabaseFile(),config.getDropboxDatabaseFileName(),0);
-            }
+        DatabaseSyncMode mode = getSyncMode();
+        if (mode != null){
+            SavingStage stage = SavingStage.SAVE_DATABASE;
+            if (getDatabaseFile().exists())
+                stage = SavingStage.UPLOAD_FILE;
+            saver = new DatabaseFileSaver(stage);
             saver.execute();
         }
     }//GEN-LAST:event_uploadDBItemActionPerformed
 
     private void downloadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadDBItemActionPerformed
         if (isLoggedInToDropbox()){
-            saver = new FileDownloader(getDatabaseFile(),config.getDropboxDatabaseFileName(),0);
+            saver = new FileDownloader(getDatabaseFile(),config.getDropboxDatabaseFileName(),getSyncMode());
             saver.execute();
         }
     }//GEN-LAST:event_downloadDBItemActionPerformed
@@ -4647,6 +4676,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             loader.execute();
         }
     }//GEN-LAST:event_dbQueryPanelActionPerformed
+
+    private void saveTestItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveTestItemActionPerformed
+        new DatabaseFileSaver(saveTestExitToggle.isSelected()).execute();
+    }//GEN-LAST:event_saveTestItemActionPerformed
+
+    private void uploadTestItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadTestItemActionPerformed
+        new DatabaseFileSaver(SavingStage.UPLOAD_FILE).execute();
+    }//GEN-LAST:event_uploadTestItemActionPerformed
+
+    private void saveConfigTestItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveConfigTestItemActionPerformed
+        new DatabaseFileSaver(SavingStage.SAVE_CONFIGURATION).execute();
+    }//GEN-LAST:event_saveConfigTestItemActionPerformed
     
     private CustomTableModel getListSearchTableModel(){
         CustomTableModel model = new CustomTableModel("ListID", "List Name", 
@@ -5320,6 +5361,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem downloadDBItem;
     private javax.swing.JMenuItem dropboxRefreshTestButton;
     private manager.dropbox.DropboxSetupPanel dropboxSetupPanel;
+    private javax.swing.JMenu dropboxTestMenu;
     private javax.swing.JButton editLinkButton;
     private javax.swing.JMenuItem exitButton;
     private javax.swing.JFileChooser exportFC;
@@ -5329,7 +5371,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JCheckBoxMenuItem hiddenLinkOperationToggle;
     private javax.swing.JMenuItem hideAllListsItem;
     private javax.swing.JMenu hideListsMenu;
-    private javax.swing.JMenu jMenu2;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
@@ -5380,7 +5421,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton removePrefixButton;
     private javax.swing.JButton resetDBFilePathButton;
     private javax.swing.JMenuItem saveConfigItem;
+    private javax.swing.JMenuItem saveConfigTestItem;
     private javax.swing.JFileChooser saveFC;
+    private javax.swing.JCheckBoxMenuItem saveTestExitToggle;
+    private javax.swing.JMenuItem saveTestItem;
     private javax.swing.JDialog searchDialog;
     private javax.swing.JMenu searchMenu;
     private javax.swing.JMenuItem searchMenuItem;
@@ -5410,12 +5454,57 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem updateDatabaseItem;
     private javax.swing.JMenuItem updateListsItem;
     private javax.swing.JMenuItem uploadDBItem;
+    private javax.swing.JMenuItem uploadTestItem;
     // End of variables declaration//GEN-END:variables
     /**
      * 
      */
     protected void incrementProgressValue(){
         progressBar.setValue(progressBar.getValue()+1);
+    }
+    /**
+     * 
+     * @param title
+     * @param text 
+     */
+    protected void showSuccessPrompt(String title, String text){
+        JOptionPane.showMessageDialog(this, text, title, 
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+    /**
+     * 
+     * @param title
+     * @param text
+     * @param showCancel
+     * @return 
+     */
+    protected int showRetryPrompt(String title, String text, 
+            boolean showCancel){
+        return JOptionPane.showConfirmDialog(this, 
+                text+"\nWould you like to try again?",title,
+                (showCancel)?JOptionPane.YES_NO_CANCEL_OPTION:
+                        JOptionPane.YES_NO_OPTION,
+                JOptionPane.ERROR_MESSAGE);
+    }
+    /**
+     * 
+     * @param title
+     * @param text
+     * @param canRetry
+     * @param showCancel
+     * @return 
+     */
+    protected int showFailurePrompt(String title, String text,boolean canRetry, 
+            boolean showCancel){
+        if (canRetry){
+                // Show a dialog prompt asking the user if they would like to 
+                // try and save the file again and get their input. 
+            return showRetryPrompt(title,text,showCancel);
+        } else {
+            JOptionPane.showMessageDialog(this, text, title, 
+                    JOptionPane.ERROR_MESSAGE);
+            return JOptionPane.NO_OPTION;
+        }
     }
     /**
      * This attempts to write the List of Strings to the given file.
@@ -5431,15 +5520,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      * @return 
      */
-    private boolean saveConfigFile() throws IOException{
-            // Get the configuration file
-        File file = getConfigFile();
+    private boolean saveConfigFile(File file) throws IOException{
             // If the configuration properties is not empty or the file exists
         if (!config.getProperties().isEmpty() || file.exists())
                 // Save the configuration properties to file
             return LinkManagerUtilities.saveProperties(file,config.getProperties(),
                     GENERAL_CONFIG_HEADER);
         return true;
+    }
+    /**
+     * 
+     * @return 
+     */
+    private boolean saveConfigFile() throws IOException{
+        return saveConfigFile(getConfigFile());
     }
     /**
      * This updates the values in the program's configuration that would update 
@@ -6311,18 +6405,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @throws Exception If an error occurs.
          */
         protected abstract E backgroundAction() throws Exception;
-        /**
-         * 
-         */
-        protected void updateProgressString(){
-            progressDisplay.setString(getProgressString());
-        }
         @Override
         protected E doInBackground() throws Exception {
             getLogger().entering(this.getClass().getName(), "doInBackground");
             useWaitCursor(true);
             setInputEnabled(false);
-            updateProgressString();
+            progressDisplay.setString(getProgressString());
             progressBar.setIndeterminate(true);
             progressBar.setStringPainted(true);
             progressBar.setValue(0);
@@ -7100,21 +7188,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         @Override
         protected boolean showFailurePrompt(File file){
-            if (!file.exists()){    // If the file doesn't exist
-                    // If this should show file not found prompts
-                if (showFileNotFound){
-                    JOptionPane.showMessageDialog(LinkManager.this, 
-                            getFileNotFoundMessage(file), getFailureTitle(file), 
-                            JOptionPane.ERROR_MESSAGE);
-                }
+                // If the file doesn't exist and this shouldn't show the file 
+                // not found prompt
+            if (!file.exists() && !showFileNotFound)
                 return false;
-            }
-            else{   // Ask the user if they would like to try loading the file
-                return JOptionPane.showConfirmDialog(LinkManager.this, // again
-                        getFailureMessage(file)+"\nWould you like to try again?",
-                        getFailureTitle(file),JOptionPane.YES_NO_OPTION,
-                        JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
-            }
+            return LinkManager.this.showFailurePrompt(getFailureTitle(file), 
+                    getFailureMessage(file), file.exists(), false) ==
+                    JOptionPane.YES_OPTION;
         }
         /**
          * This returns the title for the dialog to display if the file fails to 
@@ -7170,7 +7250,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * This stores whether the file failed to save due to an error occurring 
          * while creating the backup file.
          */
-        private boolean backupFailed = false;
+        protected boolean backupFailed = false;
         /**
          * This constructs a FileSaver that will save data to the given file 
          * and, if {@code exit} is {@code true}, will exit the program after 
@@ -7269,6 +7349,33 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return backupFailed;
         }
         /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected boolean createBackupFile(File file){
+            try {   // Try to create a backup of the file
+                backupFile = LinkManagerUtilities.createBackupCopy(file);
+                backupFailed = false;
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING,"Failed to create backup file",
+                        ex);
+                backupFailed = true;    // The backup failed
+                return false;
+            }
+            return true;
+        }
+        /**
+         * 
+         * @param file
+         * @param isDirectory
+         * @return 
+         */
+        protected boolean createDirectories(File file, boolean isDirectory){
+            return FilesExtended.createDirectories(LinkManager.this, 
+                    (isDirectory)?file:file.getParentFile());
+        }
+        /**
          * This attempts to save to the given file. This is called by {@link 
          * #processFile(File) processFile} in order to save the file.
          * @param file The file to save.
@@ -7288,20 +7395,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // on saving the file. (If the file is the directory, include it 
                 // as a directory to be created. Otherwise, create the parent 
                 // file of the file to be saved)
-            if (!FilesExtended.createDirectories(LinkManager.this, 
-                    (isFileTheDirectory())?file:file.getParentFile()))
+            if (!createDirectories(file,isFileTheDirectory()))
                 return false;
-                // If this is to create a backup of the file
-            if (willCreateBackup()){
-                try {   // Try to create a backup of the file
-                    backupFile = LinkManagerUtilities.createBackupCopy(file);
-                    backupFailed = false;
-                } catch (IOException ex) {
-                    getLogger().log(Level.WARNING,"Failed to create backup file",
-                            ex);
-                    backupFailed = true;    // The backup failed
+                // If this is to create a backup of the file and the file exists
+            if (willCreateBackup() && file.exists()){
+                    // Try to create a backup of the file
+                if (!createBackupFile(file))
                     return false;
-                }
             }
             return saveFile(file);
         }
@@ -7363,9 +7463,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void showSuccessPrompt(File file){
                 // If the program is not to exit after saving the file
             if (!exitAfterSaving)   
-                JOptionPane.showMessageDialog(LinkManager.this, 
-                        getSuccessMessage(file), getSuccessTitle(file), 
-                        JOptionPane.INFORMATION_MESSAGE);
+                LinkManager.this.showSuccessPrompt(getSuccessTitle(file), 
+                        getSuccessMessage(file));
         }
         /**
          * This is used to display a failure and retry prompt to the user when 
@@ -7382,15 +7481,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     getFailureMessage(file);
                 // Show a dialog prompt asking the user if they would like to 
                 // try and save the file again and get their input. 
-            int option = JOptionPane.showConfirmDialog(LinkManager.this, 
-                    message+"\nWould you like to try again?",
-                    getFailureTitle(file),
-                        // If the program is to exit after saving the file, show 
-                        // a third "cancel" option to allow the user to cancel 
-                        // exiting the program
-                    (exitAfterSaving)?JOptionPane.YES_NO_CANCEL_OPTION:
-                            JOptionPane.YES_NO_OPTION,
-                    JOptionPane.ERROR_MESSAGE);
+                
+                // If the program is to exit after saving the file, show 
+                // a third "cancel" option to allow the user to cancel 
+                // exiting the program
+            int option = LinkManager.this.showFailurePrompt(getFailureTitle(file), 
+                    message, true, exitAfterSaving);
                 // If the program was going to exit after saving the file
             if (exitAfterSaving){   
                     // If the option selected was the cancel option or the user 
@@ -7459,7 +7555,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public void setProgressString(String text){
             progressStr = text;
             if (super.isSaving())   // If this is currently saving a file
-                updateProgressString();
+                progressDisplay.setString(getProgressString());
         }
         @Override
         protected boolean willCreateBackup(){
@@ -7736,23 +7832,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     /**
-     * 
-     */
-    private class ProgramConfigSaver extends AbstractConfigSaver{
-
-        public ProgramConfigSaver(boolean exit) {
-            super(getConfigFile(), exit);
-        }
-        
-        public ProgramConfigSaver(){
-            this(false);
-        }
-        @Override
-        protected boolean savePropertiesFile(File file) throws IOException {
-            return saveConfigFile();
-        }
-    }
-    /**
      * This is an abstract class that provides the framework for loading from a 
      * database file.
      */
@@ -7980,7 +8059,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected void setVerifyingDatabase(boolean value){
             verifying = value;
-            updateProgressString();
+            progressDisplay.setString(getProgressString());
         }
         /**
          * 
@@ -8003,7 +8082,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean saveFile(File file){
-            getLogger().entering(this.getClass().getName(), "saveFile", file);
+            getLogger().entering("AbstractDatabaseSaver", "saveFile", file);
             sqlExc = null;
             boolean value = false;
                 // Connect to the database and create an SQL statement
@@ -8017,7 +8096,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     conn.commit();       // Commit the changes to the database
                 if (!value){    // If the database failed to be prepared
                     getLogger().log(Level.WARNING,"Failed to prepare database");
-                    getLogger().exiting(this.getClass().getName(), "saveFile",false);
+                    getLogger().exiting("AbstractDatabaseSaver", "saveFile",false);
                     return false;
                 }
                     // Save to the database and get if we are successful
@@ -8039,7 +8118,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             } catch(Exception ex){
                 getLogger().log(Level.WARNING, "Failed to save database", ex);
             }
-            getLogger().exiting(this.getClass().getName(), "saveFile", value);
+            getLogger().exiting("AbstractDatabaseSaver", "saveFile", value);
             return value;
         }
         @Override
@@ -8096,15 +8175,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          */
         protected void uploadDatabase(){
-            saver = new FileUploader(file,config.getDropboxDatabaseFileName(),0,false,exitAfterSaving);
-            saver.execute();
+            DatabaseSyncMode mode = getSyncMode();
+            if (mode != null){
+                saver = new DatabaseFileSaver(file,config.getDatabaseFileSyncPath(mode)
+                        ,mode,getConfigFile(),SavingStage.UPLOAD_FILE,exitAfterSaving);
+                saver.execute();
+            }
         }
         @Override
         protected void exitProgram(){
             if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
                 uploadDatabase();
             } else {
-                saver = new ProgramConfigSaver(true);
+                saver = new DatabaseFileSaver(SavingStage.SAVE_CONFIGURATION,true);
                 saver.execute();
             }
         }
@@ -8457,56 +8540,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG, false));
                 loader.execute();
             }
-        }
-    }
-//    /**
-//     * This updates the database before loading the database
-//     */
-//    private class DatabaseLoadUpdater extends AbstractDatabaseSaver{
-//
-//        @Override
-//        protected boolean saveDatabase(LinkDatabaseConnection conn, 
-//                Statement stmt) throws SQLException {
-//                // This does nothing. Everything was handled in prepareDatabase
-//            return true;
-//        }
-//        @Override
-//        public String getNormalProgressString() {
-//            return "Updating Database";
-//        }
-//        @Override
-//        protected void done(){
-//            loader = new DatabaseLoader(true);
-//            loader.execute();
-//        }
-//    }
-    /**
-     * This saves the lists of links to the database.
-     */
-    private class DatabaseSaver extends AbstractDatabaseSaver{
-        
-        DatabaseSaver(boolean exit){
-            super(exit);
-        }
-        
-        DatabaseSaver(){
-            super();
-        }
-        @Override
-        public String getNormalProgressString(){
-            return "Saving Lists";
-        }
-        @Override
-        protected boolean saveDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException {
-            return LinkManager.this.saveDatabase(conn);
-        }
-        @Override
-        protected void showSuccessPrompt(File file){ }
-        @Override
-        protected void done(){
-            deleteBackupIfSuccessful();
-            super.done();
         }
     }
     /**
@@ -9419,7 +9452,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         /**
          * The mode in which to use for uploading and downloading the file
          */
-        protected int mode;
+        protected DatabaseSyncMode mode;
         /**
          * 
          * @param file
@@ -9427,7 +9460,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @param exit 
          */
-        public FilePathSaver(File file, String path, int mode, boolean exit) {
+        public FilePathSaver(File file, String path, DatabaseSyncMode mode, boolean exit) {
             super(file, exit);
             filePath = Objects.requireNonNull(path);
             this.mode = mode;
@@ -9438,7 +9471,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param path 
          * @param mode
          */
-        public FilePathSaver(File file, String path, int mode){
+        public FilePathSaver(File file, String path, DatabaseSyncMode mode){
             this(file,path,mode,false);
         }
         /**
@@ -9459,7 +9492,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @return 
          */
-        public int getMode(){
+        public DatabaseSyncMode getMode(){
             return mode;
         }
         /**
@@ -9589,7 +9622,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @return 
          */
-        protected String getLoggingExceptionMessage(int mode){
+        protected String getLoggingExceptionMessage(DatabaseSyncMode mode){
             return "Failed to process file";
         }
         /**
@@ -9647,11 +9680,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @throws IOException 
          * @throws DbxException
          */
-        protected abstract boolean saveFile(File file, String path, int mode) 
+        protected abstract boolean saveFile(File file, String path, DatabaseSyncMode mode) 
                 throws IOException, DbxException;
         @Override
         protected boolean saveFile(File file) {
             getLogger().entering(this.getClass().getName(), "saveFile", file);
+            if (mode == null){
+                getLogger().exiting(this.getClass().getName(), "saveFile", false);
+                return false;
+            }
                 // Reset the exception to null
             ioEx = null;
                 // Set the progress to be zero
@@ -9659,10 +9696,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Set the progress to be indeterminate
             progressBar.setIndeterminate(true);
             boolean value = false;
-            switch(mode){
-                case(0):
-                    filePath = DropboxUtilities.formatDropboxPath(filePath);
-            }
+            filePath = LinkManagerUtilities.formatExternalFilePath(mode, filePath);
             try{    // Try to download the file from the path
                 value = saveFile(file,filePath,mode);
             } catch (IOException ex){
@@ -9699,7 +9733,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param loadFlags
          * @param exit 
          */
-        FileDownloader(File file, String path, int mode, Integer loadFlags, boolean exit){
+        FileDownloader(File file, String path, DatabaseSyncMode mode, Integer loadFlags, boolean exit){
             super(file,path,mode,exit);
             this.loadFlags = loadFlags;
         }
@@ -9710,7 +9744,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @param loadFlags 
          */
-        FileDownloader(File file, String path, int mode, Integer loadFlags){
+        FileDownloader(File file, String path, DatabaseSyncMode mode, Integer loadFlags){
             this(file,path,mode,loadFlags,false);
         }
         /**
@@ -9719,7 +9753,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param path 
          * @param mode
          */
-        FileDownloader(File file, String path, int mode){
+        FileDownloader(File file, String path, DatabaseSyncMode mode){
             this(file,path,mode,null);
         }
         /**
@@ -9767,27 +9801,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected String getFileNotFoundMessage(File file, String path){
             String msg = "";
             switch(mode){
-                case (0):
+                case DROPBOX:
                     msg = " on Dropbox";
             }
             return "The file was not found"+msg+" at the path\n\""+path+"\"";
         }
         @Override
-        protected String getLoggingExceptionMessage(int mode){
+        protected String getLoggingExceptionMessage(DatabaseSyncMode mode){
             String msg = "";
             switch(mode){
-                case(0):
+                case DROPBOX:
                     msg = " from Dropbox";
             }
             return "Failed to download file" + msg;
         }
         @Override
-        protected boolean saveFile(File file, String path, int mode) 
+        protected boolean saveFile(File file, String path, DatabaseSyncMode mode) 
                 throws IOException, DbxException{
             getLogger().entering(this.getClass().getName(), "saveFile",
                     new Object[]{file,path,mode});
             switch(mode){
-                case(0):    // Try to download the file from Dropbox
+                case DROPBOX:    // Try to download the file from Dropbox
                     FileMetadata data = downloadFromDropbox(file,path);
                     fileFound = data != null;
                     getLogger().exiting(this.getClass().getName(), "saveFile",fileFound);
@@ -9810,133 +9844,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (willLoadDatabase()){
                 loadDatabase(getDatabaseLoaderFlags());
             }
-        }
-    }
-    /**
-     * 
-     */
-    private class FileUploader extends FilePathSaver{
-        /**
-         * Whether the success prompt should be shown.
-         */
-        protected boolean showSuccess;
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param mode
-         * @param showSuccess
-         * @param exit 
-         */
-        FileUploader(File file, String path, int mode, boolean showSuccess, boolean exit){
-            super(file, path, mode, exit);
-            this.showSuccess = showSuccess;
-        }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param mode
-         * @param showSuccess 
-         */
-        FileUploader(File file, String path, int mode, boolean showSuccess){
-            this(file,path,mode,showSuccess,false);
-        }
-        /**
-         * 
-         * @param file
-         * @param path 
-         * @param mode
-         */
-        FileUploader(File file, String path, int mode){
-            this(file,path,mode,true);
-        }
-        /**
-         * This sets whether the program will exit after this finishes saving 
-         * the file.
-         * @param value Whether the program will exit once the file is saved.
-         * @return This FileUploader.
-         */
-        public FileUploader setExitAfterSaving(boolean value){
-            exitAfterSaving = value;
-            return this;
-        }
-        @Override
-        public String getProgressString(){
-            return "Uploading File";
-        }
-        /**
-         * 
-         * @return 
-         */
-        public boolean getShowSuccessPrompt(){
-            return showSuccess;
-        }
-        /**
-         * 
-         * @param value
-         * @return This FileUploader.
-         */
-        public FileUploader setShowSuccessPrompt(boolean value){
-            showSuccess = value;
-            return this;
-        }
-        @Override
-        protected boolean getShowSuccessPrompt(File file, String path){
-            return showSuccess && !exitAfterSaving;
-        }
-        @Override
-        protected String getSuccessTitle(File file, String path){
-            return "File Uploaded Successfully";
-        }
-        @Override
-        protected String getSuccessMessage(File file, String path){
-            return "The file was successfully uploaded.";
-        }
-        @Override
-        protected String getFailureTitle(File file, String path){
-            return "ERROR - File Failed To Upload";
-        }
-        @Override
-        protected String getFailureMessage(File file, String path){
-            return "The file failed to upload.";
-        }
-        @Override
-        protected String getLoggingExceptionMessage(int mode){
-            String msg = "";
-            switch(mode){
-                case(0):
-                    msg = " to Dropbox";
-            }
-            return "Failed to upload file" + msg;
-        }
-        @Override
-        protected boolean saveFile(File file, String path, int mode) throws 
-                IOException, DbxException{
-            getLogger().entering(this.getClass().getName(),"saveFile",
-                    new Object[]{file,path,mode});
-            switch(mode){
-                case(0):     // Try to upload the file to Dropbox
-                    uploadToDropbox(file,path);
-                    getLogger().exiting(this.getClass().getName(), "saveFile",true);
-                    return true;
-            }
-            getLogger().exiting(this.getClass().getName(), "saveFile",false);
-            return false;
-        }
-        @Override
-        protected boolean processFile(File file){
-                // If the file does not exist
-            if (!file.exists()){
-                fileFound = false;
-                return false;
-            }
-            return super.processFile(file);
-        }
-        @Override
-        protected void exitProgram(){
-            saver = new ProgramConfigSaver(true);
-            saver.execute();
         }
     }
     /**
@@ -10077,6 +9984,366 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             } else {
                 LinkManagerUtilities.setCard(setLocationPanel,setExternalCard);
             }
+            super.done();
+        }
+    }
+    
+    private enum SavingStage{
+        
+        SAVE_DATABASE,
+        
+        UPLOAD_FILE,
+        
+        SAVE_CONFIGURATION;
+    }
+    
+    private class DatabaseFileSaver extends AbstractDatabaseSaver{
+        /**
+         * This is the state in the process of working with the file.
+         */
+        private SavingStage stage;
+        
+        private String filePath;
+        
+        private DatabaseSyncMode syncMode;
+        
+        private File configFile;
+        
+        private boolean saveSuccess = true;
+        /**
+         * Whether the success prompt should be shown.
+         */
+        protected boolean showSuccess = false;
+        /**
+         * Whether file not found errors should be shown.
+         */
+        protected boolean showFileNotFound = true;
+        
+        DatabaseFileSaver(File file, String filePath, DatabaseSyncMode mode, 
+                File configFile, SavingStage stage, boolean exit){
+            super(file,exit);
+            this.stage = Objects.requireNonNull(stage);
+            this.filePath = filePath;
+            this.syncMode = mode;
+            this.configFile = configFile;
+        }
+        
+        DatabaseFileSaver(File file, String filePath, DatabaseSyncMode mode, 
+                File configFile, SavingStage stage){
+            this(file,filePath,mode,configFile,stage,false);
+        }
+        
+        private DatabaseFileSaver(DatabaseSyncMode mode, SavingStage stage, 
+                boolean exit){
+            this(getDatabaseFile(),config.getDatabaseFileSyncPath(mode),mode,
+                    getConfigFile(),stage,exit);
+        }
+        
+        DatabaseFileSaver(SavingStage stage, boolean exit){
+            this(getSyncMode(),stage,exit);
+        }
+        
+        DatabaseFileSaver(SavingStage stage){
+            this(stage,false);
+        }
+        
+        DatabaseFileSaver(boolean exit){
+            this(SavingStage.SAVE_DATABASE,exit);
+        }
+        
+        DatabaseFileSaver(){
+            this(false);
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected SavingStage getStage(){
+            return stage;
+        }
+        @Override
+        protected boolean willCreateBackup(){
+            return SavingStage.SAVE_DATABASE.equals(stage);
+        }
+        @Override
+        public String getNormalProgressString() {
+            return "Saving Lists";
+        }
+        @Override
+        public String getProgressString() {
+            switch(stage){
+                case UPLOAD_FILE:
+                    return "Uploading Database";
+                case SAVE_CONFIGURATION:
+                    return "Saving Configuration";
+                default:
+                    return super.getProgressString();
+            }
+        }
+        /**
+         * 
+         * @param value 
+         */
+        public DatabaseFileSaver setShowsSuccessfulUploadPrompt(boolean value){
+            this.showSuccess = value;
+            return this;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean getShowsSuccessfulUploadPrompt(){
+            return showSuccess;
+        }
+        /**
+         * This returns whether this shows a failure prompt when the file is not 
+         * found.
+         * @return Whether the file not found failure prompt is shown.
+         */
+        public boolean getShowsFileNotFoundPrompt(){
+            return showFileNotFound;
+        }
+        /**
+         * This sets whether this shows a failure prompt when the file is not 
+         * found.
+         * @param showFileNotFound Whether the file not found failure prompt is 
+         * shown.
+         * @return This FilePathSaver.
+         */
+        public DatabaseFileSaver setShowsFileNotFoundPrompt(boolean showFileNotFound){
+            this.showFileNotFound = showFileNotFound;
+            return this;
+        }
+        @Override
+        protected void showSuccessPrompt(File file){ }
+        @Override
+        protected String getFailureTitle(File file){
+            return "ERROR - Database Failed To Save";
+        }
+        /**
+         * 
+         * @param title
+         * @param text
+         * @param canRetry
+         * @return 
+         */
+        protected boolean showFailurePrompt(String title, String text, 
+                boolean canRetry){
+                // Show a dialog prompt asking the user if they would like to 
+                // try and save the file again and get their input. 
+
+                // If the program is to exit after saving the file, show 
+                // a third "cancel" option to allow the user to cancel 
+                // exiting the program
+            int option = LinkManager.this.showFailurePrompt(title, text, 
+                    canRetry, exitAfterSaving);
+                // If the program was going to exit after saving the file
+            if (exitAfterSaving){   
+                    // If the option selected was the cancel option or the user 
+                    // closed the dialog without selecting anything, then don't 
+                    // exit the program
+                exitAfterSaving = option != JOptionPane.CLOSED_OPTION && 
+                        option != JOptionPane.CANCEL_OPTION;
+            }   // Return whether the user selected yes
+            return option == JOptionPane.YES_OPTION;    
+        }
+        @Override
+        protected boolean createBackupFile(File file){
+            getLogger().entering(this.getClass().getName(), "createBackupFile", 
+                    file);
+            int retryOption = JOptionPane.NO_OPTION;
+            do {
+                try {   // Try to create a backup of the file
+                    backupFile = LinkManagerUtilities.createBackupCopy(file);
+                    backupFailed = false;
+                } catch (IOException ex) {
+                    getLogger().log(Level.WARNING,"Failed to create backup file",
+                            ex);
+                    backupFailed = true;    // The backup failed
+                    retryOption = showRetryPrompt("ERROR - Failed To Create Backup",
+                            "The database backup file failed to be created.",
+                            true);
+                }
+            } while (backupFailed && retryOption == JOptionPane.YES_OPTION);
+                // If the option selected was the cancel option or the user 
+                // closed the dialog without selecting anything
+            if (backupFailed && (retryOption == JOptionPane.CLOSED_OPTION || 
+                    retryOption == JOptionPane.CANCEL_OPTION)){
+                exitAfterSaving = false;
+                getLogger().exiting(this.getClass().getName(), "createBackupFile", false);
+                return false;
+            }
+            getLogger().exiting(this.getClass().getName(), "createBackupFile", true);
+            return true;
+        }
+        @Override
+        protected boolean saveDatabase(LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException {
+            return LinkManager.this.saveDatabase(conn);
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected boolean saveDatabase(File file){
+            getLogger().entering(this.getClass().getName(), "saveDatabase", file);
+            boolean retry;
+            do{
+                sqlExc = null;
+                progressBar.setValue(0);
+                progressBar.setIndeterminate(true);
+                if (super.saveFile(file)){
+                    getLogger().exiting(this.getClass().getName(), "saveDatabase", true);
+                    return true;
+                }
+                retry = showFailurePrompt("ERROR - Failed To Save Database",
+                        getFailureMessage(file),true);
+            }   // While the file failed to be processed and the user wants to 
+            while(retry);   // try again
+            getLogger().exiting(this.getClass().getName(), "saveDatabase", false);
+            return false;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @return 
+         */
+        private boolean uploadDatabase(File file, String path, 
+                DatabaseSyncMode mode){
+            getLogger().entering(this.getClass().getName(), "uploadDatabase", 
+                    new Object[]{file,path,mode});
+                // Whether the user wants this to try processing the file again 
+            boolean retry;  // if unsuccessful
+                // Format the file path
+            path = LinkManagerUtilities.formatExternalFilePath(mode, path);
+            getLogger().log(Level.FINER, "Uploading file at path \"{0}\"",path);
+            
+            do{     // The exception that was thrown, if any
+                Exception exc = null;
+                    // Set the progress to be zero
+                progressBar.setValue(0);
+                    // Set the program to be indeterminate
+                progressBar.setIndeterminate(true); 
+                try{    // Determine how to upload the file
+                    switch(mode){
+                        case DROPBOX:   // Try to upload the file to Dropbox
+                            uploadToDropbox(file,path);
+                    }
+                    getLogger().exiting(this.getClass().getName(), 
+                            "uploadDatabase", true);
+                    return true;
+                } catch (IOException | DbxException ex){
+                    getLogger().log(Level.WARNING, "Failed to upload file",ex);
+                    exc = ex;
+                    if (ex instanceof FileNotFoundException){
+                        if (showFileNotFound)
+                            showFailurePrompt("ERROR - File Failed To Upload",
+                                    "The file failed to upload to "+mode+"."+
+                                            "\nError: File does not exist.",
+                                    false);
+                        getLogger().exiting(this.getClass().getName(), 
+                                "uploadDatabase", false);
+                        return false;
+                    }
+                }   // The message to return
+                String msg = "The file failed to upload to "+mode+".";
+                    // If the program is either in debug mode or 
+                    // if details are to be shown and there was an 
+                    // exception thrown
+                if ((isInDebug() || showDBErrorDetailsToggle.isSelected()) && 
+                        exc != null){
+                    msg += "\nError: " + exc;
+                }
+                retry = showFailurePrompt("ERROR - File Failed To Upload",msg,
+                        true);
+            }   // While the file failed to be processed and the user wants to 
+            while(retry);   // try again
+            getLogger().exiting(this.getClass().getName(), "uploadDatabase", 
+                    false);
+            return false;
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        private boolean saveConfig(File file){
+            getLogger().entering(this.getClass().getName(), "saveConfig", file);
+                // Whether the user wants this to try processing the file again 
+            boolean retry;  // if unsuccessful
+                // Set the program to be indeterminate
+                progressBar.setIndeterminate(true); 
+            do{     // Try to create the directories for the file
+                if (createDirectories(file,false)){
+                    try {    // Try to save the properties to file
+                        if (saveConfigFile(file)){
+                            getLogger().exiting(this.getClass().getName(), 
+                                    "saveConfig", true);
+                            return true;
+                        }
+                    } catch (IOException ex) {
+                        getLogger().log(Level.WARNING,
+                                "Failed to save configuration file", ex);
+                    }
+                }
+                retry = showFailurePrompt("ERROR - Configuration Failed To Save",
+                        "The configuration for the program failed to save to file.",
+                        true);
+            }   // While the file failed to be processed and the user wants to 
+            while(retry);   // try again
+            getLogger().exiting(this.getClass().getName(), "saveConfig", false);
+            return false;
+        }
+        @Override
+        protected boolean saveFile(File file){
+            getLogger().entering(this.getClass().getName(), "saveFile", file);
+            
+            if (SavingStage.SAVE_DATABASE.equals(stage)){
+                saveSuccess = saveDatabase(file);
+                    // Set the program to be indeterminate
+                progressBar.setIndeterminate(true);
+                if (saveSuccess && syncDBToggle.isSelected())
+                    stage = SavingStage.UPLOAD_FILE;
+            }
+            
+            if (saveSuccess && SavingStage.UPLOAD_FILE.equals(stage) && 
+                    syncMode != null && filePath != null){
+                progressDisplay.setString(getProgressString());
+                saveSuccess = uploadDatabase(file,filePath,syncMode);
+                if (saveSuccess && showSuccess){
+                    LinkManager.this.showSuccessPrompt(
+                            "File Uploaded Successfully",
+                            "The file was successfully uploaded.");
+                }   // Set the program to be indeterminate
+                progressBar.setIndeterminate(true); 
+            }
+            
+            if (SavingStage.SAVE_CONFIGURATION.equals(stage)){
+                // Save the configuration to file
+                progressDisplay.setString(getProgressString());
+                saveSuccess = saveConfig(configFile);
+            }
+            
+            getLogger().exiting(this.getClass().getName(), "saveFile", true);
+            return true;
+        }
+        @Override
+        protected Void backgroundAction() throws Exception {
+            super.backgroundAction();
+            success = saveSuccess;
+            return null;
+        }
+        @Override
+        protected void exitProgram(){
+            getLogger().log(Level.FINER, "Exiting program normally");
+            System.exit(0);         // Exit the program
+        }
+        @Override
+        protected void done(){
+            deleteBackupIfSuccessful();
             super.done();
         }
     }
