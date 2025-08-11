@@ -303,6 +303,8 @@ public class DropboxUtilities {
                 // failed at some point
             for (int i = 0; i < CHUNKED_UPLOAD_MAX_ATTEMPTS && metadata == null; 
                     i++){
+                LinkManager.getLogger().log(Level.FINER, "Uploading attempt {0}", i);
+                dbxEx = null;
                     // Create an input stream to load the file 
                 try (InputStream in = new BufferedInputStream(new FileInputStream(file))){
                         // Skip the bytes we've already read
