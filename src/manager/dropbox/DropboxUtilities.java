@@ -241,6 +241,8 @@ public class DropboxUtilities {
     public static FileMetadata upload(File file, String path, 
             DbxUserFilesRequests dbxFiles, long chunkSize, boolean overwrite, 
             ProgressListener l) throws IOException, DbxException{
+        LinkManager.getLogger().entering("DropboxUtilities", "upload",
+                new Object[]{file,path,dbxFiles,chunkSize,overwrite,l});
             // If the chunk size is smaller than the minimum chunk size
         if (chunkSize < MINIMUM_CHUNK_SIZE)
             throw new IllegalArgumentException("Chunk size is too small ("+
@@ -266,12 +268,16 @@ public class DropboxUtilities {
                             // Set the client modified date to the file's last 
                             // modified date
                         .withClientModified(new Date(file.lastModified()));
+                FileMetadata metadata;
                     // If the progress listener is null
                 if (l == null)
                         // Upload the file to Dropbox
-                    return uploader.uploadAndFinish(in);
-                    // Upload the file to Dropbox
-                return uploader.uploadAndFinish(in, l);
+                    metadata = uploader.uploadAndFinish(in);
+                else
+                        // Upload the file to Dropbox
+                    metadata = uploader.uploadAndFinish(in, l);
+                LinkManager.getLogger().exiting("DropboxUtilities", "upload", metadata);
+                return metadata;
             }
         } else {    // Code is heavily based off the upload file example for Dropbox
                 // The amount of bytes that have been uploaded so far
@@ -373,6 +379,7 @@ public class DropboxUtilities {
                 // we have a Dropbox error to forward
             if (metadata == null && dbxEx != null)
                 throw dbxEx;
+            LinkManager.getLogger().exiting("DropboxUtilities", "upload", metadata);
             return metadata;
         }
     }
