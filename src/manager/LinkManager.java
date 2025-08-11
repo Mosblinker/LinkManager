@@ -10342,6 +10342,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             System.exit(0);         // Exit the program
         }
         @Override
+        protected void uploadDatabase(){}
+        @Override
         protected void done(){
             deleteBackupIfSuccessful();
             super.done();
