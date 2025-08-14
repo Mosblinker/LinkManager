@@ -3626,10 +3626,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return;
             }
                 // If the file saver is being used to save the database
-            else if (saver instanceof AbstractDatabaseFileSaver){
+            else if (saver instanceof AbstractDatabaseSaver){
                     // Make it so that once it finishes saving the database, it 
                     // will close the program
-                ((AbstractDatabaseFileSaver)saver).setExitAfterSaving(true);
+                ((AbstractDatabaseSaver)saver).setExitAfterSaving(true);
                 exitButton.setEnabled(false);
                 return;
             }
@@ -5137,7 +5137,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return Whether the program is currently saving a database file.
      */
     public boolean isSavingDatabase(){
-        return isSavingFiles() && saver instanceof AbstractDatabaseFileSaver;
+        return isSavingFiles() && saver instanceof AbstractDatabaseSaver;
     }
     /**
      * This returns whether the program is currently loading a database file.
@@ -8808,7 +8808,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is an abstract class that provides the framework for saving to a 
      * database file.
      */
-    private abstract class AbstractDatabaseFileSaver extends FileSaver{
+    private abstract class AbstractDatabaseSaver extends FileSaver{
         /**
          * This is the state in the process of working with the file.
          */
@@ -8839,7 +8839,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private boolean verifying = false;
         
-        AbstractDatabaseFileSaver(File file, String filePath, 
+        AbstractDatabaseSaver(File file, String filePath, 
                 DatabaseSyncMode mode, File configFile, SavingStage stage, 
                 boolean exit){
             super(file,exit);
@@ -8849,39 +8849,39 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this.configFile = configFile;
         }
         
-        AbstractDatabaseFileSaver(File file, String filePath, 
+        AbstractDatabaseSaver(File file, String filePath, 
                 DatabaseSyncMode mode, File configFile, SavingStage stage){
             this(file,filePath,mode,configFile,stage,false);
         }
         
-        AbstractDatabaseFileSaver(File file, String filePath, 
+        AbstractDatabaseSaver(File file, String filePath, 
                 DatabaseSyncMode mode, SavingStage stage, boolean exit){
             this(file,filePath,mode,getConfigFile(),stage,exit);
         }
         
-        AbstractDatabaseFileSaver(File file, String filePath, 
+        AbstractDatabaseSaver(File file, String filePath, 
                 DatabaseSyncMode mode, SavingStage stage){
             this(file,filePath,mode,stage,false);
         }
         
-        private AbstractDatabaseFileSaver(File file, DatabaseSyncMode mode, 
+        private AbstractDatabaseSaver(File file, DatabaseSyncMode mode, 
                 SavingStage stage, boolean exit){
             this(file,config.getDatabaseFileSyncPath(mode),mode,stage,exit);
         }
         
-        AbstractDatabaseFileSaver(File file, SavingStage stage, boolean exit){
+        AbstractDatabaseSaver(File file, SavingStage stage, boolean exit){
             this(file,getSyncMode(),stage,exit);
         }
         
-        AbstractDatabaseFileSaver(File file, SavingStage stage){
+        AbstractDatabaseSaver(File file, SavingStage stage){
             this(file,stage,false);
         }
         
-        AbstractDatabaseFileSaver(SavingStage stage, boolean exit){
+        AbstractDatabaseSaver(SavingStage stage, boolean exit){
             this(getDatabaseFile(),stage,exit);
         }
         
-        AbstractDatabaseFileSaver(SavingStage stage){
+        AbstractDatabaseSaver(SavingStage stage){
             this(stage,false);
         }
         /**
@@ -8891,7 +8891,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file The database file to save the data to.
          * @param exit Whether the program will exit after saving the file.
          */
-        AbstractDatabaseFileSaver(File file, boolean exit){
+        AbstractDatabaseSaver(File file, boolean exit){
             this(file,SavingStage.SAVE_DATABASE,exit);
         }
         /**
@@ -8899,7 +8899,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * the database stored in the given file.
          * @param file The database file to save the data to.
          */
-        AbstractDatabaseFileSaver(File file){
+        AbstractDatabaseSaver(File file){
             this(file,false);
         }
         /**
@@ -8908,14 +8908,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * exit} is {@code true}, will exit the program afterwards.
          * @param exit Whether the program will exit after saving the file.
          */
-        AbstractDatabaseFileSaver(boolean exit){
+        AbstractDatabaseSaver(boolean exit){
             this(SavingStage.SAVE_DATABASE,exit);
         }
         /**
          * This constructs a AbstractDatabaseSaver that will save the data to 
          * the program's {@link #getDatabaseFile() database file}.
          */
-        AbstractDatabaseFileSaver(){
+        AbstractDatabaseSaver(){
             this(false);
         }
         /**
@@ -8941,7 +8941,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @param value 
          */
-        public AbstractDatabaseFileSaver setShowsSuccessfulUploadPrompt(boolean value){
+        public AbstractDatabaseSaver setShowsSuccessfulUploadPrompt(boolean value){
             this.showSuccess = value;
             return this;
         }
@@ -8959,7 +8959,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * shown.
          * @return This AbstractDatabaseFileSaver.
          */
-        public AbstractDatabaseFileSaver setShowsFileNotFoundPrompt(boolean showFileNotFound){
+        public AbstractDatabaseSaver setShowsFileNotFoundPrompt(boolean showFileNotFound){
             this.showFileNotFound = showFileNotFound;
             return this;
         }
@@ -9365,7 +9365,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This saves the lists of links to the database.
      */
-    private class DatabaseSaver extends AbstractDatabaseFileSaver{
+    private class DatabaseSaver extends AbstractDatabaseSaver{
         
         DatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
                 File configFile, SavingStage stage, boolean exit){
@@ -9459,7 +9459,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This resets the IDs in the database.
      */
-    private class ResetDatabaseIDs extends AbstractDatabaseFileSaver{
+    private class ResetDatabaseIDs extends AbstractDatabaseSaver{
         @Override
         public String getNormalProgressString(){
             return "Resetting IDs";
@@ -9590,7 +9590,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private class LinkPrefixUpdater extends AbstractDatabaseFileSaver{
+    private class LinkPrefixUpdater extends AbstractDatabaseSaver{
         @Override
         public String getNormalProgressString(){
             return "Updating Prefixes";
@@ -9654,7 +9654,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private class UpdateDatabase extends AbstractDatabaseFileSaver{
+    private class UpdateDatabase extends AbstractDatabaseSaver{
         
         private int mode;
         
