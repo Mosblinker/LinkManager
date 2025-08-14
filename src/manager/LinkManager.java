@@ -10006,15 +10006,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         /**
          * This is the state in the process of working with the file.
          */
-        private SavingStage stage;
+        protected SavingStage stage;
         
-        private String filePath;
+        protected String filePath;
         
-        private DatabaseSyncMode syncMode;
+        protected DatabaseSyncMode syncMode;
         
-        private File configFile;
+        protected File configFile;
         
-        private boolean saveSuccess = true;
+        protected boolean saveSuccess = true;
         /**
          * Whether the success prompt should be shown.
          */
@@ -10574,49 +10574,44 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         DatabaseFileSaver(File file, String filePath, DatabaseSyncMode mode, 
                 File configFile, SavingStage stage, boolean exit){
-            super(file,exit);
-            this.stage = Objects.requireNonNull(stage);
-            this.filePath = filePath;
-            this.syncMode = mode;
-            this.configFile = configFile;
+            super(file,filePath,mode,configFile,stage,exit);
         }
         
         DatabaseFileSaver(File file, String filePath, DatabaseSyncMode mode, 
                 File configFile, SavingStage stage){
-            this(file,filePath,mode,configFile,stage,false);
+            super(file,filePath,mode,configFile,stage);
         }
         
-        private DatabaseFileSaver(DatabaseSyncMode mode, SavingStage stage, 
-                boolean exit){
-            this(getDatabaseFile(),config.getDatabaseFileSyncPath(mode),mode,
-                    getConfigFile(),stage,exit);
+        DatabaseFileSaver(File file, SavingStage stage, boolean exit){
+            super(file,stage,exit);
+        }
+        
+        DatabaseFileSaver(File file, SavingStage stage){
+            super(file,stage);
         }
         
         DatabaseFileSaver(SavingStage stage, boolean exit){
-            this(getSyncMode(),stage,exit);
+            super(stage,exit);
         }
         
         DatabaseFileSaver(SavingStage stage){
-            this(stage,false);
+            super(stage);
+        }
+        
+        DatabaseFileSaver(File file, boolean exit){
+            super(file,exit);
+        }
+        
+        DatabaseFileSaver(File file){
+            super(file);
         }
         
         DatabaseFileSaver(boolean exit){
-            this(SavingStage.SAVE_DATABASE,exit);
+            super(exit);
         }
         
         DatabaseFileSaver(){
-            this(false);
-        }
-        /**
-         * 
-         * @return 
-         */
-        protected SavingStage getStage(){
-            return stage;
-        }
-        @Override
-        protected boolean willCreateBackup(){
-            return SavingStage.SAVE_DATABASE.equals(stage);
+            super();
         }
         @Override
         public String getNormalProgressString() {
