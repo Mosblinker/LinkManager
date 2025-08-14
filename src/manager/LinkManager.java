@@ -9110,10 +9110,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this(file,filePath,mode,configFile,stage,false);
         }
         
+        AbstractDatabaseFileSaver(File file, String filePath, 
+                DatabaseSyncMode mode, SavingStage stage, boolean exit){
+            this(file,filePath,mode,getConfigFile(),stage,exit);
+        }
+        
+        AbstractDatabaseFileSaver(File file, String filePath, 
+                DatabaseSyncMode mode, SavingStage stage){
+            this(file,filePath,mode,stage,false);
+        }
+        
         private AbstractDatabaseFileSaver(File file, DatabaseSyncMode mode, 
                 SavingStage stage, boolean exit){
-            this(file,config.getDatabaseFileSyncPath(mode),mode,
-                    getConfigFile(),stage,exit);
+            this(file,config.getDatabaseFileSyncPath(mode),mode,stage,exit);
         }
         
         AbstractDatabaseFileSaver(File file, SavingStage stage, boolean exit){
@@ -9497,7 +9506,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (exitAfterSaving)
                 setStage(SavingStage.SAVE_CONFIGURATION);
             
-            if (SavingStage.SAVE_CONFIGURATION.equals(stage)){
+            if (SavingStage.SAVE_CONFIGURATION.equals(stage) && configFile != null){
                 // Save the configuration to file
                 progressDisplay.setString(getProgressString());
                 saveSuccess = saveConfig(configFile);
@@ -9622,6 +9631,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         DatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
                 File configFile, SavingStage stage){
             super(file,filePath,mode,configFile,stage);
+        }
+        
+        DatabaseSaver(File file, String filePath, 
+                DatabaseSyncMode mode, SavingStage stage, boolean exit){
+            super(file,filePath,mode,stage,exit);
+        }
+        
+        DatabaseSaver(File file, String filePath, 
+                DatabaseSyncMode mode, SavingStage stage){
+            super(file,filePath,mode,stage);
         }
         
         DatabaseSaver(File file, SavingStage stage, boolean exit){
