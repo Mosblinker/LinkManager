@@ -10421,4 +10421,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             super.done();
         }
     }
+    
+    private enum LoadingStage{
+        
+        DOWNLOADING_FILE,
+        
+        LOADING_DATABASE;
+        
+    }
+    
+    private class DatabaseFileLoader extends AbstractDatabaseLoader{
+
+        @Override
+        protected boolean loadDatabase(LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+        
+    }
 }
