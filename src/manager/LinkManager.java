@@ -7845,11 +7845,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 Statement stmt) throws SQLException;
         @Override
         protected boolean loadFile(File file){
+            getLogger().entering("AbstractDatabaseLoader", "loadFile", file);
             sqlExc = null;
-            if (!file.exists())     // If the file doesn't exist
+            if (!file.exists()){    // If the file doesn't exist
+                getLogger().exiting("AbstractDatabaseLoader", "loadFile", true);
                 return false;
+            }
             boolean value = false;
-            getLogger().entering(this.getClass().getName(), "loadFile", file);
                 // Connect to the database and create an SQL statement
             try(LinkDatabaseConnection conn = connect(file);
                     Statement stmt = conn.createStatement()){
@@ -7861,7 +7863,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 getLogger().log(Level.WARNING,"Failed to load database", ex);
                 sqlExc = ex.getCause();
             }
-            getLogger().exiting(this.getClass().getName(), "loadFile", value);
+            getLogger().exiting("AbstractDatabaseLoader", "loadFile", value);
             return value;
         }
         /**
