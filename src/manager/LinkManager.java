@@ -10436,6 +10436,26 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private class DatabaseFileLoader extends AbstractDatabaseLoader{
+        
+        protected LoadingStage stage;
+        
+        protected String filePath;
+        
+        protected DatabaseSyncMode syncMode;
+        
+        protected boolean loadSuccess = true;
+        
+        
+        
+        @Override
+        protected boolean loadFile(File file){
+            getLogger().entering("DatabaseFileLoader", "loadFile", file);
+            
+            loadSuccess = super.loadFile(file);
+            
+            getLogger().exiting("DatabaseFileLoader", "loadFile",loadSuccess);
+            return loadSuccess;
+        }
 
         @Override
         protected boolean loadDatabase(LinkDatabaseConnection conn, 
