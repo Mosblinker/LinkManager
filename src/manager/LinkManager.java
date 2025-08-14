@@ -3601,7 +3601,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     ((AbstractDatabaseSaver)saver).setExitAfterSaving(true);
                     exitButton.setEnabled(false);
                     return;
-                        // Thrown inf the abstract database saver cannot exit 
+                        // Thrown if the abstract database saver cannot exit 
                         // program
                 } catch (UnsupportedOperationException ex){ }
             }
