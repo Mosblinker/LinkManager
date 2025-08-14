@@ -3627,9 +3627,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
                 // If the file saver is being used to save the database
             else if (saver instanceof AbstractDatabaseSaver){
-                try{
-                        // Make it so that once it finishes saving the database, it 
-                        // will close the program
+                try{    // Make it so that once it finishes saving the database, 
+                        // it will close the program
                     ((AbstractDatabaseSaver)saver).setExitAfterSaving(true);
                     exitButton.setEnabled(false);
                     return;
