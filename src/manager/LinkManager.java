@@ -3626,10 +3626,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return;
             }
                 // If the file saver is being used to save the database
-            else if (saver instanceof AbstractDatabaseSaver){
+            else if (saver instanceof AbstractDatabaseFileSaver){
                     // Make it so that once it finishes saving the database, it 
                     // will close the program
-                ((AbstractDatabaseSaver)saver).setExitAfterSaving(true);
+                ((AbstractDatabaseFileSaver)saver).setExitAfterSaving(true);
                 exitButton.setEnabled(false);
                 return;
             }
@@ -5137,7 +5137,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return Whether the program is currently saving a database file.
      */
     public boolean isSavingDatabase(){
-        return isSavingFiles() && saver instanceof AbstractDatabaseSaver;
+        return isSavingFiles() && saver instanceof AbstractDatabaseFileSaver;
     }
     /**
      * This returns whether the program is currently loading a database file.
@@ -9715,10 +9715,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This resets the IDs in the database.
      */
-    private class ResetDatabaseIDs extends AbstractDatabaseSaver{
+    private class ResetDatabaseIDs extends AbstractDatabaseFileSaver{
         @Override
         public String getNormalProgressString(){
             return "Resetting IDs";
+        }
+        /**
+         * 
+         * @param value 
+         */
+        @Override
+        public ResetDatabaseIDs setShowsSuccessfulUploadPrompt(boolean value){
+            super.setShowsSuccessfulUploadPrompt(value);
+            return this;
+        }
+        /**
+         * This sets whether this shows a failure prompt when the file is not 
+         * found.
+         * @param showFileNotFound Whether the file not found failure prompt is 
+         * shown.
+         * @return This ResetDatabaseIDs.
+         */
+        @Override
+        public ResetDatabaseIDs setShowsFileNotFoundPrompt(boolean showFileNotFound){
+            super.setShowsFileNotFoundPrompt(showFileNotFound);
+            return this;
         }
         @Override
         protected boolean saveDatabase(LinkDatabaseConnection conn, Statement stmt) 
@@ -9766,7 +9787,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             System.gc();            // Run the garbage collector
             
                 // Verify the database to ensure all the data has been written
-            setVerifyingDatabase(true);
+            setStage(SavingStage.VERIFY_DATABASE);
                 // This is a set containing all the links in the models
             Set<String> linkSet1 = new LinkedHashSet<>();
                 // This is a set containing all the links in the database
@@ -9825,10 +9846,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private class LinkPrefixUpdater extends AbstractDatabaseSaver{
+    private class LinkPrefixUpdater extends AbstractDatabaseFileSaver{
         @Override
         public String getNormalProgressString(){
             return "Updating Prefixes";
+        }
+        /**
+         * 
+         * @param value 
+         */
+        @Override
+        public LinkPrefixUpdater setShowsSuccessfulUploadPrompt(boolean value){
+            super.setShowsSuccessfulUploadPrompt(value);
+            return this;
+        }
+        /**
+         * This sets whether this shows a failure prompt when the file is not 
+         * found.
+         * @param showFileNotFound Whether the file not found failure prompt is 
+         * shown.
+         * @return This LinkPrefixUpdater.
+         */
+        @Override
+        public LinkPrefixUpdater setShowsFileNotFoundPrompt(boolean showFileNotFound){
+            super.setShowsFileNotFoundPrompt(showFileNotFound);
+            return this;
         }
         @Override
         protected boolean saveDatabase(LinkDatabaseConnection conn, Statement stmt) 
@@ -9855,7 +9897,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             
                 // Check to make sure everything is effectively the same, just 
                 // updated
-            setVerifyingDatabase(true);
+            setStage(SavingStage.VERIFY_DATABASE);
             return storedLinks.equals(links);
         }
         @Override
@@ -9868,17 +9910,38 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private class UpdateDatabase extends AbstractDatabaseSaver{
+    private class UpdateDatabase extends AbstractDatabaseFileSaver{
         
         private int mode;
         
         UpdateDatabase(File file, int updateType){
-            super(file);
+            super(file,null,null,SavingStage.SAVE_DATABASE);
             this.mode = updateType;
         }
         @Override
         public String getNormalProgressString(){
             return "Updating Database";
+        }
+        /**
+         * 
+         * @param value 
+         */
+        @Override
+        public UpdateDatabase setShowsSuccessfulUploadPrompt(boolean value){
+            super.setShowsSuccessfulUploadPrompt(value);
+            return this;
+        }
+        /**
+         * This sets whether this shows a failure prompt when the file is not 
+         * found.
+         * @param showFileNotFound Whether the file not found failure prompt is 
+         * shown.
+         * @return This UpdateDatabase.
+         */
+        @Override
+        public UpdateDatabase setShowsFileNotFoundPrompt(boolean showFileNotFound){
+            super.setShowsFileNotFoundPrompt(showFileNotFound);
+            return this;
         }
         @Override
         protected boolean prepareDatabase(File file, LinkDatabaseConnection conn, 
@@ -9888,7 +9951,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected boolean saveDatabase(LinkDatabaseConnection conn, 
                 Statement stmt) throws SQLException {
-            getLogger().entering(this.getClass().getName(), "saveDatabase", mode);
+            getLogger().entering("UpdateDatabase", "saveDatabase", mode);
             boolean updateSuccess = true;
             if (mode != 0)
                 conn.setForeignKeysEnabled(false, stmt);
@@ -9922,7 +9985,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             if (mode != 0)
                 conn.setForeignKeysEnabled(true, stmt);
-            getLogger().exiting(this.getClass().getName(), "saveDatabase", updateSuccess);
+            getLogger().exiting("UpdateDatabase", "saveDatabase", updateSuccess);
             return updateSuccess;
         }
     }
