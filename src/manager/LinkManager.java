@@ -3641,7 +3641,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             updateProgramConfig();
             exitButton.setEnabled(false);
                 // Save the database and close the program
-            saver = new DatabaseFileSaver(true);
+            saver = new DatabaseSaver(true);
             saver.execute();
         }
         else{
@@ -3666,7 +3666,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (AutosaveMenu.AUTOSAVE_COMMAND.equals(evt.getActionCommand()) && 
                 isEdited() && !isSavingFiles()){
             getLogger().finer("Automatically saving database");
-            saver = new DatabaseFileSaver();
+            saver = new DatabaseSaver();
             saver.execute();
         }
     }//GEN-LAST:event_autosaveMenuActionPerformed
@@ -3884,7 +3884,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void updateDatabaseItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateDatabaseItemActionPerformed
-        saver = new DatabaseFileSaver();
+        saver = new DatabaseSaver();
         saver.execute();
     }//GEN-LAST:event_updateDatabaseItemActionPerformed
     /**
@@ -4598,7 +4598,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             SavingStage stage = SavingStage.SAVE_DATABASE;
             if (getDatabaseFile().exists())
                 stage = SavingStage.UPLOAD_FILE;
-            saver = new DatabaseFileSaver(stage);
+            saver = new DatabaseSaver(stage);
             saver.execute();
         }
     }//GEN-LAST:event_uploadDBItemActionPerformed
@@ -4678,15 +4678,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbQueryPanelActionPerformed
 
     private void saveTestItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveTestItemActionPerformed
-        new DatabaseFileSaver(saveTestExitToggle.isSelected()).execute();
+        new DatabaseSaver(saveTestExitToggle.isSelected()).execute();
     }//GEN-LAST:event_saveTestItemActionPerformed
 
     private void uploadTestItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadTestItemActionPerformed
-        new DatabaseFileSaver(SavingStage.UPLOAD_FILE).execute();
+        new DatabaseSaver(SavingStage.UPLOAD_FILE).execute();
     }//GEN-LAST:event_uploadTestItemActionPerformed
 
     private void saveConfigTestItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveConfigTestItemActionPerformed
-        new DatabaseFileSaver(SavingStage.SAVE_CONFIGURATION).execute();
+        new DatabaseSaver(SavingStage.SAVE_CONFIGURATION).execute();
     }//GEN-LAST:event_saveConfigTestItemActionPerformed
     
     private CustomTableModel getListSearchTableModel(){
@@ -8177,7 +8177,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void uploadDatabase(){
             DatabaseSyncMode mode = getSyncMode();
             if (mode != null){
-                saver = new DatabaseFileSaver(file,config.getDatabaseFileSyncPath(mode)
+                saver = new DatabaseSaver(file,config.getDatabaseFileSyncPath(mode)
                         ,mode,getConfigFile(),SavingStage.UPLOAD_FILE,exitAfterSaving);
                 saver.execute();
             }
@@ -8187,7 +8187,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
                 uploadDatabase();
             } else {
-                saver = new DatabaseFileSaver(SavingStage.SAVE_CONFIGURATION,true);
+                saver = new DatabaseSaver(SavingStage.SAVE_CONFIGURATION,true);
                 saver.execute();
             }
         }
@@ -10550,47 +10550,47 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This saves the lists of links to the database.
      */
-    private class DatabaseFileSaver extends AbstractDatabaseFileSaver{
+    private class DatabaseSaver extends AbstractDatabaseFileSaver{
         
-        DatabaseFileSaver(File file, String filePath, DatabaseSyncMode mode, 
+        DatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
                 File configFile, SavingStage stage, boolean exit){
             super(file,filePath,mode,configFile,stage,exit);
         }
         
-        DatabaseFileSaver(File file, String filePath, DatabaseSyncMode mode, 
+        DatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
                 File configFile, SavingStage stage){
             super(file,filePath,mode,configFile,stage);
         }
         
-        DatabaseFileSaver(File file, SavingStage stage, boolean exit){
+        DatabaseSaver(File file, SavingStage stage, boolean exit){
             super(file,stage,exit);
         }
         
-        DatabaseFileSaver(File file, SavingStage stage){
+        DatabaseSaver(File file, SavingStage stage){
             super(file,stage);
         }
         
-        DatabaseFileSaver(SavingStage stage, boolean exit){
+        DatabaseSaver(SavingStage stage, boolean exit){
             super(stage,exit);
         }
         
-        DatabaseFileSaver(SavingStage stage){
+        DatabaseSaver(SavingStage stage){
             super(stage);
         }
         
-        DatabaseFileSaver(File file, boolean exit){
+        DatabaseSaver(File file, boolean exit){
             super(file,exit);
         }
         
-        DatabaseFileSaver(File file){
+        DatabaseSaver(File file){
             super(file);
         }
         
-        DatabaseFileSaver(boolean exit){
+        DatabaseSaver(boolean exit){
             super(exit);
         }
         
-        DatabaseFileSaver(){
+        DatabaseSaver(){
             super();
         }
         @Override
@@ -10602,7 +10602,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param value 
          */
         @Override
-        public DatabaseFileSaver setShowsSuccessfulUploadPrompt(boolean value){
+        public DatabaseSaver setShowsSuccessfulUploadPrompt(boolean value){
             super.setShowsSuccessfulUploadPrompt(value);
             return this;
         }
@@ -10613,7 +10613,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * shown.
          * @return This DatabaseFileSaver.
          */
-        public DatabaseFileSaver setShowsFileNotFoundPrompt(boolean showFileNotFound){
+        @Override
+        public DatabaseSaver setShowsFileNotFoundPrompt(boolean showFileNotFound){
             super.setShowsFileNotFoundPrompt(showFileNotFound);
             return this;
         }
@@ -10623,18 +10624,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected boolean saveDatabase(LinkDatabaseConnection conn, 
                 Statement stmt) throws SQLException {
             return LinkManager.this.saveDatabase(conn);
-        }
-        
-        @Override
-        protected Void backgroundAction() throws Exception {
-            super.backgroundAction();
-            success = saveSuccess;
-            return null;
-        }
-        @Override
-        protected void exitProgram(){
-            getLogger().log(Level.FINER, "Exiting program normally");
-            System.exit(0);         // Exit the program
         }
         @Override
         protected void done(){
