@@ -10322,7 +10322,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @return 
          */
-        private boolean uploadFile(File file, String path, 
+        protected boolean uploadFile(File file, String path, 
                 DatabaseSyncMode mode){
             getLogger().entering("AbstractDatabaseSaver", "uploadFile", 
                     new Object[]{file,path,mode});
@@ -10381,7 +10381,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file
          * @return 
          */
-        private boolean saveConfig(File file){
+        protected boolean saveConfig(File file){
             getLogger().entering("AbstractDatabaseSaver", "saveConfig", file);
                 // Whether the user wants this to try processing the file again 
             boolean retry;  // if unsuccessful
