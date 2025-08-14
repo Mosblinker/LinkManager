@@ -7875,11 +7875,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected String getFailureMessage(File file){
+            return getFailureMessage(file,sqlExc);
+        }
+        protected String getFailureMessage(File file, SQLException ex){
                 // The message to return
             String msg = "The database failed to load.";
-            if (sqlExc != null){    // If an SQLException was thrown
+            if (ex != null){    // If an SQLException was thrown
                     // Custom error messages for certain error codes
-                switch(sqlExc.getErrorCode()){
+                switch(ex.getErrorCode()){
                         // If the database failed to save because it was busy
                     case (Codes.SQLITE_BUSY):
                         msg = "Please wait, the database is currently busy.";
@@ -7893,8 +7896,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         msg = "The database failed to load due to being corrupted.";
                 }   // If the program is either in debug mode or if details are to be shown
                 if (isInDebug() || showDBErrorDetailsToggle.isSelected())    
-                    msg += "\nError: " + sqlExc + 
-                            "\nError Code: " + sqlExc.getErrorCode();
+                    msg += "\nError: " + ex + 
+                            "\nError Code: " + ex.getErrorCode();
             }
             return msg;
         }
