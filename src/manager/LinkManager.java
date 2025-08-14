@@ -9080,7 +9080,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     return true;
                 }
                 retry = showFailurePrompt("ERROR - Failed To Save Database",
-                        getFailureMessage(file),true);
+                        getFailureMessage(file, sqlExc),true);
             }   // While the file failed to be processed and the user wants to 
             while(retry);   // try again
             getLogger().exiting("AbstractDatabaseSaver", "saveDatabase", false);
