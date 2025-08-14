@@ -3627,16 +3627,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
                 // If the file saver is being used to save the database
             else if (saver instanceof AbstractDatabaseSaver){
-                    // Make it so that once it finishes saving the database, it 
-                    // will close the program
-                ((AbstractDatabaseSaver)saver).setExitAfterSaving(true);
-                exitButton.setEnabled(false);
-                return;
+                try{
+                        // Make it so that once it finishes saving the database, it 
+                        // will close the program
+                    ((AbstractDatabaseSaver)saver).setExitAfterSaving(true);
+                    exitButton.setEnabled(false);
+                    return;
+                        // Thrown inf the abstract database saver cannot exit 
+                        // program
+                } catch (UnsupportedOperationException ex){ }
             }
         }   // If the program fully loaded initially and it is to save after the 
             // initial load
         if (fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
-            getLogger().log(Level.FINER, "Exiting and saving program");
+            getLogger().finer("Exiting and saving program");
                 // Ensure that the program's configuration is up-to-date
             updateProgramConfig();
             exitButton.setEnabled(false);
@@ -3645,7 +3649,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             saver.execute();
         }
         else{
-            getLogger().log(Level.FINER, "Exiting program normally");
+            getLogger().finer("Exiting program normally");
             System.exit(0);
         }
     }//GEN-LAST:event_exitButtonActionPerformed
@@ -7501,7 +7505,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * This is used to exit the program after this finishes saving the file.
          */
         protected void exitProgram(){
-            getLogger().log(Level.FINER, "Exiting program normally");
+            getLogger().finer("Exiting program normally");
             System.exit(0);         // Exit the program
         }
         @Override
@@ -9731,6 +9735,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 conn.setForeignKeysEnabled(true, stmt);
             getLogger().exiting("UpdateDatabase", "saveDatabase", updateSuccess);
             return updateSuccess;
+        }
+        @Override
+        public void setExitAfterSaving(boolean value){
+            throw new UnsupportedOperationException();
+        }
+        @Override
+        protected void exitProgram(){
+            getLogger().warning("UpdateDatabase attempting to exit program");
         }
     }
     
