@@ -1230,10 +1230,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxPrintButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
-        saveTestExitToggle = new javax.swing.JCheckBoxMenuItem();
-        saveTestItem = new javax.swing.JMenuItem();
-        uploadTestItem = new javax.swing.JMenuItem();
-        saveConfigTestItem = new javax.swing.JMenuItem();
 
         openFC.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -2916,33 +2912,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dropboxTestMenu.add(dropboxRefreshTestButton);
 
         debugMenu.add(dropboxTestMenu);
-
-        saveTestExitToggle.setText("Exit After Test Save");
-        debugMenu.add(saveTestExitToggle);
-
-        saveTestItem.setText("Save Test");
-        saveTestItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                saveTestItemActionPerformed(evt);
-            }
-        });
-        debugMenu.add(saveTestItem);
-
-        uploadTestItem.setText("Upload Test");
-        uploadTestItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                uploadTestItemActionPerformed(evt);
-            }
-        });
-        debugMenu.add(uploadTestItem);
-
-        saveConfigTestItem.setText("Save Config Test");
-        saveConfigTestItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                saveConfigTestItemActionPerformed(evt);
-            }
-        });
-        debugMenu.add(saveConfigTestItem);
 
         menuBar.add(debugMenu);
 
@@ -4679,18 +4648,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             loader.execute();
         }
     }//GEN-LAST:event_dbQueryPanelActionPerformed
-
-    private void saveTestItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveTestItemActionPerformed
-        new DatabaseSaver(saveTestExitToggle.isSelected()).execute();
-    }//GEN-LAST:event_saveTestItemActionPerformed
-
-    private void uploadTestItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadTestItemActionPerformed
-        new DatabaseSaver(SavingStage.UPLOAD_FILE).execute();
-    }//GEN-LAST:event_uploadTestItemActionPerformed
-
-    private void saveConfigTestItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveConfigTestItemActionPerformed
-        new DatabaseSaver(SavingStage.SAVE_CONFIGURATION).execute();
-    }//GEN-LAST:event_saveConfigTestItemActionPerformed
     
     private CustomTableModel getListSearchTableModel(){
         CustomTableModel model = new CustomTableModel("ListID", "List Name", 
@@ -5424,10 +5381,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton removePrefixButton;
     private javax.swing.JButton resetDBFilePathButton;
     private javax.swing.JMenuItem saveConfigItem;
-    private javax.swing.JMenuItem saveConfigTestItem;
     private javax.swing.JFileChooser saveFC;
-    private javax.swing.JCheckBoxMenuItem saveTestExitToggle;
-    private javax.swing.JMenuItem saveTestItem;
     private javax.swing.JDialog searchDialog;
     private javax.swing.JMenu searchMenu;
     private javax.swing.JMenuItem searchMenuItem;
@@ -5457,7 +5411,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem updateDatabaseItem;
     private javax.swing.JMenuItem updateListsItem;
     private javax.swing.JMenuItem uploadDBItem;
-    private javax.swing.JMenuItem uploadTestItem;
     // End of variables declaration//GEN-END:variables
     /**
      * 
