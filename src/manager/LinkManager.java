@@ -9997,6 +9997,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         SAVE_CONFIGURATION;
     }
     
+    /**
+     * This saves the lists of links to the database.
+     */
     private class DatabaseFileSaver extends AbstractDatabaseSaver{
         /**
          * This is the state in the process of working with the file.
