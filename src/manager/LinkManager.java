@@ -4570,7 +4570,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             SavingStage stage = SavingStage.SAVE_DATABASE;
             if (getDatabaseFile().exists())
                 stage = SavingStage.UPLOAD_FILE;
-            saver = new DatabaseSaver(stage);
+            saver = new DatabaseSaver(stage){
+                @Override
+                public void setExitAfterSaving(boolean value){
+                    throw new UnsupportedOperationException();
+                }
+                @Override
+                protected void exitProgram(){
+                    getLogger().warning("Database Uploader attempting to exit program");
+                }
+            };
             saver.execute();
         }
     }//GEN-LAST:event_uploadDBItemActionPerformed
