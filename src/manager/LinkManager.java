@@ -5898,6 +5898,156 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
+     * @param conn
+     * @param loadAll
+     * @return
+     * @throws SQLException 
+     */
+    private Map<LinksListTabsPanel, List<LinksListModel>> loadDatabase(LinkDatabaseConnection conn,
+            boolean loadAll) throws SQLException{
+        getLogger().entering(this.getClass().getName(), "loadDatabase", loadAll);
+            // Disable all the lists
+        setTabsPanelListsEnabled(false);
+            // This will get a map of the existing models mapped to their 
+            // listID. Models that don't have a listID won't be in this map
+        Map<Integer, LinksListModel> oldModelsMap = getModelIDMap();
+            // Get the map containing the list IDs and data
+        ListDataMap listDataMap = conn.getListDataMap();
+            // Get the map of list data that will be loaded. If we are 
+            // loading all the lists, then this will just be the list data 
+        NavigableMap<Integer, ListContents> loadData = listDataMap; // map
+            // This will get a map of list IDs and models to be used
+        HashMap<Integer, LinksListModel> models = new HashMap<>();
+            // This will get the total size of the lists that will be loaded
+        int total = 0;
+            // If we are loading all the lists
+        if (loadAll){
+                // Get the total size of all the lists in the database
+            total = listDataMap.totalSize();
+        } else {// Put the map of existing models into the map of models to 
+            models.putAll(oldModelsMap);    // be used
+                // Copy the list data map, since we don't want to edit the 
+            loadData = new TreeMap<>(listDataMap);  // actual database
+                // Remove any lists that do not need to be re-loaded
+                // Remove all the lists that have been removed
+            loadData.keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
+                // Remove all the lists that are outdated compared to the 
+                // existing models
+            loadData.values().removeIf((ListContents t) -> {
+                    // Get the model with the listID of the current list if 
+                    // there is one
+                LinksListModel model = models.get(t.getListID());
+                    // Return whether there is a model with that listID and 
+                    // the list in the database is outdated
+                return model != null && t.isOutdated(model);
+            });
+                // Go through the lists that will be loaded
+            for (ListContents temp : loadData.values()){
+                total += temp.size();
+            }
+        }   // Set the progress maximum to the amount of links that will be 
+        progressBar.setMaximum(total);  // loaded
+        progressBar.setIndeterminate(false);
+            // Go through the lists to be loaded
+        for (Map.Entry<Integer,ListContents> listData:loadData.entrySet()){
+                // Get the listID of the list being loaded
+            Integer listID = listData.getKey();
+                // Get a model version of the current list
+            LinksListModel model = listData.getValue().toModel(progressObserver);
+                // Get the old version of the model (the one that this model 
+                // is replacing), and copy the selection from the old model
+            model.setSelectionFrom(oldModelsMap.get(listID));
+                // Put the model in the map containing the loaded models
+            models.put(listID, model);
+        }
+        progressBar.setIndeterminate(true);
+            // This gets a map mapping the tabs panels to the list of 
+            // listIDs for the lists to be shown by the panels
+        Map<LinksListTabsPanel,List<Integer>> tabsListIDs = new HashMap<>();
+            // Get a copy of the list of listIDs for the all lists panel
+        List<Integer> allListIDs = new ArrayList<>(conn.getAllListIDs());
+            // Remove any null listIDs
+        allListIDs.removeIf((Integer t) -> t == null);
+            // Put the copy into the map, mapping it to the all lists panel
+        tabsListIDs.put(allListsTabsPanel, allListIDs);
+            // Get a copy of the list of shown listIDs
+        List<Integer> shownListIDs = new ArrayList<>(conn.getShownListIDs());
+            // Remove any null listIDs
+        shownListIDs.removeIf((Integer t) -> t == null);
+            // Put the copy into the map, mapping it to the shown lists 
+        tabsListIDs.put(shownListsTabsPanel, shownListIDs); // panel
+            // This is a set that will get the listIDs missing from the all 
+            // listIDs list
+        Set<Integer> missingListIDs = new LinkedHashSet<>(shownListIDs);
+            // Remove any listIDs that are already in the all listIDs list
+        missingListIDs.removeAll(allListIDs);
+            // Add any missing listIDs to the all listIDs list
+        allListIDs.addAll(missingListIDs);
+            // This is a map that maps the tabs panels to the list of models 
+            // that will be displayed by those tabs panels when we finish 
+            // loading.
+        Map<LinksListTabsPanel, List<LinksListModel>> tabsModels = new HashMap<>();
+            // Go through the panels and listIDs to get models for
+        for (Map.Entry<LinksListTabsPanel,List<Integer>> entry : tabsListIDs.entrySet()){
+                // A list to get the models to use for the current tabs panel
+            List<LinksListModel> modelList = new ArrayList<>();
+                // If we are not loading all the lists, only the outdated ones
+            if (!loadAll){
+                    // Remove all listIDs of lists that were removed by the 
+                    // program
+                entry.getValue().removeAll(allListsTabsPanel.getRemovedListIDs());
+                    // Remove all listIDs of lists that are already loaded, 
+                    // since we will be replacing them in-situ instead of 
+                    // re-adding them. This is to perserve the order of the 
+                    // existing lists, including those that have not been 
+                    // assigned a listID yet.
+                entry.getValue().removeAll(entry.getKey().getListIDs());
+                    // Add all the currently existing models from the tabs 
+                    // panel
+                modelList.addAll(entry.getKey().getModels());
+                    // Replace any outdated models with ones loaded from the 
+                    // database
+                modelList.replaceAll((LinksListModel t) -> {
+                    // If this model is somehow null or (more realistically) 
+                    // this model's listID is null (i.e. no listID assigned, 
+                    // typical of newly created lists)
+                    if (t == null || t.getListID() == null)
+                        return t;   // Do not replace this model
+                    // Check for any models loaded from the database with 
+                    // the same listID, and if there is one, replace the  
+                    // current model with the loaded model. If not, then use 
+                    // the current model, don't replace it.
+                    LinksListModel temp = models.getOrDefault(t.getListID(), t);
+                    // If the replacement model is the same as this model or 
+                    // if the replacement model is somehow null
+                    if (temp == t || temp == null)
+                        return t;   // Do not replace this model
+                    return temp;
+                });
+            }
+            // Go through the listIDs for the lists in the database that are 
+            // to be displayed on this tabs panel. If we were only loading 
+            // any outdated lists, this will only be going through lists 
+            // that were added to this tabs panel later and aren't currently 
+            // being displayed.
+            for (Integer listID : entry.getValue()){
+                // Append the loaded list's model to the models for this 
+                modelList.add(models.get(listID));  // panel
+            }
+            // Set the list of models for this tabs panel
+            tabsModels.put(entry.getKey(), modelList);
+        }   // If we are only reloading outdated lists
+        if (!loadAll){
+                // The shown lists tabs panel may be showing lists that have 
+                // since been hidden. Remove any lists that are now hidden
+            tabsModels.get(shownListsTabsPanel).removeIf((LinksListModel t) 
+                    -> t == null || t.isHidden());
+        }
+        getLogger().exiting(this.getClass().getName(), "loadDatabase");
+        return tabsModels;
+    }
+    /**
+     * 
      * @param file
      * @param path
      * @return
@@ -7955,7 +8105,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * This is a map that maps the tabs panels to the list of models that 
          * will be displayed by those tabs panels when we finish loading.
          */
-        private HashMap<LinksListTabsPanel, List<LinksListModel>> tabsModels = 
+        private Map<LinksListTabsPanel, List<LinksListModel>> tabsModels = 
                 new HashMap<>();
         /**
          * This stores the flags for this DatabaseLoader, which indicate things 
@@ -8039,138 +8189,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         dbVersion);
                 return false;
             }
-                // This will get a map of the existing models mapped to their 
-                // listID. Models that don't have a listID won't be in this map
-            Map<Integer, LinksListModel> oldModelsMap = getModelIDMap();
-                // Get the map containing the list IDs and data
-            ListDataMap listDataMap = conn.getListDataMap();
-                // Get the map of list data that will be loaded. If we are 
-                // loading all the lists, then this will just be the list data 
-            NavigableMap<Integer, ListContents> loadData = listDataMap; // map
-                // This will get a map of list IDs and models to be used
-            HashMap<Integer, LinksListModel> models = new HashMap<>();
-                // This will get the total size of the lists that will be loaded
-            int total = 0;
-                // If we are loading all the lists
-            if (getLoadsAll()){
-                    // Get the total size of all the lists in the database
-                total = listDataMap.totalSize();
-            } else {// Put the map of existing models into the map of models to 
-                models.putAll(oldModelsMap);    // be used
-                    // Copy the list data map, since we don't want to edit the 
-                loadData = new TreeMap<>(listDataMap);  // actual database
-                    // Remove any lists that do not need to be re-loaded
-                    // Remove all the lists that have been removed
-                loadData.keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
-                    // Remove all the lists that are outdated compared to the 
-                    // existing models
-                loadData.values().removeIf((ListContents t) -> {
-                        // Get the model with the listID of the current list if 
-                        // there is one
-                    LinksListModel model = models.get(t.getListID());
-                        // Return whether there is a model with that listID and 
-                        // the list in the database is outdated
-                    return model != null && t.isOutdated(model);
-                });
-                    // Go through the lists that will be loaded
-                for (ListContents temp : loadData.values()){
-                    total += temp.size();
-                }
-            }   // Set the progress maximum to the amount of links that will be 
-            progressBar.setMaximum(total);  // loaded
-            progressBar.setIndeterminate(false);
-                // Go through the lists to be loaded
-            for (Map.Entry<Integer,ListContents> listData:loadData.entrySet()){
-                    // Get the listID of the list being loaded
-                Integer listID = listData.getKey();
-                    // Get a model version of the current list
-                LinksListModel model = listData.getValue().toModel(progressObserver);
-                    // Get the old version of the model (the one that this model 
-                    // is replacing), and copy the selection from the old model
-                model.setSelectionFrom(oldModelsMap.get(listID));
-                    // Put the model in the map containing the loaded models
-                models.put(listID, model);
-            }
-            progressBar.setIndeterminate(true);
-                // This gets a map mapping the tabs panels to the list of 
-                // listIDs for the lists to be shown by the panels
-            Map<LinksListTabsPanel,List<Integer>> tabsListIDs = new HashMap<>();
-                // Get a copy of the list of listIDs for the all lists panel
-            List<Integer> allListIDs = new ArrayList<>(conn.getAllListIDs());
-                // Remove any null listIDs
-            allListIDs.removeIf((Integer t) -> t == null);
-                // Put the copy into the map, mapping it to the all lists panel
-            tabsListIDs.put(allListsTabsPanel, allListIDs);
-                // Get a copy of the list of shown listIDs
-            List<Integer> shownListIDs = new ArrayList<>(conn.getShownListIDs());
-                // Remove any null listIDs
-            shownListIDs.removeIf((Integer t) -> t == null);
-                // Put the copy into the map, mapping it to the shown lists 
-            tabsListIDs.put(shownListsTabsPanel, shownListIDs); // panel
-                // This is a set that will get the listIDs missing from the all 
-                // listIDs list
-            Set<Integer> missingListIDs = new LinkedHashSet<>(shownListIDs);
-                // Remove any listIDs that are already in the all listIDs list
-            missingListIDs.removeAll(allListIDs);
-                // Add any missing listIDs to the all listIDs list
-            allListIDs.addAll(missingListIDs);
-                // Go through the panels and listIDs to get models for
-            for (Map.Entry<LinksListTabsPanel,List<Integer>> entry : tabsListIDs.entrySet()){
-                    // A list to get the models to use for the current tabs panel
-                List<LinksListModel> modelList = new ArrayList<>();
-                    // If we are not loading all the lists, only the outdated ones
-                if (!getLoadsAll()){
-                        // Remove all listIDs of lists that were removed by the 
-                        // program
-                    entry.getValue().removeAll(allListsTabsPanel.getRemovedListIDs());
-                        // Remove all listIDs of lists that are already loaded, 
-                        // since we will be replacing them in-situ instead of 
-                        // re-adding them. This is to perserve the order of the 
-                        // existing lists, including those that have not been 
-                        // assigned a listID yet.
-                    entry.getValue().removeAll(entry.getKey().getListIDs());
-                        // Add all the currently existing models from the tabs 
-                        // panel
-                    modelList.addAll(entry.getKey().getModels());
-                        // Replace any outdated models with ones loaded from the 
-                        // database
-                    modelList.replaceAll((LinksListModel t) -> {
-                        // If this model is somehow null or (more realistically) 
-                        // this model's listID is null (i.e. no listID assigned, 
-                        // typical of newly created lists)
-                        if (t == null || t.getListID() == null)
-                            return t;   // Do not replace this model
-                        // Check for any models loaded from the database with 
-                        // the same listID, and if there is one, replace the  
-                        // current model with the loaded model. If not, then use 
-                        // the current model, don't replace it.
-                        LinksListModel temp = models.getOrDefault(t.getListID(), t);
-                        // If the replacement model is the same as this model or 
-                        // if the replacement model is somehow null
-                        if (temp == t || temp == null)
-                            return t;   // Do not replace this model
-                        return temp;
-                    });
-                }
-                // Go through the listIDs for the lists in the database that are 
-                // to be displayed on this tabs panel. If we were only loading 
-                // any outdated lists, this will only be going through lists 
-                // that were added to this tabs panel later and aren't currently 
-                // being displayed.
-                for (Integer listID : entry.getValue()){
-                    // Append the loaded list's model to the models for this 
-                    modelList.add(models.get(listID));  // panel
-                }
-                // Set the list of models for this tabs panel
-                tabsModels.put(entry.getKey(), modelList);
-            }   // If we are only reloading outdated lists
-            if (!getLoadsAll()){
-                    // The shown lists tabs panel may be showing lists that have 
-                    // since been hidden. Remove any lists that are now hidden
-                tabsModels.get(shownListsTabsPanel).removeIf((LinksListModel t) 
-                        -> t == null || t.isHidden());
-            }
-            
+            tabsModels = LinkManager.this.loadDatabase(conn, getLoadsAll());
             return true;
         }
         @Override
