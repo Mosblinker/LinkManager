@@ -5420,6 +5420,35 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
+     * @return 
+     */
+    private Set<LinksListModel> getModelSet(){
+            // Get a set of models in the panel showing all the lists
+        Set<LinksListModel> models = new HashSet<>(allListsTabsPanel.getModels());
+            // Make sure this set has ALL the models, even those that are 
+            // somehow absent from the all lists panel
+        models.addAll(shownListsTabsPanel.getModels());
+        return models;
+    }
+    /**
+     * 
+     * @return 
+     */
+    private Map<Integer, LinksListModel> getModelIDMap(){
+            // This will get a map of the models mapped to their listID. 
+            // Models that don't have a listID won't be in this map
+        Map<Integer, LinksListModel> modelsMap = new HashMap<>();
+            // Go through the models
+        for (LinksListModel model : getModelSet()){
+                // If the current model does not have a null listID
+            if (model.getListID() != null){
+                modelsMap.put(model.getListID(), model);
+            }
+        }
+        return modelsMap;
+    }
+    /**
+     * 
      * @param title
      * @param text 
      */
@@ -5853,13 +5882,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         allListsTabsPanel.clearRemovedListIDs();
         shownListsTabsPanel.clearRemovedListIDs();
         conn.commit();       // Commit the changes to the database
-            // This is a set containing all the models in the program
-        Set<LinksListModel> models = new LinkedHashSet<>(allListsTabsPanel.getModels());
-            // Add any models that are in the shown lists panel that are 
-            // missing from the all lists panel
-        models.addAll(shownListsTabsPanel.getModels());
             // Write the models to the database
-        writeToDatabase(conn, models);
+        writeToDatabase(conn, getModelSet());
         getLogger().exiting(this.getClass().getName(), "saveDatabase", true);
         return true;
     }
@@ -8006,21 +8030,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         dbVersion);
                 return false;
             }
-                // Get a set of models that currently already exist
-            Set<LinksListModel> oldModels = new HashSet<>(allListsTabsPanel.getModels());
-                // Make sure this set has ALL the models, even those that are 
-                // somehow absent from the all lists panel
-            oldModels.addAll(shownListsTabsPanel.getModels());
                 // This will get a map of the existing models mapped to their 
                 // listID. Models that don't have a listID won't be in this map
-            Map<Integer, LinksListModel> oldModelsMap = new HashMap<>();
-                // Go through the existing models
-            for (LinksListModel model : oldModels){
-                    // If the current model does not have a null listID
-                if (model.getListID() != null){
-                    oldModelsMap.put(model.getListID(), model);
-                }
-            }   // Get the map containing the list IDs and data
+            Map<Integer, LinksListModel> oldModelsMap = getModelIDMap();
+                // Get the map containing the list IDs and data
             ListDataMap listDataMap = conn.getListDataMap();
                 // Get the map of list data that will be loaded. If we are 
                 // loading all the lists, then this will just be the list data 
@@ -9476,10 +9489,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             conn.commit();          // Commit the changes to the database
             System.gc();            // Run the garbage collector
                 // This is a set containing all the models in the program
-            Set<LinksListModel> models = new LinkedHashSet<>(allListsTabsPanel.getModels());
-                // Add any models that are in the shown lists panel that are 
-                // missing from the all lists panel
-            models.addAll(shownListsTabsPanel.getModels());
+            Set<LinksListModel> models = getModelSet();
                 // Go through the models
             for (LinksListModel model : models)
                     // Set the model's list ID to null
