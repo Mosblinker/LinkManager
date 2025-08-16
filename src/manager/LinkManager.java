@@ -9738,8 +9738,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected boolean saveFile(File file) {
             int max = 0;
-            for (LinksListPanel panel : allListsTabsPanel)
-                max += panel.getModel().size();
+            Set<LinksListModel> models = getModelSet();
+            for (LinksListModel model : models)
+                max += model.size();
             progressBar.setMaximum(max);
             /* Copied path checking code from FileRearranger
             try{
@@ -9751,10 +9752,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (exc.getReason().startsWith("Illegal char") && 
                         exc.getIndex() >= 0 && exc.getIndex() < newFileName.length()){
             */
-            for (LinksListPanel panel : allListsTabsPanel){
+            for (LinksListModel model : models){
                     // TODO: Check for whether any for the list names are invalid
 //                File listFile = null;
-//                String fileName = panel.getListName()+".txt";
+//                String fileName = model.getListName()+".txt";
 //                do{
 //                    listFile = new File(file,fileName);
 //                    try{
@@ -9765,7 +9766,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 //                }
 //                while (listFile == null);
                 
-                if (!writeToFile(new File(file,panel.getListName()+".txt"),panel.getModel()))
+                if (!writeToFile(new File(file,model.getListName()+".txt"),model))
                     return false;
             }
             return true;
