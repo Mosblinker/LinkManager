@@ -10738,7 +10738,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
                 while(downloadedFile == null && retryOption == JOptionPane.YES_OPTION);
                 if (downloadedFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
-                        retryOption == JOptionPane.CANCEL_OPTION)){
+                        retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
                     loadSuccess = false;
                     getLogger().exiting("FileDownloader", "loadFile",true);
                     return true;
@@ -10809,6 +10809,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
+         * @return 
+         */
+        protected boolean canLoadIfDownloadFails(){
+            return true;
+        }
+        /**
+         * 
          * @param file
          * @param path
          * @param mode
@@ -10821,7 +10828,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return LinkManager.this.showFailurePrompt("ERROR - File Failed To Download", 
                 (fileFound)?getDownloadFailureMessage(file,path,mode,ex):
                         getDownloadFileNotFoundMessage(file,path,mode,ex), 
-                true, true);
+                true, canLoadIfDownloadFails());
         }
     }
     
