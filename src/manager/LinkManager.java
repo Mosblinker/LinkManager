@@ -10782,6 +10782,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
+         * @return 
+         */
+        protected boolean getDownloadFailureMessageStatesError(Exception ex){
+            return showDBErrorDetailsToggle.isSelected();
+        }
+        /**
+         * 
          * @param file
          * @param path
          * @param mode
@@ -10789,7 +10796,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected String getDownloadFailureMessage(File file, String path, 
                 DatabaseSyncMode mode, Exception ex){
-            return "The file failed to download.";
+                // The message to return
+            String msg = "The file failed to download from "+mode+".";
+                // If the program is either in debug mode or 
+                // if details are to be shown and there was an 
+                // exception thrown
+            if ((isInDebug() || getDownloadFailureMessageStatesError(ex)) && 
+                    ex != null){
+                msg += "\nError: " + ex;
+            }
+            return msg;
         }
         /**
          * 
@@ -10800,12 +10816,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected String getDownloadFileNotFoundMessage(File file, String path, 
                 DatabaseSyncMode mode, Exception ex){
-            String msg = "";
-            switch(mode){
-                case DROPBOX:
-                    msg = " on Dropbox";
-            }
-            return "The file was not found"+msg+" at the path\n\""+path+"\"";
+            return "The file was not found on "+mode+" at the path\n\""+path+"\"";
         }
         /**
          * 
