@@ -3898,8 +3898,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }   // If this will sync the database to the cloud and the user is 
             // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            saver = new FileDownloader(file,config.getDropboxDatabaseFileName(),getSyncMode(),loadFlags);
-            saver.execute();
+            loader = new TempDatabaseDownloader(getDatabaseFile(),
+                    config.getDatabaseFileSyncPath(getSyncMode()),getSyncMode(),
+                    loadFlags);
+            loader.execute();
         } else {
             loader = new DatabaseLoader(LinkManagerUtilities.setFlag(loadFlags,
                     DATABASE_LOADER_CHECK_LOCAL_FLAG,false));
@@ -4679,7 +4681,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbQueryPanelActionPerformed
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        loader = new DatabaseDownloader();
+        loader = new TempDatabaseDownloader(getDatabaseFile(),
+                config.getDatabaseFileSyncPath(getSyncMode()),getSyncMode(),0);
         loader.execute();
     }//GEN-LAST:event_jMenuItem1ActionPerformed
     
@@ -8361,17 +8364,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private abstract class AbstractConfigSaver extends FileSaver{
+    private class ConfigSaver extends FileSaver{
         
-        AbstractConfigSaver(File file, boolean exit) {
-            super(file, exit);
-        }
-        
-        AbstractConfigSaver(File file){
+        ConfigSaver(File file){
             super(file);
         }
         
-        protected abstract boolean savePropertiesFile(File file) throws IOException;
+        protected boolean savePropertiesFile(File file) throws IOException {
+                // Disable the hidden lists toggle
+            showHiddenListsToggle.setEnabled(false);
+                // Get the settings for the program, as a Properties object
+            Properties prop = config.exportProperties();
+                // If the settings somehow failed to be exported
+            if (prop == null)
+                return false;
+            return LinkManagerUtilities.saveProperties(file,prop,GENERAL_CONFIG_HEADER);
+        }
         @Override
         protected boolean saveFile(File file) {
                 // Set the program to be indeterminate
@@ -8388,24 +8396,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         public String getProgressString(){
             return "Saving Configuration";
-        }
-    }
-    
-    private class ConfigSaver extends AbstractConfigSaver{
-        
-        ConfigSaver(File file){
-            super(file);
-        }
-        @Override
-        protected boolean savePropertiesFile(File file) throws IOException {
-                // Disable the hidden lists toggle
-            showHiddenListsToggle.setEnabled(false);
-                // Get the settings for the program, as a Properties object
-            Properties prop = config.exportProperties();
-                // If the settings somehow failed to be exported
-            if (prop == null)
-                return false;
-            return LinkManagerUtilities.saveProperties(file,prop,GENERAL_CONFIG_HEADER);
         }
         @Override
         protected void done(){
@@ -10462,429 +10452,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private abstract class FilePathSaver extends FileSaver{
-        /**
-         * The path for the file to be downloaded.
-         */
-        protected String filePath;
-        /**
-         * This gets any IOExceptions that get thrown while uploading or 
-         * downloading the file.
-         */
-        protected IOException ioEx = null;
-        /**
-         * This gets any Dropbox exceptions that get thrown while uploading or 
-         * downloading the file.
-         */
-        protected DbxException dbxEx = null;
-        /**
-         * Whether the file was found.
-         */
-        protected boolean fileFound = true;
-        /**
-         * Whether file not found errors should be shown.
-         */
-        protected boolean showFileNotFound = true;
-        /**
-         * The mode in which to use for uploading and downloading the file
-         */
-        protected DatabaseSyncMode mode;
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param mode
-         * @param exit 
-         */
-        public FilePathSaver(File file, String path, DatabaseSyncMode mode, boolean exit) {
-            super(file, exit);
-            filePath = Objects.requireNonNull(path);
-            this.mode = mode;
-        }
-        /**
-         * 
-         * @param file
-         * @param path 
-         * @param mode
-         */
-        public FilePathSaver(File file, String path, DatabaseSyncMode mode){
-            this(file,path,mode,false);
-        }
-        /**
-         * 
-         * @return 
-         */
-        public String getFilePath(){
-            return filePath;
-        }
-        /**
-         * 
-         * @return 
-         */
-        public boolean getFileNotFound(){
-            return !fileFound;
-        }
-        /**
-         * 
-         * @return 
-         */
-        public DatabaseSyncMode getMode(){
-            return mode;
-        }
-        /**
-         * This returns whether this shows a failure prompt when the file is not 
-         * found.
-         * @return Whether the file not found failure prompt is shown.
-         */
-        public boolean getShowsFileNotFoundPrompt(){
-            return showFileNotFound;
-        }
-        /**
-         * This sets whether this shows a failure prompt when the file is not 
-         * found.
-         * @param showFileNotFound Whether the file not found failure prompt is 
-         * shown.
-         * @return This FilePathSaver.
-         */
-        public FilePathSaver setShowsFileNotFoundPrompt(boolean showFileNotFound){
-            this.showFileNotFound = showFileNotFound;
-            return this;
-        }
-        /**
-         * This returns whether this will show the success prompt if the file 
-         * was successfully saved.
-         * @param file The file that was successfully saved.
-         * @param path The path of the file that was successfully saved.
-         * @return Whether the success prompt will be shown.
-         */
-        protected boolean getShowSuccessPrompt(File file, String path){
-            return true;
-        }
-        /**
-         * This returns the title for the dialog to display if the file is 
-         * successfully downloaded.
-         * @param file The file that was successfully downloaded to.
-         * @param path The path of the file that was successfully downloaded.
-         * @return The title for the dialog to display if the file is 
-         * successfully downloaded.
-         */
-        protected String getSuccessTitle(File file, String path){
-            return super.getSuccessTitle(file);
-        }
-        @Override
-        protected String getSuccessTitle(File file){
-            return getSuccessTitle(file,filePath);
-        }
-        /**
-         * This returns the message to display if the file is successfully 
-         * downloaded.
-         * @param file The file that was successfully downloaded to.
-         * @param path The path of the file that was successfully downloaded.
-         * @return The message to display if the file is successfully 
-         * downloaded.
-         */
-        protected String getSuccessMessage(File file, String path){
-            return super.getSuccessMessage(file);
-        }
-        @Override
-        protected String getSuccessMessage(File file){
-            return getSuccessMessage(file,filePath);
-        }
-        /**
-         * This returns the title for the dialog to display if the file fails to 
-         * download.
-         * @param file The file that failed to be downloaded to.
-         * @param path The path of the file that failed to download.
-         * @return The title for the dialog to display if the file fails to
-         * download.
-         */
-        protected String getFailureTitle(File file, String path){
-            return super.getFailureTitle(file);
-        }
-        @Override
-        protected String getFailureTitle(File file){
-            return getFailureTitle(file,filePath);
-        }
-        /**
-         * This returns the message to display if the backup of the file failed 
-         * to be created.
-         * @param file The file that failed to be backed up.
-         * @param path The path of the file that failed to be backed up.
-         * @return The message to display if a backup of the file failed to be 
-         * created.
-         */
-        protected String getBackupFailedMessage(File file, String path){
-            return super.getBackupFailedMessage(file);
-        }
-        /**
-         * This returns the message to display if the backup of the file failed 
-         * to be created.
-         * @param file The file that failed to be backed up.
-         * @return The message to display if a backup of the file failed to be 
-         * created.
-         */
-        @Override
-        protected String getBackupFailedMessage(File file){
-            return getBackupFailedMessage(file,filePath);
-        }
-        /**
-         * This returns the message to display if the file fails to download.
-         * @param file The file that failed to be downloaded to.
-         * @param path The path of the file that failed to download.
-         * @return The message to display if the file fails to download.
-         */
-        protected String getFailureMessage(File file, String path){
-            return super.getFailureMessage(file);
-        }
-        /**
-         * This returns the message to display for any exceptions that were 
-         * thrown while attempting to download the file.
-         * @param file The file that failed to be downloaded to.
-         * @param path The path of the file that failed to download.
-         * @return The message to display for any exceptions that occurred, or 
-         * null.
-         */
-        protected String getExceptionMessage(File file, String path){
-                // The message to provide for the exception
-            String msg = null;
-                // If a Dropbox exception occurred
-            if (dbxEx != null)
-                msg = dbxEx.toString();
-                // If an IOException occurred, say so. Otherwise, return null.
-            return (ioEx == null) ? msg : (((msg != null) ? msg +" " : "") + 
-                    ioEx.toString());
-        }
-        /**
-         * 
-         * @return 
-         */
-        protected String getLoggingExceptionMessage(DatabaseSyncMode mode){
-            return "Failed to process file";
-        }
-        /**
-         * This returns the message to display if the file was not found.
-         * @param file The file that failed to be downloaded to.
-         * @param path The path for the file that was not found.
-         * @return The message to display if the file was not found.
-         */
-        protected String getFileNotFoundMessage(File file, String path){
-            return "The file does not exist.";
-        }
-        /**
-         * This returns the message to display if the file fails to be 
-         * downloaded.
-         * @return The message to display if the file fails to download.
-         */
-        @Override
-        protected String getFailureMessage(File file){
-                // The message to return
-            String msg = getFailureMessage(file,filePath);
-                // If the program is either in debug mode or if details are to 
-                // be shown
-            if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
-                String errorMsg = getExceptionMessage(file,filePath);
-                if (errorMsg != null)
-                    msg += "\nError: " + errorMsg;
-            }
-            return msg;
-        }
-        @Override
-        protected void showSuccessPrompt(File file){
-            if (getShowSuccessPrompt(file,filePath))
-                super.showSuccessPrompt(file);
-        }
-        @Override
-        protected boolean showFailurePrompt(File file){
-            if (getFileNotFound()){
-                    // If this should show file not found prompts
-                if (showFileNotFound){
-                    JOptionPane.showMessageDialog(LinkManager.this, 
-                            getFileNotFoundMessage(file,filePath), 
-                            getFailureTitle(file,filePath), 
-                            JOptionPane.ERROR_MESSAGE);
-                }
-                return false;
-            }
-            return super.showFailurePrompt(file);
-        }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param mode
-         * @return
-         * @throws IOException 
-         * @throws DbxException
-         */
-        protected abstract boolean saveFile(File file, String path, DatabaseSyncMode mode) 
-                throws IOException, DbxException;
-        @Override
-        protected boolean saveFile(File file) {
-            getLogger().entering(this.getClass().getName(), "saveFile", file);
-            if (mode == null){
-                getLogger().exiting(this.getClass().getName(), "saveFile", false);
-                return false;
-            }
-                // Reset the exception to null
-            ioEx = null;
-                // Set the progress to be zero
-            progressBar.setValue(0);
-                // Set the progress to be indeterminate
-            progressBar.setIndeterminate(true);
-            boolean value = false;
-            filePath = LinkManagerUtilities.formatExternalFilePath(mode, filePath);
-            try{    // Try to download the file from the path
-                value = saveFile(file,filePath,mode);
-            } catch (IOException ex){
-                getLogger().log(Level.WARNING, getLoggingExceptionMessage(mode),ex);
-                ioEx = ex;
-            } catch (DbxException ex) {
-                getLogger().log(Level.WARNING, getLoggingExceptionMessage(mode),ex);
-                dbxEx = ex;
-            }
-            getLogger().exiting(this.getClass().getName(), "saveFile", value);
-            return value;
-        }
-        @Override
-        protected void done(){
-            super.done();
-                // Update the program configuration
-            updateProgramConfig();
-        }
-    }
-    /**
-     * 
-     */
-    private class FileDownloader extends FilePathSaver{
-        /**
-         * The flags to use for loading the lists. If this is null, then the 
-         * database will not be loaded after this.
-         */
-        protected Integer loadFlags = null;
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param mode
-         * @param loadFlags
-         * @param exit 
-         */
-        FileDownloader(File file, String path, DatabaseSyncMode mode, Integer loadFlags, boolean exit){
-            super(file,path,mode,exit);
-            this.loadFlags = loadFlags;
-        }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param mode
-         * @param loadFlags 
-         */
-        FileDownloader(File file, String path, DatabaseSyncMode mode, Integer loadFlags){
-            this(file,path,mode,loadFlags,false);
-        }
-        /**
-         * 
-         * @param file
-         * @param path 
-         * @param mode
-         */
-        FileDownloader(File file, String path, DatabaseSyncMode mode){
-            this(file,path,mode,null);
-        }
-        /**
-         * 
-         * @return 
-         */
-        public boolean willLoadDatabase(){
-            return loadFlags != null;
-        }
-        /**
-         * 
-         * @return 
-         */
-        public int getDatabaseLoaderFlags(){
-                // If the database loader flags are not null
-            if (loadFlags != null)
-                return loadFlags;
-            return 0;
-        }
-        @Override
-        public String getProgressString() {
-            return "Downloading File";
-        }
-        @Override
-        protected boolean getShowSuccessPrompt(File file, String path){
-            return !willLoadDatabase();
-        }
-        @Override
-        protected String getSuccessTitle(File file, String path){
-            return "File Downloaded Successfully";
-        }
-        @Override
-        protected String getSuccessMessage(File file, String path){
-            return "The file was successfully downloaded.";
-        }
-        @Override
-        protected String getFailureTitle(File file, String path){
-            return "ERROR - File Failed To Download";
-        }
-        @Override
-        protected String getFailureMessage(File file, String path){
-            return "The file failed to download.";
-        }
-        @Override
-        protected String getFileNotFoundMessage(File file, String path){
-            String msg = "";
-            switch(mode){
-                case DROPBOX:
-                    msg = " on Dropbox";
-            }
-            return "The file was not found"+msg+" at the path\n\""+path+"\"";
-        }
-        @Override
-        protected String getLoggingExceptionMessage(DatabaseSyncMode mode){
-            String msg = "";
-            switch(mode){
-                case DROPBOX:
-                    msg = " from Dropbox";
-            }
-            return "Failed to download file" + msg;
-        }
-        @Override
-        protected boolean saveFile(File file, String path, DatabaseSyncMode mode) 
-                throws IOException, DbxException{
-            getLogger().entering(this.getClass().getName(), "saveFile",
-                    new Object[]{file,path,mode});
-            switch(mode){
-                case DROPBOX:    // Try to download the file from Dropbox
-                    FileMetadata data = downloadFromDropbox(file,path);
-                    fileFound = data != null;
-                    getLogger().exiting(this.getClass().getName(), "saveFile",fileFound);
-                    return fileFound;
-            }
-            getLogger().exiting(this.getClass().getName(), "saveFile",false);
-            return false;
-        }
-        /**
-         * 
-         * @param loadAll 
-         */
-        protected void loadDatabase(int loadFlags){
-            loader = new DatabaseLoader(file,loadFlags);
-            loader.execute();
-        }
-        @Override
-        protected void done(){
-            super.done();
-            if (willLoadDatabase()){
-                loadDatabase(getDatabaseLoaderFlags());
-            }
-        }
-    }
-    /**
-     * 
-     */
     private class DbxAccountLoader extends LinkManagerWorker<Void>{
         /**
          * This gets any Dropbox exceptions that get thrown while loading the 
@@ -11021,6 +10588,56 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 LinkManagerUtilities.setCard(setLocationPanel,setExternalCard);
             }
             super.done();
+        }
+    }
+    
+    private class TempDatabaseDownloader extends DatabaseDownloader{
+        /**
+         * The flags to use for loading the lists. If this is null, then the 
+         * database will not be loaded after this.
+         */
+        protected Integer loadFlags = null;
+        
+        TempDatabaseDownloader(File file, String filePath, DatabaseSyncMode mode, 
+                Integer loadFlags){
+            super(file,filePath,mode);
+            this.loadFlags = loadFlags;
+        }
+        
+        TempDatabaseDownloader(File file, String filePath, DatabaseSyncMode mode){
+            this(file,filePath,mode,null);
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean willLoadDatabase(){
+            return loadFlags != null;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public int getDatabaseLoaderFlags(){
+                // If the database loader flags are not null
+            if (loadFlags != null)
+                return loadFlags;
+            return 0;
+        }
+        /**
+         * 
+         * @param loadAll 
+         */
+        protected void loadDatabase(int loadFlags){
+            loader = new DatabaseLoader(file,loadFlags);
+            loader.execute();
+        }
+        @Override
+        protected void done(){
+            super.done();
+            if (willLoadDatabase()){
+                loadDatabase(getDatabaseLoaderFlags());
+            }
         }
     }
     
