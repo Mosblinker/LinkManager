@@ -10760,6 +10760,28 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
+         */
+        protected void deleteDownloadedFileIfSuccessful(){
+                // If the program successfully loaded the file, there's a 
+                // downloaded file
+            if (success && downloadedFile != null){
+                boolean sameFile = false;
+                try{
+                    sameFile = Files.isSameFile(file.toPath(), downloadedFile.toPath());
+                } catch (IOException ex){
+                    getLogger().log(Level.WARNING, 
+                            "Failed to check if the downloaded file is the same "
+                                    + "as the loaded file",ex);
+                    sameFile = file.equals(downloadedFile);
+                }   // If the loaded file and downloaded file are not the same 
+                    // file (i.e. the downloaded file did not overwrite the 
+                    // loaded file)
+                if (!sameFile)  
+                    downloadedFile.deleteOnExit();
+            }
+        }
+        /**
+         * 
          * @param file
          * @param path
          * @param mode
