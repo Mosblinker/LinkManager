@@ -1241,6 +1241,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxPrintButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
+        jMenuItem1 = new javax.swing.JMenuItem();
 
         openFC.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -2923,6 +2924,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dropboxTestMenu.add(dropboxRefreshTestButton);
 
         debugMenu.add(dropboxTestMenu);
+
+        jMenuItem1.setText("New Download");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        debugMenu.add(jMenuItem1);
 
         menuBar.add(debugMenu);
 
@@ -4668,6 +4677,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             loader.execute();
         }
     }//GEN-LAST:event_dbQueryPanelActionPerformed
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        loader = new DatabaseDownloader();
+        loader.execute();
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
     
     private CustomTableModel getListSearchTableModel(){
         CustomTableModel model = new CustomTableModel("ListID", "List Name", 
@@ -5351,6 +5365,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JCheckBoxMenuItem hiddenLinkOperationToggle;
     private javax.swing.JMenuItem hideAllListsItem;
     private javax.swing.JMenu hideListsMenu;
+    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
