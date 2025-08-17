@@ -7327,6 +7327,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void showSuccessPrompt(File file){}
         /**
+         * 
+         * @return 
+         */
+        protected boolean getFileExists(File file){
+            return file.exists();
+        }
+        /**
          * This is used to display a failure prompt to the user when the file 
          * fails to be loaded. 
          * @param file The file that failed to load.
@@ -7334,13 +7341,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         @Override
         protected boolean showFailurePrompt(File file){
+                // Get if the file exists
+            boolean fileExists = getFileExists(file);
                 // If the file doesn't exist and this shouldn't show the file 
                 // not found prompt
-            if (!file.exists() && !showFileNotFound)
+            if (!fileExists && !showFileNotFound)
                 return false;
             return LinkManager.this.showFailurePrompt(getFailureTitle(file), 
-                    getFailureMessage(file), file.exists(), false) ==
-                    JOptionPane.YES_OPTION;
+                    (fileExists)?getFailureMessage(file):getFileNotFoundMessage(file), 
+                    fileExists, false) == JOptionPane.YES_OPTION;
         }
         /**
          * This returns the title for the dialog to display if the file fails to 
