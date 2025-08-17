@@ -7415,7 +7415,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private abstract class FileDownloader1 extends FileLoader{
+    private abstract class AbstractFileDownloader extends FileLoader{
         
         protected LoadingStage stage;
         
@@ -7452,7 +7452,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param stage
          * @param showFileNotFound 
          */
-        FileDownloader1(File file, String filePath, 
+        AbstractFileDownloader(File file, String filePath, 
                 DatabaseSyncMode mode, LoadingStage stage, 
                 boolean showFileNotFound) {
             super(file, showFileNotFound);
@@ -7467,7 +7467,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @param stage 
          */
-        FileDownloader1(File file, String filePath, 
+        AbstractFileDownloader(File file, String filePath, 
                 DatabaseSyncMode mode, LoadingStage stage) {
             this(file,filePath,mode,stage,true);
         }
@@ -7478,7 +7478,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param stage
          * @param showFileNotFound 
          */
-        private FileDownloader1(File file, DatabaseSyncMode mode, 
+        private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
                 LoadingStage stage, boolean showFileNotFound) {
             this(file,config.getDatabaseFileSyncPath(mode),mode,stage,showFileNotFound);
         }
@@ -7488,7 +7488,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param stage
          * @param showFileNotFound 
          */
-        FileDownloader1(File file, LoadingStage stage, boolean showFileNotFound) {
+        AbstractFileDownloader(File file, LoadingStage stage, boolean showFileNotFound) {
             this(file,getSyncMode(),stage,showFileNotFound);
         }
         /**
@@ -7496,7 +7496,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file
          * @param stage 
          */
-        FileDownloader1(File file, LoadingStage stage){
+        AbstractFileDownloader(File file, LoadingStage stage){
             this(file,stage,true);
         }
         /**
@@ -7506,7 +7506,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @param showFileNotFound 
          */
-        FileDownloader1(File file, String filePath, DatabaseSyncMode mode, 
+        AbstractFileDownloader(File file, String filePath, DatabaseSyncMode mode, 
                 boolean showFileNotFound) {
             this(file,filePath,mode,
                     (filePath!=null&&mode!=null)?LoadingStage.DOWNLOADING_FILE:
@@ -7518,7 +7518,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param filePath
          * @param mode 
          */
-        FileDownloader1(File file, String filePath, DatabaseSyncMode mode){
+        AbstractFileDownloader(File file, String filePath, DatabaseSyncMode mode){
             this(file,filePath,mode,true);
         }
         /**
@@ -7528,7 +7528,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param stage
          * @param showFileNotFound 
          */
-        private FileDownloader1(File file, DatabaseSyncMode mode, 
+        private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
                 boolean showFileNotFound) {
             this(file,config.getDatabaseFileSyncPath(mode),mode,showFileNotFound);
         }
@@ -7537,14 +7537,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file
          * @param showFileNotFound 
          */
-        FileDownloader1(File file, boolean showFileNotFound) {
+        AbstractFileDownloader(File file, boolean showFileNotFound) {
             this(file,getSyncMode(),showFileNotFound);
         }
         /**
          * 
          * @param file 
          */
-        FileDownloader1(File file){
+        AbstractFileDownloader(File file){
             this(file,true);
         }
         /**
@@ -7554,7 +7554,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * shown.
          * @return This FileDownloader.
          */
-        public FileDownloader1 setShowsFilePathNotFoundPrompt(boolean showFileNotFound){
+        public AbstractFileDownloader setShowsFilePathNotFoundPrompt(boolean showFileNotFound){
             this.showFilePathNotFound = showFileNotFound;
             return this;
         }
@@ -7570,7 +7570,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @param value 
          */
-        public FileDownloader1 setShowsSuccessPrompt(boolean value){
+        public AbstractFileDownloader setShowsSuccessPrompt(boolean value){
             this.showSuccess = value;
             return this;
         }
@@ -8418,7 +8418,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private class DatabaseDownloader extends FileDownloader1{
+    private class DatabaseDownloader extends AbstractFileDownloader{
         /**
          * 
          * @param file
