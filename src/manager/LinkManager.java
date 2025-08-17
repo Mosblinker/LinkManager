@@ -7403,6 +7403,416 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     /**
+     * 
+     */
+    private enum LoadingStage{
+        
+        DOWNLOADING_FILE,
+        
+        LOADING_FILE;
+        
+    }
+    /**
+     * 
+     */
+    private abstract class FileDownloader1 extends FileLoader{
+        
+        protected LoadingStage stage;
+        
+        protected File downloadedFile;
+        
+        protected String filePath;
+        
+        protected DatabaseSyncMode syncMode;
+        /**
+         * Whether the file to download was found.
+         */
+        protected boolean fileFound = true;
+        /**
+         * The exception that was encountered when either downloading or loading 
+         * the file, if any.
+         */
+        protected Exception exc = null;
+        /**
+         * Whether file not found errors should be shown for downloading the 
+         * file.
+         */
+        protected boolean showFilePathNotFound = true;
+        /**
+         * Whether the success prompt should be shown.
+         */
+        protected boolean showSuccess = false;
+        
+        protected boolean loadSuccess = true;
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
+         */
+        FileDownloader1(File file, String filePath, 
+                DatabaseSyncMode mode, LoadingStage stage, 
+                boolean showFileNotFound) {
+            super(file, showFileNotFound);
+            this.filePath = filePath;
+            syncMode = mode;
+            this.stage = Objects.requireNonNull(stage);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage 
+         */
+        FileDownloader1(File file, String filePath, 
+                DatabaseSyncMode mode, LoadingStage stage) {
+            this(file,filePath,mode,stage,true);
+        }
+        /**
+         * 
+         * @param file
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
+         */
+        private FileDownloader1(File file, DatabaseSyncMode mode, 
+                LoadingStage stage, boolean showFileNotFound) {
+            this(file,config.getDatabaseFileSyncPath(mode),mode,stage,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param stage
+         * @param showFileNotFound 
+         */
+        FileDownloader1(File file, LoadingStage stage, boolean showFileNotFound) {
+            this(file,getSyncMode(),stage,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param stage 
+         */
+        FileDownloader1(File file, LoadingStage stage){
+            this(file,stage,true);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param showFileNotFound 
+         */
+        FileDownloader1(File file, String filePath, DatabaseSyncMode mode, 
+                boolean showFileNotFound) {
+            this(file,filePath,mode,
+                    (filePath!=null&&mode!=null)?LoadingStage.DOWNLOADING_FILE:
+                            LoadingStage.LOADING_FILE,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode 
+         */
+        FileDownloader1(File file, String filePath, DatabaseSyncMode mode){
+            this(file,filePath,mode,true);
+        }
+        /**
+         * 
+         * @param file
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
+         */
+        private FileDownloader1(File file, DatabaseSyncMode mode, 
+                boolean showFileNotFound) {
+            this(file,config.getDatabaseFileSyncPath(mode),mode,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param showFileNotFound 
+         */
+        FileDownloader1(File file, boolean showFileNotFound) {
+            this(file,getSyncMode(),showFileNotFound);
+        }
+        /**
+         * 
+         * @param file 
+         */
+        FileDownloader1(File file){
+            this(file,true);
+        }
+        /**
+         * This sets whether this shows a failure prompt when the file to 
+         * download is not found.
+         * @param showFileNotFound Whether the file not found failure prompt is 
+         * shown.
+         * @return This FileDownloader.
+         */
+        public FileDownloader1 setShowsFilePathNotFoundPrompt(boolean showFileNotFound){
+            this.showFilePathNotFound = showFileNotFound;
+            return this;
+        }
+        /**
+         * This returns whether this shows a failure prompt when the file to 
+         * download is not found.
+         * @return Whether the file not found failure prompt is shown.
+         */
+        public boolean getShowsFilePathNotFoundPrompt(){
+            return showFilePathNotFound;
+        }
+        /**
+         * 
+         * @param value 
+         */
+        public FileDownloader1 setShowsSuccessPrompt(boolean value){
+            this.showSuccess = value;
+            return this;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean getShowsSuccessPrompt(){
+            return showSuccess;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public LoadingStage getStage(){
+            return stage;
+        }
+        /**
+         * 
+         * @param stage 
+         */
+        protected void setStage(LoadingStage stage){
+            this.stage = Objects.requireNonNull(stage);
+            progressDisplay.setString(getProgressString());
+        }
+        /**
+         * 
+         * @return 
+         */
+        public abstract String getLoadingProgressString();
+        /**
+         * 
+         * @return 
+         */
+        public String getDownloadingProgressString(){
+            return "Downloading File";
+        }
+        @Override
+        public String getProgressString(){
+            switch(stage){
+                case DOWNLOADING_FILE:
+                    return getDownloadingProgressString();
+                default:
+                    return getLoadingProgressString();
+            }
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected File getDownloadFile(File file){
+            return file;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @return The downloaded file, or null if this failed to download.
+         */
+        protected File downloadFile(File file, String path, DatabaseSyncMode mode){
+            getLogger().entering("FileDownloader", "downloadFile", 
+                    new Object[]{file,path,mode});
+                // Format the file path
+            path = LinkManagerUtilities.formatExternalFilePath(mode, path);
+            getLogger().log(Level.FINER, "Downloading file at path \"{0}\"",path);
+            exc = null;
+            fileFound = true;
+            try{    // Determine how to download the file
+                switch(mode){
+                    case DROPBOX:   // Try to download the file to Dropbox
+                        FileMetadata data = downloadFromDropbox(file,path);
+                        fileFound = data != null;
+                        File temp = (fileFound) ? file : null;
+                        getLogger().exiting("FileDownloader","downloadFile",temp);
+                        return temp;
+                }
+                getLogger().exiting("FileDownloader","downloadFile",file);
+                return file;
+            } catch (IOException | DbxException ex){
+                exc = ex;
+                getLogger().log(Level.WARNING, "Failed to download file",ex);
+                fileFound = !(ex instanceof FileNotFoundException);
+                getLogger().exiting("FileDownloader","downloadFile",null);
+                return null;
+            }
+        }
+        /**
+         * 
+         * @param file
+         * @param downloadedFile
+         * @return 
+         */
+        protected abstract boolean loadFile(File file, File downloadedFile);
+        @Override
+        protected boolean loadFile(File file){
+            getLogger().entering("FileDownloader", "loadFile", file);
+            if (LoadingStage.DOWNLOADING_FILE.equals(stage) && syncMode != null 
+                    && filePath != null){
+                int retryOption;
+                File downloadFile = getDownloadFile(file);
+                do{
+                    retryOption = JOptionPane.NO_OPTION;
+                    downloadedFile = downloadFile(downloadFile,filePath,syncMode);
+                    if (downloadedFile == null){
+                        retryOption = showDownloadFailurePrompt(downloadFile,
+                                filePath,syncMode,exc);
+                    }
+                }
+                while(downloadedFile == null && retryOption == JOptionPane.YES_OPTION);
+                if (downloadedFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
+                        retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
+                    loadSuccess = false;
+                    getLogger().exiting("FileDownloader", "loadFile",true);
+                    return true;
+                }
+                progressBar.setValue(0);
+                progressBar.setIndeterminate(true);
+                setStage(LoadingStage.LOADING_FILE);
+            }
+            
+            boolean value = loadFile(file,downloadedFile);
+            getLogger().exiting("FileDownloader", "loadFile",value);
+            return value;
+        }
+        @Override
+        protected Void backgroundAction() throws Exception {
+            super.backgroundAction();
+            success &= loadSuccess;
+            return null;
+        }
+        /**
+         * 
+         */
+        protected void deleteDownloadedFileIfSuccessful(){
+                // If the program successfully loaded the file, there's a 
+                // downloaded file
+            if (success && downloadedFile != null){
+                boolean sameFile = false;
+                try{
+                    sameFile = Files.isSameFile(file.toPath(), downloadedFile.toPath());
+                } catch (IOException ex){
+                    getLogger().log(Level.WARNING, 
+                            "Failed to check if the downloaded file is the same "
+                                    + "as the loaded file",ex);
+                    sameFile = file.equals(downloadedFile);
+                }   // If the loaded file and downloaded file are not the same 
+                    // file (i.e. the downloaded file did not overwrite the 
+                    // loaded file)
+                if (!sameFile)  
+                    downloadedFile.deleteOnExit();
+            }
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected boolean getDownloadFailureMessageStatesError(Exception ex){
+            return showDBErrorDetailsToggle.isSelected();
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @return 
+         */
+        protected String getDownloadFailureMessage(File file, String path, 
+                DatabaseSyncMode mode, Exception ex){
+                // The message to return
+            String msg = "The file failed to download from "+mode+".";
+                // If the program is either in debug mode or 
+                // if details are to be shown and there was an 
+                // exception thrown
+            if ((isInDebug() || getDownloadFailureMessageStatesError(ex)) && 
+                    ex != null){
+                msg += "\nError: " + ex;
+            }
+            return msg;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @return 
+         */
+        protected String getDownloadFileNotFoundMessage(File file, String path, 
+                DatabaseSyncMode mode, Exception ex){
+            return "The file was not found on "+mode+" at the path\n\""+path+"\"";
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected boolean canLoadIfDownloadFails(){
+            return true;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @return 
+         */
+        protected int showDownloadFailurePrompt(File file, String path, 
+                DatabaseSyncMode mode,Exception ex){
+            if (!fileFound && !showFilePathNotFound)
+                return JOptionPane.CANCEL_OPTION;
+            return LinkManager.this.showFailurePrompt("ERROR - File Failed To Download", 
+                (fileFound)?getDownloadFailureMessage(file,path,mode,ex):
+                        getDownloadFileNotFoundMessage(file,path,mode,ex), 
+                true, canLoadIfDownloadFails());
+        }
+        /**
+         * This returns the title for the dialog to display if the file is 
+         * successfully loaded.
+         * @param file The file that was successfully loaded.
+         * @return The title for the dialog to display if the file is 
+         * successfully loaded.
+         */
+        protected String getSuccessTitle(File file){
+            return "File Loaded Successfully";
+        }
+        /**
+         * This returns the message to display if the file is successfully 
+         * loaded.
+         * @param file The file that was successfully loaded.
+         * @return The message to display if the file is successfully loaded.
+         */
+        protected String getSuccessMessage(File file){
+            return "The file was successfully loaded.";
+        }
+        @Override
+        protected void showSuccessPrompt(File file){
+                // If the program is not to exit after saving the file
+            if (showSuccess)   
+                LinkManager.this.showSuccessPrompt(getSuccessTitle(file), 
+                        getSuccessMessage(file));
+        }
+    }
+    /**
      * This is an abstract class that provides the framework for saving to a 
      * file.
      */
@@ -8003,6 +8413,119 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Re-enable the hidden lists toggle if the program isn't 
                 // closing after this is done
             showHiddenListsToggle.setEnabled(!exitAfterSaving);
+        }
+    }
+    /**
+     * 
+     */
+    private class DatabaseDownloader extends FileDownloader1{
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode 
+         */
+        DatabaseDownloader(File file, String filePath, DatabaseSyncMode mode, 
+                boolean showSuccess) {
+            super(file, filePath, mode, LoadingStage.DOWNLOADING_FILE);
+            this.showSuccess = showSuccess;
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode 
+         */
+        DatabaseDownloader(File file, String filePath, DatabaseSyncMode mode){
+            this(file,filePath,mode,false);
+        }
+        /**
+         * 
+         * @param file 
+         */
+        DatabaseDownloader(File file,boolean showSuccess){
+            super(file,LoadingStage.DOWNLOADING_FILE);
+            this.showSuccess = showSuccess;
+        }
+        /**
+         * 
+         * @param file 
+         */
+        DatabaseDownloader(File file){
+            this(file,false);
+        }
+        /**
+         * 
+         */
+        DatabaseDownloader(boolean showSuccess){
+            this(getDatabaseFile(),showSuccess);
+        }
+        /**
+         * 
+         */
+        DatabaseDownloader(){
+            this(false);
+        }
+        @Override
+        public String getLoadingProgressString() {
+            return "Copying Database File";
+        }
+        @Override
+        public String getDownloadingProgressString(){
+            return "Downloading Database";
+        }
+        @Override
+        protected boolean canLoadIfDownloadFails(){
+            return false;
+        }
+        @Override
+        protected File getDownloadFile(File file){
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, 
+                        "."+DATABASE_FILE_EXTENSION);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temp download file",
+                        ex);
+            }
+            return file;
+        }
+        @Override
+        protected boolean loadFile(File file, File downloadedFile) {
+            getLogger().entering("DatabaseDownloader", "loadFile", 
+                    new Object[]{file,downloadedFile});
+            if (downloadedFile == null){
+                getLogger().warning("Database failed to download");
+                loadSuccess = false;
+                getLogger().exiting("DatabaseDownloader", "loadFile", true);
+                return true;
+            }
+            exc = null;
+            try {
+                Path path = Files.move(downloadedFile.toPath(), file.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING);
+                this.file = path.toFile();
+                getLogger().exiting("DatabaseDownloader", "loadFile", true);
+                return true;
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, 
+                        "Failed to overwrite database file with downloaded file",
+                        ex);
+                exc = ex;
+            }
+            getLogger().exiting("DatabaseDownloader", "loadFile", false);
+            return false;
+        }
+        @Override
+        protected String getFailureMessage(File file){
+            return getDownloadFailureMessage(file,filePath,syncMode,exc);
+        }
+        @Override
+        protected String getSuccessTitle(File file){
+            return "File Downloaded Successfully";
+        }
+        @Override
+        protected String getSuccessMessage(File file){
+            return "The database file was successfully downloaded.";
         }
     }
     /**
@@ -10498,525 +11021,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 LinkManagerUtilities.setCard(setLocationPanel,setExternalCard);
             }
             super.done();
-        }
-    }
-    
-    private enum LoadingStage{
-        
-        DOWNLOADING_FILE,
-        
-        LOADING_FILE;
-        
-    }
-    
-    private abstract class FileDownloader1 extends FileLoader{
-        
-        protected LoadingStage stage;
-        
-        protected File downloadedFile;
-        
-        protected String filePath;
-        
-        protected DatabaseSyncMode syncMode;
-        /**
-         * Whether the file to download was found.
-         */
-        protected boolean fileFound = true;
-        /**
-         * The exception that was encountered when either downloading or loading 
-         * the file, if any.
-         */
-        protected Exception exc = null;
-        /**
-         * Whether file not found errors should be shown for downloading the 
-         * file.
-         */
-        protected boolean showFilePathNotFound = true;
-        /**
-         * Whether the success prompt should be shown.
-         */
-        protected boolean showSuccess = false;
-        
-        protected boolean loadSuccess = true;
-        /**
-         * 
-         * @param file
-         * @param filePath
-         * @param mode
-         * @param stage
-         * @param showFileNotFound 
-         */
-        FileDownloader1(File file, String filePath, 
-                DatabaseSyncMode mode, LoadingStage stage, 
-                boolean showFileNotFound) {
-            super(file, showFileNotFound);
-            this.filePath = filePath;
-            syncMode = mode;
-            this.stage = Objects.requireNonNull(stage);
-        }
-        /**
-         * 
-         * @param file
-         * @param filePath
-         * @param mode
-         * @param stage 
-         */
-        FileDownloader1(File file, String filePath, 
-                DatabaseSyncMode mode, LoadingStage stage) {
-            this(file,filePath,mode,stage,true);
-        }
-        /**
-         * 
-         * @param file
-         * @param mode
-         * @param stage
-         * @param showFileNotFound 
-         */
-        private FileDownloader1(File file, DatabaseSyncMode mode, 
-                LoadingStage stage, boolean showFileNotFound) {
-            this(file,config.getDatabaseFileSyncPath(mode),mode,stage,showFileNotFound);
-        }
-        /**
-         * 
-         * @param file
-         * @param stage
-         * @param showFileNotFound 
-         */
-        FileDownloader1(File file, LoadingStage stage, boolean showFileNotFound) {
-            this(file,getSyncMode(),stage,showFileNotFound);
-        }
-        /**
-         * 
-         * @param file
-         * @param stage 
-         */
-        FileDownloader1(File file, LoadingStage stage){
-            this(file,stage,true);
-        }
-        /**
-         * 
-         * @param file
-         * @param filePath
-         * @param mode
-         * @param showFileNotFound 
-         */
-        FileDownloader1(File file, String filePath, DatabaseSyncMode mode, 
-                boolean showFileNotFound) {
-            this(file,filePath,mode,
-                    (filePath!=null&&mode!=null)?LoadingStage.DOWNLOADING_FILE:
-                            LoadingStage.LOADING_FILE,showFileNotFound);
-        }
-        /**
-         * 
-         * @param file
-         * @param filePath
-         * @param mode 
-         */
-        FileDownloader1(File file, String filePath, DatabaseSyncMode mode){
-            this(file,filePath,mode,true);
-        }
-        /**
-         * 
-         * @param file
-         * @param mode
-         * @param stage
-         * @param showFileNotFound 
-         */
-        private FileDownloader1(File file, DatabaseSyncMode mode, 
-                boolean showFileNotFound) {
-            this(file,config.getDatabaseFileSyncPath(mode),mode,showFileNotFound);
-        }
-        /**
-         * 
-         * @param file
-         * @param showFileNotFound 
-         */
-        FileDownloader1(File file, boolean showFileNotFound) {
-            this(file,getSyncMode(),showFileNotFound);
-        }
-        /**
-         * 
-         * @param file 
-         */
-        FileDownloader1(File file){
-            this(file,true);
-        }
-        /**
-         * This sets whether this shows a failure prompt when the file to 
-         * download is not found.
-         * @param showFileNotFound Whether the file not found failure prompt is 
-         * shown.
-         * @return This FileDownloader.
-         */
-        public FileDownloader1 setShowsFilePathNotFoundPrompt(boolean showFileNotFound){
-            this.showFilePathNotFound = showFileNotFound;
-            return this;
-        }
-        /**
-         * This returns whether this shows a failure prompt when the file to 
-         * download is not found.
-         * @return Whether the file not found failure prompt is shown.
-         */
-        public boolean getShowsFilePathNotFoundPrompt(){
-            return showFilePathNotFound;
-        }
-        /**
-         * 
-         * @param value 
-         */
-        public FileDownloader1 setShowsSuccessPrompt(boolean value){
-            this.showSuccess = value;
-            return this;
-        }
-        /**
-         * 
-         * @return 
-         */
-        public boolean getShowsSuccessPrompt(){
-            return showSuccess;
-        }
-        /**
-         * 
-         * @return 
-         */
-        public LoadingStage getStage(){
-            return stage;
-        }
-        /**
-         * 
-         * @param stage 
-         */
-        protected void setStage(LoadingStage stage){
-            this.stage = Objects.requireNonNull(stage);
-            progressDisplay.setString(getProgressString());
-        }
-        /**
-         * 
-         * @return 
-         */
-        public abstract String getLoadingProgressString();
-        /**
-         * 
-         * @return 
-         */
-        public String getDownloadingProgressString(){
-            return "Downloading File";
-        }
-        @Override
-        public String getProgressString(){
-            switch(stage){
-                case DOWNLOADING_FILE:
-                    return getDownloadingProgressString();
-                default:
-                    return getLoadingProgressString();
-            }
-        }
-        /**
-         * 
-         * @return 
-         */
-        protected File getDownloadFile(File file){
-            return file;
-        }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param mode
-         * @return The downloaded file, or null if this failed to download.
-         */
-        protected File downloadFile(File file, String path, DatabaseSyncMode mode){
-            getLogger().entering("FileDownloader", "downloadFile", 
-                    new Object[]{file,path,mode});
-                // Format the file path
-            path = LinkManagerUtilities.formatExternalFilePath(mode, path);
-            getLogger().log(Level.FINER, "Downloading file at path \"{0}\"",path);
-            exc = null;
-            fileFound = true;
-            try{    // Determine how to download the file
-                switch(mode){
-                    case DROPBOX:   // Try to download the file to Dropbox
-                        FileMetadata data = downloadFromDropbox(file,path);
-                        fileFound = data != null;
-                        File temp = (fileFound) ? file : null;
-                        getLogger().exiting("FileDownloader","downloadFile",temp);
-                        return temp;
-                }
-                getLogger().exiting("FileDownloader","downloadFile",file);
-                return file;
-            } catch (IOException | DbxException ex){
-                exc = ex;
-                getLogger().log(Level.WARNING, "Failed to download file",ex);
-                fileFound = !(ex instanceof FileNotFoundException);
-                getLogger().exiting("FileDownloader","downloadFile",null);
-                return null;
-            }
-        }
-        /**
-         * 
-         * @param file
-         * @param downloadedFile
-         * @return 
-         */
-        protected abstract boolean loadFile(File file, File downloadedFile);
-        @Override
-        protected boolean loadFile(File file){
-            getLogger().entering("FileDownloader", "loadFile", file);
-            if (LoadingStage.DOWNLOADING_FILE.equals(stage) && syncMode != null 
-                    && filePath != null){
-                int retryOption;
-                File downloadFile = getDownloadFile(file);
-                do{
-                    retryOption = JOptionPane.NO_OPTION;
-                    downloadedFile = downloadFile(downloadFile,filePath,syncMode);
-                    if (downloadedFile == null){
-                        retryOption = showDownloadFailurePrompt(downloadFile,
-                                filePath,syncMode,exc);
-                    }
-                }
-                while(downloadedFile == null && retryOption == JOptionPane.YES_OPTION);
-                if (downloadedFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
-                        retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
-                    loadSuccess = false;
-                    getLogger().exiting("FileDownloader", "loadFile",true);
-                    return true;
-                }
-                progressBar.setValue(0);
-                progressBar.setIndeterminate(true);
-                setStage(LoadingStage.LOADING_FILE);
-            }
-            
-            boolean value = loadFile(file,downloadedFile);
-            getLogger().exiting("FileDownloader", "loadFile",value);
-            return value;
-        }
-        @Override
-        protected Void backgroundAction() throws Exception {
-            super.backgroundAction();
-            success &= loadSuccess;
-            return null;
-        }
-        /**
-         * 
-         */
-        protected void deleteDownloadedFileIfSuccessful(){
-                // If the program successfully loaded the file, there's a 
-                // downloaded file
-            if (success && downloadedFile != null){
-                boolean sameFile = false;
-                try{
-                    sameFile = Files.isSameFile(file.toPath(), downloadedFile.toPath());
-                } catch (IOException ex){
-                    getLogger().log(Level.WARNING, 
-                            "Failed to check if the downloaded file is the same "
-                                    + "as the loaded file",ex);
-                    sameFile = file.equals(downloadedFile);
-                }   // If the loaded file and downloaded file are not the same 
-                    // file (i.e. the downloaded file did not overwrite the 
-                    // loaded file)
-                if (!sameFile)  
-                    downloadedFile.deleteOnExit();
-            }
-        }
-        /**
-         * 
-         * @return 
-         */
-        protected boolean getDownloadFailureMessageStatesError(Exception ex){
-            return showDBErrorDetailsToggle.isSelected();
-        }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param mode
-         * @return 
-         */
-        protected String getDownloadFailureMessage(File file, String path, 
-                DatabaseSyncMode mode, Exception ex){
-                // The message to return
-            String msg = "The file failed to download from "+mode+".";
-                // If the program is either in debug mode or 
-                // if details are to be shown and there was an 
-                // exception thrown
-            if ((isInDebug() || getDownloadFailureMessageStatesError(ex)) && 
-                    ex != null){
-                msg += "\nError: " + ex;
-            }
-            return msg;
-        }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param mode
-         * @return 
-         */
-        protected String getDownloadFileNotFoundMessage(File file, String path, 
-                DatabaseSyncMode mode, Exception ex){
-            return "The file was not found on "+mode+" at the path\n\""+path+"\"";
-        }
-        /**
-         * 
-         * @return 
-         */
-        protected boolean canLoadIfDownloadFails(){
-            return true;
-        }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param mode
-         * @return 
-         */
-        protected int showDownloadFailurePrompt(File file, String path, 
-                DatabaseSyncMode mode,Exception ex){
-            if (!fileFound && !showFilePathNotFound)
-                return JOptionPane.CANCEL_OPTION;
-            return LinkManager.this.showFailurePrompt("ERROR - File Failed To Download", 
-                (fileFound)?getDownloadFailureMessage(file,path,mode,ex):
-                        getDownloadFileNotFoundMessage(file,path,mode,ex), 
-                true, canLoadIfDownloadFails());
-        }
-        /**
-         * This returns the title for the dialog to display if the file is 
-         * successfully loaded.
-         * @param file The file that was successfully loaded.
-         * @return The title for the dialog to display if the file is 
-         * successfully loaded.
-         */
-        protected String getSuccessTitle(File file){
-            return "File Loaded Successfully";
-        }
-        /**
-         * This returns the message to display if the file is successfully 
-         * loaded.
-         * @param file The file that was successfully loaded.
-         * @return The message to display if the file is successfully loaded.
-         */
-        protected String getSuccessMessage(File file){
-            return "The file was successfully loaded.";
-        }
-        @Override
-        protected void showSuccessPrompt(File file){
-                // If the program is not to exit after saving the file
-            if (showSuccess)   
-                LinkManager.this.showSuccessPrompt(getSuccessTitle(file), 
-                        getSuccessMessage(file));
-        }
-    }
-    /**
-     * 
-     */
-    private class DatabaseDownloader extends FileDownloader1{
-        /**
-         * 
-         * @param file
-         * @param filePath
-         * @param mode 
-         */
-        DatabaseDownloader(File file, String filePath, DatabaseSyncMode mode, 
-                boolean showSuccess) {
-            super(file, filePath, mode, LoadingStage.DOWNLOADING_FILE);
-            this.showSuccess = showSuccess;
-        }
-        /**
-         * 
-         * @param file
-         * @param filePath
-         * @param mode 
-         */
-        DatabaseDownloader(File file, String filePath, DatabaseSyncMode mode){
-            this(file,filePath,mode,false);
-        }
-        /**
-         * 
-         * @param file 
-         */
-        DatabaseDownloader(File file,boolean showSuccess){
-            super(file,LoadingStage.DOWNLOADING_FILE);
-            this.showSuccess = showSuccess;
-        }
-        /**
-         * 
-         * @param file 
-         */
-        DatabaseDownloader(File file){
-            this(file,false);
-        }
-        /**
-         * 
-         */
-        DatabaseDownloader(boolean showSuccess){
-            this(getDatabaseFile(),showSuccess);
-        }
-        /**
-         * 
-         */
-        DatabaseDownloader(){
-            this(false);
-        }
-        @Override
-        public String getLoadingProgressString() {
-            return "Copying Database File";
-        }
-        @Override
-        public String getDownloadingProgressString(){
-            return "Downloading Database";
-        }
-        @Override
-        protected boolean canLoadIfDownloadFails(){
-            return false;
-        }
-        @Override
-        protected File getDownloadFile(File file){
-            try {
-                return File.createTempFile(INTERNAL_PROGRAM_NAME, 
-                        "."+DATABASE_FILE_EXTENSION);
-            } catch (IOException ex) {
-                getLogger().log(Level.WARNING, "Failed to create temp download file",
-                        ex);
-            }
-            return file;
-        }
-        @Override
-        protected boolean loadFile(File file, File downloadedFile) {
-            getLogger().entering("DatabaseDownloader", "loadFile", 
-                    new Object[]{file,downloadedFile});
-            if (downloadedFile == null){
-                getLogger().warning("Database failed to download");
-                loadSuccess = false;
-                getLogger().exiting("DatabaseDownloader", "loadFile", true);
-                return true;
-            }
-            exc = null;
-            try {
-                Path path = Files.move(downloadedFile.toPath(), file.toPath(),
-                        StandardCopyOption.REPLACE_EXISTING);
-                this.file = path.toFile();
-                getLogger().exiting("DatabaseDownloader", "loadFile", true);
-                return true;
-            } catch (IOException ex) {
-                getLogger().log(Level.WARNING, 
-                        "Failed to overwrite database file with downloaded file",
-                        ex);
-                exc = ex;
-            }
-            getLogger().exiting("DatabaseDownloader", "loadFile", false);
-            return false;
-        }
-        @Override
-        protected String getFailureMessage(File file){
-            return getDownloadFailureMessage(file,filePath,syncMode,exc);
-        }
-        @Override
-        protected String getSuccessTitle(File file){
-            return "File Downloaded Successfully";
-        }
-        @Override
-        protected String getSuccessMessage(File file){
-            return "The database file was successfully downloaded.";
         }
     }
     
