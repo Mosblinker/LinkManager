@@ -9280,7 +9280,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected Void backgroundAction() throws Exception {
             super.backgroundAction();
-            success = saveSuccess;
+            success &= saveSuccess;
             return null;
         }
         @Override
