@@ -10846,6 +10846,86 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 true, canLoadIfDownloadFails());
         }
     }
+    /**
+     * 
+     */
+    private class DatabaseDownloader extends FileDownloader1{
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode 
+         */
+        public DatabaseDownloader(File file, String filePath, DatabaseSyncMode mode) {
+            super(file, filePath, mode, LoadingStage.DOWNLOADING_FILE);
+        }
+        /**
+         * 
+         * @param file 
+         */
+        public DatabaseDownloader(File file){
+            super(file,LoadingStage.DOWNLOADING_FILE);
+        }
+        /**
+         * 
+         */
+        public DatabaseDownloader(){
+            this(getDatabaseFile());
+        }
+        @Override
+        public String getLoadingProgressString() {
+            return "Copying Database File";
+        }
+        @Override
+        public String getDownloadingProgressString(){
+            return "Downloading Database";
+        }
+        @Override
+        protected boolean canLoadIfDownloadFails(){
+            return false;
+        }
+        @Override
+        protected File getDownloadFile(File file){
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, 
+                        "."+DATABASE_FILE_EXTENSION);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temp download file",
+                        ex);
+            }
+            return file;
+        }
+        @Override
+        protected boolean loadFile(File file, File downloadedFile) {
+            getLogger().entering("DatabaseDownloader", "loadFile", 
+                    new Object[]{file,downloadedFile});
+            if (downloadedFile == null){
+                getLogger().warning("Database failed to download");
+                loadSuccess = false;
+                getLogger().exiting("DatabaseDownloader", "loadFile", true);
+                return true;
+            }
+            exc = null;
+            try {
+                Path path = Files.move(downloadedFile.toPath(), file.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING);
+                this.file = path.toFile();
+                getLogger().exiting("DatabaseDownloader", "loadFile", true);
+                return true;
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, 
+                        "Failed to overwrite database file with downloaded file",
+                        ex);
+                exc = ex;
+            }
+            getLogger().exiting("DatabaseDownloader", "loadFile", false);
+            return false;
+        }
+        @Override
+        protected String getFailureMessage(File file){
+            return getDownloadFailureMessage(file,filePath,syncMode,exc);
+        }
+    }
     
     private class DatabaseFileLoader extends AbstractDatabaseLoader{
         
