@@ -10532,6 +10532,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * file.
          */
         protected boolean showFilePathNotFound = true;
+        /**
+         * Whether the success prompt should be shown.
+         */
+        protected boolean showSuccess = false;
         
         protected boolean loadSuccess = true;
         /**
@@ -10642,7 +10646,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * download is not found.
          * @param showFileNotFound Whether the file not found failure prompt is 
          * shown.
-         * @return This FileDownloader1.
+         * @return This FileDownloader.
          */
         public FileDownloader1 setShowsFilePathNotFoundPrompt(boolean showFileNotFound){
             this.showFilePathNotFound = showFileNotFound;
@@ -10655,6 +10659,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         public boolean getShowsFilePathNotFoundPrompt(){
             return showFilePathNotFound;
+        }
+        /**
+         * 
+         * @param value 
+         */
+        public FileDownloader1 setShowsSuccessPrompt(boolean value){
+            this.showSuccess = value;
+            return this;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean getShowsSuccessPrompt(){
+            return showSuccess;
         }
         /**
          * 
@@ -10860,6 +10879,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         getDownloadFileNotFoundMessage(file,path,mode,ex), 
                 true, canLoadIfDownloadFails());
         }
+        /**
+         * This returns the title for the dialog to display if the file is 
+         * successfully loaded.
+         * @param file The file that was successfully loaded.
+         * @return The title for the dialog to display if the file is 
+         * successfully loaded.
+         */
+        protected String getSuccessTitle(File file){
+            return "File Loaded Successfully";
+        }
+        /**
+         * This returns the message to display if the file is successfully 
+         * loaded.
+         * @param file The file that was successfully loaded.
+         * @return The message to display if the file is successfully loaded.
+         */
+        protected String getSuccessMessage(File file){
+            return "The file was successfully loaded.";
+        }
+        @Override
+        protected void showSuccessPrompt(File file){
+                // If the program is not to exit after saving the file
+            if (showSuccess)   
+                LinkManager.this.showSuccessPrompt(getSuccessTitle(file), 
+                        getSuccessMessage(file));
+        }
     }
     /**
      * 
@@ -10871,21 +10916,46 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param filePath
          * @param mode 
          */
-        public DatabaseDownloader(File file, String filePath, DatabaseSyncMode mode) {
+        DatabaseDownloader(File file, String filePath, DatabaseSyncMode mode, 
+                boolean showSuccess) {
             super(file, filePath, mode, LoadingStage.DOWNLOADING_FILE);
+            this.showSuccess = showSuccess;
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode 
+         */
+        DatabaseDownloader(File file, String filePath, DatabaseSyncMode mode){
+            this(file,filePath,mode,false);
         }
         /**
          * 
          * @param file 
          */
-        public DatabaseDownloader(File file){
+        DatabaseDownloader(File file,boolean showSuccess){
             super(file,LoadingStage.DOWNLOADING_FILE);
+            this.showSuccess = showSuccess;
+        }
+        /**
+         * 
+         * @param file 
+         */
+        DatabaseDownloader(File file){
+            this(file,false);
         }
         /**
          * 
          */
-        public DatabaseDownloader(){
-            this(getDatabaseFile());
+        DatabaseDownloader(boolean showSuccess){
+            this(getDatabaseFile(),showSuccess);
+        }
+        /**
+         * 
+         */
+        DatabaseDownloader(){
+            this(false);
         }
         @Override
         public String getLoadingProgressString() {
@@ -10939,6 +11009,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected String getFailureMessage(File file){
             return getDownloadFailureMessage(file,filePath,syncMode,exc);
+        }
+        @Override
+        protected String getSuccessTitle(File file){
+            return "File Downloaded Successfully";
+        }
+        @Override
+        protected String getSuccessMessage(File file){
+            return "The database file was successfully downloaded.";
         }
     }
     
