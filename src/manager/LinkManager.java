@@ -10486,8 +10486,306 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         DOWNLOADING_FILE,
         
-        LOADING_DATABASE;
+        LOADING_FILE;
         
+    }
+    
+    private abstract class FileDownloader1 extends FileLoader{
+        
+        protected LoadingStage stage;
+        
+        protected String filePath;
+        
+        protected DatabaseSyncMode syncMode;
+        /**
+         * Whether the file to download was found.
+         */
+        protected boolean fileFound = true;
+        /**
+         * The exception that was encountered when either downloading or loading 
+         * the file, if any.
+         */
+        protected Exception exc = null;
+//        /**
+//         * Whether file not found errors should be shown for downloading the 
+//         * file.
+//         */
+//        protected boolean showFilePathNotFound = true;
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
+         */
+        FileDownloader1(File file, String filePath, 
+                DatabaseSyncMode mode, LoadingStage stage, 
+                boolean showFileNotFound) {
+            super(file, showFileNotFound);
+            this.filePath = filePath;
+            syncMode = mode;
+            this.stage = Objects.requireNonNull(stage);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage 
+         */
+        FileDownloader1(File file, String filePath, 
+                DatabaseSyncMode mode, LoadingStage stage) {
+            this(file,filePath,mode,stage,true);
+        }
+        /**
+         * 
+         * @param file
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
+         */
+        private FileDownloader1(File file, DatabaseSyncMode mode, 
+                LoadingStage stage, boolean showFileNotFound) {
+            this(file,config.getDatabaseFileSyncPath(mode),mode,stage,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param stage
+         * @param showFileNotFound 
+         */
+        FileDownloader1(File file, LoadingStage stage, boolean showFileNotFound) {
+            this(file,getSyncMode(),stage,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param stage 
+         */
+        FileDownloader1(File file, LoadingStage stage){
+            this(file,stage,true);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param showFileNotFound 
+         */
+        FileDownloader1(File file, String filePath, DatabaseSyncMode mode, 
+                boolean showFileNotFound) {
+            this(file,filePath,mode,
+                    (filePath!=null&&mode!=null)?LoadingStage.DOWNLOADING_FILE:
+                            LoadingStage.LOADING_FILE,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode 
+         */
+        FileDownloader1(File file, String filePath, DatabaseSyncMode mode){
+            this(file,filePath,mode,true);
+        }
+        /**
+         * 
+         * @param file
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
+         */
+        private FileDownloader1(File file, DatabaseSyncMode mode, 
+                boolean showFileNotFound) {
+            this(file,config.getDatabaseFileSyncPath(mode),mode,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param showFileNotFound 
+         */
+        FileDownloader1(File file, boolean showFileNotFound) {
+            this(file,getSyncMode(),showFileNotFound);
+        }
+        /**
+         * 
+         * @param file 
+         */
+        FileDownloader1(File file){
+            this(file,true);
+        }
+        /**
+         * 
+         * @return 
+         */
+        public LoadingStage getStage(){
+            return stage;
+        }
+        /**
+         * 
+         * @param stage 
+         */
+        protected void setStage(LoadingStage stage){
+            this.stage = Objects.requireNonNull(stage);
+            progressDisplay.setString(getProgressString());
+        }
+        /**
+         * 
+         * @return 
+         */
+        public abstract String getLoadingProgressString();
+        /**
+         * 
+         * @return 
+         */
+        public String getDownloadingProgressString(){
+            return "Downloading File";
+        }
+        @Override
+        public String getProgressString(){
+            switch(stage){
+                case DOWNLOADING_FILE:
+                    return getDownloadingProgressString();
+                default:
+                    return getLoadingProgressString();
+            }
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @return The downloaded file, or null if this failed to download.
+         */
+        protected File downloadFile(File file, String path, DatabaseSyncMode mode){
+            getLogger().entering("FileDownloader", "downloadFile", 
+                    new Object[]{file,path,mode});
+                // Format the file path
+            path = LinkManagerUtilities.formatExternalFilePath(mode, path);
+            getLogger().log(Level.FINER, "Downloading file at path \"{0}\"",path);
+            exc = null;
+            fileFound = true;
+            try{    // Determine how to download the file
+                switch(mode){
+                    case DROPBOX:   // Try to download the file to Dropbox
+                        FileMetadata data = downloadFromDropbox(file,path);
+                        fileFound = data != null;
+                        File temp = (fileFound) ? file : null;
+                        getLogger().exiting("FileDownloader","downloadFile",temp);
+                        return temp;
+                }
+                getLogger().exiting("FileDownloader","downloadFile",file);
+                return file;
+            } catch (IOException | DbxException ex){
+                exc = ex;
+                getLogger().log(Level.WARNING, "Failed to download file",ex);
+                fileFound = !(ex instanceof FileNotFoundException);
+                getLogger().exiting("FileDownloader","downloadFile",null);
+                return null;
+            }
+        }
+        @Override
+        protected boolean processFile(File file){
+            getLogger().entering("FileDownloader", "processFile", file);
+            loading = true;
+            
+            if (LoadingStage.DOWNLOADING_FILE.equals(stage) && syncMode != null 
+                    && filePath != null){
+                File temp = downloadFile(file,filePath,syncMode);
+                if (temp == null){
+                    getLogger().exiting("FileDownloader", "processFile",false);
+                    return false;
+                }
+                file = temp;
+                this.file = temp;
+                progressBar.setValue(0);
+                progressBar.setIndeterminate(true);
+                setStage(LoadingStage.LOADING_FILE);
+            }
+            
+            boolean value = loadFile(file);
+            getLogger().exiting("FileDownloader", "processFile",value);
+            return value;
+        }
+        @Override
+        protected boolean getFileExists(File file){
+            switch(stage){
+                case DOWNLOADING_FILE:
+                    return fileFound;
+                default:
+                    return super.getFileExists(file);
+            }
+        }
+        @Override
+        protected String getFailureTitle(File file){
+            switch(stage){
+                case DOWNLOADING_FILE:
+                    return "ERROR - File Failed To Download";
+                default:
+                    return super.getFailureTitle(file);
+            }
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected String getLoadFailureMessage(File file){
+            return super.getFailureMessage(file);
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @return 
+         */
+        protected String getDownloadFailureMessage(File file, String path, 
+                DatabaseSyncMode mode){
+            return "The file failed to download.";
+        }
+        @Override
+        protected String getFailureMessage(File file){
+            switch(stage){
+                case DOWNLOADING_FILE:
+                    return getDownloadFailureMessage(file,filePath,syncMode);
+                default:
+                    return getLoadFailureMessage(file);
+            }
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected String getLoadFileNotFoundMessage(File file){
+            return super.getFileNotFoundMessage(file);
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @return 
+         */
+        protected String getDownloadFileNotFoundMessage(File file, String path, 
+                DatabaseSyncMode mode){
+            String msg = "";
+            switch(mode){
+                case DROPBOX:
+                    msg = " on Dropbox";
+            }
+            return "The file was not found"+msg+" at the path\n\""+path+"\"";
+        }
+        @Override
+        protected String getFileNotFoundMessage(File file){
+            switch(stage){
+                case DOWNLOADING_FILE:
+                    return getDownloadFileNotFoundMessage(file,filePath,syncMode);
+                default:
+                    return getLoadFileNotFoundMessage(file);
+            }
+        }
     }
     
     private class DatabaseFileLoader extends AbstractDatabaseLoader{
@@ -10517,6 +10815,5 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 Statement stmt) throws SQLException {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
-        
     }
 }
