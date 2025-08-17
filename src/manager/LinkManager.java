@@ -377,8 +377,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      * @return 
      */
+    private static File createTempFile(String suffix) throws IOException{
+        return File.createTempFile("LinkManager", suffix);
+    }
+    /**
+     * 
+     * @return 
+     */
     private static File createTempFile() throws IOException{
-        return File.createTempFile("LinkManager", null);
+        return createTempFile(null);
     }
     
     private DropboxLinkUtils loadDbxUtils(){
