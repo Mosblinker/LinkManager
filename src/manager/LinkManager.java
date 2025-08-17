@@ -7922,10 +7922,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * the file.
          */
         protected void deleteBackupIfSuccessful(){
+            getLogger().entering("FileSaver", "deleteBackupIfSuccessful");
                 // If the file was successfully saved and there is a backup file
             if (success && backupFile != null){
+                getLogger().log(Level.FINER, "Deleting file {0}", backupFile);
                 backupFile.delete();
             }
+            getLogger().exiting("FileSaver", "deleteBackupIfSuccessful");
         }
         /**
          * This returns whether this tried and failed to create a backup of the 
