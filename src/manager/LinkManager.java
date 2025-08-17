@@ -10494,6 +10494,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         protected LoadingStage stage;
         
+        protected File downloadedFile;
+        
         protected String filePath;
         
         protected DatabaseSyncMode syncMode;
@@ -10511,6 +10513,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * file.
          */
         protected boolean showFilePathNotFound = true;
+        
+        protected boolean loadSuccess = true;
         /**
          * 
          * @param file
@@ -10671,6 +10675,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
+         * @return 
+         */
+        protected File getDownloadFile(File file){
+            return file;
+        }
+        /**
+         * 
          * @param file
          * @param path
          * @param mode
@@ -10703,37 +10714,48 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return null;
             }
         }
+        /**
+         * 
+         * @param file
+         * @param downloadedFile
+         * @return 
+         */
+        protected abstract boolean loadFile(File file, File downloadedFile);
         @Override
-        protected boolean processFile(File file){
-            getLogger().entering("FileDownloader", "processFile", file);
-            loading = true;
-            
+        protected boolean loadFile(File file){
+            getLogger().entering("FileDownloader", "loadFile", file);
             if (LoadingStage.DOWNLOADING_FILE.equals(stage) && syncMode != null 
                     && filePath != null){
-                File temp = downloadFile(file,filePath,syncMode);
-                if (temp == null){
-                    getLogger().exiting("FileDownloader", "processFile",false);
-                    return false;
+                int retryOption;
+                File downloadFile = getDownloadFile(file);
+                do{
+                    retryOption = JOptionPane.NO_OPTION;
+                    downloadedFile = downloadFile(downloadFile,filePath,syncMode);
+                    if (downloadedFile == null){
+                        retryOption = showDownloadFailurePrompt(downloadFile,filePath,syncMode);
+                    }
                 }
-                file = temp;
-                this.file = temp;
+                while(downloadedFile == null && retryOption == JOptionPane.YES_OPTION);
+                if (downloadedFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
+                        retryOption == JOptionPane.CANCEL_OPTION)){
+                    loadSuccess = false;
+                    getLogger().exiting("FileDownloader", "loadFile",true);
+                    return true;
+                }
                 progressBar.setValue(0);
                 progressBar.setIndeterminate(true);
                 setStage(LoadingStage.LOADING_FILE);
             }
             
-            boolean value = loadFile(file);
-            getLogger().exiting("FileDownloader", "processFile",value);
+            boolean value = loadFile(file,downloadedFile);
+            getLogger().exiting("FileDownloader", "loadFile",value);
             return value;
         }
         @Override
-        protected String getFailureTitle(File file){
-            switch(stage){
-                case DOWNLOADING_FILE:
-                    return "ERROR - File Failed To Download";
-                default:
-                    return super.getFailureTitle(file);
-            }
+        protected Void backgroundAction() throws Exception {
+            super.backgroundAction();
+            success &= loadSuccess;
+            return null;
         }
         /**
          * 
@@ -10769,24 +10791,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @return 
          */
-        protected boolean showDownloadFailurePrompt(File file, String path, 
+        protected int showDownloadFailurePrompt(File file, String path, 
                 DatabaseSyncMode mode){
             if (!fileFound && !showFilePathNotFound)
-                    return false;
-            return LinkManager.this.showFailurePrompt(getFailureTitle(file), 
+                return JOptionPane.CANCEL_OPTION;
+            return LinkManager.this.showFailurePrompt("ERROR - File Failed To Download", 
                 (fileFound)?getDownloadFailureMessage(file,path,mode):
                         getDownloadFileNotFoundMessage(file,path,mode), 
-                true, false) == JOptionPane.YES_OPTION;
-        }
-        @Override
-        protected boolean showFailurePrompt(File file){
-            switch(stage){
-                    // If the file failed to be downloaded
-                case DOWNLOADING_FILE:
-                    return showDownloadFailurePrompt(file,filePath,syncMode);
-                default:
-                    return super.showFailurePrompt(file);
-            }
+                true, true);
         }
     }
     
