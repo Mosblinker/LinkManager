@@ -8364,17 +8364,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private abstract class AbstractConfigSaver extends FileSaver{
+    private class ConfigSaver extends FileSaver{
         
-        AbstractConfigSaver(File file, boolean exit) {
-            super(file, exit);
-        }
-        
-        AbstractConfigSaver(File file){
+        ConfigSaver(File file){
             super(file);
         }
         
-        protected abstract boolean savePropertiesFile(File file) throws IOException;
+        protected boolean savePropertiesFile(File file) throws IOException {
+                // Disable the hidden lists toggle
+            showHiddenListsToggle.setEnabled(false);
+                // Get the settings for the program, as a Properties object
+            Properties prop = config.exportProperties();
+                // If the settings somehow failed to be exported
+            if (prop == null)
+                return false;
+            return LinkManagerUtilities.saveProperties(file,prop,GENERAL_CONFIG_HEADER);
+        }
         @Override
         protected boolean saveFile(File file) {
                 // Set the program to be indeterminate
@@ -8391,24 +8396,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         public String getProgressString(){
             return "Saving Configuration";
-        }
-    }
-    
-    private class ConfigSaver extends AbstractConfigSaver{
-        
-        ConfigSaver(File file){
-            super(file);
-        }
-        @Override
-        protected boolean savePropertiesFile(File file) throws IOException {
-                // Disable the hidden lists toggle
-            showHiddenListsToggle.setEnabled(false);
-                // Get the settings for the program, as a Properties object
-            Properties prop = config.exportProperties();
-                // If the settings somehow failed to be exported
-            if (prop == null)
-                return false;
-            return LinkManagerUtilities.saveProperties(file,prop,GENERAL_CONFIG_HEADER);
         }
         @Override
         protected void done(){
