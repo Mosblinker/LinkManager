@@ -3898,8 +3898,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }   // If this will sync the database to the cloud and the user is 
             // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            saver = new FileDownloader(file,config.getDropboxDatabaseFileName(),getSyncMode(),loadFlags);
-            saver.execute();
+            loader = new TempDatabaseDownloader(getDatabaseFile(),
+                    config.getDatabaseFileSyncPath(getSyncMode()),getSyncMode(),
+                    loadFlags);
+            loader.execute();
         } else {
             loader = new DatabaseLoader(LinkManagerUtilities.setFlag(loadFlags,
                     DATABASE_LOADER_CHECK_LOCAL_FLAG,false));
