@@ -10506,11 +10506,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * the file, if any.
          */
         protected Exception exc = null;
-//        /**
-//         * Whether file not found errors should be shown for downloading the 
-//         * file.
-//         */
-//        protected boolean showFilePathNotFound = true;
+        /**
+         * Whether file not found errors should be shown for downloading the 
+         * file.
+         */
+        protected boolean showFilePathNotFound = true;
         /**
          * 
          * @param file
@@ -10615,6 +10615,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this(file,true);
         }
         /**
+         * This sets whether this shows a failure prompt when the file to 
+         * download is not found.
+         * @param showFileNotFound Whether the file not found failure prompt is 
+         * shown.
+         * @return This FileDownloader1.
+         */
+        public FileDownloader1 setShowsFilePathNotFoundPrompt(boolean showFileNotFound){
+            this.showFilePathNotFound = showFileNotFound;
+            return this;
+        }
+        /**
+         * This returns whether this shows a failure prompt when the file to 
+         * download is not found.
+         * @return Whether the file not found failure prompt is shown.
+         */
+        public boolean getShowsFilePathNotFoundPrompt(){
+            return showFilePathNotFound;
+        }
+        /**
          * 
          * @return 
          */
@@ -10708,15 +10727,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return value;
         }
         @Override
-        protected boolean getFileExists(File file){
-            switch(stage){
-                case DOWNLOADING_FILE:
-                    return fileFound;
-                default:
-                    return super.getFileExists(file);
-            }
-        }
-        @Override
         protected String getFailureTitle(File file){
             switch(stage){
                 case DOWNLOADING_FILE:
@@ -10728,14 +10738,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         /**
          * 
          * @param file
-         * @return 
-         */
-        protected String getLoadFailureMessage(File file){
-            return super.getFailureMessage(file);
-        }
-        /**
-         * 
-         * @param file
          * @param path
          * @param mode
          * @return 
@@ -10743,23 +10745,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected String getDownloadFailureMessage(File file, String path, 
                 DatabaseSyncMode mode){
             return "The file failed to download.";
-        }
-        @Override
-        protected String getFailureMessage(File file){
-            switch(stage){
-                case DOWNLOADING_FILE:
-                    return getDownloadFailureMessage(file,filePath,syncMode);
-                default:
-                    return getLoadFailureMessage(file);
-            }
-        }
-        /**
-         * 
-         * @param file
-         * @return 
-         */
-        protected String getLoadFileNotFoundMessage(File file){
-            return super.getFileNotFoundMessage(file);
         }
         /**
          * 
@@ -10777,13 +10762,30 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             return "The file was not found"+msg+" at the path\n\""+path+"\"";
         }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @return 
+         */
+        protected boolean showDownloadFailurePrompt(File file, String path, 
+                DatabaseSyncMode mode){
+            if (!fileFound && !showFilePathNotFound)
+                    return false;
+            return LinkManager.this.showFailurePrompt(getFailureTitle(file), 
+                (fileFound)?getDownloadFailureMessage(file,path,mode):
+                        getDownloadFileNotFoundMessage(file,path,mode), 
+                true, false) == JOptionPane.YES_OPTION;
+        }
         @Override
-        protected String getFileNotFoundMessage(File file){
+        protected boolean showFailurePrompt(File file){
             switch(stage){
+                    // If the file failed to be downloaded
                 case DOWNLOADING_FILE:
-                    return getDownloadFileNotFoundMessage(file,filePath,syncMode);
+                    return showDownloadFailurePrompt(file,filePath,syncMode);
                 default:
-                    return getLoadFileNotFoundMessage(file);
+                    return super.showFailurePrompt(file);
             }
         }
     }
