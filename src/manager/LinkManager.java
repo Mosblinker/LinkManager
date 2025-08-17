@@ -7967,8 +7967,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return 
          */
         protected boolean createDirectories(File file, boolean isDirectory){
-            return FilesExtended.createDirectories(LinkManager.this, 
-                    (isDirectory)?file:file.getParentFile());
+            if (!isDirectory){
+                File parent = file.getParentFile();
+                if (parent == null){
+                    file = file.getAbsoluteFile();
+                    parent = file.getParentFile();
+                }
+                file = parent;
+            }
+            return FilesExtended.createDirectories(LinkManager.this, file);
         }
         /**
          * This attempts to save to the given file. This is called by {@link 
@@ -9759,7 +9766,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Whether the user wants this to try processing the file again 
             boolean retry;  // if unsuccessful
                 // Set the program to be indeterminate
-                progressBar.setIndeterminate(true); 
+            progressBar.setIndeterminate(true); 
             do{     // Try to create the directories for the file
                 if (createDirectories(file,false)){
                     try {    // Try to save the properties to file
