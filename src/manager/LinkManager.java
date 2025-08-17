@@ -4605,9 +4605,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_uploadDBItemActionPerformed
 
     private void downloadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadDBItemActionPerformed
-        if (isLoggedInToDropbox()){
-            saver = new FileDownloader(getDatabaseFile(),config.getDropboxDatabaseFileName(),getSyncMode());
-            saver.execute();
+        if (getSyncMode() != null){
+            loader = new DatabaseDownloader(true);
+            loader.execute();
         }
     }//GEN-LAST:event_downloadDBItemActionPerformed
 
