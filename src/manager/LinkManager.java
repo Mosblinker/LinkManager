@@ -10732,7 +10732,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     retryOption = JOptionPane.NO_OPTION;
                     downloadedFile = downloadFile(downloadFile,filePath,syncMode);
                     if (downloadedFile == null){
-                        retryOption = showDownloadFailurePrompt(downloadFile,filePath,syncMode);
+                        retryOption = showDownloadFailurePrompt(downloadFile,
+                                filePath,syncMode,exc);
                     }
                 }
                 while(downloadedFile == null && retryOption == JOptionPane.YES_OPTION);
@@ -10765,7 +10766,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return 
          */
         protected String getDownloadFailureMessage(File file, String path, 
-                DatabaseSyncMode mode){
+                DatabaseSyncMode mode, Exception ex){
             return "The file failed to download.";
         }
         /**
@@ -10776,7 +10777,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return 
          */
         protected String getDownloadFileNotFoundMessage(File file, String path, 
-                DatabaseSyncMode mode){
+                DatabaseSyncMode mode, Exception ex){
             String msg = "";
             switch(mode){
                 case DROPBOX:
@@ -10792,12 +10793,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return 
          */
         protected int showDownloadFailurePrompt(File file, String path, 
-                DatabaseSyncMode mode){
+                DatabaseSyncMode mode,Exception ex){
             if (!fileFound && !showFilePathNotFound)
                 return JOptionPane.CANCEL_OPTION;
             return LinkManager.this.showFailurePrompt("ERROR - File Failed To Download", 
-                (fileFound)?getDownloadFailureMessage(file,path,mode):
-                        getDownloadFileNotFoundMessage(file,path,mode), 
+                (fileFound)?getDownloadFailureMessage(file,path,mode,ex):
+                        getDownloadFileNotFoundMessage(file,path,mode,ex), 
                 true, true);
         }
     }
