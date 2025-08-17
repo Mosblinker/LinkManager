@@ -7975,6 +7975,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
                 file = parent;
             }
+            getLogger().log(Level.FINER, "Creating directory \"{0}\"", file);
             return FilesExtended.createDirectories(LinkManager.this, file);
         }
         /**
