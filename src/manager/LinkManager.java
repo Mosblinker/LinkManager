@@ -7702,22 +7702,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (LoadingStage.DOWNLOADING_FILE.equals(stage) && syncMode != null 
                     && filePath != null){
                 int retryOption;
-                File downloadFile = getDownloadFile(file);
+                downloadedFile = getDownloadFile(file);
+                File downloadFile = null;
                 do{
                     retryOption = JOptionPane.NO_OPTION;
-                    downloadedFile = downloadFile(downloadFile,filePath,syncMode);
-                    if (downloadedFile == null){
-                        retryOption = showDownloadFailurePrompt(downloadFile,
+                    downloadFile = downloadFile(downloadedFile,filePath,syncMode);
+                    if (downloadFile == null){
+                        retryOption = showDownloadFailurePrompt(downloadedFile,
                                 filePath,syncMode,exc);
                     }
                 }
-                while(downloadedFile == null && retryOption == JOptionPane.YES_OPTION);
-                if (downloadedFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
+                while(downloadFile == null && retryOption == JOptionPane.YES_OPTION);
+                if (downloadFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
                         retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
                     loadSuccess = false;
                     getLogger().exiting("FileDownloader", "loadFile",true);
                     return true;
                 }
+                downloadedFile = downloadFile;
                 progressBar.setValue(0);
                 progressBar.setIndeterminate(true);
                 setStage(LoadingStage.LOADING_FILE);
