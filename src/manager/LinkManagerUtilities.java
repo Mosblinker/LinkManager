@@ -601,11 +601,12 @@ public class LinkManagerUtilities {
     public static boolean isSameFile(File file1, File file2){
         try{
             return Files.isSameFile(file1.toPath(), file2.toPath());
+        } catch (NoSuchFileException ex) {
         } catch (IOException ex){
             LinkManager.getLogger().log(Level.WARNING, 
                     "Failed to check if the downloaded file is the same "
                             + "as the loaded file",ex);
-            return file1.equals(file2);
         }
+        return file1.equals(file2);
     }
 }
