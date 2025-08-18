@@ -7750,13 +7750,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // downloaded file did not overwrite the loaded file)
                 if (downloadedFile != null && 
                         !LinkManagerUtilities.isSameFile(file, downloadedFile)){
+                    /*
+                    TODO: Figure out how to resolve a glitch where the file 
+                    isn't being deleted if the process is cancelled during the 
+                    download.
+                    */
                     if (isCancelled() && exitIfCancelled){
                         getLogger().log(Level.FINER, "Deleting file \"{0}\"", downloadedFile);
-                        try{
+                        try{    
                             Files.deleteIfExists(downloadedFile.toPath());
                         } catch (IOException ex){
                             getLogger().log(Level.WARNING, "Failed to delete file", ex);
-                            downloadedFile.delete();
+                            downloadedFile.deleteOnExit();
                         }
                     } else {
                         getLogger().log(Level.FINER, "Deleting on exit \"{0}\"", downloadedFile);
