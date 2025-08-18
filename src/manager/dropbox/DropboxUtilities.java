@@ -346,7 +346,7 @@ public class DropboxUtilities {
                     metadata = dbxFiles.uploadSessionFinish(cursor, info)
                             .uploadAndFinish(in, fileSize - uploaded, listener);
                 } catch (RetryException ex){
-                    LinkManager.getLogger().log(Level.INFO, "Uploading attempt failed", ex);
+                    LinkManager.getLogger().log(Level.INFO, "Uploading attempt "+i+" failed", ex);
                         // This is thrown when the program wants us to back off 
                         // for a bit
                     dbxEx = ex;
@@ -355,7 +355,7 @@ public class DropboxUtilities {
                         Thread.sleep(ex.getBackoffMillis()+1);  // measure
                     } catch (InterruptedException ex1){ }
                 } catch (NetworkIOException ex){
-                    LinkManager.getLogger().log(Level.INFO, "Uploading attempt failed", ex);
+                    LinkManager.getLogger().log(Level.INFO, "Uploading attempt "+i+" failed", ex);
                     LinkManager.getLogger().log(Level.INFO, "Network error encountered", ex.getCause());
                         // If the previous error was also a network issue with 
                         // Dropbox
@@ -366,11 +366,11 @@ public class DropboxUtilities {
                     }
                     dbxEx = ex;
                 } catch (UploadSessionFinishErrorException ex){
+                    LinkManager.getLogger().log(Level.INFO, "Uploading attempt "+i+" failed", ex);
                         // If the offset into the stream doesn't match the 
                         // amount we've uploaded
                     if (ex.errorValue.isLookupFailed() && 
                             ex.errorValue.getLookupFailedValue().isIncorrectOffset()){
-                        LinkManager.getLogger().log(Level.INFO, "Uploading attempt failed", ex);
                         dbxEx = ex;
                             // Correct the offset loaded so far
                         uploaded = ex.errorValue.getLookupFailedValue().
