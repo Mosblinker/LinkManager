@@ -7750,8 +7750,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // downloaded file did not overwrite the loaded file)
                 if (downloadedFile != null && 
                         !LinkManagerUtilities.isSameFile(file, downloadedFile)){
-                    getLogger().log(Level.FINER, "Deleting on exit \"{0}\"", downloadedFile);
-                    downloadedFile.deleteOnExit();
+                    if (isCancelled() && exitIfCancelled){
+                        getLogger().log(Level.FINER, "Deleting file \"{0}\"", downloadedFile);
+                            downloadedFile.delete();
+                    } else {
+                        getLogger().log(Level.FINER, "Deleting on exit \"{0}\"", downloadedFile);
+                        downloadedFile.deleteOnExit();
+                    }
                 }
             }
             getLogger().exiting("AbstractFileDownloader", 
