@@ -7720,25 +7720,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected void deleteDownloadedFileIfSuccessful(){
                 // If the program successfully loaded the file, there's a 
-                // downloaded file
-            if (success && downloadedFile != null){
-                boolean sameFile = false;
-                try{
-                    sameFile = Files.isSameFile(file.toPath(), downloadedFile.toPath());
-                } catch (IOException ex){
-                    getLogger().log(Level.WARNING, 
-                            "Failed to check if the downloaded file is the same "
-                                    + "as the loaded file",ex);
-                    sameFile = file.equals(downloadedFile);
-                }   // If the loaded file and downloaded file are not the same 
-                    // file (i.e. the downloaded file did not overwrite the 
-                    // loaded file)
-                if (!sameFile)  
+                // downloaded file, and the loaded file and downloaded file are 
+                // not the same file (i.e. the downloaded file did not overwrite 
+                // the loaded file)
+            if (success && downloadedFile != null && 
+                    !LinkManagerUtilities.isSameFile(file, downloadedFile)){
                     downloadedFile.deleteOnExit();
             }
         }
         /**
          * 
+         * @param ex
          * @return 
          */
         protected boolean getDownloadFailureMessageStatesError(Exception ex){
@@ -7749,6 +7741,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file
          * @param path
          * @param mode
+         * @param ex
          * @return 
          */
         protected String getDownloadFailureMessage(File file, String path, 
@@ -7769,6 +7762,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file
          * @param path
          * @param mode
+         * @param ex
          * @return 
          */
         protected String getDownloadFileNotFoundMessage(File file, String path, 
@@ -7787,6 +7781,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file
          * @param path
          * @param mode
+         * @param ex
          * @return 
          */
         protected int showDownloadFailurePrompt(File file, String path, 
