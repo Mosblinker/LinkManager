@@ -3625,7 +3625,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // program
                 } catch (UnsupportedOperationException ex){ }
             }
-        }   // If the program fully loaded initially and it is to save after the 
+        }
+        if (loader != null){
+            getLogger().log(Level.FINER, "Cancelling loading {0}", loader);
+            loader.cancel(true);
+        }
+            // If the program fully loaded initially and it is to save after the 
             // initial load
         if (fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
             getLogger().finer("Exiting and saving program");
@@ -3636,7 +3641,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             saver = new DatabaseSaver(true);
             saver.execute();
         }
-        else{
+        else if (!(loader instanceof AbstractFileDownloader) || 
+                !((AbstractFileDownloader)loader).getExitIfCancelled()){
             getLogger().finer("Exiting program normally");
             System.exit(0);
         }
