@@ -3620,15 +3620,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // it will close the program
                     ((AbstractDatabaseSaver)saver).setExitAfterSaving(true);
                     exitButton.setEnabled(false);
-                    return;
                         // Thrown if the abstract database saver cannot exit 
                         // program
                 } catch (UnsupportedOperationException ex){ 
+                    getLogger().log(Level.INFO, "Cannot exit program, saving in progress", ex);
                     JOptionPane.showMessageDialog(this, 
                             "Cannot exit program right now. Please wait and try again.", 
                             "ERROR - Cannot Close Program", JOptionPane.ERROR_MESSAGE);
-                    return;
                 }
+                return;
             }
         }
         if (loader != null){
