@@ -7689,7 +7689,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (ex instanceof DbxException){
                     getLogger().log(Level.WARNING, "Dropbox Exception class: {0}", ex.getClass().getName());
                     if (ex instanceof NetworkIOException)
-                        getLogger().log(Level.WARNING, "Network Exception Cause: {0}", ex.getCause());
+                        getLogger().log(Level.WARNING, "Network Exception", ex.getCause());
                 }
                 getLogger().exiting("FileDownloader","downloadFile",null);
                 return null;
@@ -7798,6 +7798,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 DatabaseSyncMode mode, Exception ex){
                 // The message to return
             String msg = "The file failed to download from "+mode+".";
+            if (ex instanceof NetworkIOException && ex.getCause() instanceof UnknownHostException){
+                msg = "Could not connect to "+mode+
+                        ". Please check your connection and try again.";
+            }
                 // If the program is either in debug mode or 
                 // if details are to be shown and there was an 
                 // exception thrown
@@ -9815,11 +9819,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     } else if (ex instanceof DbxException){
                         getLogger().log(Level.WARNING, "Dropbox Exception class: {0}", ex.getClass().getName());
                         if (ex instanceof NetworkIOException)
-                            getLogger().log(Level.WARNING, "Network Exception Cause: {0}", ex.getCause());
+                            getLogger().log(Level.WARNING, "Network Exception", ex.getCause());
                     }
                 }   // The message to return
                 String msg = "The file failed to upload to "+mode+".";
-                    // If the program is either in debug mode or 
+                if (exc instanceof NetworkIOException && exc.getCause() instanceof UnknownHostException){
+                    msg = "Could not connect to "+mode+
+                            ". Please check your connection and try again.";
+                }   // If the program is either in debug mode or 
                     // if details are to be shown and there was an 
                     // exception thrown
                 if ((isInDebug() || showDBErrorDetailsToggle.isSelected()) && 
