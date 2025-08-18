@@ -10667,6 +10667,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 Integer loadFlags){
             super(file,filePath,mode);
             this.loadFlags = loadFlags;
+            exitIfCancelled = !fullyLoaded;
         }
         
         TempDatabaseDownloader(File file, String filePath, DatabaseSyncMode mode){
