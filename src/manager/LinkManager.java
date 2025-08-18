@@ -7662,6 +7662,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 exc = ex;
                 getLogger().log(Level.WARNING, "Failed to download file",ex);
                 fileFound = !(ex instanceof FileNotFoundException);
+                if (ex instanceof DbxException){
+                    getLogger().log(Level.WARNING, "Dropbox Exception class: {0}", ex.getClass().getName());
+                    if (ex instanceof NetworkIOException)
+                        getLogger().log(Level.WARNING, "Network Exception Cause: {0}", ex.getCause());
+                }
                 getLogger().exiting("FileDownloader","downloadFile",null);
                 return null;
             }
@@ -9739,6 +9744,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         getLogger().exiting("AbstractDatabaseSaver", 
                                 "uploadDatabase", false);
                         return false;
+                    } else if (ex instanceof DbxException){
+                        getLogger().log(Level.WARNING, "Dropbox Exception class: {0}", ex.getClass().getName());
+                        if (ex instanceof NetworkIOException)
+                            getLogger().log(Level.WARNING, "Network Exception Cause: {0}", ex.getCause());
                     }
                 }   // The message to return
                 String msg = "The file failed to upload to "+mode+".";
