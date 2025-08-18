@@ -72,7 +72,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This is the version of the program.
      */
-    public static final String PROGRAM_VERSION = "0.14.1";
+    public static final String PROGRAM_VERSION = "0.14.2-alpha";
     /**
      * This is the internal name for the program.
      */
@@ -3620,12 +3620,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // it will close the program
                     ((AbstractDatabaseSaver)saver).setExitAfterSaving(true);
                     exitButton.setEnabled(false);
-                    return;
                         // Thrown if the abstract database saver cannot exit 
                         // program
-                } catch (UnsupportedOperationException ex){ }
+                } catch (UnsupportedOperationException ex){ 
+                    getLogger().log(Level.INFO, "Cannot exit program, saving in progress", ex);
+                    JOptionPane.showMessageDialog(this, 
+                            "Cannot exit program right now. Please wait and try again.", 
+                            "ERROR - Cannot Close Program", JOptionPane.ERROR_MESSAGE);
+                }
+                return;
             }
-        }   // If the program fully loaded initially and it is to save after the 
+        }
+        if (loader != null){
+            getLogger().log(Level.FINER, "Cancelling loading {0}", loader);
+            loader.cancel(true);
+        }
+            // If the program fully loaded initially and it is to save after the 
             // initial load
         if (fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
             getLogger().finer("Exiting and saving program");
@@ -3636,7 +3646,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             saver = new DatabaseSaver(true);
             saver.execute();
         }
-        else{
+        else if (!(loader instanceof AbstractFileDownloader) || 
+                !((AbstractFileDownloader)loader).getExitIfCancelled()){
             getLogger().finer("Exiting program normally");
             System.exit(0);
         }
@@ -3898,7 +3909,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }   // If this will sync the database to the cloud and the user is 
             // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            loader = new TempDatabaseDownloader(getDatabaseFile(),
+            loader = new TempDatabaseDownloader(file,
                     config.getDatabaseFileSyncPath(getSyncMode()),getSyncMode(),
                     loadFlags);
             loader.execute();
@@ -7452,6 +7463,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected boolean showSuccess = false;
         
         protected boolean loadSuccess = true;
+        
+        protected boolean exitIfCancelled = false;
         /**
          * 
          * @param file
@@ -7591,6 +7604,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
+         * @param value
+         * @return 
+         */
+        public AbstractFileDownloader setExitIfCancelled(boolean value){
+            this.exitIfCancelled = value;
+            return this;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean getExitIfCancelled(){
+            return exitIfCancelled;
+        }
+        /**
+         * 
          * @return 
          */
         public LoadingStage getStage(){
@@ -7662,6 +7691,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 exc = ex;
                 getLogger().log(Level.WARNING, "Failed to download file",ex);
                 fileFound = !(ex instanceof FileNotFoundException);
+                if (ex instanceof DbxException){
+                    getLogger().log(Level.WARNING, "Dropbox Exception class: {0}", ex.getClass().getName());
+                    if (ex instanceof NetworkIOException)
+                        getLogger().log(Level.WARNING, "Network Exception", ex.getCause());
+                }
                 getLogger().exiting("FileDownloader","downloadFile",null);
                 return null;
             }
@@ -7679,22 +7713,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (LoadingStage.DOWNLOADING_FILE.equals(stage) && syncMode != null 
                     && filePath != null){
                 int retryOption;
-                File downloadFile = getDownloadFile(file);
+                downloadedFile = getDownloadFile(file);
+                File downloadFile = null;
                 do{
                     retryOption = JOptionPane.NO_OPTION;
-                    downloadedFile = downloadFile(downloadFile,filePath,syncMode);
-                    if (downloadedFile == null){
-                        retryOption = showDownloadFailurePrompt(downloadFile,
+                    downloadFile = downloadFile(downloadedFile,filePath,syncMode);
+                    if (downloadFile == null){
+                        retryOption = showDownloadFailurePrompt(downloadedFile,
                                 filePath,syncMode,exc);
                     }
                 }
-                while(downloadedFile == null && retryOption == JOptionPane.YES_OPTION);
-                if (downloadedFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
+                while(downloadFile == null && retryOption == JOptionPane.YES_OPTION);
+                if (downloadFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
                         retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
                     loadSuccess = false;
                     getLogger().exiting("FileDownloader", "loadFile",true);
                     return true;
                 }
+                downloadedFile = downloadFile;
                 progressBar.setValue(0);
                 progressBar.setIndeterminate(true);
                 setStage(LoadingStage.LOADING_FILE);
@@ -7712,28 +7748,44 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
+         * @param ifSuccessful 
          */
-        protected void deleteDownloadedFileIfSuccessful(){
-                // If the program successfully loaded the file, there's a 
-                // downloaded file
-            if (success && downloadedFile != null){
-                boolean sameFile = false;
-                try{
-                    sameFile = Files.isSameFile(file.toPath(), downloadedFile.toPath());
-                } catch (IOException ex){
-                    getLogger().log(Level.WARNING, 
-                            "Failed to check if the downloaded file is the same "
-                                    + "as the loaded file",ex);
-                    sameFile = file.equals(downloadedFile);
-                }   // If the loaded file and downloaded file are not the same 
-                    // file (i.e. the downloaded file did not overwrite the 
-                    // loaded file)
-                if (!sameFile)  
-                    downloadedFile.deleteOnExit();
+        protected void deleteDownloadedFile(boolean ifSuccessful){
+            getLogger().entering("AbstractFileDownloader", 
+                    "deleteDownloadedFile", ifSuccessful);
+                // If the program successfully loaded the file or this is to 
+                // ignore if the file was loaded successfully
+            if (success || !ifSuccessful){
+                    // If there's a downloaded file, and the loaded file and 
+                    // downloaded file are not the same file (i.e. the 
+                    // downloaded file did not overwrite the loaded file)
+                if (downloadedFile != null && 
+                        !LinkManagerUtilities.isSameFile(file, downloadedFile)){
+                    /*
+                    TODO: Figure out how to resolve a glitch where the file 
+                    isn't being deleted if the process is cancelled during the 
+                    download.
+                    */
+                    if (isCancelled() && exitIfCancelled){
+                        getLogger().log(Level.FINER, "Deleting file \"{0}\"", downloadedFile);
+                        try{    
+                            Files.deleteIfExists(downloadedFile.toPath());
+                        } catch (IOException ex){
+                            getLogger().log(Level.WARNING, "Failed to delete file", ex);
+                            downloadedFile.deleteOnExit();
+                        }
+                    } else {
+                        getLogger().log(Level.FINER, "Deleting on exit \"{0}\"", downloadedFile);
+                        downloadedFile.deleteOnExit();
+                    }
+                }
             }
+            getLogger().exiting("AbstractFileDownloader", 
+                    "deleteDownloadedFile");
         }
         /**
          * 
+         * @param ex
          * @return 
          */
         protected boolean getDownloadFailureMessageStatesError(Exception ex){
@@ -7744,12 +7796,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file
          * @param path
          * @param mode
+         * @param ex
          * @return 
          */
         protected String getDownloadFailureMessage(File file, String path, 
                 DatabaseSyncMode mode, Exception ex){
                 // The message to return
             String msg = "The file failed to download from "+mode+".";
+            if (ex instanceof NetworkIOException && ex.getCause() instanceof UnknownHostException){
+                msg = "Could not connect to "+mode+
+                        ". Please check your connection and try again.";
+            }
                 // If the program is either in debug mode or 
                 // if details are to be shown and there was an 
                 // exception thrown
@@ -7764,6 +7821,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file
          * @param path
          * @param mode
+         * @param ex
          * @return 
          */
         protected String getDownloadFileNotFoundMessage(File file, String path, 
@@ -7782,6 +7840,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file
          * @param path
          * @param mode
+         * @param ex
          * @return 
          */
         protected int showDownloadFailurePrompt(File file, String path, 
@@ -7818,6 +7877,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (showSuccess)   
                 LinkManager.this.showSuccessPrompt(getSuccessTitle(file), 
                         getSuccessMessage(file));
+        }
+        /**
+         * This is used to exit the program after this finishes saving the file.
+         */
+        protected void exitProgram(){
+            getLogger().finer("Exiting program normally");
+            System.exit(0);         // Exit the program
+        }
+        @Override
+        protected void done(){
+            if (isCancelled() && exitIfCancelled)
+                exitProgram();
+            super.done();
         }
     }
     /**
@@ -7931,7 +8003,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // If the file was successfully saved and there is a backup file
             if (success && backupFile != null){
                 getLogger().log(Level.FINER, "Deleting file {0}", backupFile);
-                backupFile.delete();
+                try{
+                    Files.deleteIfExists(backupFile.toPath());
+                } catch (IOException ex){
+                    getLogger().log(Level.WARNING, "Failed to delete file", ex);
+                    backupFile.delete();
+                }
             }
             getLogger().exiting("FileSaver", "deleteBackupIfSuccessful");
         }
@@ -8532,6 +8609,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected String getSuccessMessage(File file){
             return "The database file was successfully downloaded.";
+        }
+        @Override
+        protected void done(){
+            deleteDownloadedFile(false);
+            super.done();
         }
     }
     /**
@@ -9739,10 +9821,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         getLogger().exiting("AbstractDatabaseSaver", 
                                 "uploadDatabase", false);
                         return false;
+                    } else if (ex instanceof DbxException){
+                        getLogger().log(Level.WARNING, "Dropbox Exception class: {0}", ex.getClass().getName());
+                        if (ex instanceof NetworkIOException)
+                            getLogger().log(Level.WARNING, "Network Exception", ex.getCause());
                     }
                 }   // The message to return
                 String msg = "The file failed to upload to "+mode+".";
-                    // If the program is either in debug mode or 
+                if (exc instanceof NetworkIOException && exc.getCause() instanceof UnknownHostException){
+                    msg = "Could not connect to "+mode+
+                            ". Please check your connection and try again.";
+                }   // If the program is either in debug mode or 
                     // if details are to be shown and there was an 
                     // exception thrown
                 if ((isInDebug() || showDBErrorDetailsToggle.isSelected()) && 
@@ -10618,6 +10707,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 Integer loadFlags){
             super(file,filePath,mode);
             this.loadFlags = loadFlags;
+            exitIfCancelled = !fullyLoaded;
         }
         
         TempDatabaseDownloader(File file, String filePath, DatabaseSyncMode mode){

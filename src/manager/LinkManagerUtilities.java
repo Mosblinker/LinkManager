@@ -17,6 +17,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.logging.Level;
 import javax.swing.*;
 import manager.dropbox.DropboxUtilities;
 
@@ -590,5 +591,22 @@ public class LinkManagerUtilities {
             }
         }
         return filePath;
+    }
+    /**
+     * 
+     * @param file1
+     * @param file2
+     * @return 
+     */
+    public static boolean isSameFile(File file1, File file2){
+        try{
+            return Files.isSameFile(file1.toPath(), file2.toPath());
+        } catch (NoSuchFileException ex) {
+        } catch (IOException ex){
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to check if the downloaded file is the same "
+                            + "as the loaded file",ex);
+        }
+        return file1.equals(file2);
     }
 }
