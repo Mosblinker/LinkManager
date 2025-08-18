@@ -8573,6 +8573,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected String getSuccessMessage(File file){
             return "The database file was successfully downloaded.";
         }
+        @Override
+        protected void done(){
+            deleteDownloadedFile(false);
+            super.done();
+        }
     }
     /**
      * This is an abstract class that provides the framework for loading from a 
