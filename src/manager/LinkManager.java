@@ -7452,6 +7452,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected boolean showSuccess = false;
         
         protected boolean loadSuccess = true;
+        
+        protected boolean exitIfCancelled = false;
         /**
          * 
          * @param file
@@ -7588,6 +7590,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         public boolean getShowsSuccessPrompt(){
             return showSuccess;
+        }
+        /**
+         * 
+         * @param value
+         * @return 
+         */
+        public AbstractFileDownloader setExitIfCancelled(boolean value){
+            this.exitIfCancelled = value;
+            return this;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean getExitIfCancelled(){
+            return exitIfCancelled;
         }
         /**
          * 
@@ -7827,6 +7845,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (showSuccess)   
                 LinkManager.this.showSuccessPrompt(getSuccessTitle(file), 
                         getSuccessMessage(file));
+        }
+        /**
+         * This is used to exit the program after this finishes saving the file.
+         */
+        protected void exitProgram(){
+            getLogger().finer("Exiting program normally");
+            System.exit(0);         // Exit the program
+        }
+        @Override
+        protected void done(){
+            if (isCancelled() && exitIfCancelled)
+                exitProgram();
+            super.done();
         }
     }
     /**
