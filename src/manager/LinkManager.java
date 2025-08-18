@@ -7752,7 +7752,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         !LinkManagerUtilities.isSameFile(file, downloadedFile)){
                     if (isCancelled() && exitIfCancelled){
                         getLogger().log(Level.FINER, "Deleting file \"{0}\"", downloadedFile);
+                        try{
+                            Files.deleteIfExists(downloadedFile.toPath());
+                        } catch (IOException ex){
+                            getLogger().log(Level.WARNING, "Failed to delete file", ex);
                             downloadedFile.delete();
+                        }
                     } else {
                         getLogger().log(Level.FINER, "Deleting on exit \"{0}\"", downloadedFile);
                         downloadedFile.deleteOnExit();
@@ -7978,7 +7983,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // If the file was successfully saved and there is a backup file
             if (success && backupFile != null){
                 getLogger().log(Level.FINER, "Deleting file {0}", backupFile);
-                backupFile.delete();
+                try{
+                    Files.deleteIfExists(backupFile.toPath());
+                } catch (IOException ex){
+                    getLogger().log(Level.WARNING, "Failed to delete file", ex);
+                    backupFile.delete();
+                }
             }
             getLogger().exiting("FileSaver", "deleteBackupIfSuccessful");
         }
