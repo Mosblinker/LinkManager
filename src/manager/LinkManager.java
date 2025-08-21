@@ -5555,14 +5555,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             Exception ex){
             // The message to return
         String msg = String.format(msgTemplate, mode);
-        if (ex instanceof NetworkIOException && ex.getCause() instanceof UnknownHostException){
-            msg = "Could not connect to "+mode+
+        if (ex instanceof NetworkIOException){
+            msg += "\nCould not connect to "+mode+
                     ". Please check your connection and try again.";
-        }   // If the program is either in debug mode or 
-            // if details are to be shown and there was an 
-            // exception thrown
+        }   // If the program is either in debug mode or if details are to be 
+            // shown and there was an exception thrown
         if ((isInDebug() || showError) && ex != null){
             msg += "\nError: " + ex;
+            if (ex instanceof NetworkIOException)
+                msg += "\nCause: " + ex.getCause();
         }
         return msg;
     }
