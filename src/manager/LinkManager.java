@@ -3807,20 +3807,26 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 Integer listID;     // changed
                     // This will get the newly selected value
                 String selValue;
+                    // This will get the name of the list
+                String listName;
                     // If the source of the event is a LinksListPanel
                 if (evt.getSource() instanceof LinksListPanel){
                         // Get the source as a panel
                     LinksListPanel panel = (LinksListPanel)evt.getSource();
                     listID = panel.getListID();
                     selValue = panel.getSelectedValue();
+                    listName = panel.getListName();
                     // If the source of the event is a LinksListModel
                 } else if (evt.getSource() instanceof LinksListModel){
                         // Get the source as a model
                     LinksListModel model = (LinksListModel)evt.getSource();
                     listID = model.getListID();
                     selValue = model.getSelectedValue();
+                    listName = model.getListName();
                 } else
                     return;
+                getLogger().log(Level.FINER, "Selection changed for list {0}. {1}: {2}", 
+                        new Object[]{listID, listName, selValue});
                     // If the listID for this list is not null
                 if (listID != null)
                         // Set the selected link for the list
