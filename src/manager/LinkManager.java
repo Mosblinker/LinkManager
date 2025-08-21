@@ -7763,7 +7763,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return The downloaded file, or null if this failed to download.
          */
         protected File downloadFile(File file, String path, DatabaseSyncMode mode){
-            getLogger().entering("FileDownloader", "downloadFile", 
+            getLogger().entering("AbstractFileDownloader", "downloadFile", 
                     new Object[]{file,path,mode});
                 // Format the file path
             path = LinkManagerUtilities.formatExternalFilePath(mode, path);
@@ -7776,10 +7776,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         FileMetadata data = downloadFromDropbox(file,path);
                         fileFound = data != null;
                         File temp = (fileFound) ? file : null;
-                        getLogger().exiting("FileDownloader","downloadFile",temp);
+                        getLogger().exiting("AbstractFileDownloader","downloadFile",temp);
                         return temp;
                 }
-                getLogger().exiting("FileDownloader","downloadFile",file);
+                getLogger().exiting("AbstractFileDownloader","downloadFile",file);
                 return file;
             } catch (IOException | DbxException ex){
                 exc = ex;
@@ -7788,7 +7788,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (ex instanceof NetworkIOException){
                     getLogger().log(Level.WARNING, "Network Exception", ex.getCause());
                 }
-                getLogger().exiting("FileDownloader","downloadFile",null);
+                getLogger().exiting("AbstractFileDownloader","downloadFile",null);
                 return null;
             }
         }
@@ -7801,7 +7801,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected abstract boolean loadFile(File file, File downloadedFile);
         @Override
         protected boolean loadFile(File file){
-            getLogger().entering("FileDownloader", "loadFile", file);
+            getLogger().entering("AbstractFileDownloader", "loadFile", file);
             if (LoadingStage.DOWNLOADING_FILE.equals(stage) && syncMode != null 
                     && filePath != null){
                 int retryOption;
@@ -7819,7 +7819,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (downloadFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
                         retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
                     loadSuccess = false;
-                    getLogger().exiting("FileDownloader", "loadFile",true);
+                    getLogger().exiting("AbstractFileDownloader", "loadFile",true);
                     return true;
                 }
                 downloadedFile = downloadFile;
@@ -7829,7 +7829,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             
             boolean value = loadFile(file,downloadedFile);
-            getLogger().exiting("FileDownloader", "loadFile",value);
+            getLogger().exiting("AbstractFileDownloader", "loadFile",value);
             return value;
         }
         @Override
