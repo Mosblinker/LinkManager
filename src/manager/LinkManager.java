@@ -3614,10 +3614,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButtonActionPerformed
+            // Ensure that the program's configuration is up-to-date
+        updateProgramConfig();
             // If the program is currently saving a file
         if (isSavingFiles()){
-                // Ensure that the program's configuration is up-to-date
-            updateProgramConfig();
             // TODO: The program should probably not be able close while a file is saving
                 // If the file saver is set to exit the program after it 
                 // finishes saving the file
@@ -3650,8 +3650,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // initial load
         if (fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
             getLogger().finer("Exiting and saving program");
-                // Ensure that the program's configuration is up-to-date
-            updateProgramConfig();
             exitButton.setEnabled(false);
                 // Save the database and close the program
             saver = new DatabaseSaver(true);
@@ -7965,6 +7963,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * This is used to exit the program after this finishes saving the file.
          */
         protected void exitProgram(){
+                // Update the program configuration
+            updateProgramConfig();
             getLogger().finer("Exiting program normally");
             System.exit(0);         // Exit the program
         }
@@ -8264,6 +8264,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * This is used to exit the program after this finishes saving the file.
          */
         protected void exitProgram(){
+                // Update the program configuration
+            updateProgramConfig();
             getLogger().finer("Exiting program normally");
             System.exit(0);         // Exit the program
         }
