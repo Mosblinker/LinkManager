@@ -3345,9 +3345,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             System.out.println("toProperties():");
             Properties dbProp = dbProperty.toProperties();
             dbProp.list(System.out);
-        }
-        catch (SQLException | UncheckedSQLException ex) {
-            System.out.println("Error: "+ex);
+        } catch (SQLException ex){
+            getLogger().log(Level.INFO, null, ex);
+        } catch (UncheckedSQLException ex){
+            getLogger().log(Level.INFO, null, ex);
+            getLogger().log(Level.INFO, "Cause", ex.getCause());
         }
     }//GEN-LAST:event_printDBButtonActionPerformed
 
@@ -3355,8 +3357,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try(LinkDatabaseConnection conn = connect(getDatabaseFile());
             Statement stmt = conn.createStatement()){
             conn.createTables(stmt);
-        }catch (SQLException | UncheckedSQLException ex) {
+        } catch (SQLException ex){
             getLogger().log(Level.WARNING,"Error creating database tables", ex);
+        } catch (UncheckedSQLException ex){
+            getLogger().log(Level.WARNING,"Error creating database tables", ex);
+            getLogger().log(Level.WARNING,"Error creating database tables cause", ex.getCause());
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -4631,9 +4636,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void dbUpdateLastModButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbUpdateLastModButtonActionPerformed
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             setDBLastModLabelText(conn.setDatabaseLastModified());
-        }catch (SQLException | UncheckedSQLException ex) {
-            getLogger().log(Level.WARNING, 
-                    "Failed to update last modified time of database" , ex);
+        } catch (SQLException ex){
+            getLogger().log(Level.WARNING,"Failed to update last modified time of database", ex);
+        } catch (UncheckedSQLException ex){
+            getLogger().log(Level.WARNING,"Failed to update last modified time of database", ex);
+            getLogger().log(Level.WARNING,"Failed to update last modified time of database cause", ex.getCause());
         }
     }//GEN-LAST:event_dbUpdateLastModButtonActionPerformed
 
@@ -4681,8 +4688,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.WARNING,
                     "Failed to run query (code: "+dbQueryPanel.getErrorCode()+")",
                     ex);
-            JOptionPane.showMessageDialog(this, "Database Error: " + ex,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            String errMsg = "Database Error: " + ex;
+            if (ex instanceof UncheckedSQLException){
+                getLogger().log(Level.WARNING,
+                        "Failed to run query cause (code: "+dbQueryPanel.getErrorCode()+")",
+                        ex.getCause());
+                errMsg += "\nCause: " + ex.getCause();
+            }
+            JOptionPane.showMessageDialog(this, errMsg, "Database Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
         System.gc();
         if (updated){   // Update the database view if there were changes
@@ -8705,6 +8719,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             } catch (UncheckedSQLException ex){
                 getLogger().log(Level.WARNING,"Failed to load database", ex);
                 sqlExc = ex.getCause();
+                getLogger().log(Level.WARNING,"Failure to load database cause", ex);
             }
             getLogger().exiting("AbstractDatabaseLoader", "loadFile", value);
             return value;
@@ -9778,6 +9793,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 } catch (UncheckedSQLException ex){
                     getLogger().log(Level.WARNING, "Failed to save database", ex);
                     sqlExc = ex.getCause();
+                    getLogger().log(Level.WARNING,"Failure to save database cause", ex);
                 } catch(Exception ex){
                     getLogger().log(Level.WARNING, "Failed to save database", ex);
                 }
