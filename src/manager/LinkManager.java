@@ -5541,6 +5541,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     /**
+     * 
+     * @param file
+     * @param path
+     * @param msgTemplate
+     * @param mode
+     * @param showError
+     * @param ex
+     * @return 
+     */
+    private String getSyncFailureMessage(File file, String path, 
+            DatabaseSyncMode mode, String msgTemplate, boolean showError, 
+            Exception ex){
+            // The message to return
+        String msg = String.format(msgTemplate, mode);
+        if (ex instanceof NetworkIOException && ex.getCause() instanceof UnknownHostException){
+            msg = "Could not connect to "+mode+
+                    ". Please check your connection and try again.";
+        }   // If the program is either in debug mode or 
+            // if details are to be shown and there was an 
+            // exception thrown
+        if ((isInDebug() || showError) && ex != null){
+            msg += "\nError: " + ex;
+        }
+        return msg;
+    }
+    /**
      * This attempts to write the List of Strings to the given file.
      * @param file The file to write to.
      * @param list The list of String to write to the file.
@@ -7799,20 +7825,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected String getDownloadFailureMessage(File file, String path, 
                 DatabaseSyncMode mode, Exception ex){
-                // The message to return
-            String msg = "The file failed to download from "+mode+".";
-            if (ex instanceof NetworkIOException && ex.getCause() instanceof UnknownHostException){
-                msg = "Could not connect to "+mode+
-                        ". Please check your connection and try again.";
-            }
-                // If the program is either in debug mode or 
-                // if details are to be shown and there was an 
-                // exception thrown
-            if ((isInDebug() || getDownloadFailureMessageStatesError(ex)) && 
-                    ex != null){
-                msg += "\nError: " + ex;
-            }
-            return msg;
+            return getSyncFailureMessage(file,path,mode,
+                    "The file failed to download from %s.",
+                    getDownloadFailureMessageStatesError(ex),ex);
         }
         /**
          * 
@@ -9822,19 +9837,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     } else if (ex instanceof NetworkIOException){
                         getLogger().log(Level.WARNING, "Network Exception", ex.getCause());
                     }
-                }   // The message to return
-                String msg = "The file failed to upload to "+mode+".";
-                if (exc instanceof NetworkIOException && exc.getCause() instanceof UnknownHostException){
-                    msg = "Could not connect to "+mode+
-                            ". Please check your connection and try again.";
-                }   // If the program is either in debug mode or 
-                    // if details are to be shown and there was an 
-                    // exception thrown
-                if ((isInDebug() || showDBErrorDetailsToggle.isSelected()) && 
-                        exc != null){
-                    msg += "\nError: " + exc;
                 }
-                retry = showFailurePrompt("ERROR - File Failed To Upload",msg,
+                retry = showFailurePrompt("ERROR - File Failed To Upload",
+                        getSyncFailureMessage(file,path,mode,
+                                "The file failed to upload to %s.",
+                                showDBErrorDetailsToggle.isSelected(),exc),
                         true);
             }   // While the file failed to be processed and the user wants to 
             while(retry);   // try again
