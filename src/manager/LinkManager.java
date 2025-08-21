@@ -9559,15 +9559,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * Whether file not found errors should be shown.
          */
         protected boolean showFileNotFound = true;
-        /**
-         * The SQLException thrown while saving to the database if an error 
-         * occurred.
-         */
-        protected SQLException sqlExc = null;
-        /**
-         * Whether this is currently verifying the changes to the database.
-         */
-        private boolean verifying = false;
         
         AbstractDatabaseSaver(File file, String filePath, 
                 DatabaseSyncMode mode, File configFile, SavingStage stage, 
@@ -9814,7 +9805,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             boolean retry;
             do{
                 boolean value = false;
-                sqlExc = null;
+                SQLException exc = null;
                 progressBar.setValue(0);
                 progressBar.setIndeterminate(true);
                     // Connect to the database and create an SQL statement
@@ -9842,10 +9833,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     }
                 } catch(SQLException ex){
                     getLogger().log(Level.WARNING, "Failed to save database", ex);
-                    sqlExc = ex;
+                    exc = ex;
                 } catch (UncheckedSQLException ex){
                     getLogger().log(Level.WARNING, "Failed to save database", ex);
-                    sqlExc = ex.getCause();
+                    exc = ex.getCause();
                     getLogger().log(Level.WARNING,"Failure to save database cause", ex);
                 } catch(Exception ex){
                     getLogger().log(Level.WARNING, "Failed to save database", ex);
@@ -9855,7 +9846,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     return true;
                 }
                 retry = showFailurePrompt("ERROR - Failed To Save Database",
-                        getFailureMessage(file, sqlExc),true);
+                        getFailureMessage(file, exc),true);
             }   // While the file failed to be processed and the user wants to 
             while(retry);   // try again
             getLogger().exiting("AbstractDatabaseSaver", "saveDatabase", false);
@@ -9997,15 +9988,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected String getSuccessMessage(File file){
             return "The database was successfully saved.";
         }
-        /**
-         * This returns any SQLExceptions that were thrown while this was 
-         * saving data to the database.
-         * @return The SQLException thrown while saving, or null if no 
-         * SQLException was thrown.
-         */
-        protected SQLException getSQLExceptionThrown(){
-            return sqlExc;
-        }
         @Override
         protected String getBackupFailedMessage(File file){
             return "The database backup file failed to be created.";
@@ -10013,7 +9995,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         protected String getFailureMessage(File file, SQLException ex){
                 // The message to return
-            String msg = "The database failed to save.";
+            String msg = getFailureMessage(file);
             if (ex != null){    // If an SQLException was thrown
                     // Custom error messages for certain error codes
                 switch(ex.getErrorCode()){
@@ -10045,7 +10027,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected String getFailureMessage(File file){
-            return getFailureMessage(file,sqlExc);
+            return "The database failed to save.";
         }
         @Override
         protected String getFailureTitle(File file){
