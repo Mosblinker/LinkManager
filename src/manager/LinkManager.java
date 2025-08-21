@@ -11027,33 +11027,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return "The database file does not exist.";
         }
     }
-    
-    private class DatabaseFileLoader extends AbstractDatabaseLoader{
-        
-        protected LoadingStage stage;
-        
-        protected String filePath;
-        
-        protected DatabaseSyncMode syncMode;
-        
-        protected boolean loadSuccess = true;
-        
-        
-        
+    /**
+     * This loads the lists of links from the database.
+     */
+    private class DatabaseFileLoader extends AbstractDatabaseFileLoader{
+
         @Override
-        protected boolean loadFile(File file){
-            getLogger().entering("DatabaseFileLoader", "loadFile", file);
-            
-            loadSuccess = super.loadFile(file);
-            
-            getLogger().exiting("DatabaseFileLoader", "loadFile",loadSuccess);
-            return loadSuccess;
+        protected boolean loadDatabase(LinkDatabaseConnection conn, Statement stmt) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
 
         @Override
-        protected boolean loadDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException {
+        public String getLoadingProgressString() {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
+        
     }
 }
