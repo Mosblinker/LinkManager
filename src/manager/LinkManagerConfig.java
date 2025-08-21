@@ -2290,6 +2290,8 @@ public class LinkManagerConfig {
      * @param panel 
      */
     public void setVisibleSection(int listID, LinksListPanel panel){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "setVisibleSection", new Object[]{listID,panel});
             // This will get the first visible index
         Integer firstVisIndex = null;
             // This will get the last visible index
@@ -2324,6 +2326,8 @@ public class LinkManagerConfig {
         setSelectedLinkIsVisible(listID,isSelVis);
             // Set the visible rectangle for the list
         setVisibleRect(listID,visRect);
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "setVisibleSection");
     }
     /**
      * 

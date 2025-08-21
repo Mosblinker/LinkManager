@@ -5672,8 +5672,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * cover all possible ways of the value being set.
      */
     private void updateProgramConfig(){
+        getLogger().entering(this.getClass().getName(), "updateProgramConfig");
             // If the program has fully loaded
         if (fullyLoaded){
+            getLogger().finer("Program is fully loaded");
                 // Map the list panels to their listIDs
             Map<Integer,LinksListPanel> panels = new HashMap<>();
                 // Go through the list panels in the selected tabs panel
@@ -5701,6 +5703,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config.setSearchText(searchPanel.getSearchText());
             // Set the entered link text in the configuration
         config.setEnteredLinkText(linkTextField.getText());
+        getLogger().exiting(this.getClass().getName(), "updateProgramConfig");
     }
     /**
      * This loads the configuration for the program from the configuration map.
