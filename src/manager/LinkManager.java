@@ -3614,10 +3614,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButtonActionPerformed
+            // Ensure that the program's configuration is up-to-date
+        updateProgramConfig();
             // If the program is currently saving a file
         if (isSavingFiles()){
-                // Ensure that the program's configuration is up-to-date
-            updateProgramConfig();
             // TODO: The program should probably not be able close while a file is saving
                 // If the file saver is set to exit the program after it 
                 // finishes saving the file
@@ -3650,8 +3650,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // initial load
         if (fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
             getLogger().finer("Exiting and saving program");
-                // Ensure that the program's configuration is up-to-date
-            updateProgramConfig();
             exitButton.setEnabled(false);
                 // Save the database and close the program
             saver = new DatabaseSaver(true);
@@ -7763,7 +7761,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return The downloaded file, or null if this failed to download.
          */
         protected File downloadFile(File file, String path, DatabaseSyncMode mode){
-            getLogger().entering("FileDownloader", "downloadFile", 
+            getLogger().entering("AbstractFileDownloader", "downloadFile", 
                     new Object[]{file,path,mode});
                 // Format the file path
             path = LinkManagerUtilities.formatExternalFilePath(mode, path);
@@ -7776,10 +7774,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         FileMetadata data = downloadFromDropbox(file,path);
                         fileFound = data != null;
                         File temp = (fileFound) ? file : null;
-                        getLogger().exiting("FileDownloader","downloadFile",temp);
+                        getLogger().exiting("AbstractFileDownloader","downloadFile",temp);
                         return temp;
                 }
-                getLogger().exiting("FileDownloader","downloadFile",file);
+                getLogger().exiting("AbstractFileDownloader","downloadFile",file);
                 return file;
             } catch (IOException | DbxException ex){
                 exc = ex;
@@ -7788,7 +7786,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (ex instanceof NetworkIOException){
                     getLogger().log(Level.WARNING, "Network Exception", ex.getCause());
                 }
-                getLogger().exiting("FileDownloader","downloadFile",null);
+                getLogger().exiting("AbstractFileDownloader","downloadFile",null);
                 return null;
             }
         }
@@ -7801,35 +7799,37 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected abstract boolean loadFile(File file, File downloadedFile);
         @Override
         protected boolean loadFile(File file){
-            getLogger().entering("FileDownloader", "loadFile", file);
+            getLogger().entering("AbstractFileDownloader", "loadFile", file);
             if (LoadingStage.DOWNLOADING_FILE.equals(stage) && syncMode != null 
                     && filePath != null){
                 int retryOption;
                 downloadedFile = getDownloadFile(file);
-                File downloadFile = null;
-                do{
-                    retryOption = JOptionPane.NO_OPTION;
-                    downloadFile = downloadFile(downloadedFile,filePath,syncMode);
-                    if (downloadFile == null){
-                        retryOption = showDownloadFailurePrompt(downloadedFile,
-                                filePath,syncMode,exc);
+                if (downloadedFile != null){
+                    File downloadFile = null;
+                    do{
+                        retryOption = JOptionPane.NO_OPTION;
+                        downloadFile = downloadFile(downloadedFile,filePath,syncMode);
+                        if (downloadFile == null){
+                            retryOption = showDownloadFailurePrompt(downloadedFile,
+                                    filePath,syncMode,exc);
+                        }
                     }
+                    while(downloadFile == null && retryOption == JOptionPane.YES_OPTION);
+                    if (downloadFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
+                            retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
+                        loadSuccess = false;
+                        getLogger().exiting("AbstractFileDownloader", "loadFile",true);
+                        return true;
+                    }
+                    downloadedFile = downloadFile;
+                    progressBar.setValue(0);
+                    progressBar.setIndeterminate(true);
                 }
-                while(downloadFile == null && retryOption == JOptionPane.YES_OPTION);
-                if (downloadFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
-                        retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
-                    loadSuccess = false;
-                    getLogger().exiting("FileDownloader", "loadFile",true);
-                    return true;
-                }
-                downloadedFile = downloadFile;
-                progressBar.setValue(0);
-                progressBar.setIndeterminate(true);
                 setStage(LoadingStage.LOADING_FILE);
             }
             
             boolean value = loadFile(file,downloadedFile);
-            getLogger().exiting("FileDownloader", "loadFile",value);
+            getLogger().exiting("AbstractFileDownloader", "loadFile",value);
             return value;
         }
         @Override
@@ -7963,6 +7963,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * This is used to exit the program after this finishes saving the file.
          */
         protected void exitProgram(){
+                // Update the program configuration
+            updateProgramConfig();
             getLogger().finer("Exiting program normally");
             System.exit(0);         // Exit the program
         }
@@ -8262,6 +8264,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * This is used to exit the program after this finishes saving the file.
          */
         protected void exitProgram(){
+                // Update the program configuration
+            updateProgramConfig();
             getLogger().finer("Exiting program normally");
             System.exit(0);         // Exit the program
         }
@@ -8690,6 +8694,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected String getSuccessMessage(File file){
             return "The database file was successfully downloaded.";
+        }
+        @Override
+        protected String getFailureTitle(File file){
+            return "ERROR - File Failed To Download";
         }
         @Override
         protected void done(){
@@ -9559,15 +9567,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * Whether file not found errors should be shown.
          */
         protected boolean showFileNotFound = true;
-        /**
-         * The SQLException thrown while saving to the database if an error 
-         * occurred.
-         */
-        protected SQLException sqlExc = null;
-        /**
-         * Whether this is currently verifying the changes to the database.
-         */
-        private boolean verifying = false;
         
         AbstractDatabaseSaver(File file, String filePath, 
                 DatabaseSyncMode mode, File configFile, SavingStage stage, 
@@ -9814,7 +9813,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             boolean retry;
             do{
                 boolean value = false;
-                sqlExc = null;
+                SQLException exc = null;
                 progressBar.setValue(0);
                 progressBar.setIndeterminate(true);
                     // Connect to the database and create an SQL statement
@@ -9842,10 +9841,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     }
                 } catch(SQLException ex){
                     getLogger().log(Level.WARNING, "Failed to save database", ex);
-                    sqlExc = ex;
+                    exc = ex;
                 } catch (UncheckedSQLException ex){
                     getLogger().log(Level.WARNING, "Failed to save database", ex);
-                    sqlExc = ex.getCause();
+                    exc = ex.getCause();
                     getLogger().log(Level.WARNING,"Failure to save database cause", ex);
                 } catch(Exception ex){
                     getLogger().log(Level.WARNING, "Failed to save database", ex);
@@ -9855,7 +9854,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     return true;
                 }
                 retry = showFailurePrompt("ERROR - Failed To Save Database",
-                        getFailureMessage(file, sqlExc),true);
+                        getFailureMessage(file, exc),true);
             }   // While the file failed to be processed and the user wants to 
             while(retry);   // try again
             getLogger().exiting("AbstractDatabaseSaver", "saveDatabase", false);
@@ -9997,15 +9996,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected String getSuccessMessage(File file){
             return "The database was successfully saved.";
         }
-        /**
-         * This returns any SQLExceptions that were thrown while this was 
-         * saving data to the database.
-         * @return The SQLException thrown while saving, or null if no 
-         * SQLException was thrown.
-         */
-        protected SQLException getSQLExceptionThrown(){
-            return sqlExc;
-        }
         @Override
         protected String getBackupFailedMessage(File file){
             return "The database backup file failed to be created.";
@@ -10013,7 +10003,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         protected String getFailureMessage(File file, SQLException ex){
                 // The message to return
-            String msg = "The database failed to save.";
+            String msg = getFailureMessage(file);
             if (ex != null){    // If an SQLException was thrown
                     // Custom error messages for certain error codes
                 switch(ex.getErrorCode()){
@@ -10045,7 +10035,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected String getFailureMessage(File file){
-            return getFailureMessage(file,sqlExc);
+            return "The database failed to save.";
         }
         @Override
         protected String getFailureTitle(File file){
@@ -10820,32 +10810,237 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private class DatabaseFileLoader extends AbstractDatabaseLoader{
-        
-        protected LoadingStage stage;
-        
-        protected String filePath;
-        
-        protected DatabaseSyncMode syncMode;
-        
-        protected boolean loadSuccess = true;
-        
-        
-        
+    /**
+     * This is an abstract class that provides the framework for loading from a 
+     * database file.
+     */
+    private abstract class AbstractDatabaseFileLoader extends AbstractFileDownloader{
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
+         */
+        AbstractDatabaseFileLoader(File file, String filePath, 
+                DatabaseSyncMode mode, LoadingStage stage, 
+                boolean showFileNotFound) {
+            super(file, filePath, mode, stage, showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage 
+         */
+        AbstractDatabaseFileLoader(File file, String filePath, 
+                DatabaseSyncMode mode, LoadingStage stage) {
+            super(file,filePath,mode,stage);
+        }
+        /**
+         * 
+         * @param file
+         * @param stage
+         * @param showFileNotFound 
+         */
+        AbstractDatabaseFileLoader(File file, LoadingStage stage, boolean showFileNotFound){
+            super(file,stage,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param stage 
+         */
+        AbstractDatabaseFileLoader(File file, LoadingStage stage){
+            super(file,stage);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param showFileNotFound 
+         */
+        AbstractDatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
+                boolean showFileNotFound) {
+            super(file,filePath,mode,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode 
+         */
+        AbstractDatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode){
+            super(file,filePath,mode);
+        }
+        /**
+         * This constructs a AbstractDatabaseLoader that will load the data from 
+         * the database stored in the given file.
+         * @param file The database file to load the data from.
+         * @param showFileNotFound Whether a file not found error should result 
+         * in a popup being shown to the user.
+         */
+        AbstractDatabaseFileLoader(File file, boolean showFileNotFound) {
+            super(file, showFileNotFound);
+        }
+        /**
+         * This constructs a AbstractDatabaseLoader that will load the data from 
+         * the database stored in the given file.
+         * @param file The database file to load the data from.
+         */
+        AbstractDatabaseFileLoader(File file) {
+            super(file);
+        }
+        /**
+         * This constructs a AbstractDatabaseLoader that will load the data from 
+         * the program's {@link #getDatabaseFile() database file}.
+         * @param showFileNotFound Whether a file not found error should result 
+         * in a popup being shown to the user.
+         */
+        AbstractDatabaseFileLoader(boolean showFileNotFound){
+            this(getDatabaseFile(), showFileNotFound);
+        }
+        /**
+         * This constructs a AbstractDatabaseLoader that will load the data from 
+         * the program's {@link #getDatabaseFile() database file}.
+         */
+        AbstractDatabaseFileLoader(){
+            this(true);
+        }
         @Override
-        protected boolean loadFile(File file){
-            getLogger().entering("DatabaseFileLoader", "loadFile", file);
-            
-            loadSuccess = super.loadFile(file);
-            
-            getLogger().exiting("DatabaseFileLoader", "loadFile",loadSuccess);
-            return loadSuccess;
+        protected boolean loadFile(File file, File downloadedFile) {
+            getLogger().entering("AbstractDatabaseLoader", "loadFile", new Object[]{file,downloadedFile});
+            if (!file.exists()){    // If the file doesn't exist
+                getLogger().exiting("AbstractDatabaseLoader", "loadFile", false);
+                return false;
+            }
+            boolean retry;
+            do{
+                SQLException sqlExc = null;
+                try{
+                    loadSuccess = loadDatabase(file);
+                } catch(SQLException ex){
+                    getLogger().log(Level.WARNING, "Failed to load database", ex);
+                    sqlExc = ex;
+                } catch (UncheckedSQLException ex){
+                    getLogger().log(Level.WARNING,"Failed to load database", ex);
+                    sqlExc = ex.getCause();
+                    getLogger().log(Level.WARNING,"Failure to load database cause", ex);
+                } catch(Exception ex){
+                    getLogger().log(Level.WARNING, "Failed to load database", ex);
+                }
+                if (loadSuccess){
+                    getLogger().exiting("AbstractDatabaseLoader", "loadFile", true);
+                    return true;
+                }
+                retry = LinkManager.this.showFailurePrompt(getFailureTitle(file), 
+                        getFailureMessage(file,sqlExc), true, false) == JOptionPane.YES_OPTION;
+            } while (!loadSuccess && retry);
+            getLogger().exiting("AbstractDatabaseLoader", "loadFile", true);
+            return true;
+        }
+        /**
+         * This attempts to load from the database using the given database 
+         * connection and provided reusable statement.
+         * @param conn The connection to the database.
+         * @param stmt An SQL statement that can be used to interact with the 
+         * database.
+         * @return Whether this successfully loaded from the database.
+         * @throws SQLException If a database error occurs.
+         * @see #loadFile(File) 
+         */
+        protected abstract boolean loadDatabase(LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException;
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected boolean loadDatabase(File file) throws Exception, SQLException{
+            getLogger().entering("AbstractDatabaseLoader", "loadDatabase", file);
+            if (!file.exists()){    // If the file doesn't exist
+                getLogger().exiting("AbstractDatabaseLoader", "loadDatabase", false);
+                return false;
+            }
+            boolean value;
+                // Connect to the database and create an SQL statement
+            try(LinkDatabaseConnection conn = connect(file);
+                    Statement stmt = conn.createStatement()){
+                value = loadDatabase(conn,stmt); // Load from the database
+            }
+            getLogger().exiting("AbstractDatabaseLoader", "loadDatabase", value);
+            return value;
+        }
+        @Override
+        protected String getFailureTitle(File file){
+            return "ERROR - Database Failed To Load";
+        }
+        @Override
+        protected String getFailureMessage(File file){
+            return "The database failed to load.";
+        }
+        /**
+         * 
+         * @param file
+         * @param ex
+         * @param defaultMsg
+         * @return 
+         */
+        protected String getFailureMessage(File file, SQLException ex, String defaultMsg){
+                // The message to return
+            String msg = defaultMsg;
+            if (ex != null){    // If an SQLException was thrown
+                    // Custom error messages for certain error codes
+                switch(ex.getErrorCode()){
+                        // If the database failed to save because it was busy
+                    case (Codes.SQLITE_BUSY):
+                        msg = "Please wait, the database is currently busy.";
+                        break;
+                        // If the database could not be opened
+                    case(Codes.SQLITE_CANTOPEN):
+                        msg = "The database could not be opened.";
+                        break;
+                        // If the database is corrupted
+                    case(Codes.SQLITE_CORRUPT):
+                        msg = "The database failed to load due to being corrupted.";
+                }   // If the program is either in debug mode or if details are to be shown
+                if (isInDebug() || showDBErrorDetailsToggle.isSelected())    
+                    msg += "\nError: " + ex + 
+                            "\nError Code: " + ex.getErrorCode();
+            }
+            return msg;
+        }
+        /**
+         * 
+         * @param file
+         * @param ex
+         * @return 
+         */
+        protected String getFailureMessage(File file, SQLException ex){
+            return getFailureMessage(file,ex,getFailureMessage(file));
+        }
+        @Override
+        protected String getFileNotFoundMessage(File file){
+            return "The database file does not exist.";
+        }
+    }
+    /**
+     * This loads the lists of links from the database.
+     */
+    private class DatabaseFileLoader extends AbstractDatabaseFileLoader{
+
+        @Override
+        protected boolean loadDatabase(LinkDatabaseConnection conn, Statement stmt) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
 
         @Override
-        protected boolean loadDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException {
+        public String getLoadingProgressString() {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
+        
     }
 }
