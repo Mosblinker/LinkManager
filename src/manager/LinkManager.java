@@ -7806,25 +7806,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     && filePath != null){
                 int retryOption;
                 downloadedFile = getDownloadFile(file);
-                File downloadFile = null;
-                do{
-                    retryOption = JOptionPane.NO_OPTION;
-                    downloadFile = downloadFile(downloadedFile,filePath,syncMode);
-                    if (downloadFile == null){
-                        retryOption = showDownloadFailurePrompt(downloadedFile,
-                                filePath,syncMode,exc);
+                if (downloadedFile != null){
+                    File downloadFile = null;
+                    do{
+                        retryOption = JOptionPane.NO_OPTION;
+                        downloadFile = downloadFile(downloadedFile,filePath,syncMode);
+                        if (downloadFile == null){
+                            retryOption = showDownloadFailurePrompt(downloadedFile,
+                                    filePath,syncMode,exc);
+                        }
                     }
+                    while(downloadFile == null && retryOption == JOptionPane.YES_OPTION);
+                    if (downloadFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
+                            retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
+                        loadSuccess = false;
+                        getLogger().exiting("AbstractFileDownloader", "loadFile",true);
+                        return true;
+                    }
+                    downloadedFile = downloadFile;
+                    progressBar.setValue(0);
+                    progressBar.setIndeterminate(true);
                 }
-                while(downloadFile == null && retryOption == JOptionPane.YES_OPTION);
-                if (downloadFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
-                        retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
-                    loadSuccess = false;
-                    getLogger().exiting("AbstractFileDownloader", "loadFile",true);
-                    return true;
-                }
-                downloadedFile = downloadFile;
-                progressBar.setValue(0);
-                progressBar.setIndeterminate(true);
                 setStage(LoadingStage.LOADING_FILE);
             }
             
