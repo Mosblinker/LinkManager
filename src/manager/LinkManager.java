@@ -3119,6 +3119,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         System.out.println();
         
+        System.out.println("Models: ");
+        for (LinksListModel model : listModels){
+            System.out.printf("%6s: %s%n",Objects.toString(model.getListID(), ""),model.getListName());
+        }
+        System.out.println();
+        
         System.out.println("Configuration: " + config.getProperties().size() + 
                 " " + config.getProperties().stringPropertyNames().size());
         config.getProperties().list(System.out);
@@ -3143,9 +3149,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
             for (LinksListPanel panel : tabsPanel){
                 System.out.println(panel);
-                System.out.println("\t     Data: " + Arrays.toString(panel.getListDataListeners()));
-                System.out.println("\tSelection: " + Arrays.toString(panel.getListSelectionListeners()));
-                System.out.println("\t   Change: " + Arrays.toString(panel.getChangeListeners()));
+                System.out.println("\t       Data: " + Arrays.toString(panel.getListDataListeners()));
+                System.out.println("\t  Selection: " + Arrays.toString(panel.getListSelectionListeners()));
+                System.out.println("\t     Change: " + Arrays.toString(panel.getChangeListeners()));
+                System.out.println("\tProp Change: " + Arrays.toString(panel.getPropertyChangeListeners()));
+                System.out.println("\tM      Data: " + Arrays.toString(panel.getModel().getListDataListeners()));
+                System.out.println("\tM Selection: " + Arrays.toString(panel.getModel().getListSelectionListeners()));
+                System.out.println("\tM    Change: " + Arrays.toString(panel.getModel().getChangeListeners()));
+                System.out.println("\tM P. Change: " + Arrays.toString(panel.getModel().getPropertyChangeListeners()));
             }
         }
     }//GEN-LAST:event_printDataItemActionPerformed
@@ -5333,9 +5344,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private Action pasteAndAddAction;
     /**
-     * This is an array containing all the list models for the lists.
+     * This is a set containing all the list models for the lists.
      */
-//    private ArrayList<LinksListModel> listModels = new ArrayList<>();
+    private Set<LinksListModel> listModels = new LinkedHashSet<>();
     /**
      * This is used to store and manage the configuration for this program.
      */
@@ -5553,6 +5564,30 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     protected void incrementProgressValue(){
         progressBar.setValue(progressBar.getValue()+1);
+    }
+    /**
+     * 
+     * @param model
+     * @return 
+     */
+    private boolean addModelToSet(LinksListModel model){
+        getLogger().log(Level.FINER, "Model [{0}: {1}] added to models", 
+                new Object[]{model.getListID(), model.getListName()});
+        return listModels.add(model);      
+    }
+    /**
+     * 
+     * @param model
+     * @return 
+     */
+    private boolean removeUnusedModel(LinksListModel model){
+        for (LinksListTabsPanel tabsPanel : listsTabPanels){
+            if (tabsPanel.getModels().contains(model))
+                return false;
+        }
+        getLogger().log(Level.FINER, "Model [{0}: {1}] removed from models", 
+                new Object[]{model.getListID(), model.getListName()});
+        return listModels.remove(model);
     }
     /**
      * 
@@ -6341,28 +6376,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             String childName = evt.getChild().getName();
             if (childName == null)
                 childName = evt.getChild().toString();
+            getLogger().log(Level.FINER, "Component [{1}] Added To Tabs: {0}", 
+                    new Object[]{evt,childName});
             if (evt.getChild() instanceof LinksListPanel){
                 LinksListPanel panel = (LinksListPanel) evt.getChild();
                 panel.addListDataListener(listHandler);
                 panel.addListSelectionListener(listHandler);
                 panel.addChangeListener(listHandler);
+                panel.addPropertyChangeListener(listHandler);
+                addModelToSet(panel.getModel());
             }
-            getLogger().log(Level.FINER, "Component [{1}] Added To Tabs: {0}", 
-                    new Object[]{evt,childName});
         }
         @Override
         public void componentRemoved(ContainerEvent evt) {
             String childName = evt.getChild().getName();
             if (childName == null)
                 childName = evt.getChild().toString();
+            getLogger().log(Level.FINER, "Component [{1}] Removed From Tabs: {0}", 
+                    new Object[]{evt,childName});
             if (evt.getChild() instanceof LinksListPanel){
                 LinksListPanel panel = (LinksListPanel) evt.getChild();
                 panel.removeListDataListener(listHandler);
                 panel.removeListSelectionListener(listHandler);
                 panel.removeChangeListener(listHandler);
+                panel.removePropertyChangeListener(listHandler);
+                removeUnusedModel(panel.getModel());
             }
-            getLogger().log(Level.FINER, "Component [{1}] Removed From Tabs: {0}", 
-                    new Object[]{evt,childName});
         }
     }
     /**
