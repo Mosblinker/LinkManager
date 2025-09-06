@@ -29,6 +29,7 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
@@ -6350,7 +6351,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private class LinksListHandler implements ListDataListener, 
-            ListSelectionListener, ChangeListener, ContainerListener{
+            ListSelectionListener, ChangeListener, ContainerListener, 
+            PropertyChangeListener{
         @Override
         public void intervalAdded(ListDataEvent evt) {
             System.out.println("Added: " + evt);
@@ -6370,6 +6372,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         public void stateChanged(ChangeEvent evt) {
             System.out.println("Stage: " + evt);
+        }
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (LinksListPanel.MODEL_PROPERTY_CHANGED.equals(evt.getPropertyName())){
+                String childName = null;
+                if (evt.getSource() instanceof Component)
+                    childName = ((Component)evt.getSource()).getName();
+                getLogger().log(Level.FINER, "Model changed on list {0}", 
+                        (childName!=null)?childName:evt.getSource());
+                if (evt.getNewValue() instanceof LinksListModel){
+                    addModelToSet((LinksListModel)evt.getNewValue());
+                }
+                if (evt.getOldValue() instanceof LinksListModel){
+                    LinksListModel oldModel = (LinksListModel)evt.getOldValue();
+                    removeUnusedModel(oldModel);
+                }
+            }
         }
         @Override
         public void componentAdded(ContainerEvent evt) {
