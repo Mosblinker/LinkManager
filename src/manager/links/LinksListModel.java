@@ -226,6 +226,7 @@ public class LinksListModel extends ArrayListModel<String> implements
         this.listSelModel.setLeadSelectionIndex(model.listSelModel.getLeadSelectionIndex());
         this.edited = model.edited;
         this.contentsEdited = model.contentsEdited;
+        this.listSelModel.addListSelectionListener(new Handler());
         changeSupport = new PropertyChangeSupport(this);
     }
     /**
