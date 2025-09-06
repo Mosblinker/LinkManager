@@ -6411,7 +6411,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     new Object[]{evt,childName});
             if (evt.getChild() instanceof LinksListPanel){
                 LinksListPanel panel = (LinksListPanel) evt.getChild();
-                panel.addListDataListener(listHandler);
                 panel.addChangeListener(listHandler);
                 panel.addPropertyChangeListener(listHandler);
                 addModelToSet(panel.getModel());
@@ -6426,7 +6425,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     new Object[]{evt,childName});
             if (evt.getChild() instanceof LinksListPanel){
                 LinksListPanel panel = (LinksListPanel) evt.getChild();
-                panel.removeListDataListener(listHandler);
                 panel.removeChangeListener(listHandler);
                 panel.removePropertyChangeListener(listHandler);
                 removeUnusedModel(panel.getModel());
