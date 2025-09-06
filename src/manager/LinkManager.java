@@ -2557,11 +2557,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 listsTabsPanelPropertyChange(evt);
             }
         });
-        allListsTabsPanel.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                listsTabsPanelValueChanged(evt);
-            }
-        });
         tabsPanelDisplay.add(allListsTabsPanel, "allLists");
 
         shownListsTabsPanel.setName("shownLists"); // NOI18N
@@ -2573,11 +2568,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         shownListsTabsPanel.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
             public void propertyChange(java.beans.PropertyChangeEvent evt) {
                 listsTabsPanelPropertyChange(evt);
-            }
-        });
-        shownListsTabsPanel.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                listsTabsPanelValueChanged(evt);
             }
         });
         tabsPanelDisplay.add(shownListsTabsPanel, "shownLists");
@@ -3816,50 +3806,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
     }//GEN-LAST:event_listsTabsPanelStateChanged
-    /**
-     * This processes a change to the selection in the currently selected list.
-     * @param evt The ListSelectionEvent.
-     */
-    private void listsTabsPanelValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listsTabsPanelValueChanged
-            // If the selection is not currently being adjusted
-        if (!evt.getValueIsAdjusting()){
-                // If the source of the change is the currently selected list
-            if (Objects.equals(getSelectedList(),evt.getSource())){
-                updateSelectedLink(); 
-            }   // If the program has fully loaded and the program isn't loading 
-                // the database
-            if (fullyLoaded && !isLoadingDatabase()){
-                    // This will get the listID of the list that the selection 
-                Integer listID;     // changed
-                    // This will get the newly selected value
-                String selValue;
-                    // This will get the name of the list
-                String listName;
-                    // If the source of the event is a LinksListPanel
-                if (evt.getSource() instanceof LinksListPanel){
-                        // Get the source as a panel
-                    LinksListPanel panel = (LinksListPanel)evt.getSource();
-                    listID = panel.getListID();
-                    selValue = panel.getSelectedValue();
-                    listName = panel.getListName();
-                    // If the source of the event is a LinksListModel
-                } else if (evt.getSource() instanceof LinksListModel){
-                        // Get the source as a model
-                    LinksListModel model = (LinksListModel)evt.getSource();
-                    listID = model.getListID();
-                    selValue = model.getSelectedValue();
-                    listName = model.getListName();
-                } else
-                    return;
-                getLogger().log(Level.FINER, "Selection changed for list {0}. {1}: {2}", 
-                        new Object[]{listID, listName, selValue});
-                    // If the listID for this list is not null
-                if (listID != null)
-                        // Set the selected link for the list
-                    config.setSelectedLink(listID, selValue);
-            }
-        }
-    }//GEN-LAST:event_listsTabsPanelValueChanged
 
     private void clearSelTabItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearSelTabItemActionPerformed
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
@@ -5575,6 +5521,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (listModels.add(model)){
             getLogger().log(Level.FINER, "Model [{0}: {1}] added to models", 
                     new Object[]{model.getListID(), model.getListName()});
+            model.addListSelectionListener(listHandler);
             return true;
         }
         return false;
@@ -5590,6 +5537,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return false;
         }
         if (listModels.remove(model)){
+            model.removeListSelectionListener(listHandler);
+            
             getLogger().log(Level.FINER, "Model [{0}: {1}] removed from models", 
                     new Object[]{model.getListID(), model.getListName()});
             return true;
@@ -5610,6 +5559,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     currentPanel.setModel(model);
             }
         }
+    }
+    
+    private void selectionHasChanged(LinksListModel model){
+            // If the program has not fully loaded or the program is currently 
+            // loading the database or the model is null
+        if (!fullyLoaded || isLoadingDatabase() || model == null)
+            return;
+            // This is the newly selected value
+        String selValue = model.getSelectedValue();
+        getLogger().log(Level.FINER, "Selection changed for list {0}. {1}: {2}", 
+                new Object[]{model.getListID(), model.getListName(), selValue});
+            // If the listID for this list is not null
+        if (model.getListID() != null)
+                // Set the selected link for the list
+            config.setSelectedLink(model.getListID(), selValue);
     }
     
     private String toString(Collection<? extends LinksListModel> c){
@@ -6402,7 +6366,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         public void valueChanged(ListSelectionEvent evt) {
-//            System.out.println("Selection: " + evt);
+                // If the selection is not currently being adjusted
+            if (!evt.getValueIsAdjusting()){
+                    // If the source of the change is the currently selected list
+                if (Objects.equals(getSelectedTabsPanel().getSelectedModel(),evt.getSource())){
+                    updateSelectedLink(); 
+                }   // If the source of the event is a LinksListPanel
+                if (evt.getSource() instanceof LinksListPanel){
+                    selectionHasChanged(((LinksListPanel)evt.getSource()).getModel());
+                    // If the source of the event is a LinksListModel
+                } else if (evt.getSource() instanceof LinksListModel){
+                    selectionHasChanged((LinksListModel)evt.getSource());
+                }
+            }
         }
         @Override
         public void stateChanged(ChangeEvent evt) {
@@ -6435,7 +6411,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (evt.getChild() instanceof LinksListPanel){
                 LinksListPanel panel = (LinksListPanel) evt.getChild();
                 panel.addListDataListener(listHandler);
-                panel.addListSelectionListener(listHandler);
                 panel.addChangeListener(listHandler);
                 panel.addPropertyChangeListener(listHandler);
                 addModelToSet(panel.getModel());
@@ -6451,7 +6426,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (evt.getChild() instanceof LinksListPanel){
                 LinksListPanel panel = (LinksListPanel) evt.getChild();
                 panel.removeListDataListener(listHandler);
-                panel.removeListSelectionListener(listHandler);
                 panel.removeChangeListener(listHandler);
                 panel.removePropertyChangeListener(listHandler);
                 removeUnusedModel(panel.getModel());
