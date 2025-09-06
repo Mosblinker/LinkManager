@@ -462,6 +462,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         undoCommands = new HashMap<>();
         textPopupMenus = new HashMap<>();
         this.configFile = configFile;
+        listHandler = new LinksListHandler();
         
             // This will get the preference node for the program
         Preferences node = null;
@@ -3134,6 +3135,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.out.println(this.getMaximumSize());
         System.out.println(Toolkit.getDefaultToolkit().getScreenSize());
         System.out.println(Toolkit.getDefaultToolkit().getScreenResolution());
+        
+        for (LinksListTabsPanel tabsPanel : listsTabPanels){
+            for (LinksListPanel panel : tabsPanel){
+                System.out.println(panel);
+                System.out.println("\t     Data: " + Arrays.toString(panel.getListDataListeners()));
+                System.out.println("\tSelection: " + Arrays.toString(panel.getListSelectionListeners()));
+                System.out.println("\t   Change: " + Arrays.toString(panel.getChangeListeners()));
+            }
+        }
     }//GEN-LAST:event_printDataItemActionPerformed
     /**
      * This opens up a dialog window that displays the contents of the database.
@@ -3876,6 +3886,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             Set<LinksListModel> added = new LinkedHashSet<>(models);
             added.removeAll(oldModels);
             
+            Set<LinksListPanel> existingPanels = new HashSet<>(tabsPanel.getLists());
             if (tabsPanel == allListsTabsPanel){
                 models.removeAll(shownListsTabsPanel.getModels());
                 models.addAll(0, shownListsTabsPanel.getModels());
@@ -3890,6 +3901,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 allListsTabsPanel.getModels().removeAll(removed);
                 shownListsTabsPanel.getModels().removeIf((LinksListModel t) -> 
                         t == null || t.isHidden());
+            }
+            for (LinksListPanel panel : tabsPanel){
+                if (!existingPanels.add(panel)){
+                    panel.addListDataListener(listHandler);
+                    panel.addListSelectionListener(listHandler);
+                    panel.addChangeListener(listHandler);
+                }
             }
         }
         listTabsManipulator.setPreferredSize(listTabsManipulator.getSize());
@@ -5351,6 +5369,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * the lists of links.
      */
     private LinksListTabsPanel[] listsTabPanels;
+    
+    private LinksListHandler listHandler;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBoxMenuItem activeToggle;
     private manager.AddLinksFromListPanel addLinksPanel;
@@ -5537,6 +5557,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     protected void incrementProgressValue(){
         progressBar.setValue(progressBar.getValue()+1);
+    }
+    /**
+     * 
+     * @return 
+     */
+    private Set<LinksListPanel> getPanelSet(){
+            // Get a set of panels in the panel showing all the lists
+        Set<LinksListPanel> panels = new HashSet<>(allListsTabsPanel.getLists());
+            // Make sure this set has ALL the panels, even those that are 
+            // somehow absent from the all lists panel
+        panels.addAll(shownListsTabsPanel.getLists());
+        return panels;
     }
     /**
      * 
@@ -6296,6 +6328,30 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private LinksListModel addAllToCopy(LinksListPanel panel, Collection<String> list){
         return addAllToCopy(panel.getModel(),list);
+    }
+    
+    private class LinksListHandler implements ListDataListener, 
+            ListSelectionListener, ChangeListener{
+        @Override
+        public void intervalAdded(ListDataEvent evt) {
+            System.out.println("Added: " + evt);
+        }
+        @Override
+        public void intervalRemoved(ListDataEvent evt) {
+            System.out.println("Removed: " + evt);
+        }
+        @Override
+        public void contentsChanged(ListDataEvent evt) {
+            System.out.println("Changed: " + evt);
+        }
+        @Override
+        public void valueChanged(ListSelectionEvent evt) {
+            System.out.println("Selection: " + evt);
+        }
+        @Override
+        public void stateChanged(ChangeEvent evt) {
+            System.out.println("Stage: " + evt);
+        }
     }
     /**
      * This is a LinksListTabAction that saves the links from a list to a 
@@ -8972,6 +9028,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 tabsModels.put(shownListsTabsPanel, modelList);
             }   // If this successfully loaded the database or this created the 
             if (success || createLists){    // default lists
+                    // Get the existing panels
+                Set<LinksListPanel> existingPanels = getPanelSet();
                     // Go through the model lists for each tabs panel
                 for (Map.Entry<LinksListTabsPanel,List<LinksListModel>> entry : 
                         tabsModels.entrySet()){
@@ -8991,6 +9049,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                             // If there is an item to hide the list
                         if (hideItem != null)
                             hideItem.setSelected(panel.isHidden());
+                            // If the panel did not exist previously
+                        if (!existingPanels.contains(panel)){
+                            panel.addListDataListener(listHandler);
+                            panel.addListSelectionListener(listHandler);
+                            panel.addChangeListener(listHandler);
+                        }
                     }   // If the lists were completely reloaded
                     if (getLoadsAll())
                         tabsPanel.setStructureEdited(false);
