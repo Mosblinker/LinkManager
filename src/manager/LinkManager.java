@@ -542,6 +542,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             allListsTabsPanel,
             shownListsTabsPanel
         };
+        for (LinksListTabsPanel tabsPanel : listsTabPanels){
+            tabsPanel.getTabbedPane().setName(tabsPanel.getName());
+            tabsPanel.getTabbedPane().addContainerListener(listHandler);
+        }
         debugMenu.setVisible(debugMode);
         
         allListsTabsPanel.setListActionMapper((String t, LinksListPanel u) -> {
@@ -3886,7 +3890,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             Set<LinksListModel> added = new LinkedHashSet<>(models);
             added.removeAll(oldModels);
             
-            Set<LinksListPanel> existingPanels = new HashSet<>(tabsPanel.getLists());
             if (tabsPanel == allListsTabsPanel){
                 models.removeAll(shownListsTabsPanel.getModels());
                 models.addAll(0, shownListsTabsPanel.getModels());
@@ -3901,13 +3904,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 allListsTabsPanel.getModels().removeAll(removed);
                 shownListsTabsPanel.getModels().removeIf((LinksListModel t) -> 
                         t == null || t.isHidden());
-            }
-            for (LinksListPanel panel : tabsPanel){
-                if (!existingPanels.add(panel)){
-                    panel.addListDataListener(listHandler);
-                    panel.addListSelectionListener(listHandler);
-                    panel.addChangeListener(listHandler);
-                }
             }
         }
         listTabsManipulator.setPreferredSize(listTabsManipulator.getSize());
@@ -5562,18 +5558,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      * @return 
      */
-    private Set<LinksListPanel> getPanelSet(){
-            // Get a set of panels in the panel showing all the lists
-        Set<LinksListPanel> panels = new HashSet<>(allListsTabsPanel.getLists());
-            // Make sure this set has ALL the panels, even those that are 
-            // somehow absent from the all lists panel
-        panels.addAll(shownListsTabsPanel.getLists());
-        return panels;
-    }
-    /**
-     * 
-     * @return 
-     */
     private Set<LinksListModel> getModelSet(){
             // Get a set of models in the panel showing all the lists
         Set<LinksListModel> models = new HashSet<>(allListsTabsPanel.getModels());
@@ -6331,7 +6315,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private class LinksListHandler implements ListDataListener, 
-            ListSelectionListener, ChangeListener{
+            ListSelectionListener, ChangeListener, ContainerListener{
         @Override
         public void intervalAdded(ListDataEvent evt) {
             System.out.println("Added: " + evt);
@@ -6351,6 +6335,34 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         public void stateChanged(ChangeEvent evt) {
             System.out.println("Stage: " + evt);
+        }
+        @Override
+        public void componentAdded(ContainerEvent evt) {
+            String childName = evt.getChild().getName();
+            if (childName == null)
+                childName = evt.getChild().toString();
+            if (evt.getChild() instanceof LinksListPanel){
+                LinksListPanel panel = (LinksListPanel) evt.getChild();
+                panel.addListDataListener(listHandler);
+                panel.addListSelectionListener(listHandler);
+                panel.addChangeListener(listHandler);
+            }
+            getLogger().log(Level.FINER, "Component [{1}] Added To Tabs: {0}", 
+                    new Object[]{evt,childName});
+        }
+        @Override
+        public void componentRemoved(ContainerEvent evt) {
+            String childName = evt.getChild().getName();
+            if (childName == null)
+                childName = evt.getChild().toString();
+            if (evt.getChild() instanceof LinksListPanel){
+                LinksListPanel panel = (LinksListPanel) evt.getChild();
+                panel.removeListDataListener(listHandler);
+                panel.removeListSelectionListener(listHandler);
+                panel.removeChangeListener(listHandler);
+            }
+            getLogger().log(Level.FINER, "Component [{1}] Removed From Tabs: {0}", 
+                    new Object[]{evt,childName});
         }
     }
     /**
@@ -9028,8 +9040,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 tabsModels.put(shownListsTabsPanel, modelList);
             }   // If this successfully loaded the database or this created the 
             if (success || createLists){    // default lists
-                    // Get the existing panels
-                Set<LinksListPanel> existingPanels = getPanelSet();
                     // Go through the model lists for each tabs panel
                 for (Map.Entry<LinksListTabsPanel,List<LinksListModel>> entry : 
                         tabsModels.entrySet()){
@@ -9049,12 +9059,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                             // If there is an item to hide the list
                         if (hideItem != null)
                             hideItem.setSelected(panel.isHidden());
-                            // If the panel did not exist previously
-                        if (!existingPanels.contains(panel)){
-                            panel.addListDataListener(listHandler);
-                            panel.addListSelectionListener(listHandler);
-                            panel.addChangeListener(listHandler);
-                        }
                     }   // If the lists were completely reloaded
                     if (getLoadsAll())
                         tabsPanel.setStructureEdited(false);
