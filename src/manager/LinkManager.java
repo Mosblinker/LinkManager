@@ -6408,10 +6408,28 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     removeUnusedModel(oldModel);
                 }
             } else if (evt.getSource() instanceof LinksListModel){
-                if (LinksListModel.LIST_ID_PROPERTY_CHANGED.equals(evt.getPropertyName())){
-                    getLogger().log(Level.FINER, "List ID changed {0} -> {1}", 
-                            new Object[]{evt.getOldValue(), evt.getNewValue()});
-                    selectionHasChanged((LinksListModel)evt.getSource());
+                LinksListModel model = (LinksListModel)evt.getSource();
+                switch(evt.getPropertyName()){
+                    case (LinksListModel.LIST_ID_PROPERTY_CHANGED):
+                        getLogger().log(Level.FINER, "List ID for \"{2}\" changed {0} -> {1}", 
+                                new Object[]{evt.getOldValue(), evt.getNewValue(),
+                                model.getListName()});
+                        selectionHasChanged(model);
+                        break;
+                    case (LinksListModel.LIST_NAME_PROPERTY_CHANGED):
+                        getLogger().log(Level.FINER, "List Name for List {2} changed {0} -> {1}", 
+                                new Object[]{evt.getOldValue(), evt.getNewValue(),
+                                model.getListID()});
+                        break;
+                    case (LinksListModel.LIST_SIZE_LIMIT_PROPERTY_CHANGED):
+                    case (LinksListModel.LIST_ALLOWS_DUPLICATES_PROPERTY_CHANGED):
+                    case (LinksListModel.LIST_IS_HIDDEN_PROPERTY_CHANGED):
+                    case (LinksListModel.LIST_IS_READ_ONLY_PROPERTY_CHANGED):
+                        getLogger().log(Level.FINER, "Property changed for "
+                                + "list {0}. {1}: (Name: {2}, Old: {3}, "
+                                + "New: {4})", new Object[]{model.getListID(), 
+                                    model.getListName(), evt.getPropertyName(), 
+                                    evt.getOldValue(), evt.getNewValue()});
                 }
             }
         }
