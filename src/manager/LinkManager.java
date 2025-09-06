@@ -5522,6 +5522,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.FINER, "Model [{0}: {1}] added to models", 
                     new Object[]{model.getListID(), model.getListName()});
             model.addListSelectionListener(listHandler);
+            model.addListDataListener(listHandler);
             return true;
         }
         return false;
@@ -5537,10 +5538,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return false;
         }
         if (listModels.remove(model)){
-            model.removeListSelectionListener(listHandler);
-            
             getLogger().log(Level.FINER, "Model [{0}: {1}] removed from models", 
                     new Object[]{model.getListID(), model.getListName()});
+            model.removeListSelectionListener(listHandler);
+            model.removeListDataListener(listHandler);
             return true;
         }
         return false;
