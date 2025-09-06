@@ -5524,6 +5524,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     new Object[]{model.getListID(), model.getListName()});
             model.addListSelectionListener(listHandler);
             model.addListDataListener(listHandler);
+            model.addPropertyChangeListener(listHandler);
             return true;
         }
         return false;
@@ -5543,6 +5544,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     new Object[]{model.getListID(), model.getListName()});
             model.removeListSelectionListener(listHandler);
             model.removeListDataListener(listHandler);
+            model.removePropertyChangeListener(listHandler);
             return true;
         }
         return false;
