@@ -975,6 +975,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
+     * @param object
+     * @return 
+     */
+    private boolean isListSelected(Object object){
+        return Objects.equals(getSelectedTabsPanel().getSelectedModel(),object) || 
+                Objects.equals(getSelectedList(), object);
+    }
+    /**
+     * 
      * @param text
      * @param actionCmd
      * @param menu
@@ -6370,7 +6379,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // If the selection is not currently being adjusted
             if (!evt.getValueIsAdjusting()){
                     // If the source of the change is the currently selected list
-                if (Objects.equals(getSelectedTabsPanel().getSelectedModel(),evt.getSource())){
+                if (isListSelected(evt.getSource())){
                     updateSelectedLink(); 
                 }   // If the source of the event is a LinksListPanel
                 if (evt.getSource() instanceof LinksListPanel){
