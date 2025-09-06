@@ -706,7 +706,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         Action linkFieldCancel = new AbstractAction("LinkCancel"){
             @Override
             public void actionPerformed(ActionEvent e) {
-                resetLinkField();
+                linkTextField.setText("");
             }
         };
         linkTextField.getInputMap(JComponent.WHEN_FOCUSED)
@@ -3484,14 +3484,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         searchDialog.setVisible(true);
     }//GEN-LAST:event_searchMenuItemActionPerformed
     /**
-     * This resets the link text field to be blank, and then updates the 
-     * buttons.
-     */
-    private void resetLinkField(){
-        linkTextField.setText("");
-        updateButtons();
-    }
-    /**
      * This adds a link to the currently selected list.
      * @param evt The ActionEvent
      */
@@ -3504,7 +3496,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         getSelectedTabsPanel().getSelectedModel().add(linkTextField.getText().trim());
 
-        resetLinkField();
+        linkTextField.setText("");
         linkTextField.grabFocus();
     }//GEN-LAST:event_newLinkButtonActionPerformed
     /**
@@ -6365,14 +6357,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         public void intervalAdded(ListDataEvent evt) {
 //            System.out.println("Added: " + evt);
+            if (isListSelected(evt.getSource()))
+                updateButtons();
         }
         @Override
         public void intervalRemoved(ListDataEvent evt) {
 //            System.out.println("Removed: " + evt);
+            if (isListSelected(evt.getSource()))
+                updateButtons();
         }
         @Override
         public void contentsChanged(ListDataEvent evt) {
 //            System.out.println("Changed: " + evt);
+            if (isListSelected(evt.getSource()))
+                updateButtons();
         }
         @Override
         public void valueChanged(ListSelectionEvent evt) {
