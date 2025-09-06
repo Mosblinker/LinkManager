@@ -6375,8 +6375,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return;
                 // Set the dialog title
             addLinksPanel.setDialogTitle("Add To "+panel.getListName()+"...");
+//            addLinksPanel.
                 // Show the add links dialog and if the user selected the accept 
-            if (addLinksPanel.showDialog(LinkManager.this) == // option
+            if (addLinksPanel.showDialog(LinkManager.this,"") == // option
                     AddLinksFromListPanel.ACCEPT_OPTION){
                 linksWorker = new AddFromTextWorker(panel,addLinksPanel.getText());
                 linksWorker.execute();
