@@ -6407,6 +6407,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     LinksListModel oldModel = (LinksListModel)evt.getOldValue();
                     removeUnusedModel(oldModel);
                 }
+            } else if (evt.getSource() instanceof LinksListModel){
+                if (LinksListModel.LIST_ID_PROPERTY_CHANGED.equals(evt.getPropertyName())){
+                    getLogger().log(Level.FINER, "List ID changed {0} -> {1}", 
+                            new Object[]{evt.getOldValue(), evt.getNewValue()});
+                    selectionHasChanged((LinksListModel)evt.getSource());
+                }
             }
         }
         @Override
