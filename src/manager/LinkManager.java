@@ -5572,9 +5572,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private boolean addModelToSet(LinksListModel model){
-        getLogger().log(Level.FINER, "Model [{0}: {1}] added to models", 
-                new Object[]{model.getListID(), model.getListName()});
-        return listModels.add(model);      
+        if (listModels.add(model)){
+            getLogger().log(Level.FINER, "Model [{0}: {1}] added to models", 
+                    new Object[]{model.getListID(), model.getListName()});
+            return true;
+        }
+        return false;
     }
     /**
      * 
@@ -5586,9 +5589,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (tabsPanel.getModels().contains(model))
                 return false;
         }
-        getLogger().log(Level.FINER, "Model [{0}: {1}] removed from models", 
-                new Object[]{model.getListID(), model.getListName()});
-        return listModels.remove(model);
+        if (listModels.remove(model)){
+            getLogger().log(Level.FINER, "Model [{0}: {1}] removed from models", 
+                    new Object[]{model.getListID(), model.getListName()});
+            return true;
+        }
+        return false;
+    }
+    
+    private void replaceModel(LinksListPanel panel, LinksListModel model){
+        if (panel == null || model == null)
+            return;
+        LinksListModel oldModel = panel.getModel();
+        if (model.listEquals(oldModel))
+            return;
+        panel.setModel(model,true);
+        for (LinksListTabsPanel tabsPanel : listsTabPanels){
+            for (LinksListPanel currentPanel : tabsPanel){
+                if (Objects.equals(oldModel, currentPanel.getModel()))
+                    currentPanel.setModel(model);
+            }
+        }
     }
     /**
      * 
@@ -6355,23 +6376,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             PropertyChangeListener{
         @Override
         public void intervalAdded(ListDataEvent evt) {
-            System.out.println("Added: " + evt);
+//            System.out.println("Added: " + evt);
         }
         @Override
         public void intervalRemoved(ListDataEvent evt) {
-            System.out.println("Removed: " + evt);
+//            System.out.println("Removed: " + evt);
         }
         @Override
         public void contentsChanged(ListDataEvent evt) {
-            System.out.println("Changed: " + evt);
+//            System.out.println("Changed: " + evt);
         }
         @Override
         public void valueChanged(ListSelectionEvent evt) {
-            System.out.println("Selection: " + evt);
+//            System.out.println("Selection: " + evt);
         }
         @Override
         public void stateChanged(ChangeEvent evt) {
-            System.out.println("Stage: " + evt);
+//            System.out.println("Stage: " + evt);
         }
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
@@ -6905,8 +6926,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
-            if (model != null && !model.listEquals(panel.getModel()))
-                panel.setModel(model,true);
+            replaceModel(panel,model);
             super.done();
         }
     }
@@ -7017,8 +7037,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
-            if (model != null)
-                panel.setModel(model, true);
+            replaceModel(panel,model);
             super.done();
         }
     }
@@ -7136,12 +7155,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
-            if (model != null)
-                panel.setModel(model, true);
+            replaceModel(panel,model);
                 // If a source list was given
             if (source != null){
-                if (move && srcModel != null)
-                    source.setModel(srcModel, true);
+                if (move)
+                    replaceModel(source,srcModel);
                 source.setEnabled(true);
             }
             super.done();
@@ -7204,8 +7222,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
-            if (model != null)
-                panel.setModel(model, true);
+            replaceModel(panel,model);
                 // Enable the source list
             source.setEnabled(true);
             super.done();
@@ -7340,7 +7357,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             for (Map.Entry<LinksListPanel,LinksListModel> entry : models.entrySet()){
-                entry.getKey().setModel(entry.getValue(),true);
+                replaceModel(entry.getKey(),entry.getValue());
             }
                 // Re-enable the lists
             setTabsPanelListsEnabled(true);
@@ -8577,8 +8594,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
-            if (panel != null && model != null)
-                panel.setModel(model, true);
+            replaceModel(panel,model);
             super.done();
         }
     }
