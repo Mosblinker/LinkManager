@@ -46,7 +46,7 @@ public class JByteProgressDisplayMenu extends JProgressDisplayMenu{
             // The maximum value for the model, offset by the minimum value
         long max = model.getMaximum() - model.getMinimum();
         if (isPercentageDisplayed()){
-            str += String.format("%s%."+getPrecision()+"f%% ",str,
+            str = String.format("%s%."+getPrecision()+"f%% ",str,
                     ((max==value)?1:(((double)value)/max))*100);
         }
         return str + "("+formatter.format(value) +" / "+formatter.format(max)+")";
