@@ -10525,7 +10525,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             progressBar.setMaximum(links.size());
             progressBar.setIndeterminate(false);
                 // Update the prefixes for the links in the database
-            conn.updateLinkPrefix(links.navigableKeySet());
+            conn.updateLinkPrefix(links.navigableKeySet(),progressObserver);
             conn.commit();       // Commit the changes to the database
             
             progressBar.setIndeterminate(true);
