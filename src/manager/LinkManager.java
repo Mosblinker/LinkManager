@@ -1230,7 +1230,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         searchMenu = new javax.swing.JMenu();
         searchMenuItem = new javax.swing.JMenuItem();
         optionsMenu = new javax.swing.JMenu();
-        progressDisplay = new components.progress.JProgressDisplayMenu();
+        progressDisplay = new JByteProgressDisplayMenu();
         alwaysOnTopToggle = new javax.swing.JCheckBoxMenuItem();
         doubleNewLinesToggle = new javax.swing.JCheckBoxMenuItem();
         linkOperationToggle = new javax.swing.JCheckBoxMenuItem();
@@ -7939,6 +7939,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.FINER, "Downloading file at path \"{0}\"",path);
             exc = null;
             fileFound = true;
+            ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(true);
             try{    // Determine how to download the file
                 switch(mode){
                     case DROPBOX:   // Try to download the file to Dropbox
@@ -7989,10 +7990,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     if (downloadFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
                             retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
                         loadSuccess = false;
+                        ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
                         getLogger().exiting("AbstractFileDownloader", "loadFile",true);
                         return true;
                     }
                     downloadedFile = downloadFile;
+                    ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
                     progressBar.setValue(0);
                     progressBar.setIndeterminate(true);
                 }
@@ -8141,6 +8144,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
+            ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
             if (isCancelled() && exitIfCancelled)
                 exitProgram();
             super.done();
@@ -10046,7 +10050,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Format the file path
             path = LinkManagerUtilities.formatExternalFilePath(mode, path);
             getLogger().log(Level.FINER, "Uploading file at path \"{0}\"",path);
-            
+            ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(true);
             do{     // The exception that was thrown, if any
                 Exception exc = null;
                     // Set the progress to be zero
@@ -10142,6 +10146,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                             "The file was successfully uploaded.");
                 }   // Set the program to be indeterminate
                 progressBar.setIndeterminate(true); 
+                ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
             }
             
             if (exitAfterSaving)
@@ -10240,6 +10245,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
+            ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
             if (success){   // If this was successful
                 allListsTabsPanel.clearEdited();
                 shownListsTabsPanel.clearEdited();
