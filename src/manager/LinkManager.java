@@ -1230,7 +1230,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         searchMenu = new javax.swing.JMenu();
         searchMenuItem = new javax.swing.JMenuItem();
         optionsMenu = new javax.swing.JMenu();
-        progressDisplay = new components.progress.JProgressDisplayMenu();
+        progressDisplay = new JByteProgressDisplayMenu();
         alwaysOnTopToggle = new javax.swing.JCheckBoxMenuItem();
         doubleNewLinesToggle = new javax.swing.JCheckBoxMenuItem();
         linkOperationToggle = new javax.swing.JCheckBoxMenuItem();

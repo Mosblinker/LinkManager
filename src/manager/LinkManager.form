@@ -2212,6 +2212,9 @@
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="progressDisplayActionPerformed"/>
               </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new JByteProgressDisplayMenu()"/>
+              </AuxValues>
             </Menu>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="alwaysOnTopToggle">
               <Properties>
