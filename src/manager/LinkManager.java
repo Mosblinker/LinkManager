@@ -125,7 +125,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is the name of the preference node used to store the settings for 
      * this program.
      */
-    private static final String PREFERENCE_NODE_NAME = "milo/link/"+INTERNAL_PROGRAM_NAME;
+    private static final String PREFERENCE_NODE_NAME = "mosblinker/link/"+INTERNAL_PROGRAM_NAME;
     /**
      * This is the name of the file used to store the configuration.
      */
