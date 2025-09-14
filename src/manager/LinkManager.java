@@ -1240,6 +1240,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         syncDBToggle = new javax.swing.JCheckBoxMenuItem();
         autosaveMenu = new manager.timermenu.AutosaveMenu();
         autoHideMenu = new manager.timermenu.AutoHideMenu();
+        showHiddenFilesToggle = new javax.swing.JCheckBoxMenuItem();
         debugMenu = new javax.swing.JMenu();
         slowTestToggle = new components.debug.SlowTestMenuItem();
         activeToggle = new javax.swing.JCheckBoxMenuItem();
@@ -1293,6 +1294,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         databaseUpdateFC.setApproveButtonText("Update");
         databaseUpdateFC.setDialogTitle("Update Database...");
         databaseUpdateFC.setFileFilter(DATABASE_FILE_FILTER);
+        databaseUpdateFC.setFileHidingEnabled(false);
         databaseUpdateFC.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fileChooserActionPerformed(evt);
@@ -2830,6 +2832,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         optionsMenu.add(autoHideMenu);
+
+        showHiddenFilesToggle.setSelected(true);
+        showHiddenFilesToggle.setText("Show Hidden Files");
+        showHiddenFilesToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showHiddenFilesToggleActionPerformed(evt);
+            }
+        });
+        optionsMenu.add(showHiddenFilesToggle);
 
         menuBar.add(optionsMenu);
 
@@ -4741,6 +4752,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         loader.execute();
     }//GEN-LAST:event_jMenuItem1ActionPerformed
     
+    private void showHiddenFilesToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showHiddenFilesToggleActionPerformed
+        config.setHiddenFilesAreShown(showHiddenFilesToggle.isSelected());
+        setFilesAreHidden(showHiddenFilesToggle.isSelected());
+    }//GEN-LAST:event_showHiddenFilesToggleActionPerformed
+    
+    private void setFilesAreHidden(boolean value){
+        openFC.setFileHidingEnabled(!value);
+        saveFC.setFileHidingEnabled(!value);
+        configFC.setFileHidingEnabled(!value);
+        exportFC.setFileHidingEnabled(!value);
+        databaseFC.setFileHidingEnabled(!value);
+    }
+    
     private CustomTableModel getListSearchTableModel(){
         CustomTableModel model = new CustomTableModel("ListID", "List Name", 
                     "Index", "LinkID", "Link");
@@ -5493,6 +5517,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JPanel setLocationPanel;
     private javax.swing.JMenuItem showAllListsItem;
     private javax.swing.JCheckBoxMenuItem showDBErrorDetailsToggle;
+    private javax.swing.JCheckBoxMenuItem showHiddenFilesToggle;
     private javax.swing.JCheckBoxMenuItem showHiddenListsToggle;
     private javax.swing.JCheckBoxMenuItem showIDsToggle;
     private javax.swing.JCheckBox showSchemaToggle;
@@ -5866,6 +5891,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }   // Set the show hidden lists property from the config
         showHiddenListsToggle.setSelected(config.getHiddenListsAreShown(
                 showHiddenListsToggle.isSelected()));
+        showHiddenFilesToggle.setSelected(config.getHiddenFilesAreShown());
+        setFilesAreHidden(showHiddenFilesToggle.isSelected());
             // Update the visible lists
         updateVisibleTabsPanel();
     }

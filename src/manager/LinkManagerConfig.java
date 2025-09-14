@@ -1128,6 +1128,9 @@ public class LinkManagerConfig {
         if (b != null)
                 // Set whether database will sync from the properties
             setDatabaseWillSync(b);
+        b = cProp.getBooleanProperty(HIDDEN_FILES_ARE_SHOWN_KEY);
+        if (b != null)
+            setHiddenFilesAreShown(b);
             // Get the value for the Dropbox database file path from the 
             // properties
         str = cProp.getProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY);    
@@ -1615,11 +1618,10 @@ public class LinkManagerConfig {
     }
     /**
      * 
-     * @param defaultValue
      * @return 
      */
     public boolean getHiddenFilesAreShown(){
-        return getPreferences().getBoolean(HIDDEN_FILES_ARE_SHOWN_KEY,false);
+        return getPreferences().getBoolean(HIDDEN_FILES_ARE_SHOWN_KEY,true);
     }
     /**
      * 
