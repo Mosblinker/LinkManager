@@ -122,6 +122,8 @@ public class LinkManagerConfig {
             "ReplaceOutdatedLists";
     
     public static final String SYNC_DATABASE_KEY = "SyncDatabase";
+    
+    public static final String HIDDEN_FILES_ARE_SHOWN_KEY = "HiddenFilesAreShown";
     /**
      * This is the configuration key for the encrypted access token for the 
      * Dropbox account to use to access the database file if the database file 
@@ -1603,6 +1605,21 @@ public class LinkManagerConfig {
      */
     public boolean getDatabaseWillSync(boolean defaultValue){
         return getPreferences().getBoolean(SYNC_DATABASE_KEY,defaultValue);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setHiddenFilesAreShown(Boolean value){
+        getPreferences().putObject(HIDDEN_FILES_ARE_SHOWN_KEY, value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean getHiddenFilesAreShown(){
+        return getPreferences().getBoolean(HIDDEN_FILES_ARE_SHOWN_KEY,false);
     }
     /**
      * 
