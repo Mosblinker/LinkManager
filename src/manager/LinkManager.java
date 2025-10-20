@@ -46,8 +46,14 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
 import javax.swing.table.*;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+import javax.swing.text.StyledDocument;
 import javax.swing.tree.*;
 import manager.config.*;
 import manager.database.*;
@@ -85,6 +91,37 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is the internal name for the program.
      */
     protected static final String INTERNAL_PROGRAM_NAME = "LinkManager";
+    /**
+     * This is the credits for the program. This is currently private as I plan 
+     * to rework it.
+     * @todo Rework this and then make it public. Also add any additional 
+     * credits necessary
+     */
+    private static final String[][] CREDITS = {{
+            "Developers",
+            "Mosblinker - Main developer and artist."
+//        },{
+//            "Testers",
+//            "*Insert Testers Here*"
+    }};
+    /**
+     * 
+     */
+    private static final String[][] LIBRARY_CREDITS = {
+        {"Thumbnailator","coobird","https://github.com/coobird/thumbnailator"},
+        {"SwingExtended","Mosblinker","https://github.com/Mosblinker/SwingExtended"},
+        {"FilesExtended","Mosblinker","https://github.com/Mosblinker/FilesExtended"},
+        {"SwingFilesExtended","Mosblinker",null},
+        {"Measure","Mosblinker",null},
+        {"GUIComponents","Mosblinker",null},
+        {"FileComponents","Mosblinker",null},
+        {"SQLCollections","Mosblinker",null},
+        {"ConfigUtilities","Mosblinker","https://github.com/Mosblinker/ConfigUtilities"},
+        {"UpdateChecker","TechnicJelle","https://github.com/TechnicJelle/UpdateCheckerJava"},
+        {"sqlite-jdbc",null,null},
+        {"jackson-core",null,null},
+        {"dropbox-core-sdk",null,null}
+    };
     /**
      * This is the pattern for the file handler to use for the log files of this 
      * program.
@@ -826,6 +863,69 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         aboutPanel.setProgramIcon(new LinkManagerIcon(128,iconPainter));
         updateIconLabel.setIcon(new LinkManagerIcon(64,iconPainter));
+        
+            // Create a style to use to center the text on the text pane
+        SimpleAttributeSet centeredText = new SimpleAttributeSet();
+            // Make the style center the text
+        StyleConstants.setAlignment(centeredText, StyleConstants.ALIGN_CENTER);
+        SimpleAttributeSet leftText = new SimpleAttributeSet();
+        StyleConstants.setAlignment(leftText, StyleConstants.ALIGN_LEFT);
+            // Get the document for the credits text pane
+        StyledDocument creditsDoc = aboutPanel.getCreditsDocument();
+        try{
+                // Go through the credits arrays
+            for (String[] creditSection : CREDITS) {
+                int start = creditsDoc.getLength();
+                    // Add the header for this section
+                creditsDoc.insertString(start, 
+                        "---- "+creditSection[0]+" ----"+System.lineSeparator(), 
+                        null);
+                    // Center the header
+                creditsDoc.setParagraphAttributes(start, creditsDoc.getLength(),
+                        centeredText, false);
+                    // Rest of the text is left aligned
+                creditsDoc.setParagraphAttributes(creditsDoc.getLength(), 1,
+                        leftText, false);
+                    // Go through the credits in this section
+                for (int j = 1; j < creditSection.length; j++) {
+                    creditsDoc.insertString(creditsDoc.getLength(), 
+                            creditSection[j] + System.lineSeparator(), null);
+                }
+                creditsDoc.insertString(creditsDoc.getLength(), 
+                        System.lineSeparator(),null);
+            }
+                // Center the header
+            creditsDoc.setParagraphAttributes(creditsDoc.getLength(), 1,
+                    centeredText, false);
+            creditsDoc.insertString(creditsDoc.getLength(), 
+                    "---- Libraries ----"+System.lineSeparator(),null);
+                // Rest of the text is left aligned
+            creditsDoc.setParagraphAttributes(creditsDoc.getLength(), 1,
+                    leftText, false);
+            Style defStyle = StyleContext.getDefaultStyleContext().
+                    getStyle(StyleContext.DEFAULT_STYLE);
+            for (int i = 0; i < LIBRARY_CREDITS.length; i++){
+                if (i > 0)
+                    creditsDoc.insertString(creditsDoc.getLength(), 
+                            System.lineSeparator(),null);
+                Style linkStyle = null;
+                if (LIBRARY_CREDITS[i].length > 2 && LIBRARY_CREDITS[i][2] != null){
+                    linkStyle = creditsDoc.addStyle("hyperlink"+i, defStyle);
+                    JHyperlinkLabel hyperlink = new JHyperlinkLabel(LIBRARY_CREDITS[i][0],
+                            URI.create(LIBRARY_CREDITS[i][2]));
+                    hyperlink.setAlignmentY((float) 0.85);
+                    StyleConstants.setComponent(linkStyle, hyperlink);
+                }
+                creditsDoc.insertString(creditsDoc.getLength(), 
+                        LIBRARY_CREDITS[i][0],linkStyle);
+                if (LIBRARY_CREDITS[i].length > 1 && LIBRARY_CREDITS[i][1] != null) 
+                    creditsDoc.insertString(creditsDoc.getLength(), 
+                            " - " + LIBRARY_CREDITS[i][1],null);
+            }
+        } catch (BadLocationException ex){
+            getLogger().log(Level.WARNING, "Bad location found while populating credits", 
+                    ex);
+        }
         
         System.gc();        // Run the garbage collector
             // Configure the program from the settings
