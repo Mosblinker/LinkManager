@@ -4932,7 +4932,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_showHiddenFilesToggleActionPerformed
 
     private void aboutItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutItemActionPerformed
-        // TODO add your handling code here:
+            // Make the about dialog location relative to the program
+        aboutDialog.setLocationRelativeTo(this);
+            // Show the about dialog
+        aboutDialog.setVisible(true);
     }//GEN-LAST:event_aboutItemActionPerformed
 
     private void aboutPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutPanelActionPerformed
