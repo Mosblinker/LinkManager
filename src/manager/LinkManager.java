@@ -5370,6 +5370,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         listTabsManipulator.setEnabled(enabled);
         addLinksPanel.setEnabled(enabled);
         copyOrMoveListSelector.setEnabled(enabled);
+        updateOpenButton.setEnabled(enabled);
+        aboutPanel.setEnabled(enabled);
         updateButtons();
         
         listSetOpItem.setEnabled(enabled);
