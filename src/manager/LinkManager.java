@@ -2107,7 +2107,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             .addGroup(dbLinkSearchPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(dbLinkSearchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(dbLinkSearchScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 558, Short.MAX_VALUE)
+                    .addComponent(dbLinkSearchScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 581, Short.MAX_VALUE)
                     .addGroup(dbLinkSearchPanelLayout.createSequentialGroup()
                         .addGroup(dbLinkSearchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(dbSearchPrefixCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -2129,12 +2129,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     .addComponent(jLabel8)
                     .addComponent(dbSearchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(dbSearchButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(dbLinkSearchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(dbSearchPrefixCheckBox)
-                    .addComponent(dbSearchPrefixCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(7, 7, 7)
+                .addGroup(dbLinkSearchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(dbSearchPrefixCombo)
+                    .addComponent(dbSearchPrefixCheckBox, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(dbLinkSearchScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 264, Short.MAX_VALUE)
+                .addComponent(dbLinkSearchScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 262, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -3225,7 +3225,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             prefixField.setText("");
             ((DefaultTableModel)dbPrefixTable.getModel()).addRow(
                     new Object[]{key,prefixMap.get(key)});
-            ((List)dbUsedPrefixCombo.getModel()).add(key+" - "+prefix);
+            String selValue = key+" - "+prefix;
+            ((List)dbUsedPrefixCombo.getModel()).add(selValue);
+            ((List)dbSearchPrefixCombo.getModel()).add(selValue);
             LinkMap linkMap = conn.getLinkMap();
                 // Turn off the connection's auto-commit to group the following 
                 // database transactions to improve performance
@@ -4260,7 +4262,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbSearchPrefixCheckBoxActionPerformed
 
     private void dbSearchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbSearchButtonActionPerformed
-        String prefixStr = dbUsedPrefixCombo.getSelectedItem().toString();
+        String prefixStr = dbSearchPrefixCombo.getSelectedItem().toString();
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             Integer prefixID = (dbSearchPrefixCheckBox.isSelected()) ? 
                     getSearchPrefix(prefixStr) : null;
@@ -9717,7 +9719,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             updateListEditButtons();
             if (usedPrefixComboModel != null){
                 dbUsedPrefixCombo.setModel(usedPrefixComboModel);
-                dbSearchPrefixCombo.setModel(usedPrefixComboModel);
+                ArrayComboBoxModel<String> temp = new ArrayComboBoxModel<>(usedPrefixComboModel);
+                temp.setSelectedItem(usedPrefixComboModel.getSelectedItem());
+                dbSearchPrefixCombo.setModel(temp);
             }
             setTabEnabled(dbUsedPrefixesPanel,usedPrefixComboModel != null);
             linkCountLabel.setText(Objects.toString(linkCount,"N/A"));

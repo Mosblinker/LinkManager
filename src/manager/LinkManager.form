@@ -1335,7 +1335,7 @@
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <Component id="dbLinkSearchScrollPane" pref="558" max="32767" attributes="0"/>
+                              <Component id="dbLinkSearchScrollPane" pref="581" max="32767" attributes="0"/>
                               <Group type="102" attributes="0">
                                   <Group type="103" groupAlignment="0" max="-2" attributes="0">
                                       <Component id="dbSearchPrefixCheckBox" max="32767" attributes="0"/>
@@ -1365,13 +1365,13 @@
                               <Component id="dbSearchField" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="dbSearchButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="1" attributes="0">
-                              <Component id="dbSearchPrefixCheckBox" min="-2" max="-2" attributes="0"/>
-                              <Component id="dbSearchPrefixCombo" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace min="-2" pref="7" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                              <Component id="dbSearchPrefixCombo" max="32767" attributes="0"/>
+                              <Component id="dbSearchPrefixCheckBox" pref="0" max="32767" attributes="0"/>
                           </Group>
                           <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                          <Component id="dbLinkSearchScrollPane" pref="264" max="32767" attributes="0"/>
+                          <Component id="dbLinkSearchScrollPane" pref="262" max="32767" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
                   </Group>
