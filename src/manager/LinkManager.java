@@ -11,6 +11,7 @@ import com.dropbox.core.util.IOUtil.ProgressListener;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import com.dropbox.core.v2.users.*;
+import com.technicjelle.UpdateChecker;
 import components.*;
 import components.debug.DebugCapable;
 import components.disable.DisableGUIInput;
@@ -74,6 +75,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is the version of the program.
      */
     public static final String PROGRAM_VERSION = "0.1.0";
+    /**
+     * The name of the author and main developer.
+     */
+    protected static final String AUTHOR_NAME = "Mosblinker";
     /**
      * This is the internal name for the program.
      */
@@ -789,6 +794,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
             // Set the SQLite config to enforce the foreign keys
         config.getSQLiteConfig().enforceForeignKeys(foreignKeysToggle.isSelected());
+        
+        try{
+            updateChecker = new UpdateChecker(AUTHOR_NAME,INTERNAL_PROGRAM_NAME,
+                    PROGRAM_VERSION);
+        } catch (RuntimeException ex){
+            getLogger().log(Level.WARNING, "UpdateChecker could not be constructed", 
+                    ex);
+        }
         
         progressObserver = new DefaultProgressObserver(progressBar){
             @Override
@@ -5529,6 +5542,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private LinksListTabsPanel[] listsTabPanels;
     
     private LinksListHandler listHandler;
+    /**
+     * This is the checker to use to check for updates for the program.
+     */
+    private UpdateChecker updateChecker = null;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JDialog aboutDialog;
     private javax.swing.JMenuItem aboutItem;
@@ -6043,6 +6060,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Set the Dropbox chunk size multiplier
         dbxChunkSizeModel.setMultiplier(config.getDropboxChunkSizeMultiplier(
                 dbxChunkSizeModel.getMultiplier()));
+        checkUpdatesAtStartToggle.setSelected(config.getCheckForUpdateAtStartup(
+                checkUpdatesAtStartToggle.isSelected()));
             // If the program has fully loaded
         if (fullyLoaded){
                 // Set the selection from the config
