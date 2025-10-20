@@ -118,7 +118,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         {"SQLCollections","Mosblinker",null},
         {"ConfigUtilities","Mosblinker","https://github.com/Mosblinker/ConfigUtilities"},
         {"UpdateChecker","TechnicJelle","https://github.com/TechnicJelle/UpdateCheckerJava"},
-        {"dropbox-core-sdk",null,null}
+        {"sqlite-jdbc","xerial","https://github.com/xerial/sqlite-jdbc"},
+        {"jackson-core","FasterXML","https://github.com/FasterXML/jackson-core"},
+        {"dropbox-core-sdk","Dropbox","https://github.com/dropbox/dropbox-sdk-java"}
     };
     /**
      * This is the pattern for the file handler to use for the log files of this 
