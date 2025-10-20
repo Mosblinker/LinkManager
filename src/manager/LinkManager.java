@@ -1161,7 +1161,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbTablePanel = new javax.swing.JPanel();
         dbTableScrollPane = new javax.swing.JScrollPane();
         dbTableTable = new javax.swing.JTable();
-        jScrollPane2 = new javax.swing.JScrollPane();
+        dbTableStructScrollPane = new javax.swing.JScrollPane();
         dbTableStructText = new javax.swing.JTextArea();
         dbCreatePrefixScrollPane = new javax.swing.JScrollPane();
         dbCreatePrefixTree = new javax.swing.JTree();
@@ -1209,21 +1209,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         updateListsItem = new javax.swing.JMenuItem();
         reloadListsItem = new javax.swing.JMenuItem();
         exportListsItem = new javax.swing.JMenuItem();
-        jSeparator2 = new javax.swing.JPopupMenu.Separator();
+        javax.swing.JPopupMenu.Separator jSeparator2 = new javax.swing.JPopupMenu.Separator();
         uploadDBItem = new javax.swing.JMenuItem();
         downloadDBItem = new javax.swing.JMenuItem();
         javax.swing.JPopupMenu.Separator dbConfigSeparator = new javax.swing.JPopupMenu.Separator();
         saveConfigItem = new javax.swing.JMenuItem();
         loadConfigItem = new javax.swing.JMenuItem();
-        configExitSeparator = new javax.swing.JPopupMenu.Separator();
+        javax.swing.JPopupMenu.Separator configExitSeparator = new javax.swing.JPopupMenu.Separator();
         exitButton = new javax.swing.JMenuItem();
         listMenu = new javax.swing.JMenu();
         manageListsItem = new javax.swing.JMenuItem();
-        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        javax.swing.JPopupMenu.Separator jSeparator1 = new javax.swing.JPopupMenu.Separator();
         makeListReadOnlyMenuAll = new javax.swing.JMenu();
         makeListReadOnlyMenuShown = new javax.swing.JMenu();
         hideListsMenu = new javax.swing.JMenu();
-        jSeparator4 = new javax.swing.JPopupMenu.Separator();
+        javax.swing.JPopupMenu.Separator jSeparator4 = new javax.swing.JPopupMenu.Separator();
         showAllListsItem = new javax.swing.JMenuItem();
         hideAllListsItem = new javax.swing.JMenuItem();
         showHiddenListsToggle = new javax.swing.JCheckBoxMenuItem();
@@ -2244,7 +2244,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbTableStructText.setLineWrap(true);
         dbTableStructText.setRows(5);
         dbTableStructText.setWrapStyleWord(true);
-        jScrollPane2.setViewportView(dbTableStructText);
+        dbTableStructScrollPane.setViewportView(dbTableStructText);
 
         javax.swing.GroupLayout dbTablePanelLayout = new javax.swing.GroupLayout(dbTablePanel);
         dbTablePanel.setLayout(dbTablePanelLayout);
@@ -2254,7 +2254,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addContainerGap()
                 .addGroup(dbTablePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(dbTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 558, Short.MAX_VALUE)
-                    .addComponent(jScrollPane2))
+                    .addComponent(dbTableStructScrollPane))
                 .addContainerGap())
         );
         dbTablePanelLayout.setVerticalGroup(
@@ -2263,7 +2263,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addContainerGap()
                 .addComponent(dbTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(dbTableStructScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -5364,7 +5364,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton backupDBButton;
     private javax.swing.JMenuItem clearListSelItem;
     private javax.swing.JMenuItem clearSelTabItem;
-    private javax.swing.JPopupMenu.Separator configExitSeparator;
     private javax.swing.JFileChooser configFC;
     private javax.swing.JScrollPane configScrollPane;
     private javax.swing.JTable configTable;
@@ -5413,6 +5412,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JTabbedPane dbTabbedPane;
     private javax.swing.JPanel dbTablePanel;
     private javax.swing.JScrollPane dbTableScrollPane;
+    private javax.swing.JScrollPane dbTableStructScrollPane;
     private javax.swing.JTextArea dbTableStructText;
     private javax.swing.JTable dbTableTable;
     private javax.swing.JLabel dbUUIDLabel;
@@ -5452,10 +5452,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem hideAllListsItem;
     private javax.swing.JMenu hideListsMenu;
     private javax.swing.JMenuItem jMenuItem1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JPopupMenu.Separator jSeparator1;
-    private javax.swing.JPopupMenu.Separator jSeparator2;
-    private javax.swing.JPopupMenu.Separator jSeparator4;
     private javax.swing.JLabel linkCountLabel;
     private javax.swing.JOptionPane linkEditPane;
     private javax.swing.JCheckBoxMenuItem linkOperationToggle;
