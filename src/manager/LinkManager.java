@@ -2493,7 +2493,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         aboutPanel.setProgramName(PROGRAM_NAME);
         aboutPanel.setProgramVersion(PROGRAM_VERSION);
         aboutPanel.setProgramWebsiteText("Visit the Github Repository");
-        aboutPanel.setProgramWebsiteURI(java.net.URI.create("https://github.com/Mosblinker/HypnoGifGenerator"));
+        aboutPanel.setProgramWebsiteURI(java.net.URI.create("https://github.com/Mosblinker/LinkManager"));
         aboutPanel.setUpdateButtonIsShown(true);
         aboutPanel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
