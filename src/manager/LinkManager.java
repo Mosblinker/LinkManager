@@ -825,7 +825,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.gc();        // Run the garbage collector
             // Configure the program from the settings
         configureProgram();
-        if (checkUpdatesAtStartToggle.isSelected()){
+        if (!debugMode && checkUpdatesAtStartToggle.isSelected()){
             updateWorker = new UpdateCheckWorker(true);
             updateWorker.execute();
         }
