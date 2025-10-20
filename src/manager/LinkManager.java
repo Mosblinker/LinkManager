@@ -53,6 +53,7 @@ import manager.config.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
+import manager.icons.LinkManagerIcon;
 import manager.links.*;
 import manager.painters.LinkManagerIconPainter;
 import manager.renderer.*;
@@ -462,9 +463,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public LinkManager(boolean debugMode, UUID programID, File configFile) {
         this.debugMode = debugMode;
+        LinkManagerIconPainter iconPainter = new LinkManagerIconPainter();
             // Generate the icons for this program
         setIconImages(LinkManagerUtilities.generateIconImages(ICON_SIZES, 
-                new LinkManagerIconPainter()));
+                iconPainter));
         editCommands = new HashMap<>();
         undoCommands = new HashMap<>();
         textPopupMenus = new HashMap<>();
@@ -821,6 +823,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return this;
             }
         };
+        
+        aboutPanel.setProgramIcon(new LinkManagerIcon(128,iconPainter));
+        updateIconLabel.setIcon(new LinkManagerIcon(64,iconPainter));
         
         System.gc();        // Run the garbage collector
             // Configure the program from the settings
