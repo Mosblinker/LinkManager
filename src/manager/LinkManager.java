@@ -825,7 +825,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.gc();        // Run the garbage collector
             // Configure the program from the settings
         configureProgram();
-        if (ENABLE_INITIAL_LOAD_AND_SAVE){
+        if (checkUpdatesAtStartToggle.isSelected()){
+            updateWorker = new UpdateCheckWorker(true);
+            updateWorker.execute();
+        }
+        else if (ENABLE_INITIAL_LOAD_AND_SAVE){
             loadDatabase(DATABASE_LOADER_LOAD_ALL_FLAG);// | DATABASE_LOADER_CHECK_LOCAL_FLAG);
         }
     }
@@ -4936,6 +4940,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             case(JAboutPanel.CLOSE_SELECTED):
                 aboutDialog.setVisible(false);
                 break;
+            case(JAboutPanel.UPDATE_SELECTED):
+                updateWorker = new UpdateCheckWorker(false);
+                updateWorker.execute();
         }
     }//GEN-LAST:event_aboutPanelActionPerformed
 
@@ -5485,6 +5492,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * FileSaver} don't apply to.
      */
     private FileWorker fileWorker = null;
+    /**
+     * 
+     */
+    private UpdateCheckWorker updateWorker = null;
     /**
      * This is used to perform changes to a LinksListPanel in the background.
      */
@@ -7931,6 +7942,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      */
     private enum LoadingStage{
+        
+        UPDATE_CHECK,
         
         DOWNLOADING_FILE,
         
@@ -11463,5 +11476,104 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
         
+    }
+    /**
+     * 
+     */
+    private class UpdateCheckWorker extends LinkManagerWorker<Boolean>{
+        /**
+         * This gets whether there is an update available for the program.
+         */
+        private boolean updateAvailable = false;
+        
+        private boolean success = false;
+        /**
+         * Whether this is being called at the start of the program.
+         */
+        private boolean isAtStart;
+        /**
+         * 
+         * @param isAtStart 
+         */
+        UpdateCheckWorker(boolean isAtStart){
+            this.isAtStart = isAtStart;
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected Component getParentComponent(){
+            return (isAtStart)?LinkManager.this:aboutDialog;
+        }
+        @Override
+        public String getProgressString() {
+            return "Checking For Updates";
+        }
+        @Override
+        protected Boolean backgroundAction() throws Exception {
+            getLogger().entering(this.getClass().getName(), "backgroundAction");
+                // Whether this should retry to check for an update
+            boolean retry = false;
+            do{
+                useWaitCursor(true);
+                try{    // Check for an update
+                    updateChecker.check();
+                    success = true;
+                } catch (Exception ex){
+                    getLogger().log(Level.WARNING, 
+                            "An error occurred while checking the latest version",
+                            ex);
+                    useWaitCursor(false);
+                        // Ask the user if they would like to try checking for 
+                        // updates again
+                    retry = JOptionPane.showConfirmDialog(getParentComponent(),
+                        "Failed to check for updates.\nWould you like to try again?",
+                        "Update Checker Failed",JOptionPane.YES_NO_OPTION,
+                        JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
+                }
+            }   // While this has not checked for an update and the user wants 
+                // to try again
+            while (!success && retry);
+                // Get whether there is an update available
+            updateAvailable = updateChecker.isUpdateAvailable();
+            getLogger().exiting(this.getClass().getName(), "backgroundAction", 
+                    updateAvailable);
+            return updateAvailable;
+        }
+        @Override
+        protected void done(){
+                // If this was successful at checking for an update
+            if (success){
+                    // If there's an update available, then set the text for the 
+                    // latest version label to be the latest version for the 
+                    // program. Otherwise, just state the current version
+                latestVersLabel.setText((updateAvailable) ? 
+                        updateChecker.getLatestVersion() : 
+                        updateChecker.getCurrentVersion());
+            }
+            super.done();
+                // If this was successful at checking for an update
+            if (success){
+                    // If there is an update available for the program
+                if (updateAvailable){
+                        // Log the update
+                    updateChecker.logUpdateMessage(getLogger());
+                        // Set the update check dialog's location relative to 
+                        // this if at startup and relative to the about dialog 
+                        // if the check was initialized from there.
+                    updateCheckDialog.setLocationRelativeTo(getParentComponent());
+                    updateCheckDialog.setVisible(true);
+                } else if (!isAtStart){
+                    JOptionPane.showMessageDialog(aboutDialog, 
+                            "This program is already up to date,",
+                            updateCheckDialog.getTitle(), 
+                            JOptionPane.INFORMATION_MESSAGE, 
+                            updateIconLabel.getIcon());
+                }
+            }
+            if (isAtStart && ENABLE_INITIAL_LOAD_AND_SAVE){
+                loadDatabase(DATABASE_LOADER_LOAD_ALL_FLAG);// | DATABASE_LOADER_CHECK_LOCAL_FLAG);
+            }
+        }
     }
 }
