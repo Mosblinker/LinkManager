@@ -4918,12 +4918,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_aboutItemActionPerformed
 
     private void aboutPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutPanelActionPerformed
+        switch(evt.getActionCommand()){
+            case(JAboutPanel.CLOSE_SELECTED):
+                aboutDialog.setVisible(false);
+                break;
+        }
     }//GEN-LAST:event_aboutPanelActionPerformed
 
     private void checkUpdatesAtStartToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkUpdatesAtStartToggleActionPerformed
+        config.setCheckForUpdateAtStartup(checkUpdatesAtStartToggle.isSelected());
     }//GEN-LAST:event_checkUpdatesAtStartToggleActionPerformed
 
     private void updateContinueButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateContinueButtonActionPerformed
+        updateCheckDialog.setVisible(false);
     }//GEN-LAST:event_updateContinueButtonActionPerformed
 
     private void updateOpenButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateOpenButtonActionPerformed
