@@ -118,8 +118,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         {"SQLCollections","Mosblinker",null},
         {"ConfigUtilities","Mosblinker","https://github.com/Mosblinker/ConfigUtilities"},
         {"UpdateChecker","TechnicJelle","https://github.com/TechnicJelle/UpdateCheckerJava"},
-        {"sqlite-jdbc",null,null},
-        {"jackson-core",null,null},
         {"dropbox-core-sdk",null,null}
     };
     /**
