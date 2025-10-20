@@ -1215,6 +1215,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         javax.swing.JPopupMenu.Separator dbConfigSeparator = new javax.swing.JPopupMenu.Separator();
         saveConfigItem = new javax.swing.JMenuItem();
         loadConfigItem = new javax.swing.JMenuItem();
+        javax.swing.JPopupMenu.Separator jSeparator3 = new javax.swing.JPopupMenu.Separator();
+        aboutItem = new javax.swing.JMenuItem();
         javax.swing.JPopupMenu.Separator configExitSeparator = new javax.swing.JPopupMenu.Separator();
         exitButton = new javax.swing.JMenuItem();
         listMenu = new javax.swing.JMenu();
@@ -2655,6 +2657,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         fileMenu.add(loadConfigItem);
+        fileMenu.add(jSeparator3);
+
+        aboutItem.setText("About Link Manager");
+        aboutItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                aboutItemActionPerformed(evt);
+            }
+        });
+        fileMenu.add(aboutItem);
         fileMenu.add(configExitSeparator);
 
         exitButton.setText("Exit");
@@ -4758,6 +4769,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config.setHiddenFilesAreShown(showHiddenFilesToggle.isSelected());
         setFilesAreHidden(showHiddenFilesToggle.isSelected());
     }//GEN-LAST:event_showHiddenFilesToggleActionPerformed
+
+    private void aboutItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutItemActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_aboutItemActionPerformed
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
@@ -5353,6 +5368,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private LinksListHandler listHandler;
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem aboutItem;
     private javax.swing.JCheckBoxMenuItem activeToggle;
     private manager.AddLinksFromListPanel addLinksPanel;
     private javax.swing.JButton addPrefixButton;
