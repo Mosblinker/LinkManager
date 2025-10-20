@@ -25,6 +25,7 @@ import files.extensions.ConfigExtensions;
 import static files.extensions.TextDocumentExtensions.TEXT_FILTER;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -4947,6 +4948,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_updateContinueButtonActionPerformed
 
     private void updateOpenButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateOpenButtonActionPerformed
+        // Get the update URL
+        String url = updateChecker.getUpdateUrl();
+        try {   // Try to open the update URL in the user's web browser
+            Desktop.getDesktop().browse(new URL(url).toURI());
+        } catch (URISyntaxException | IOException ex) {
+            getLogger().log(Level.WARNING,"Could not open update URL "+url,ex);
+        }
     }//GEN-LAST:event_updateOpenButtonActionPerformed
     
     private void setFilesAreHidden(boolean value){
