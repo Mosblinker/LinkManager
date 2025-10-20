@@ -280,6 +280,10 @@ public class LinkManagerConfig {
      */
     public static final String LIST_ID_PREFERENCE_NODE_NAME = "listID";
     /**
+     * 
+     */
+    public static final String CHECK_FOR_UPDATES_AT_START_KEY = "CheckForUpdatesAtStartup";
+    /**
      * This is the preference node containing all the preferences for 
      * LinkManager. This is the parent preference node for all other nodes, and 
      * any settings stored in this node are shared between all instances of 
@@ -1138,6 +1142,9 @@ public class LinkManagerConfig {
         if (str != null)
                 // Set the Dropbox database file path from the properties
             setDropboxDatabaseFileName(str);
+        b = cProp.getBooleanProperty(CHECK_FOR_UPDATES_AT_START_KEY);
+        if (b != null)
+            setCheckForUpdateAtStartup(b);
             // Go through the entries in the component name map
         for (Map.Entry<Component,String> entry:getComponentNames().entrySet()){
                 // Get the dimension for the component from the properties
@@ -2542,6 +2549,28 @@ public class LinkManagerConfig {
                     setDropboxDatabaseFileName(value);
             }
         }
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean getCheckForUpdateAtStartup(boolean defaultValue){
+        return getPreferences().getBoolean(CHECK_FOR_UPDATES_AT_START_KEY, defaultValue);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public boolean getCheckForUpdateAtStartup(){
+        return getCheckForUpdateAtStartup(true);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setCheckForUpdateAtStartup(boolean value){
+        getPreferences().putBoolean(CHECK_FOR_UPDATES_AT_START_KEY, value);
     }
     /**
      * 
