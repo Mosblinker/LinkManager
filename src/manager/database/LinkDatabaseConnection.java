@@ -1532,7 +1532,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         // List type column definition. Cannot be null
                     "%s integer NOT NULL,"+
                         // List ID column definition. Can be null
-                    "%s integer",
+                    "%s integer DEFAULT NULL",
                         // Foreign key constraint for the program ID
                     FOREIGN_KEY_TEMPLATE+", "+ 
                         // Foreign key constraint for the list ID
@@ -1586,6 +1586,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @see DATABASE_CONFIG_TABLE_CREATION_QUERY
      * @see PROGRAM_ID_TABLE_CREATION_QUERY
      * @see LIST_TYPE_SELECTION_TABLE_CREATION_QUERY
+     * @see LIST_TYPE_SELECTION_INDEX_CREATION_QUERY
      * @see #createTables(Statement) 
      * @see #createTables() 
      */
