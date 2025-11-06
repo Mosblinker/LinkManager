@@ -1547,12 +1547,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             PROGRAM_ID_COLUMN_NAME,PROGRAM_ID_TABLE_NAME,PROGRAM_ID_COLUMN_NAME,
                 // Foreign key constraint for the list ID
             LIST_ID_COLUMN_NAME,LIST_TABLE_NAME,LIST_ID_COLUMN_NAME,
-                // Unique constraint for list type and index
+                // Unique constraint for program ID and list type
             PROGRAM_ID_COLUMN_NAME,LIST_TYPE_COLUMN_NAME);
     /**
      * 
      */
-    public static final String LIST_TYPE_SELECTION_INDEX_NAME = "listTypeSelIndex";
+    public static final String LIST_TYPE_SELECTION_INDEX_NAME = "listTypeSelectionIndex";
     /**
      * 
      */
@@ -1565,7 +1565,104 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 PROGRAM_ID_COLUMN_NAME,
                     // Second column is the list type
                 LIST_TYPE_COLUMN_NAME);
-    
+    /**
+     * 
+     */
+    public static final String LIST_SELECTION_TABLE_NAME = "listSelection";
+    /**
+     * 
+     */
+    public static final String SELECTION_IS_VISIBLE_COLUMN_NAME = 
+            "selectionIsVisible";
+    /**
+     * 
+     */
+    public static final String FIRST_VISIBLE_INDEX_COLUMN_NAME = 
+            "firstVisibleIndex";
+    /**
+     * 
+     */
+    public static final String LAST_VISIBLE_INDEX_COLUMN_NAME = 
+            "lastVisibleIndex";
+    /**
+     * 
+     */
+    public static final String VISIBLE_RECTANGLE_COLUMN_NAME = 
+            "visibleRect";
+    /**
+     * 
+     */
+    public static final String[] LIST_SELECTION_TABLE_COLUMN_NAMES = {
+        PROGRAM_ID_COLUMN_NAME,
+        LIST_ID_COLUMN_NAME,
+        LINK_ID_COLUMN_NAME,
+        SELECTION_IS_VISIBLE_COLUMN_NAME,
+        FIRST_VISIBLE_INDEX_COLUMN_NAME,
+        LAST_VISIBLE_INDEX_COLUMN_NAME,
+        VISIBLE_RECTANGLE_COLUMN_NAME
+    };
+    /**
+     * 
+     */
+    public static final String LIST_SELECTION_TABLE_CREATION_QUERY = String.format(
+            "CREATE TABLE IF NOT EXISTS %s ("+
+                        // Program ID column definition. Cannot be null
+                    "%s integer NOT NULL,"+
+                        // List ID column definition. Cannot be null
+                    "%s integer NOT NULL,"+
+                        // Link ID column definition. Can be null
+                    "%s integer DEFAULT NULL,"+
+                        // Whether the selected link is visible. Must be either 
+                        // 1 or 0
+                    "%s integer DEFAULT 0 CHECK (%s >= 0 AND %s <= 1),"+
+                        // First visible index column definition. Can be null
+                    "%s integer DEFAULT -1,"+
+                        // Last visible index column definition. Can be null
+                    "%s integer DEFAULT -1,"+
+                        // Visible rect column definition. Can be null
+                    "%s BLOB DEFAULT NULL,"+
+                        // Foreign key constraint for the program ID
+                    FOREIGN_KEY_TEMPLATE+", "+ 
+                        // Foreign key constraint for the list ID
+                    FOREIGN_KEY_TEMPLATE+", "+
+                        // Foreign key constraint for the link ID
+                    FOREIGN_KEY_TEMPLATE+", "+
+                        // Unique constraint for program ID and list ID
+                    "UNIQUE (%s, %s));",
+            LIST_SELECTION_TABLE_NAME,
+            PROGRAM_ID_COLUMN_NAME,
+            LIST_ID_COLUMN_NAME,
+            LINK_ID_COLUMN_NAME,
+            SELECTION_IS_VISIBLE_COLUMN_NAME,
+                // Check for the selection is visible value
+            SELECTION_IS_VISIBLE_COLUMN_NAME,SELECTION_IS_VISIBLE_COLUMN_NAME,
+            FIRST_VISIBLE_INDEX_COLUMN_NAME,
+            LAST_VISIBLE_INDEX_COLUMN_NAME,
+            VISIBLE_RECTANGLE_COLUMN_NAME,
+                // Foreign key constraint for the program ID
+            PROGRAM_ID_COLUMN_NAME,PROGRAM_ID_TABLE_NAME,PROGRAM_ID_COLUMN_NAME,
+                // Foreign key constraint for the list ID
+            LIST_ID_COLUMN_NAME,LIST_TABLE_NAME,LIST_ID_COLUMN_NAME,
+                // Foreign key constraint for the link ID
+            LINK_ID_COLUMN_NAME,LINK_TABLE_NAME,LINK_ID_COLUMN_NAME,
+                // Unique constraint for program ID and list ID
+            PROGRAM_ID_COLUMN_NAME,LIST_ID_COLUMN_NAME);
+    /**
+     * 
+     */
+    public static final String LIST_SELECTION_INDEX_NAME = "listSelectionIndex";
+    /**
+     * 
+     */
+    public static final String LIST_SELECTION_INDEX_CREATION_QUERY = String.format(
+            "CREATE UNIQUE INDEX IF NOT EXISTS %s ON %s(%s, %s);",
+                LIST_SELECTION_INDEX_NAME,
+                    // Applied on the list selection table
+                LIST_SELECTION_TABLE_NAME,
+                    // First column is the program ID
+                PROGRAM_ID_COLUMN_NAME,
+                    // Second column is the list ID
+                LIST_ID_COLUMN_NAME);
     /**
      * This is an array containing the queries used to create the tables, views, 
      * and indexes in the database.
@@ -1589,6 +1686,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @see PROGRAM_ID_TABLE_CREATION_QUERY
      * @see LIST_TYPE_SELECTION_TABLE_CREATION_QUERY
      * @see LIST_TYPE_SELECTION_INDEX_CREATION_QUERY
+     * @see LIST_SELECTION_TABLE_CREATION_QUERY
+     * @see LIST_SELECTION_INDEX_CREATION_QUERY
      * @see #createTables(Statement) 
      * @see #createTables() 
      */
@@ -1613,7 +1712,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         DATABASE_CONFIG_TABLE_CREATION_QUERY,       // Database settings table
         PROGRAM_ID_TABLE_CREATION_QUERY,            // Program ID table
         LIST_TYPE_SELECTION_TABLE_CREATION_QUERY,   // List type selection table
-        LIST_TYPE_SELECTION_INDEX_CREATION_QUERY    // List type selection index
+        LIST_TYPE_SELECTION_INDEX_CREATION_QUERY,   // List type selection index
+        LIST_SELECTION_TABLE_CREATION_QUERY,        // List selection table
+        LIST_SELECTION_INDEX_CREATION_QUERY         // List selection index
     };
     
     
