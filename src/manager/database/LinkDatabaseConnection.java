@@ -1463,6 +1463,54 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             DATABASE_CONFIG_DEFAULT_COLUMN_NAME,
             DATABASE_CONFIG_VALUE_COLUMN_NAME);
     /**
+     * This is a table storing the IDs for the programs that have accessed the 
+     * database.
+     */
+    public static final String PROGRAM_ID_TABLE = "programIDs";
+    /**
+     * This is the name of the column in the program ID table for the ID for the 
+     * program in the database. 
+     */
+    public static final String PROGRAM_ID_COLUMN_NAME = "programID";
+    /**
+     * This is the name of the column in the program ID table for the UUID of 
+     * the user for the program.
+     */
+    public static final String PROGRAM_USER_ID_COLUMN_NAME = "userID";
+    /**
+     * This is the name of the column in the program ID table for the UUID of 
+     * a program.
+     */
+    public static final String PROGRAM_UUID_COLUMN_NAME = "programUUID";
+    /**
+     * 
+     */
+    public static final String[] PROGRAM_ID_TABLE_COLUMN_NAMES = {
+        PROGRAM_ID_COLUMN_NAME,
+        PROGRAM_USER_ID_COLUMN_NAME,
+        PROGRAM_UUID_COLUMN_NAME
+    };
+    /**
+     * 
+     */
+    public static final String PROGRAM_ID_TABLE_CREATION_QUERY = String.format(
+            "CREATE TABLE IF NOT EXISTS %s ("+
+                        // Program ID column definition. Primary key, cannot be 
+                        // null
+                    "%s integer NOT NULL PRIMARY KEY, "+ 
+                        // User ID column definition. Cannot be null
+                    "%s text NOT NULL, "+
+                        // Program UUID column definition. Cannot be null
+                    "%s text NOT NULL, "+
+                        // Unique constraint for user ID and program UUID
+                    "UNIQUE (%s, %s));",
+            PROGRAM_ID_TABLE,
+            PROGRAM_ID_COLUMN_NAME,
+            PROGRAM_USER_ID_COLUMN_NAME,
+            PROGRAM_UUID_COLUMN_NAME,
+            PROGRAM_USER_ID_COLUMN_NAME,
+            PROGRAM_UUID_COLUMN_NAME);
+    /**
      * This is an array containing the queries used to create the tables, views, 
      * and indexes in the database.
      * @see PREFIX_TABLE_CREATION_QUERY
@@ -1482,6 +1530,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @see EXCLUSIVE_LISTS_TABLE_CREATION_QUERY
      * @see EXCLUSIVE_LISTS_INDEX_CREATION_QUERY
      * @see DATABASE_CONFIG_TABLE_CREATION_QUERY
+     * @see PROGRAM_ID_TABLE_CREATION_QUERY
      * @see #createTables(Statement) 
      * @see #createTables() 
      */
@@ -1503,7 +1552,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         // TODO: Implement Exclusive lists and create their tables in the database
 //        EXCLUSIVE_LISTS_TABLE_CREATION_QUERY,       // Exclusive lists table
 //        EXCLUSIVE_LISTS_INDEX_CREATION_QUERY,       // Exclusive lists index
-        DATABASE_CONFIG_TABLE_CREATION_QUERY        // Database settings table
+        DATABASE_CONFIG_TABLE_CREATION_QUERY,       // Database settings table
+        PROGRAM_ID_TABLE_CREATION_QUERY             // Program ID table
     };
     
     
