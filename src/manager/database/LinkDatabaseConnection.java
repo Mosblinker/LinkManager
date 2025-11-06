@@ -1493,7 +1493,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    public static final String PROGRAM_ID_TABLE_CREATION_QUERY = String.format("CREATE TABLE IF NOT EXISTS %s ("+
+    public static final String PROGRAM_ID_TABLE_CREATION_QUERY = 
+            String.format("CREATE TABLE IF NOT EXISTS %s ("+
                         // Program ID column definition. Primary key, cannot be 
                         // null
                     "%s integer NOT NULL PRIMARY KEY, "+ 
@@ -1509,6 +1510,60 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             PROGRAM_UUID_COLUMN_NAME,
             PROGRAM_USER_ID_COLUMN_NAME,
             PROGRAM_UUID_COLUMN_NAME);
+    /**
+     * 
+     */
+    public static final String LIST_TYPE_SELECTION_TABLE_NAME = "listTypeSelection";
+    /**
+     * 
+     */
+    public static final String[] LIST_TYPE_SELECTION_TABLE_COLUMN_NAMES = {
+        PROGRAM_ID_COLUMN_NAME,
+        LIST_TYPE_COLUMN_NAME,
+        LIST_ID_COLUMN_NAME
+    };
+    /**
+     * 
+     */
+    public static final String LIST_TYPE_SELECTION_TABLE_CREATION_QUERY = 
+            String.format("CREATE TABLE IF NOT EXISTS %s ("+
+                        // Program ID column definition. Cannot be null
+                    "%s integer NOT NULL,"+
+                        // List type column definition. Cannot be null
+                    "%s integer NOT NULL,"+
+                        // List ID column definition. Can be null
+                    "%s integer",
+                        // Foreign key constraint for the program ID
+                    FOREIGN_KEY_TEMPLATE+", "+ 
+                        // Foreign key constraint for the list ID
+                    FOREIGN_KEY_TEMPLATE+", "+
+                        // Unique constraint for program ID and list type
+                    "UNIQUE (%s, %s)",
+            LIST_TYPE_SELECTION_TABLE_NAME,
+            PROGRAM_ID_COLUMN_NAME,
+            LIST_TYPE_COLUMN_NAME,
+            LIST_ID_COLUMN_NAME,
+            PROGRAM_ID_COLUMN_NAME,
+            LIST_ID_COLUMN_NAME,
+            PROGRAM_ID_COLUMN_NAME,
+            LIST_TYPE_COLUMN_NAME);
+    /**
+     * 
+     */
+    public static final String LIST_TYPE_SELECTION_INDEX_NAME = "listTypeSelIndex";
+    /**
+     * 
+     */
+    public static final String LIST_TYPE_SELECTION_INDEX_CREATION_QUERY = String.format(
+            "CREATE UNIQUE INDEX IF NOT EXISTS %s ON %s(%s, %s);",
+                LIST_TYPE_SELECTION_INDEX_NAME,
+                    // Applied on the list type selection table
+                LIST_TYPE_SELECTION_TABLE_NAME,
+                    // First column is the program ID
+                PROGRAM_ID_COLUMN_NAME,
+                    // Second column is the list type
+                LIST_TYPE_COLUMN_NAME);
+    
     /**
      * This is an array containing the queries used to create the tables, views, 
      * and indexes in the database.
@@ -1530,6 +1585,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @see EXCLUSIVE_LISTS_INDEX_CREATION_QUERY
      * @see DATABASE_CONFIG_TABLE_CREATION_QUERY
      * @see PROGRAM_ID_TABLE_CREATION_QUERY
+     * @see LIST_TYPE_SELECTION_TABLE_CREATION_QUERY
      * @see #createTables(Statement) 
      * @see #createTables() 
      */
@@ -1552,7 +1608,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
 //        EXCLUSIVE_LISTS_TABLE_CREATION_QUERY,       // Exclusive lists table
 //        EXCLUSIVE_LISTS_INDEX_CREATION_QUERY,       // Exclusive lists index
         DATABASE_CONFIG_TABLE_CREATION_QUERY,       // Database settings table
-        PROGRAM_ID_TABLE_CREATION_QUERY             // Program ID table
+        PROGRAM_ID_TABLE_CREATION_QUERY,            // Program ID table
+        LIST_TYPE_SELECTION_TABLE_CREATION_QUERY,   // List type selection table
+        LIST_TYPE_SELECTION_INDEX_CREATION_QUERY    // List type selection index
     };
     
     
