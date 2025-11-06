@@ -1543,10 +1543,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             PROGRAM_ID_COLUMN_NAME,
             LIST_TYPE_COLUMN_NAME,
             LIST_ID_COLUMN_NAME,
-            PROGRAM_ID_COLUMN_NAME,
-            LIST_ID_COLUMN_NAME,
-            PROGRAM_ID_COLUMN_NAME,
-            LIST_TYPE_COLUMN_NAME);
+                // Foreign key constraint for the program ID
+            PROGRAM_ID_COLUMN_NAME,PROGRAM_ID_TABLE_NAME,PROGRAM_ID_COLUMN_NAME,
+                // Foreign key constraint for the list ID
+            LIST_ID_COLUMN_NAME,LIST_TABLE_NAME,LIST_ID_COLUMN_NAME,
+                // Unique constraint for list type and index
+            PROGRAM_ID_COLUMN_NAME,LIST_TYPE_COLUMN_NAME);
     /**
      * 
      */
