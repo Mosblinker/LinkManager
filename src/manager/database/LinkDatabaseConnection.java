@@ -6911,7 +6911,34 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         }
         @Override
         protected Integer putSQL(UUID key, Integer value) throws SQLException {
-            throw new UnsupportedOperationException("put");
+                // Check if the key is null
+            Objects.requireNonNull(key);
+                // Check if the value is null
+            Objects.requireNonNull(value);
+                // The old value for the key
+            Integer oldValue = getSQL(key);
+                // Prepare a statement to either insert or update the ID for 
+                // the user ID and program UUID in the program ID table
+            try (PreparedStatement pstmt = prepareStatement(String.format(
+                        // If the table previously contained the key, update the 
+                        // value. Otherwise, insert the key and value into the 
+                    (oldValue != null) ?     // table
+                            "UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?" : 
+                            "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
+                        PROGRAM_ID_TABLE_NAME,
+                        PROGRAM_ID_COLUMN_NAME,
+                        PROGRAM_USER_ID_COLUMN_NAME,
+                        PROGRAM_UUID_COLUMN_NAME))){
+                    // Set the program ID
+                pstmt.setInt(1, value);
+                    // Set the user ID
+                pstmt.setString(2, userID.toString());
+                    // Set the program UUID
+                pstmt.setString(3, key.toString());
+                    // Update the database
+                pstmt.executeUpdate();
+            }
+            return oldValue;
         }
         @Override
         protected Integer getSQL(Object key) throws SQLException {
