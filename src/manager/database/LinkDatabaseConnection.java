@@ -6828,4 +6828,146 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             return Collections.unmodifiableSet(cache);
         }
     }
+    /**
+     * 
+     */
+    private class ProgramUUIDMapImpl extends AbstractQueryMap<UUID, Integer> 
+            implements ProgramUUIDMap{
+        /**
+         * The user ID for this portion of the table.
+         */
+        private UUID userID;
+        /**
+         * 
+         * @param userID 
+         */
+        ProgramUUIDMapImpl(UUID userID){
+            this.userID = Objects.requireNonNull(userID);
+        }
+        @Override
+        protected boolean containsKeySQL(Object key) throws SQLException {
+                // If the given key is null or not a UUID
+            if (key == null || !(key instanceof UUID))
+                return false;
+                // Prepare a statement to check if the given UUID is found in 
+                // the program ID table and with the UUID of the user
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
+                            PROGRAM_ID_COLUMN_NAME,
+                            PROGRAM_ID_TABLE_NAME,
+                            PROGRAM_USER_ID_COLUMN_NAME,
+                            PROGRAM_UUID_COLUMN_NAME))){
+                    // Set the user ID to search for
+                pstmt.setString(1, userID.toString());
+                    // Set the program UUID to search for
+                pstmt.setString(2, key.toString());
+                return containsCountResult(pstmt.executeQuery());
+            }
+        }
+        @Override
+        protected boolean containsValueSQL(Object value) throws SQLException {
+                // If the given key is null or not an Integer
+            if (value == null || !(value instanceof Integer))
+                return false;
+                // Prepare a statement to check if the given value is found in 
+                // the program ID table with the UUID of the user
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
+                            PROGRAM_ID_COLUMN_NAME,
+                            PROGRAM_ID_TABLE_NAME,
+                            PROGRAM_USER_ID_COLUMN_NAME,
+                            PROGRAM_ID_COLUMN_NAME))){
+                    // Set the user ID to search for
+                pstmt.setString(1, userID.toString());
+                    // Set the program ID to search for
+                pstmt.setInt(2, (int)value);
+                return containsCountResult(pstmt.executeQuery());
+            }
+        }
+        @Override
+        protected Integer removeSQL(Object key) throws SQLException {
+            throw new UnsupportedOperationException("Program UUID map cannot be modified");
+        }
+        @Override
+        protected Integer putSQL(UUID key, Integer value) throws SQLException {
+            throw new UnsupportedOperationException("Program UUID map cannot be modified");
+        }
+        @Override
+        protected Integer getSQL(Object key) throws SQLException {
+                // If the given key is null or not a UUID
+            if (key == null || !(key instanceof UUID))
+                return null;
+                // Prepare a statement to check if the given UUID is found in 
+                // the program ID table and with the UUID of the user
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    "SELECT %s FROM %s WHERE %s = ? AND %s = ?", 
+                            PROGRAM_ID_COLUMN_NAME,
+                            PROGRAM_ID_TABLE_NAME,
+                            PROGRAM_USER_ID_COLUMN_NAME,
+                            PROGRAM_UUID_COLUMN_NAME))){
+                    // Set the user ID to search for
+                pstmt.setString(1, userID.toString());
+                    // Set the program UUID to search for
+                pstmt.setString(2, key.toString());
+                    // Query the database
+                ResultSet rs = pstmt.executeQuery();
+                    // If there are any results
+                if (rs.next())
+                    return rs.getInt(PROGRAM_ID_COLUMN_NAME);
+            }
+            return null;
+        }
+        @Override
+        protected Set<Entry<UUID, Integer>> entryCacheSet() throws SQLException {
+                // A set to cache the entries from the database
+            Set<Entry<UUID, Integer>> cache = new LinkedHashSet<>();
+                // Prepare a statement to go through the keys and values in the 
+                // database config table where the values are not null
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    "SELECT %s, %s FROM %s WHERE %s = ?", 
+                            PROGRAM_UUID_COLUMN_NAME,
+                            PROGRAM_ID_COLUMN_NAME,
+                            PROGRAM_ID_TABLE_NAME,
+                            PROGRAM_USER_ID_COLUMN_NAME))){
+                pstmt.setString(1, userID.toString());
+                    // Query the database
+                ResultSet rs = pstmt.executeQuery();
+                    // While there are still results to go through
+                while (rs.next()){
+                    String uuid = rs.getString(PROGRAM_UUID_COLUMN_NAME);
+                    try{    // Add the current entry to the cache
+                        cache.add(new AbstractMap.SimpleImmutableEntry<>(
+                                UUID.fromString(uuid),
+                                rs.getInt(PROGRAM_ID_COLUMN_NAME)));
+                    } catch (IllegalArgumentException ex){
+                        LinkManager.getLogger().log(Level.INFO,
+                                "Invalid UUID for program UUID", ex);
+                    }
+                }
+            }
+            return cache;
+        }
+        @Override
+        protected int sizeSQL() throws SQLException {
+                // Prepare a statement to get the amount of entries in the 
+                // program ID table with the user ID
+            try (PreparedStatement pstmt = prepareStatement(String.format(
+                    TABLE_SIZE_QUERY_TEMPLATE+" WHERE %s = ?", 
+                        PROGRAM_ID_COLUMN_NAME,
+                        PROGRAM_ID_TABLE_NAME,
+                        PROGRAM_USER_ID_COLUMN_NAME))){
+                pstmt.setString(1, userID.toString());
+                    // Query the database
+                ResultSet rs = pstmt.executeQuery();
+                    // If there are any results from the query
+                if (rs.next())
+                    return rs.getInt(COUNT_COLUMN_NAME);
+            }
+            return 0;
+        }
+        @Override
+        public UUID getUserID() {
+            return userID;
+        }
+    }
 }
