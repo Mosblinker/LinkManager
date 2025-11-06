@@ -6886,11 +6886,32 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         }
         @Override
         protected Integer removeSQL(Object key) throws SQLException {
-            throw new UnsupportedOperationException("Program UUID map cannot be modified");
+                // If the given key is null or not a UUID
+            if (key == null || !(key instanceof UUID))
+                return null;
+                // Get the old value
+            Integer value = getSQL(key);
+                // If the old value is null
+            if (value == null)
+                return null;
+                // Prepare a statement to remove the entry with the program UUID
+            try (PreparedStatement pstmt = prepareStatement(
+                    String.format("DELETE FROM %s WHERE %s = ? AND %s = ?", 
+                            PROGRAM_ID_TABLE_NAME,
+                            PROGRAM_USER_ID_COLUMN_NAME,
+                            PROGRAM_UUID_COLUMN_NAME))) {
+                    // Set the user ID to search for
+                pstmt.setString(1, userID.toString());
+                    // Set the program UUID to search for
+                pstmt.setString(2, key.toString());
+                    // Update the database
+                pstmt.executeUpdate();
+            }
+            return value;
         }
         @Override
         protected Integer putSQL(UUID key, Integer value) throws SQLException {
-            throw new UnsupportedOperationException("Program UUID map cannot be modified");
+            throw new UnsupportedOperationException("put");
         }
         @Override
         protected Integer getSQL(Object key) throws SQLException {
