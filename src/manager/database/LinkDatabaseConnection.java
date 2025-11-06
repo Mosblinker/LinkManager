@@ -5300,7 +5300,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         } else{
             try(PreparedStatement pstmt = prepareStatement(String.format(
                     (old != null)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
-                            "INSERT INTO %s SET (%s, %s, %s) VALUES (?,?,?)",
+                            "INSERT INTO %s(%s, %s, %s) VALUES (?,?,?)",
                         LIST_TYPE_SELECTION_TABLE_NAME,
                         LIST_ID_COLUMN_NAME,
                         PROGRAM_ID_COLUMN_NAME,
