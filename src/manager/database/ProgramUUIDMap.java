@@ -9,7 +9,7 @@ import sql.util.SQLMap;
 
 /**
  * This is a map view that maps the program UUIDs associated with a given user 
- * UUID to the row IDs the rows.
+ * UUID to the row IDs the rows. This map is unmodifiable.
  * @author Mosblinker
  */
 public interface ProgramUUIDMap extends SQLMap<UUID,Integer>{
