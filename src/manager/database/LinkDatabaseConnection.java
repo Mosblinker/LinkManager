@@ -2007,6 +2007,14 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     private DatabasePropertyMap propMap = null;
     /**
+     * This is a map that maps the program user IDs to the program UUID maps.
+     */
+    private final Map<UUID,ProgramUUIDMap> programIDs = new TreeMap<>();
+    /**
+     * 
+     */
+    private final Set<UUID> programUserIDs = new ProgramUserIDSet();
+    /**
      * This is the SQLiteConfig used to construct this connection if one was 
      * provided.
      */
@@ -5073,6 +5081,39 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     public void updateListIDList(int listType, LinksListTabsPanel tabsPanel) 
             throws SQLException{
         updateListIDList(listType,tabsPanel,null);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Set<UUID> getProgramUserIDs(){
+        return programUserIDs;
+    }
+    /**
+     * 
+     * @param userID
+     * @return 
+     */
+    public ProgramUUIDMap getProgramUUIDMap(UUID userID){
+        if (!programIDs.containsKey(userID))
+            programIDs.put(userID, new ProgramUUIDMapImpl(userID));
+        return programIDs.get(userID);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<UUID, ProgramUUIDMap> getProgramIDMap(){
+        return Collections.unmodifiableMap(programIDs);
+    }
+    /**
+     * 
+     * @param userID
+     * @return 
+     * @throws java.sql.SQLException 
+     */
+    public boolean removeProgramUserID(UUID userID) throws SQLException{
+        return getProgramUserIDs().remove(userID);
     }
     /**
      * 
