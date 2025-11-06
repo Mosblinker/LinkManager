@@ -1538,7 +1538,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         // Foreign key constraint for the list ID
                     FOREIGN_KEY_TEMPLATE+", "+
                         // Unique constraint for program ID and list type
-                    "UNIQUE (%s, %s)",
+                    "UNIQUE (%s, %s));",
             LIST_TYPE_SELECTION_TABLE_NAME,
             PROGRAM_ID_COLUMN_NAME,
             LIST_TYPE_COLUMN_NAME,
