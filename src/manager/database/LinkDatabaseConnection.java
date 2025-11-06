@@ -7017,5 +7017,67 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         public UUID getUserID() {
             return userID;
         }
+        /**
+         * 
+         * @param key
+         * @return
+         * @throws SQLException 
+         */
+        private Integer addSQL(UUID key) throws SQLException{
+                // This is the programID of the program UUID that just was added
+            Integer id;
+                // Prepare a statement to insert the user ID and program UUID 
+                // into the program ID table
+            try (PreparedStatement pstmt = getConnection().prepareStatement(
+                    String.format("INSERT INTO %s(%s, %s) VALUES (?, ?)", 
+                            PROGRAM_ID_TABLE_NAME, 
+                            PROGRAM_USER_ID_COLUMN_NAME,
+                            PROGRAM_UUID_COLUMN_NAME))){
+                    // Set the user ID to be added
+                pstmt.setString(1, userID.toString());
+                    // Set the program UUID to be added
+                pstmt.setString(2, key.toString());
+                    // Update the database
+                pstmt.executeUpdate();
+                    // Get the key that was generated
+                id = getGeneratedIntegerKey(pstmt);
+            }   // If the programID of the added program UUID was not found
+            if (id == null)
+                    // Get the programID for the newly added program UUID 
+                id = get(key);
+            return id;
+        }
+        @Override
+        public Integer add(UUID key) {
+            Objects.requireNonNull(key);
+            try {
+                if (containsKeySQL(key))
+                    throw new IllegalArgumentException("Cannot add key, "+key+" already exists in map");
+                return addSQL(key);
+            } catch (SQLException ex) {
+                ConnectionBased.throwConstraintException(ex);
+                appendWarning(ex);
+                throw new UncheckedSQLException(ex);
+            }
+        }
+        /**
+         * 
+         * @param key
+         * @return 
+         */
+        @Override
+        public Integer addIfAbsent(UUID key){
+            Objects.requireNonNull(key);
+            try {
+                Integer value = getSQL(key);
+                if (value != null)
+                    return value;
+                return addSQL(key);
+            } catch (SQLException ex) {
+                ConnectionBased.throwConstraintException(ex);
+                appendWarning(ex);
+                throw new UncheckedSQLException(ex);
+            }
+        }
     }
 }
