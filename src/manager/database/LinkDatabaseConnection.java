@@ -1616,9 +1616,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         // 1 or 0
                     "%s integer DEFAULT 0 CHECK (%s >= 0 AND %s <= 1), "+
                         // First visible index column definition. Can be null
-                    "%s integer DEFAULT -1, "+
+                    "%s integer DEFAULT NULL, "+
                         // Last visible index column definition. Can be null
-                    "%s integer DEFAULT -1, "+
+                    "%s integer DEFAULT NULL, "+
                         // Visible rect column definition. Can be null
                     "%s BLOB DEFAULT NULL, "+
                         // Foreign key constraint for the program ID
