@@ -7101,4 +7101,73 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
         }
     }
+    /**
+     * 
+     */
+    private class ProgramUserIDSet extends AbstractQuerySet<UUID>{
+        @Override
+        protected boolean containsSQL(Object o) throws SQLException {
+                // If the given object is null or not a UUID
+            if (o == null || !(o instanceof UUID))
+                return false;
+            return programIDsContainsUserID((UUID)o);
+        }
+        @Override
+        protected boolean removeSQL(Object o) throws SQLException {
+                // If the given object is null or not a UUID
+            if (o == null || !(o instanceof UUID))
+                return false;
+            UUID userID = (UUID) o;
+                // Prepare a statement to remove the entry with the given user ID
+            try (PreparedStatement pstmt = prepareStatement(
+                    String.format("DELETE FROM %s WHERE %s = ?", 
+                            PROGRAM_ID_TABLE_NAME,
+                            PROGRAM_USER_ID_COLUMN_NAME))) {
+                    // Set the user ID to remove for
+                pstmt.setString(1, userID.toString());
+                    // Update the database
+                return pstmt.executeUpdate() > 0;
+            }
+        }
+        @Override
+        protected Set<UUID> valueCacheSet() throws SQLException {
+            Set<UUID> cache = new LinkedHashSet<>();
+                // Prepare a statement to go through the keys and values in the 
+                // database config table where the values are not null
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    "SELECT DISTINCT %s FROM %s", 
+                            PROGRAM_USER_ID_COLUMN_NAME,
+                            PROGRAM_ID_TABLE_NAME))){
+                    // Query the database
+                ResultSet rs = pstmt.executeQuery();
+                    // While there are still results to go through
+                while (rs.next()){
+                    String uuid = rs.getString(PROGRAM_USER_ID_COLUMN_NAME);
+                    try{    // Add the current entry to the cache
+                        cache.add(UUID.fromString(uuid));
+                    } catch (IllegalArgumentException ex){
+                        LinkManager.getLogger().log(Level.INFO,
+                                "Invalid UUID for user UUID", ex);
+                    }
+                }
+            }
+            return cache;
+        }
+        @Override
+        protected int sizeSQL() throws SQLException {
+                // Prepare a statement to count the unique instances of the user 
+                // IDs in the program ID table
+            try(PreparedStatement pstmt = prepareStatement(
+                    String.format(TABLE_SIZE_QUERY_TEMPLATE, 
+                            "DISTINCT "+PROGRAM_USER_ID_COLUMN_NAME,
+                            PROGRAM_ID_TABLE_NAME))){
+                    // Query the database
+                ResultSet rs = pstmt.executeQuery();
+                    // If there are any results from the query
+                if (rs.next())
+                    return rs.getInt(COUNT_COLUMN_NAME);
+            }
+            return 0;
+        }
+    }
 }
