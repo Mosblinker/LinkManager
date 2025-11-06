@@ -6823,6 +6823,25 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
+     * @param userID
+     * @return
+     * @throws SQLException 
+     */
+    private boolean programIDsContainsUserID(UUID userID) throws SQLException{
+            // Prepare a statement to check if the given user ID is found in the 
+            // program ID table
+        try(PreparedStatement pstmt = prepareStatement(String.format(
+                TABLE_CONTAINS_QUERY_TEMPLATE, 
+                        PROGRAM_ID_COLUMN_NAME,
+                        PROGRAM_ID_TABLE_NAME,
+                        PROGRAM_USER_ID_COLUMN_NAME))){
+                // Set the user ID to search for
+            pstmt.setString(1, userID.toString());
+            return containsCountResult(pstmt.executeQuery());
+        }
+    }
+    /**
+     * 
      */
     private class ProgramUUIDMapImpl extends AbstractQueryMap<UUID, Integer> 
             implements ProgramUUIDMap{
@@ -7068,6 +7087,15 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 return addSQL(key);
             } catch (SQLException ex) {
                 ConnectionBased.throwConstraintException(ex);
+                appendWarning(ex);
+                throw new UncheckedSQLException(ex);
+            }
+        }
+        @Override
+        public boolean exists() {
+            try {
+                return programIDsContainsUserID(userID);
+            } catch (SQLException ex) {
                 appendWarning(ex);
                 throw new UncheckedSQLException(ex);
             }

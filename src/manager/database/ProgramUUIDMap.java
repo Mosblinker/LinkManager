@@ -35,4 +35,9 @@ public interface ProgramUUIDMap extends SQLMap<UUID,Integer>{
             return add(key);
         return value;
     }
+    /**
+     * 
+     * @return 
+     */
+    public boolean exists();
 }
