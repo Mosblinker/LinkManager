@@ -5808,13 +5808,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         conn.commit();       // Commit the changes to the database
             // Add the program's user ID and program ID to the database.
         Integer progId = conn.getProgramUUIDMap(config.getUserID()).addIfAbsent(config.getProgramID());
+        progressBar.setMaximum(models.size()+2);
+        progressBar.setValue(0);
+        progressBar.setIndeterminate(false);
             // Store the list ID of the selected list in the all lists panel
         conn.setListTypeSelection(progId, LinkDatabaseConnection.LIST_OF_ALL_LISTS_TYPE, 
                 allListsTabsPanel.getSelectedListID());
+        progressBar.setValue(1);
             // Store the list ID of the selected list in the shown lists panel
         conn.setListTypeSelection(progId, LinkDatabaseConnection.LIST_OF_SHOWN_LISTS_TYPE, 
                 shownListsTabsPanel.getSelectedListID());
+        progressBar.setValue(2);
             // TODO: Store selection in database
+        progressBar.setIndeterminate(true);
         conn.commit();       // Commit the changes to the database
             // Restore the connection's auto-commit back to what it was set to 
         conn.setAutoCommit(autoCommit);     // before
