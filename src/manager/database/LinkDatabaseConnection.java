@@ -1528,11 +1528,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     public static final String LIST_TYPE_SELECTION_TABLE_CREATION_QUERY = 
             String.format("CREATE TABLE IF NOT EXISTS %s ("+
                         // Program ID column definition. Cannot be null
-                    "%s integer NOT NULL,"+
+                    "%s integer NOT NULL, "+
                         // List type column definition. Cannot be null
-                    "%s integer NOT NULL,"+
+                    "%s integer NOT NULL, "+
                         // List ID column definition. Can be null
-                    "%s integer DEFAULT NULL",
+                    "%s integer DEFAULT NULL, "+
                         // Foreign key constraint for the program ID
                     FOREIGN_KEY_TEMPLATE+", "+ 
                         // Foreign key constraint for the list ID
@@ -1607,20 +1607,20 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     public static final String LIST_SELECTION_TABLE_CREATION_QUERY = String.format(
             "CREATE TABLE IF NOT EXISTS %s ("+
                         // Program ID column definition. Cannot be null
-                    "%s integer NOT NULL,"+
+                    "%s integer NOT NULL, "+
                         // List ID column definition. Cannot be null
-                    "%s integer NOT NULL,"+
+                    "%s integer NOT NULL, "+
                         // Link ID column definition. Can be null
-                    "%s integer DEFAULT NULL,"+
+                    "%s integer DEFAULT NULL, "+
                         // Whether the selected link is visible. Must be either 
                         // 1 or 0
-                    "%s integer DEFAULT 0 CHECK (%s >= 0 AND %s <= 1),"+
+                    "%s integer DEFAULT 0 CHECK (%s >= 0 AND %s <= 1), "+
                         // First visible index column definition. Can be null
-                    "%s integer DEFAULT -1,"+
+                    "%s integer DEFAULT -1, "+
                         // Last visible index column definition. Can be null
-                    "%s integer DEFAULT -1,"+
+                    "%s integer DEFAULT -1, "+
                         // Visible rect column definition. Can be null
-                    "%s BLOB DEFAULT NULL,"+
+                    "%s BLOB DEFAULT NULL, "+
                         // Foreign key constraint for the program ID
                     FOREIGN_KEY_TEMPLATE+", "+ 
                         // Foreign key constraint for the list ID
