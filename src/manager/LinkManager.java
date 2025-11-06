@@ -477,6 +477,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     config.setRandomProgramID());
         }   // Log the program ID
         getLogger().log(Level.FINER, "Using program ID {0}", programID);
+            // Get the ID for the user
+        UUID userID = config.getUserID();
+            // If there is no user ID set
+        if (userID == null)
+                // Create and store a random user ID
+            userID = config.setRandomUserID();
+           // Log the user ID
+        getLogger().log(Level.FINER, "Using user ID {0}",userID);
         try{    // Create a CipherUtils object
             CipherUtils cipher = new CipherUtils();
                 // Get the encryption key from the config file if there is one
