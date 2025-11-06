@@ -1086,6 +1086,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         javax.swing.JLabel programIDTextLabel = new javax.swing.JLabel();
         programIDLabel = new javax.swing.JLabel();
         javax.swing.Box.Filler filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
+        javax.swing.JLabel userIDTextLabel = new javax.swing.JLabel();
+        userIDLabel = new javax.swing.JLabel();
         dbUpdateLastModButton = new javax.swing.JButton();
         dbPrefixesPanel = new javax.swing.JPanel();
         dbPrefixScrollPane = new javax.swing.JScrollPane();
@@ -1789,11 +1791,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbPropPanel.add(programIDLabel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
         gridBagConstraints.weighty = 0.9;
         dbPropPanel.add(filler2, gridBagConstraints);
+
+        userIDTextLabel.setText("User ID:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        dbPropPanel.add(userIDTextLabel, gridBagConstraints);
+
+        userIDLabel.setText("N/A");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 6, 6, 0);
+        dbPropPanel.add(userIDLabel, gridBagConstraints);
 
         dbUpdateLastModButton.setText("Update Last Mod");
         dbUpdateLastModButton.addActionListener(new java.awt.event.ActionListener() {
@@ -5418,6 +5438,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem updateDatabaseItem;
     private javax.swing.JMenuItem updateListsItem;
     private javax.swing.JMenuItem uploadDBItem;
+    private javax.swing.JLabel userIDLabel;
     // End of variables declaration//GEN-END:variables
     /**
      * 
@@ -9016,6 +9037,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             shownTotalSizeLabel.setText(Objects.toString(shownTotalSize,"N/A"));
             allTotalSizeLabel.setText(Objects.toString(allTotalSize,"N/A"));
             programIDLabel.setText(Objects.toString(config.getProgramID(), "N/A"));
+            userIDLabel.setText(Objects.toString(config.getUserID(), "N/A"));
             
             setTabEnabled(dbCreatePrefixScrollPane,createPrefixTestNode != null);
             if (createPrefixTestNode != null)
