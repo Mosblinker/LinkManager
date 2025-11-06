@@ -6194,13 +6194,6 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * {@inheritDoc }
          */
         @Override
-        public LinkDatabaseConnection getConnection() throws SQLException {
-            return LinkDatabaseConnection.this;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
         protected boolean containsKeySQL(Object key) throws SQLException{
                 // If the given key is null or not an integer
             if (key == null || !(key instanceof Integer))
