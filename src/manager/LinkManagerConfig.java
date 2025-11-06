@@ -192,6 +192,10 @@ public class LinkManagerConfig {
      */
     public static final String CHUNK_SIZE_MULTIPLIER_KEY = "ChunkSizeMultiplier";
     /**
+     * This is the configuration key for the UUID for the user of the program.
+     */
+    public static final String USER_ID_KEY = "UserID";
+    /**
      * This is the suffix for the configuration keys for the size of a 
      * component.
      */
@@ -2355,6 +2359,35 @@ public class LinkManagerConfig {
             }
         }
         return changed;
+    }
+    /**
+     * This returns the user ID set for this configuration.
+     * @return The user ID.
+     */
+    public UUID getUserID(){
+        return getSharedPreferences().getUUID(USER_ID_KEY, null);
+    }
+    /**
+     * This sets the user ID for this configuration.
+     * @param id The new user ID.
+     * @throws NullPointerException If the user ID is null.
+     */
+    public void setUserID(UUID id){
+            // Check if the user ID is null
+        Objects.requireNonNull(id, "User ID cannot be null");
+        getSharedPreferences().putObject(USER_ID_KEY, id);
+    }
+    /**
+     * This sets the user ID to be a random {@code UUID}.
+     * @return The {@code UUID} used as the user ID.
+     * @see UUID#randomUUID() 
+     */
+    public UUID setRandomUserID(){
+            // Generate a random UUID
+        UUID id = UUID.randomUUID();
+            // Set the user ID to the generated UUID
+        setUserID(id);
+        return id;
     }
     /**
      * 
