@@ -1466,7 +1466,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * This is a table storing the IDs for the programs that have accessed the 
      * database.
      */
-    public static final String PROGRAM_ID_TABLE = "programIDs";
+    public static final String PROGRAM_ID_TABLE_NAME = "programIDs";
     /**
      * This is the name of the column in the program ID table for the ID for the 
      * program in the database. 
@@ -1493,8 +1493,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    public static final String PROGRAM_ID_TABLE_CREATION_QUERY = String.format(
-            "CREATE TABLE IF NOT EXISTS %s ("+
+    public static final String PROGRAM_ID_TABLE_CREATION_QUERY = String.format("CREATE TABLE IF NOT EXISTS %s ("+
                         // Program ID column definition. Primary key, cannot be 
                         // null
                     "%s integer NOT NULL PRIMARY KEY, "+ 
@@ -1504,7 +1503,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     "%s text NOT NULL, "+
                         // Unique constraint for user ID and program UUID
                     "UNIQUE (%s, %s));",
-            PROGRAM_ID_TABLE,
+            PROGRAM_ID_TABLE_NAME,
             PROGRAM_ID_COLUMN_NAME,
             PROGRAM_USER_ID_COLUMN_NAME,
             PROGRAM_UUID_COLUMN_NAME,
