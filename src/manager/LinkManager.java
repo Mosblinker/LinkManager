@@ -5806,6 +5806,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Remove any unused links
         linkMap.removeUnusedRows();
         conn.commit();       // Commit the changes to the database
+            // Add the program's user ID and program ID to the database.
+        conn.getProgramUUIDMap(config.getUserID()).addIfAbsent(config.getProgramID());
+            // TODO: Store selection in database
+        conn.commit();       // Commit the changes to the database
             // Restore the connection's auto-commit back to what it was set to 
         conn.setAutoCommit(autoCommit);     // before
         getLogger().entering(this.getClass().getName(), "writeToDatabase");
