@@ -5471,6 +5471,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return true;
     }
     /**
+     * 
+     * @return 
+     */
+    private Map<Integer,LinksListPanel> getPanelIDMap(){
+            // Map the list panels to their listIDs
+        Map<Integer,LinksListPanel> panels = new TreeMap<>();
+            // Go through the list panels in the selected tabs panel
+        for (LinksListPanel panel : getSelectedTabsPanel()){
+                // If the list panel's listID is not null
+            if (panel.getListID() != null)
+                panels.put(panel.getListID(), panel);
+        }   // Go through the tabs panel
+        for (LinksListTabsPanel tabsPanel : listsTabPanels){
+                // If the current tabs panel is the selected panel
+            if (tabsPanel == getSelectedTabsPanel())
+                continue;
+                // Go through the list panels in the current tabs panel
+            for (LinksListPanel panel : tabsPanel){
+                    // If the list panel's listID is not null
+                if (panel.getListID() != null)
+                    panels.putIfAbsent(panel.getListID(), panel);
+            }
+        }
+        return panels;
+    }
+    /**
      * This updates the values in the program's configuration that would update 
      * too frequently if updated in real time or that would be too difficult to 
      * cover all possible ways of the value being set.
@@ -5479,24 +5505,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // If the program has fully loaded
         if (fullyLoaded){
                 // Map the list panels to their listIDs
-            Map<Integer,LinksListPanel> panels = new HashMap<>();
-                // Go through the list panels in the selected tabs panel
-            for (LinksListPanel panel : getSelectedTabsPanel()){
-                    // If the list panel's listID is not null
-                if (panel.getListID() != null)
-                    panels.put(panel.getListID(), panel);
-            }   // Go through the tabs panel
-            for (LinksListTabsPanel tabsPanel : listsTabPanels){
-                    // If the current tabs panel is the selected panel
-                if (tabsPanel == getSelectedTabsPanel())
-                    continue;
-                    // Go through the list panels in the current tabs panel
-                for (LinksListPanel panel : tabsPanel){
-                        // If the list panel's listID is not null
-                    if (panel.getListID() != null)
-                        panels.putIfAbsent(panel.getListID(), panel);
-                }
-            }   // Go through the list panels
+            Map<Integer,LinksListPanel> panels = getPanelIDMap();
+                // Go through the list panels
             for (LinksListPanel panel : panels.values()){
                     // Update the visible properties for the panel in the config
                 config.setVisibleSection(panel);
@@ -5807,19 +5817,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         linkMap.removeUnusedRows();
         conn.commit();       // Commit the changes to the database
             // Add the program's user ID and program ID to the database.
-        Integer progId = conn.getProgramUUIDMap(config.getUserID()).addIfAbsent(config.getProgramID());
-        progressBar.setMaximum(models.size()+2);
+        Integer progID = conn.getProgramUUIDMap(config.getUserID()).addIfAbsent(config.getProgramID());
+        Map<Integer,LinksListPanel> panels = getPanelIDMap();
+        progressBar.setMaximum(panels.size()+2);
         progressBar.setValue(0);
         progressBar.setIndeterminate(false);
             // Store the list ID of the selected list in the all lists panel
-        conn.setListTypeSelection(progId, LinkDatabaseConnection.LIST_OF_ALL_LISTS_TYPE, 
+        conn.setListTypeSelection(progID, LinkDatabaseConnection.LIST_OF_ALL_LISTS_TYPE, 
                 allListsTabsPanel.getSelectedListID());
         progressBar.setValue(1);
             // Store the list ID of the selected list in the shown lists panel
-        conn.setListTypeSelection(progId, LinkDatabaseConnection.LIST_OF_SHOWN_LISTS_TYPE, 
+        conn.setListTypeSelection(progID, LinkDatabaseConnection.LIST_OF_SHOWN_LISTS_TYPE, 
                 shownListsTabsPanel.getSelectedListID());
         progressBar.setValue(2);
-            // TODO: Store selection in database
+            // Go through the panels
+        for (LinksListPanel panel : panels.values()){
+            conn.setSelectionForList(progID, panel);
+            progressBar.setValue(progressBar.getValue()+1);
+        }
         progressBar.setIndeterminate(true);
         conn.commit();       // Commit the changes to the database
             // Restore the connection's auto-commit back to what it was set to 
