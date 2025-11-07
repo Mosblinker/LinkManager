@@ -317,11 +317,6 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
      */
     private final Map<Component, String> compNameMap;
     /**
-     * This is a map view of the current tab listIDs. This is initially null 
-     * and is initialized when first used.
-     */
-    private Map<Integer, Integer> currTabIDMap = null;
-    /**
      * This is a map view of the current tab list indexes. This is initially 
      * null and is initialized when first used.
      */
@@ -454,6 +449,7 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
      * 
      * @return 
      */
+    @Override
     public Set<Integer> getListTypes(){
         return Collections.unmodifiableSet(listTypeNodes.getKeys());
     }
@@ -1970,6 +1966,7 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
      * @param listType
      * @param listID 
      */
+    @Override
     public void setSelectedListID(int listType, Integer listID){
         getListTypePreferences(listType).putObject(SELECTED_LIST_ID_KEY, 
                 listID);
@@ -1979,32 +1976,10 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
      * @param listType
      * @return 
      */
+    @Override
     public Integer getSelectedListID(int listType){
         return getIntegerPreference(getListTypePreferences(listType), 
                 SELECTED_LIST_ID_KEY);
-    }
-    /**
-     * 
-     * @return 
-     */
-    public Map<Integer, Integer> getSelectedListIDMap(){
-        if (currTabIDMap == null){
-            currTabIDMap = new ListConfigDataMapImpl<>(){
-                @Override
-                protected Integer getValue(int key) {
-                    return getSelectedListID(key);
-                }
-                @Override
-                protected void putValue(int key, Integer value) {
-                    setSelectedListID(key,value);
-                }
-                @Override
-                protected ListConfigNodeParent getNodes() {
-                    return listTypeNodes;
-                }
-            };
-        }
-        return currTabIDMap;
     }
     /**
      * 
@@ -2053,6 +2028,7 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
      * @param listType
      * @param tabsPanel 
      */
+    @Override
     public void setSelectedTab(int listType, LinksListTabsPanel tabsPanel){
             // The listID of the current tab
         Integer listID = null;
@@ -2068,6 +2044,10 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
         }
         setSelectedListID(listType,listID);
         setSelectedTabIndex(listType, index);
+    }
+    @Override
+    public boolean removeSelectedTab(int listType) {
+        return listTypeNodes.removeNode(listType);
     }
     @Override
     public void setSelectedLink(int listID, String value){

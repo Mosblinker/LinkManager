@@ -39,10 +39,15 @@ public abstract class AbstractLinksListSettings implements LinksListSettings{
      * initially null and is initialized when first used.
      */
     private Map<Integer, Rectangle> visRectMap = null;
+    /**
+     * This is a map view of the current tab listIDs. This is initially null 
+     * and is initialized when first used.
+     */
+    private Map<Integer, Integer> currTabIDMap = null;
     @Override
     public Map<Integer, String> getSelectedLinkMap() {
         if (selLinkMap == null){
-            selLinkMap = new ListIDConfigDataMap<>(){
+            selLinkMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected String getValue(int key) {
                     return getSelectedLink(key);
@@ -51,6 +56,10 @@ public abstract class AbstractLinksListSettings implements LinksListSettings{
                 protected void putValue(int key, String value) {
                     setSelectedLink(key,value);
                 }
+                @Override
+                protected Set<Integer> getAllKeys() {
+                    return getListIDs();
+                }
             };
         }
         return selLinkMap;
@@ -58,7 +67,7 @@ public abstract class AbstractLinksListSettings implements LinksListSettings{
     @Override
     public Map<Integer, Boolean> getSelectedLinkVisibleMap() {
         if (selLinkVisMap == null){
-            selLinkVisMap = new ListIDConfigDataMap<>(){
+            selLinkVisMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected Boolean getValue(int key) {
                     return isSelectedLinkVisible(key);
@@ -67,6 +76,10 @@ public abstract class AbstractLinksListSettings implements LinksListSettings{
                 protected void putValue(int key, Boolean value) {
                     setSelectedLinkVisible(key,value);
                 }
+                @Override
+                protected Set<Integer> getAllKeys() {
+                    return getListIDs();
+                }
             };
         }
         return selLinkVisMap;
@@ -74,7 +87,7 @@ public abstract class AbstractLinksListSettings implements LinksListSettings{
     @Override
     public Map<Integer, Integer> getFirstVisibleIndexMap() {
         if (firstVisIndexMap == null){
-            firstVisIndexMap = new ListIDConfigDataMap<>(){
+            firstVisIndexMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected Integer getValue(int key) {
                     return getFirstVisibleIndex(key);
@@ -83,6 +96,10 @@ public abstract class AbstractLinksListSettings implements LinksListSettings{
                 protected void putValue(int key, Integer value) {
                     setFirstVisibleIndex(key,value);
                 }
+                @Override
+                protected Set<Integer> getAllKeys() {
+                    return getListIDs();
+                }
             };
         }
         return firstVisIndexMap;
@@ -90,7 +107,7 @@ public abstract class AbstractLinksListSettings implements LinksListSettings{
     @Override
     public Map<Integer, Integer> getLastVisibleIndexMap() {
         if (lastVisIndexMap == null){
-            lastVisIndexMap = new ListIDConfigDataMap<>(){
+            lastVisIndexMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected Integer getValue(int key) {
                     return getLastVisibleIndex(key);
@@ -99,6 +116,10 @@ public abstract class AbstractLinksListSettings implements LinksListSettings{
                 protected void putValue(int key, Integer value) {
                     setLastVisibleIndex(key,value);
                 }
+                @Override
+                protected Set<Integer> getAllKeys() {
+                    return getListIDs();
+                }
             };
         }
         return lastVisIndexMap;
@@ -106,7 +127,7 @@ public abstract class AbstractLinksListSettings implements LinksListSettings{
     @Override
     public Map<Integer, Rectangle> getVisibleRectMap() {
         if (visRectMap == null){
-            visRectMap = new ListIDConfigDataMap<>(){
+            visRectMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected Rectangle getValue(int key) {
                     return getVisibleRect(key);
@@ -115,18 +136,51 @@ public abstract class AbstractLinksListSettings implements LinksListSettings{
                 protected void putValue(int key, Rectangle value) {
                     setVisibleRect(key,value);
                 }
+                @Override
+                protected Set<Integer> getAllKeys() {
+                    return getListIDs();
+                }
             };
         }
         return visRectMap;
     }
     /**
      * 
+     * @return 
+     */
+    @Override
+    public Map<Integer, Integer> getSelectedListIDMap(){
+        if (currTabIDMap == null){
+            currTabIDMap = new ListConfigDataMapImpl<>(){
+                @Override
+                protected Integer getValue(int key) {
+                    return getSelectedListID(key);
+                }
+                @Override
+                protected void putValue(int key, Integer value) {
+                    setSelectedListID(key,value);
+                }
+                @Override
+                protected Set<Integer> getAllKeys() {
+                    return getListTypes();
+                }
+            };
+        }
+        return currTabIDMap;
+    }
+    /**
+     * 
      * @param <V> 
      */
-    private abstract class ListIDConfigDataMap<V> extends ListConfigDataMap<V>{
+    private abstract class ListConfigDataMapImpl<V> extends ListConfigDataMap<V>{
+        /**
+         * 
+         * @return 
+         */
+        protected abstract Set<Integer> getAllKeys();
         @Override
         protected Set<Integer> getKeys(){
-            return removeUnusedKeys(new TreeSet<>(getListIDs()));
+            return removeUnusedKeys(new TreeSet<>(getAllKeys()));
         }
     }
 }

@@ -8005,11 +8005,117 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             return Collections.unmodifiableSet(listIDs);
         }
         @Override
-        public void removeAllListSettings(){
+        public void clearListSettings(){
                 // Prepare a statement to remove the entries with the given program ID 
             try (PreparedStatement pstmt = prepareStatement(
                     String.format("DELETE FROM %s WHERE %s = ?", 
                             LIST_SELECTION_TABLE_NAME,
+                            PROGRAM_ID_COLUMN_NAME))) {
+                    // Set the program ID to remove for
+                pstmt.setInt(1, programID);
+                    // Update the database
+                pstmt.executeUpdate();
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+        }
+        @Override
+        public void setSelectedListID(int listType, Integer listID) {
+            try{
+                if (listID == null){
+                    try(PreparedStatement pstmt = prepareStatement(String.format(
+                            "DELETE FROM %s WHERE %s = ? AND %s = ?", 
+                                LIST_TYPE_SELECTION_TABLE_NAME,
+                                PROGRAM_ID_COLUMN_NAME,
+                                LIST_TYPE_COLUMN_NAME))){
+                        pstmt.setInt(1, programID);
+                        pstmt.setInt(2, listType);
+                        pstmt.executeUpdate();
+                    }
+                } else{
+                    try(PreparedStatement pstmt = prepareStatement(String.format(
+                            (listSelectionTableContains(programID, listType))?
+                                    "UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
+                                    "INSERT INTO %s(%s, %s, %s) VALUES (?,?,?)",
+                                LIST_TYPE_SELECTION_TABLE_NAME,
+                                LIST_ID_COLUMN_NAME,
+                                PROGRAM_ID_COLUMN_NAME,
+                                LIST_TYPE_COLUMN_NAME))){
+                        pstmt.setInt(1, listID);
+                        pstmt.setInt(2, programID);
+                        pstmt.setInt(3, listType);
+                        pstmt.executeUpdate();
+                    }
+                }
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+        }
+        @Override
+        public Integer getSelectedListID(int listType) {
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
+                    LIST_ID_COLUMN_NAME,
+                    LIST_TYPE_SELECTION_TABLE_NAME,
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_TYPE_COLUMN_NAME))){
+                pstmt.setInt(1, programID);
+                pstmt.setInt(2, listType);
+                    // Get the results of the query
+                ResultSet rs = pstmt.executeQuery();
+                if (rs.next()){
+                    int value = rs.getInt(LIST_ID_COLUMN_NAME);
+                    if (!rs.wasNull())
+                        return value;
+                }
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+            return null;
+        }
+        @Override
+        public Set<Integer> getListTypes() {
+            Set<Integer> listTypes = new TreeSet<>();
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                "SELECT DISTINCT %s FROM %s WHERE %s = ?",
+                    LIST_TYPE_COLUMN_NAME,
+                    LIST_TYPE_SELECTION_TABLE_NAME,
+                    PROGRAM_ID_COLUMN_NAME))){
+                pstmt.setInt(1, programID);
+                    // Get the results of the query
+                ResultSet rs = pstmt.executeQuery();
+                while (rs.next()){
+                    listTypes.add(rs.getInt(LIST_TYPE_COLUMN_NAME));
+                }
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+            return Collections.unmodifiableSet(listTypes);
+        }
+        @Override
+        public boolean removeSelectedTab(int listType) {
+                // Prepare a statement to remove the entry with the given program ID 
+                // and list type
+            try (PreparedStatement pstmt = prepareStatement(
+                    String.format("DELETE FROM %s WHERE %s = ? AND %s = ?", 
+                            LIST_TYPE_SELECTION_TABLE_NAME,
+                            PROGRAM_ID_COLUMN_NAME,
+                            LIST_TYPE_COLUMN_NAME))) {
+                    // Set the program ID to remove for
+                pstmt.setInt(1, programID);
+                pstmt.setInt(2, listType);
+                    // Update the database
+                return pstmt.executeUpdate() > 0;
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+        }
+        @Override
+        public void clearSelectedTabs() {
+                // Prepare a statement to remove the entries with the given program ID 
+            try (PreparedStatement pstmt = prepareStatement(
+                    String.format("DELETE FROM %s WHERE %s = ?", 
+                            LIST_TYPE_SELECTION_TABLE_NAME,
                             PROGRAM_ID_COLUMN_NAME))) {
                     // Set the program ID to remove for
                 pstmt.setInt(1, programID);

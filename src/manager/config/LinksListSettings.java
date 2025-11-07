@@ -10,12 +10,18 @@ import java.util.Map;
 import java.util.Set;
 import manager.LinkManager;
 import manager.links.LinksListPanel;
+import manager.links.LinksListTabsPanel;
 
 /**
  *
  * @author Mosblinker
  */
 public interface LinksListSettings {
+    /**
+     * 
+     * @return 
+     */
+    public Set<Integer> getListIDs();
     /**
      * 
      * @param listID
@@ -250,13 +256,52 @@ public interface LinksListSettings {
     }
     /**
      * 
+     */
+    public default void clearListSettings(){
+        removeListSettings(getListIDs());
+    }
+    /**
+     * 
      * @return 
      */
-    public Set<Integer> getListIDs();
+    public Set<Integer> getListTypes();
+    /**
+     * 
+     * @param listType
+     * @param listID 
+     */
+    public void setSelectedListID(int listType, Integer listID);
+    /**
+     * 
+     * @param listType
+     * @return 
+     */
+    public Integer getSelectedListID(int listType);
+    /**
+     * 
+     * @return 
+     */
+    public Map<Integer, Integer> getSelectedListIDMap();
+    /**
+     * 
+     * @param listType
+     * @param tabsPanel 
+     */
+    public default void setSelectedTab(int listType, LinksListTabsPanel tabsPanel){
+        setSelectedListID(listType,(tabsPanel != null)?tabsPanel.getSelectedListID():null);
+    }
+    /**
+     * 
+     * @param listType 
+     * @return  
+     */
+    public boolean removeSelectedTab(int listType);
     /**
      * 
      */
-    public default void removeAllListSettings(){
-        removeListSettings(getListIDs());
+    public default void clearSelectedTabs(){
+        for (Integer i : getListTypes()){
+            removeSelectedTab(i);
+        }
     }
 }
