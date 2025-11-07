@@ -180,7 +180,7 @@ public interface ListContents extends SQLList<String>{
             throw new IllegalStateException("List does not exist (listID: "+
                     getListID()+")");
         LinkManager.getLogger().entering(this.getClass().getName(), 
-                "toModel");
+                "toModel",getListID());
             // If the given model is null (this is to create a new model)
         if (model == null)
             model = new LinksListModel(getName(),getListID());
@@ -283,7 +283,7 @@ public interface ListContents extends SQLList<String>{
      */
     public default boolean updateProperties(LinksListModel model){
         LinkManager.getLogger().entering(this.getClass().getName(), 
-                "updateProperties");
+                "updateProperties",getListID());
             // Check if the model is null
         Objects.requireNonNull(model);
             // If this list is up to date
@@ -337,7 +337,7 @@ public interface ListContents extends SQLList<String>{
     public default void updateContents(LinksListModel model, 
             ProgressObserver observer, Map<String, Long> linkIDMap){
         LinkManager.getLogger().entering(this.getClass().getName(), 
-                "updateContents");
+                "updateContents",getListID());
             // Check if the model is null
         Objects.requireNonNull(model);
             // If an observer has been provided

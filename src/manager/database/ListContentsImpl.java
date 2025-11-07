@@ -439,7 +439,7 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
     public LinksListModel toModel(LinksListModel model, 
             ProgressObserver observer){
         LinkManager.getLogger().entering(this.getClass().getName(), 
-                "toModel");
+                "toModel", listID);
         try{    
             requireListExists();    // Require the list to exist
                 // Prepare a statement to get the properties of this list from 
@@ -546,7 +546,7 @@ class ListContentsImpl extends AbstractQueryList<String> implements ListContents
     public void updateContents(LinksListModel model, 
             ProgressObserver observer,Map<String,Long> linkIDMap){
         LinkManager.getLogger().entering(this.getClass().getName(), 
-                "updateContents");
+                "updateContents", listID);
             // Check if the model is null
         Objects.requireNonNull(model);
         try{    // Get the current state of the auto-commit
