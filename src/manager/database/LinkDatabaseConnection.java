@@ -5407,6 +5407,37 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param programID
+     * @return 
+     * @throws java.sql.SQLException 
+     */
+    public boolean removeListTypeSelection(int programID) throws SQLException{
+            // Prepare a statement to remove the entries with the given program ID 
+        try (PreparedStatement pstmt = prepareStatement(
+                String.format("DELETE FROM %s WHERE %s = ?", 
+                        LIST_TYPE_SELECTION_TABLE_NAME,
+                        PROGRAM_ID_COLUMN_NAME))) {
+                // Set the program ID to remove for
+            pstmt.setInt(1, programID);
+                // Update the database
+            return pstmt.executeUpdate() > 0;
+        }
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @return
+     * @throws SQLException 
+     */
+    public boolean removeListTypeSelection(UUID userID, UUID programID) throws SQLException{
+        Integer id = getProgramUUIDMap(userID).get(programID);
+        if (id == null)
+            return false;
+        return removeListTypeSelection(id);
+    }
+    /**
+     * 
+     * @param programID
      * @param listID
      * @return
      * @throws SQLException 
@@ -6046,6 +6077,74 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     public void setSelectionForList(UUID userID, UUID programID, 
             LinksListPanel panel) throws SQLException{
         setSelectionForList(userID,programID,panel,null);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID 
+     * @return  
+     * @throws java.sql.SQLException 
+     */
+    public boolean removeSelectionForList(int programID, int listID) throws SQLException{
+            // Prepare a statement to remove the entry with the given program ID 
+            // and listID
+        try (PreparedStatement pstmt = prepareStatement(
+                String.format("DELETE FROM %s WHERE %s = ? AND %s = ?", 
+                        LIST_SELECTION_TABLE_NAME,
+                        PROGRAM_ID_COLUMN_NAME,
+                        LIST_ID_COLUMN_NAME))) {
+                // Set the program ID to remove for
+            pstmt.setInt(1, programID);
+            pstmt.setInt(2, listID);
+                // Update the database
+            return pstmt.executeUpdate() > 0;
+        }
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public boolean removeSelectionForList(UUID userID, UUID programID, int listID) 
+            throws SQLException{
+        Integer id = getProgramUUIDMap(userID).get(programID);
+        if (id == null)
+            return false;
+        return removeSelectionForList(id,listID);
+    }
+    /**
+     * 
+     * @param programID
+     * @return 
+     * @throws java.sql.SQLException 
+     */
+    public boolean removeSelectionForList(int programID) throws SQLException{
+            // Prepare a statement to remove the entries with the given program ID 
+        try (PreparedStatement pstmt = prepareStatement(
+                String.format("DELETE FROM %s WHERE %s = ?", 
+                        LIST_SELECTION_TABLE_NAME,
+                        PROGRAM_ID_COLUMN_NAME))) {
+                // Set the program ID to remove for
+            pstmt.setInt(1, programID);
+                // Update the database
+            return pstmt.executeUpdate() > 0;
+        }
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @return
+     * @throws SQLException 
+     */
+    public boolean removeSelectionForList(UUID userID, UUID programID) throws SQLException{
+        Integer id = getProgramUUIDMap(userID).get(programID);
+        if (id == null)
+            return false;
+        return removeListTypeSelection(id);
     }
     /**
      * 
