@@ -173,6 +173,7 @@ public class LinksListModel extends ArrayListModel<String> implements
         set = new HashSet<>();
         listSelModel = new DefaultListSelectionModel();
         listSelModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        listSelModel.addListSelectionListener(new Handler());
         changeSupport = new PropertyChangeSupport(this);
     }
     /**
@@ -225,6 +226,7 @@ public class LinksListModel extends ArrayListModel<String> implements
         this.listSelModel.setLeadSelectionIndex(model.listSelModel.getLeadSelectionIndex());
         this.edited = model.edited;
         this.contentsEdited = model.contentsEdited;
+        this.listSelModel.addListSelectionListener(new Handler());
         changeSupport = new PropertyChangeSupport(this);
     }
     /**
@@ -1196,9 +1198,6 @@ public class LinksListModel extends ArrayListModel<String> implements
             // If we're getting the PropertyChangeListeners
         if (listenerType == PropertyChangeListener.class)
             return (T[])getPropertyChangeListeners();
-            // If we're getting the ListSelectionListeners
-        else if (listenerType == ListSelectionListener.class)
-            return (T[])getListSelectionListeners();
         else
             return super.getListeners(listenerType);
     }
@@ -1564,14 +1563,15 @@ public class LinksListModel extends ArrayListModel<String> implements
     }
     @Override
     public void addListSelectionListener(ListSelectionListener x) {
-        listSelModel.addListSelectionListener(x);
+        if (x != null)
+            listenerList.add(ListSelectionListener.class, x);
     }
     @Override
     public void removeListSelectionListener(ListSelectionListener x) {
-        listSelModel.removeListSelectionListener(x);
+        listenerList.remove(ListSelectionListener.class, x);
     }
     public ListSelectionListener[] getListSelectionListeners(){
-        return listSelModel.getListSelectionListeners();
+        return listenerList.getListeners(ListSelectionListener.class);
     }
     @Override
     public int[] getSelectedIndices() {
@@ -1661,5 +1661,30 @@ public class LinksListModel extends ArrayListModel<String> implements
         setValueIsAdjusting(adjusting);
         LinkManager.getLogger().exiting(this.getClass().getName(),
                 "setSelectionFrom");
+    }
+    /**
+     * 
+     * @param firstIndex
+     * @param lastIndex
+     * @param valueAdjusting 
+     */
+    protected void fireSelectionChanged(int firstIndex, int lastIndex, 
+            boolean valueAdjusting){
+        ListSelectionEvent evt = new ListSelectionEvent(this,firstIndex,
+                lastIndex,valueAdjusting);
+        for (ListSelectionListener l : getListSelectionListeners()){
+            if (l != null)
+                l.valueChanged(evt);
+        }
+    }
+    /**
+     * 
+     */
+    private class Handler implements ListSelectionListener{
+        @Override
+        public void valueChanged(ListSelectionEvent evt) {
+            fireSelectionChanged(evt.getFirstIndex(),evt.getLastIndex(),
+                    evt.getValueIsAdjusting());
+        }
     }
 }

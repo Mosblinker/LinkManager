@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.prefs.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
+import static manager.DatabaseSyncMode.DROPBOX;
 import manager.config.*;
 import manager.dropbox.DropboxLinkUtils;
 import manager.links.*;
@@ -121,6 +122,8 @@ public class LinkManagerConfig {
             "ReplaceOutdatedLists";
     
     public static final String SYNC_DATABASE_KEY = "SyncDatabase";
+    
+    public static final String HIDDEN_FILES_ARE_SHOWN_KEY = "HiddenFilesAreShown";
     /**
      * This is the configuration key for the encrypted access token for the 
      * Dropbox account to use to access the database file if the database file 
@@ -280,6 +283,10 @@ public class LinkManagerConfig {
      * used as the name of the preference node that corresponds to that list.
      */
     public static final String LIST_ID_PREFERENCE_NODE_NAME = "listID";
+    /**
+     * 
+     */
+    public static final String CHECK_FOR_UPDATES_AT_START_KEY = "CheckForUpdatesAtStartup";
     /**
      * This is the preference node containing all the preferences for 
      * LinkManager. This is the parent preference node for all other nodes, and 
@@ -1129,6 +1136,9 @@ public class LinkManagerConfig {
         if (b != null)
                 // Set whether database will sync from the properties
             setDatabaseWillSync(b);
+        b = cProp.getBooleanProperty(HIDDEN_FILES_ARE_SHOWN_KEY);
+        if (b != null)
+            setHiddenFilesAreShown(b);
             // Get the value for the Dropbox database file path from the 
             // properties
         str = cProp.getProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY);    
@@ -1136,6 +1146,9 @@ public class LinkManagerConfig {
         if (str != null)
                 // Set the Dropbox database file path from the properties
             setDropboxDatabaseFileName(str);
+        b = cProp.getBooleanProperty(CHECK_FOR_UPDATES_AT_START_KEY);
+        if (b != null)
+            setCheckForUpdateAtStartup(b);
             // Go through the entries in the component name map
         for (Map.Entry<Component,String> entry:getComponentNames().entrySet()){
                 // Get the dimension for the component from the properties
@@ -1606,6 +1619,20 @@ public class LinkManagerConfig {
      */
     public boolean getDatabaseWillSync(boolean defaultValue){
         return getPreferences().getBoolean(SYNC_DATABASE_KEY,defaultValue);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setHiddenFilesAreShown(Boolean value){
+        getPreferences().putObject(HIDDEN_FILES_ARE_SHOWN_KEY, value);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public boolean getHiddenFilesAreShown(){
+        return getPreferences().getBoolean(HIDDEN_FILES_ARE_SHOWN_KEY,true);
     }
     /**
      * 
@@ -2293,6 +2320,8 @@ public class LinkManagerConfig {
      * @param panel 
      */
     public void setVisibleSection(int listID, LinksListPanel panel){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "setVisibleSection", new Object[]{listID,panel});
             // This will get the first visible index
         Integer firstVisIndex = null;
             // This will get the last visible index
@@ -2327,6 +2356,8 @@ public class LinkManagerConfig {
         setSelectedLinkIsVisible(listID,isSelVis);
             // Set the visible rectangle for the list
         setVisibleRect(listID,visRect);
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "setVisibleSection");
     }
     /**
      * 
@@ -2524,6 +2555,55 @@ public class LinkManagerConfig {
         setDropboxRefreshToken(null);
             // Set the Dropbox token expiration time to null, clearing it
         setDropboxTokenExpiresAt(null);
+    }
+    /**
+     * 
+     * @param mode
+     * @return 
+     */
+    public String getDatabaseFileSyncPath(DatabaseSyncMode mode){
+        if (mode != null){
+            switch(mode){
+                case DROPBOX:
+                    return getDropboxDatabaseFileName();
+            }
+        }
+        return null;
+    }
+    /**
+     * 
+     * @param mode
+     * @param value 
+     */
+    public void setDatabaseFileSyncPath(DatabaseSyncMode mode, String value){
+        if (mode != null){
+            switch(mode){
+                case DROPBOX:
+                    setDropboxDatabaseFileName(value);
+            }
+        }
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean getCheckForUpdateAtStartup(boolean defaultValue){
+        return getPreferences().getBoolean(CHECK_FOR_UPDATES_AT_START_KEY, defaultValue);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public boolean getCheckForUpdateAtStartup(){
+        return getCheckForUpdateAtStartup(true);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setCheckForUpdateAtStartup(boolean value){
+        getPreferences().putBoolean(CHECK_FOR_UPDATES_AT_START_KEY, value);
     }
     /**
      * 

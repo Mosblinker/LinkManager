@@ -241,6 +241,8 @@ public class DropboxUtilities {
     public static FileMetadata upload(File file, String path, 
             DbxUserFilesRequests dbxFiles, long chunkSize, boolean overwrite, 
             ProgressListener l) throws IOException, DbxException{
+        LinkManager.getLogger().entering("DropboxUtilities", "upload",
+                new Object[]{file,path,dbxFiles,chunkSize,overwrite,l});
             // If the chunk size is smaller than the minimum chunk size
         if (chunkSize < MINIMUM_CHUNK_SIZE)
             throw new IllegalArgumentException("Chunk size is too small ("+
@@ -266,12 +268,16 @@ public class DropboxUtilities {
                             // Set the client modified date to the file's last 
                             // modified date
                         .withClientModified(new Date(file.lastModified()));
+                FileMetadata metadata;
                     // If the progress listener is null
                 if (l == null)
                         // Upload the file to Dropbox
-                    return uploader.uploadAndFinish(in);
-                    // Upload the file to Dropbox
-                return uploader.uploadAndFinish(in, l);
+                    metadata = uploader.uploadAndFinish(in);
+                else
+                        // Upload the file to Dropbox
+                    metadata = uploader.uploadAndFinish(in, l);
+                LinkManager.getLogger().exiting("DropboxUtilities", "upload", metadata);
+                return metadata;
             }
         } else {    // Code is heavily based off the upload file example for Dropbox
                 // The amount of bytes that have been uploaded so far
@@ -303,6 +309,8 @@ public class DropboxUtilities {
                 // failed at some point
             for (int i = 0; i < CHUNKED_UPLOAD_MAX_ATTEMPTS && metadata == null; 
                     i++){
+                LinkManager.getLogger().log(Level.FINER, "Uploading attempt {0}", i);
+                dbxEx = null;
                     // Create an input stream to load the file 
                 try (InputStream in = new BufferedInputStream(new FileInputStream(file))){
                         // Skip the bytes we've already read
@@ -338,6 +346,7 @@ public class DropboxUtilities {
                     metadata = dbxFiles.uploadSessionFinish(cursor, info)
                             .uploadAndFinish(in, fileSize - uploaded, listener);
                 } catch (RetryException ex){
+                    LinkManager.getLogger().log(Level.INFO, "Uploading attempt "+i+" failed", ex);
                         // This is thrown when the program wants us to back off 
                         // for a bit
                     dbxEx = ex;
@@ -346,6 +355,8 @@ public class DropboxUtilities {
                         Thread.sleep(ex.getBackoffMillis()+1);  // measure
                     } catch (InterruptedException ex1){ }
                 } catch (NetworkIOException ex){
+                    LinkManager.getLogger().log(Level.INFO, "Uploading attempt "+i+" failed", ex);
+                    LinkManager.getLogger().log(Level.INFO, "Network error encountered", ex.getCause());
                         // If the previous error was also a network issue with 
                         // Dropbox
                     if (dbxEx instanceof NetworkIOException){
@@ -355,6 +366,7 @@ public class DropboxUtilities {
                     }
                     dbxEx = ex;
                 } catch (UploadSessionFinishErrorException ex){
+                    LinkManager.getLogger().log(Level.INFO, "Uploading attempt "+i+" failed", ex);
                         // If the offset into the stream doesn't match the 
                         // amount we've uploaded
                     if (ex.errorValue.isLookupFailed() && 
@@ -371,6 +383,7 @@ public class DropboxUtilities {
                 // we have a Dropbox error to forward
             if (metadata == null && dbxEx != null)
                 throw dbxEx;
+            LinkManager.getLogger().exiting("DropboxUtilities", "upload", metadata);
             return metadata;
         }
     }

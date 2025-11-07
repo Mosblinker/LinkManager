@@ -381,7 +381,10 @@ public class DatabaseQueryTestPanel extends JPanel {
      */
     public void showError(Exception ex){
         setResultsData(null,null,ex);
-        dbQueryErrorLabel.setText(Objects.toString(ex,"N/A"));
+        String exStr = Objects.toString(ex,"N/A");
+        if (ex instanceof UncheckedSQLException)
+            exStr += " (Cause: " + Objects.toString(ex.getCause(), "N/A")+")";
+        dbQueryErrorLabel.setText(exStr);
         dbQueryErrorCodeLabel.setText(Objects.toString(errorCode,"N/A"));
         setResultsCard(dbQueryErrorPanel);
     }

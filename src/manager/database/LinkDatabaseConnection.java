@@ -3617,21 +3617,28 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     public boolean updateDatabaseDefinitions(Statement stmt, ProgressObserver l) 
             throws SQLException{
+        LinkManager.getLogger().entering("LinkDatabaseConnection", "updateDatabaseDefinitions");
+            // This gets the database version as a String
+        String versionStr = getDatabaseVersionStr();
+        LinkManager.getLogger().log(Level.FINER, "Database version: {0}", versionStr);
+        LinkManager.getLogger().log(Level.FINER, "Latest database version: {0}", DATABASE_VERSION);
             // If the database cannot be automatically updated to the current version
-        if (!isDatabaseCompatible())
+        if (!isDatabaseCompatible()){
+            LinkManager.getLogger().finer("Database is incompatible with program");
+            LinkManager.getLogger().exiting("LinkDatabaseConnection", "updateDatabaseDefinitions",false);
             return false;
-            // If the database is currently up to date
-        if (!isDatabaseOutdated())
+        }   // If the database is currently up to date
+        if (!isDatabaseOutdated()){
+            LinkManager.getLogger().finer("Database is already up to date");
+            LinkManager.getLogger().exiting("LinkDatabaseConnection", "updateDatabaseDefinitions",true);
             return true;
-            // Get the current state of the auto-commit
+        }   // Get the current state of the auto-commit
         boolean autoCommit = getAutoCommit();
             // Turn off the auto-commit in order to group the following database 
             // transactions to improve performance
         setAutoCommit(false);
             // This gets the database properties map
         DatabasePropertyMap properties = getDatabaseProperties();
-            // This gets the database version as a String
-        String versionStr = getDatabaseVersionStr();
             // This gets the database version as an array of integers
         int[] version = getDatabaseVersion();
             // The progress text from the progress observer
@@ -3664,11 +3671,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             // Determine the updates to apply based off the database version
         switch(versionStr){
             case("1.0.0"):      // If version 1.0.0
+                LinkManager.getLogger().finer("Updating to version 1.1.0");
                     // Delete the old prefix count view
                 deleteView(PREFIX_COUNT_VIEW_NAME,stmt);
                     // Delete the old list size view
                 deleteView(LIST_SIZE_VIEW_NAME,stmt);
             case("1.1.0"):      // If version 1.1.0
+                LinkManager.getLogger().finer("Updating to version 1.2.0");
                     // Update the prefix separators
                 properties.getDefaults().put(PREFIX_SEPARATORS_CONFIG_KEY, 
                         PREFIX_DEFAULT_SEPARATORS);
@@ -3677,51 +3686,64 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     properties.remove(prop, properties.getDefaults().get(prop));
                 }
             case("1.2.0"):      // If version 1.2.0
+                LinkManager.getLogger().finer("Updating to version 1.3.0");
                     // Delete the list contents view (adding the linkID column 
                     // to the list contents view)
                 deleteView(LIST_CONTENTS_VIEW_NAME,stmt);
             case("1.3.0"):      // If version 1.3.0
+                LinkManager.getLogger().finer("Updating to version 1.4.0");
                     // Delete the tables view
                 deleteView(TABLES_VIEW_NAME,stmt);
             case("1.4.0"):      // If version 1.4.0
+                LinkManager.getLogger().finer("Updating to version 1.4.1");
                     // Change the default database version
                 properties.getDefaults().put(DATABASE_VERSION_CONFIG_KEY, 
                         DEFAULT_DATABASE_VERSION);
             case("1.4.1"):      // If version 1.4.1
+                LinkManager.getLogger().finer("Updating to version 1.5.0");
                     // Delete the tables view (again)
                 deleteView(TABLES_VIEW_NAME,stmt);
             case("1.5.0"):      // If version 1.5.0
+                LinkManager.getLogger().finer("Updating to version 1.5.1");
                     // Delete the list size view again
                 deleteView(LIST_SIZE_VIEW_NAME,stmt);
             case("1.5.1"):      // If version 1.5.1
+                LinkManager.getLogger().finer("Updating to version 1.6.0");
                     // Delete the distinct links view
                 deleteView(DISTINCT_LINK_VIEW_NAME,stmt);
             case("1.6.0"):      // If version 1.6.0
+                LinkManager.getLogger().finer("Updating to version 2.0.0");
                 createTables(stmt); // Create the new tables
             case("2.0.0"):      // If version 2.0.0
+                LinkManager.getLogger().finer("Updating to version 2.1.0");
                     // Update the database to version 2.1.0
                 updateSuccess = updateToVersion2_1_0(stmt,l);
                     // If the update was not successful
                 if (!updateSuccess)
                     break;
             case("2.1.0"):      // If version 2.1.0
+                LinkManager.getLogger().finer("Updating to version 2.2.0");
                     // Delete the list contents view
                 deleteView(LIST_CONTENTS_VIEW_NAME,stmt);
                     // Create the new tables
                 createTables(stmt);
             case("2.2.0"):      // If version 2.2.0
+                LinkManager.getLogger().finer("Updating to version 3.0.0");
                     // Update the database to version 3.0.0
                 updateSuccess = updateToVersion3_0_0(stmt,l);
                     // If the update was not successful
                 if (!updateSuccess)
                     break;
             case("3.0.0"):      // If version 3.0.0
+                LinkManager.getLogger().finer("Updating to version 3.1.0");
             case("3.1.0"):      // If version 3.1.0
+                LinkManager.getLogger().finer("Updating to version 3.2.0");
                     // Ensure that the default is set properly
                 properties.getDefaults().setProperty(
                         DATABASE_LAST_MODIFIED_CONFIG_KEY, DATABASE_LAST_MODIFIED_CONFIG_DEFAULT);
                 setDatabaseLastModified();
             case("3.2.0"):      // If version 3.2.0
+                LinkManager.getLogger().finer("Updating to version 3.3.0");
                 setDatabaseUUIDIfAbsent();
             case("3.3.0"):      // If version 3.3.0
                 createTables(stmt); // Create the new tables
@@ -3738,6 +3760,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         commit();       // Commit the changes to the database
             // Restore the auto-commit back to what it was set to before
         setAutoCommit(autoCommit);
+        LinkManager.getLogger().exiting("LinkDatabaseConnection", 
+                "updateDatabaseDefinitions",updateSuccess);
         return updateSuccess;
     }
     /**

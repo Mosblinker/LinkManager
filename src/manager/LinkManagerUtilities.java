@@ -17,7 +17,9 @@ import java.io.*;
 import java.net.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.logging.Level;
 import javax.swing.*;
+import manager.dropbox.DropboxUtilities;
 
 /**
  *
@@ -310,11 +312,14 @@ public class LinkManagerUtilities {
      * @see LinkManager#BACKUP_FILE_EXTENSION
      */
     public static File createBackupCopy(File file) throws IOException{
-            // If the original file is null or does not exist
-        if (file == null || !file.exists())
-            return null;
         LinkManager.getLogger().entering(LinkManagerUtilities.class.getName(), 
                 "createBackupCopy", file);
+            // If the original file is null or does not exist
+        if (file == null || !file.exists()){
+            LinkManager.getLogger().exiting(LinkManagerUtilities.class.getName(), 
+                    "createBackupCopy", null);
+            return null;
+        }
             // Get the file to use as the backup file
         File target = new File(file.toString()+"."+LinkManager.BACKUP_FILE_EXTENSION);
             // If the target file already exists
@@ -571,5 +576,37 @@ public class LinkManagerUtilities {
     public static File showSaveFileChooser(JFileChooser fc, Component parent, 
             LinkManagerConfig config){
         return showSaveFileChooser(fc,parent,config,null);
+    }
+    /**
+     * 
+     * @param mode
+     * @param filePath
+     * @return 
+     */
+    public static String formatExternalFilePath(DatabaseSyncMode mode, String filePath){
+        if (mode != null && filePath != null){
+            switch(mode){
+                case DROPBOX:
+                    return DropboxUtilities.formatDropboxPath(filePath);
+            }
+        }
+        return filePath;
+    }
+    /**
+     * 
+     * @param file1
+     * @param file2
+     * @return 
+     */
+    public static boolean isSameFile(File file1, File file2){
+        try{
+            return Files.isSameFile(file1.toPath(), file2.toPath());
+        } catch (NoSuchFileException ex) {
+        } catch (IOException ex){
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to check if the downloaded file is the same "
+                            + "as the loaded file",ex);
+        }
+        return file1.equals(file2);
     }
 }
