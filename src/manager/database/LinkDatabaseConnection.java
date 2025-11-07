@@ -2178,6 +2178,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     private final Set<UUID> programUserIDs = new ProgramUserIDSet();
     /**
+     * 
+     */
+    private final Map<Integer, DatabaseLinksListSettings> listSettingsMap = 
+            new TreeMap<>();
+    /**
      * This is the SQLiteConfig used to construct this connection if one was 
      * provided.
      */
@@ -6221,6 +6226,34 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         if (id == null)
             return Collections.emptySet();
         return getListSelectionIDs(id);
+    }
+    /**
+     * 
+     * @param programID
+     * @return 
+     */
+    public DatabaseLinksListSettings getListSettings(int programID){
+        if (!listSettingsMap.containsKey(programID))
+            listSettingsMap.put(programID, new LinksListSettingsImpl(programID));
+        return listSettingsMap.get(programID);
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @return 
+     */
+    public DatabaseLinksListSettings getListSettings(UUID userID, UUID programID){
+        return getListSettings(getProgramUUIDMap(userID).addIfAbsent(programID));
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @return 
+     */
+    public DatabaseLinksListSettings getListSettingsOrNull(UUID userID, UUID programID){
+        return getListSettings(getProgramUUIDMap(userID).get(programID));
     }
     /**
      * 
