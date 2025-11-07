@@ -7801,7 +7801,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                                 PROGRAM_ID_COLUMN_NAME,
                                 LIST_ID_COLUMN_NAME))){
                         setParameter(pstmt,1,linkID);
-                        pstmt.setBoolean(2, isVisible);
+                        setParameter(pstmt,2,isVisible);
                         setParameter(pstmt,3,firstIndex);
                         setParameter(pstmt,4,lastIndex);
                         setParameter(pstmt,5,visibleRect);
