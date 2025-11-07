@@ -4,6 +4,7 @@
  */
 package manager;
 
+import manager.config.DatabaseLinksListSettings;
 import com.dropbox.core.*;
 import com.dropbox.core.json.JsonReader;
 import com.dropbox.core.oauth.*;
@@ -6488,6 +6489,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Add the program's user ID and program ID to the database.
         Integer progID = conn.getProgramUUIDMap(config.getUserID()).addIfAbsent(config.getProgramID());
         Map<Integer,LinksListPanel> panels = getPanelIDMap();
+        DatabaseLinksListSettings listSettings = conn.getListSettings(progID);
         progressBar.setMaximum(panels.size()+2);
         progressBar.setValue(0);
         progressBar.setIndeterminate(false);
@@ -6501,7 +6503,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         progressBar.setValue(2);
             // Go through the panels
         for (LinksListPanel panel : panels.values()){
-            conn.setSelectionForList(progID, panel,linkIDMap);
+            listSettings.setListSettings(panel, linkIDMap);
             progressBar.setValue(progressBar.getValue()+1);
         }
         progressBar.setIndeterminate(true);
