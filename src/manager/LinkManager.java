@@ -5471,32 +5471,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return true;
     }
     /**
-     * 
-     * @return 
-     */
-    private Map<Integer,LinksListPanel> getPanelIDMap(){
-            // Map the list panels to their listIDs
-        Map<Integer,LinksListPanel> panels = new TreeMap<>();
-            // Go through the list panels in the selected tabs panel
-        for (LinksListPanel panel : getSelectedTabsPanel()){
-                // If the list panel's listID is not null
-            if (panel.getListID() != null)
-                panels.put(panel.getListID(), panel);
-        }   // Go through the tabs panel
-        for (LinksListTabsPanel tabsPanel : listsTabPanels){
-                // If the current tabs panel is the selected panel
-            if (tabsPanel == getSelectedTabsPanel())
-                continue;
-                // Go through the list panels in the current tabs panel
-            for (LinksListPanel panel : tabsPanel){
-                    // If the list panel's listID is not null
-                if (panel.getListID() != null)
-                    panels.putIfAbsent(panel.getListID(), panel);
-            }
-        }
-        return panels;
-    }
-    /**
      * This updates the values in the program's configuration that would update 
      * too frequently if updated in real time or that would be too difficult to 
      * cover all possible ways of the value being set.
@@ -10140,5 +10114,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             super.done();
         }
+    }
+    /**
+     * 
+     * @return 
+     */
+    private Map<Integer,LinksListPanel> getPanelIDMap(){
+            // Map the list panels to their listIDs
+        Map<Integer,LinksListPanel> panels = new TreeMap<>();
+            // Go through the list panels in the selected tabs panel
+        for (LinksListPanel panel : getSelectedTabsPanel()){
+                // If the list panel's listID is not null
+            if (panel.getListID() != null)
+                panels.put(panel.getListID(), panel);
+        }   // Go through the tabs panel
+        for (LinksListTabsPanel tabsPanel : listsTabPanels){
+                // If the current tabs panel is the selected panel
+            if (tabsPanel == getSelectedTabsPanel())
+                continue;
+                // Go through the list panels in the current tabs panel
+            for (LinksListPanel panel : tabsPanel){
+                    // If the list panel's listID is not null
+                if (panel.getListID() != null)
+                    panels.putIfAbsent(panel.getListID(), panel);
+            }
+        }
+        return panels;
     }
 }
