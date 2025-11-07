@@ -546,6 +546,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     config.setRandomProgramID());
         }   // Log the program ID
         getLogger().log(Level.FINER, "Using program ID {0}", programID);
+            // Get the ID for the user
+        UUID userID = config.getUserID();
+            // If there is no user ID set
+        if (userID == null)
+                // Create and store a random user ID
+            userID = config.setRandomUserID();
+           // Log the user ID
+        getLogger().log(Level.FINER, "Using user ID {0}",userID);
         try{    // Create a CipherUtils object
             CipherUtils cipher = new CipherUtils();
                 // Get the encryption key from the config file if there is one
@@ -1238,6 +1246,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         javax.swing.JLabel programIDTextLabel = new javax.swing.JLabel();
         programIDLabel = new javax.swing.JLabel();
         javax.swing.Box.Filler filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
+        javax.swing.JLabel userIDTextLabel = new javax.swing.JLabel();
+        userIDLabel = new javax.swing.JLabel();
         dbUpdateLastModButton = new javax.swing.JButton();
         dbPrefixesPanel = new javax.swing.JPanel();
         dbPrefixScrollPane = new javax.swing.JScrollPane();
@@ -1959,11 +1969,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbPropPanel.add(programIDLabel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
         gridBagConstraints.weighty = 0.9;
         dbPropPanel.add(filler2, gridBagConstraints);
+
+        userIDTextLabel.setText("User ID:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        dbPropPanel.add(userIDTextLabel, gridBagConstraints);
+
+        userIDLabel.setText("N/A");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 6, 6, 0);
+        dbPropPanel.add(userIDLabel, gridBagConstraints);
 
         dbUpdateLastModButton.setText("Update Last Mod");
         dbUpdateLastModButton.addActionListener(new java.awt.event.ActionListener() {
@@ -5866,6 +5894,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JPanel updatePanel;
     private javax.swing.JLabel updateTextLabel;
     private javax.swing.JMenuItem uploadDBItem;
+    private javax.swing.JLabel userIDLabel;
     // End of variables declaration//GEN-END:variables
     /**
      * 
@@ -6098,24 +6127,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (fullyLoaded){
             getLogger().finer("Program is fully loaded");
                 // Map the list panels to their listIDs
-            Map<Integer,LinksListPanel> panels = new HashMap<>();
-                // Go through the list panels in the selected tabs panel
-            for (LinksListPanel panel : getSelectedTabsPanel()){
-                    // If the list panel's listID is not null
-                if (panel.getListID() != null)
-                    panels.put(panel.getListID(), panel);
-            }   // Go through the tabs panel
-            for (LinksListTabsPanel tabsPanel : listsTabPanels){
-                    // If the current tabs panel is the selected panel
-                if (tabsPanel == getSelectedTabsPanel())
-                    continue;
-                    // Go through the list panels in the current tabs panel
-                for (LinksListPanel panel : tabsPanel){
-                        // If the list panel's listID is not null
-                    if (panel.getListID() != null)
-                        panels.putIfAbsent(panel.getListID(), panel);
-                }
-            }   // Go through the list panels
+            Map<Integer,LinksListPanel> panels = getPanelIDMap();
+                // Go through the list panels
             for (LinksListPanel panel : panels.values()){
                     // Update the visible properties for the panel in the config
                 config.setVisibleSection(panel);
@@ -6429,6 +6442,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         linkMap.removeDuplicateRows();
             // Remove any unused links
         linkMap.removeUnusedRows();
+        conn.commit();       // Commit the changes to the database
+            // Add the program's user ID and program ID to the database.
+        Integer progID = conn.getProgramUUIDMap(config.getUserID()).addIfAbsent(config.getProgramID());
+        Map<Integer,LinksListPanel> panels = getPanelIDMap();
+        progressBar.setMaximum(panels.size()+2);
+        progressBar.setValue(0);
+        progressBar.setIndeterminate(false);
+            // Store the list ID of the selected list in the all lists panel
+        conn.setListTypeSelection(progID, LinkDatabaseConnection.LIST_OF_ALL_LISTS_TYPE, 
+                allListsTabsPanel.getSelectedListID());
+        progressBar.setValue(1);
+            // Store the list ID of the selected list in the shown lists panel
+        conn.setListTypeSelection(progID, LinkDatabaseConnection.LIST_OF_SHOWN_LISTS_TYPE, 
+                shownListsTabsPanel.getSelectedListID());
+        progressBar.setValue(2);
+            // Go through the panels
+        for (LinksListPanel panel : panels.values()){
+            conn.setSelectionForList(progID, panel,linkIDMap);
+            progressBar.setValue(progressBar.getValue()+1);
+        }
+        progressBar.setIndeterminate(true);
         conn.commit();       // Commit the changes to the database
             // Restore the connection's auto-commit back to what it was set to 
         conn.setAutoCommit(autoCommit);     // before
@@ -10065,6 +10099,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             shownTotalSizeLabel.setText(Objects.toString(shownTotalSize,"N/A"));
             allTotalSizeLabel.setText(Objects.toString(allTotalSize,"N/A"));
             programIDLabel.setText(Objects.toString(config.getProgramID(), "N/A"));
+            userIDLabel.setText(Objects.toString(config.getUserID(), "N/A"));
             
             setTabEnabled(dbCreatePrefixScrollPane,createPrefixTestNode != null);
             if (createPrefixTestNode != null)
@@ -11302,7 +11337,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             super.done();
         }
     }
-    
+  
     private class TempDatabaseDownloader extends DatabaseDownloader{
         /**
          * The flags to use for loading the lists. If this is null, then the 
@@ -11686,4 +11721,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
     }
+      /**
+     * 
+     * @return 
+     */
+    private Map<Integer,LinksListPanel> getPanelIDMap(){
+            // Map the list panels to their listIDs
+        Map<Integer,LinksListPanel> panels = new TreeMap<>();
+            // Go through the list panels in the selected tabs panel
+        for (LinksListPanel panel : getSelectedTabsPanel()){
+                // If the list panel's listID is not null
+            if (panel.getListID() != null)
+                panels.put(panel.getListID(), panel);
+        }   // Go through the tabs panel
+        for (LinksListTabsPanel tabsPanel : listsTabPanels){
+                // If the current tabs panel is the selected panel
+            if (tabsPanel == getSelectedTabsPanel())
+                continue;
+                // Go through the list panels in the current tabs panel
+            for (LinksListPanel panel : tabsPanel){
+                    // If the list panel's listID is not null
+                if (panel.getListID() != null)
+                    panels.putIfAbsent(panel.getListID(), panel);
+            }
+        }
+        return panels;
 }
