@@ -1620,7 +1620,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         // Last visible index column definition. Can be null
                     "%s integer DEFAULT NULL, "+
                         // Visible rect column definition. Can be null
-                    "%s BLOB DEFAULT NULL, "+
+                    "%s VARBINARY DEFAULT NULL, "+
                         // Foreign key constraint for the program ID
                     FOREIGN_KEY_TEMPLATE+", "+ 
                         // Foreign key constraint for the list ID
