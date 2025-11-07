@@ -6164,10 +6164,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @return
      * @throws SQLException 
      */
-    public List<Integer> getListSelectionIDs(int programID) throws SQLException{
-        ArrayList<Integer> listIDs = new ArrayList<>();
+    public Set<Integer> getListSelectionIDs(int programID) throws SQLException{
+        Set<Integer> listIDs = new TreeSet<>();
         try(PreparedStatement pstmt = prepareStatement(String.format(
-            "SELECT %s FROM %s WHERE %s = ?",
+            "SELECT DISTINCT %s FROM %s WHERE %s = ?",
                 LIST_ID_COLUMN_NAME,
                 LIST_SELECTION_TABLE_NAME,
                 PROGRAM_ID_COLUMN_NAME))){
@@ -6178,7 +6178,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 listIDs.add(rs.getInt(LIST_ID_COLUMN_NAME));
             }
         }
-        return Collections.unmodifiableList(listIDs);
+        return Collections.unmodifiableSet(listIDs);
     }
     /**
      * 
@@ -6187,11 +6187,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @return
      * @throws SQLException 
      */
-    public List<Integer> getListSelectionIDs(UUID userID, UUID programID) 
+    public Set<Integer> getListSelectionIDs(UUID userID, UUID programID) 
             throws SQLException{
         Integer id = getProgramUUIDMap(userID).get(programID);
         if (id == null)
-            return Collections.emptyList();
+            return Collections.emptySet();
         return getListSelectionIDs(id);
     }
     /**
