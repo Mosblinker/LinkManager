@@ -1782,9 +1782,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     
     protected static final String DEFAULT_DATABASE_VERSION = "0.5.0";
     
-    public static final int DATABASE_MAJOR_VERSION = 3;
+    public static final int DATABASE_MAJOR_VERSION = 4;
     
-    public static final int DATABASE_MINOR_VERSION = 4;
+    public static final int DATABASE_MINOR_VERSION = 0;
     
     public static final int DATABASE_PATCH_VERSION = 0;
     
@@ -3770,7 +3770,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     renameTable("listSelection",LIST_SETTINGS_TABLE_NAME,stmt);
                 }
                 createTables(stmt); // Create the new tables
-//            case("3.4.0"):      // If version 3.4.0
+//            case("4.0.0"):      // If version 4.0.0
         }
             // If foreign keys are supported
         if (foreignKeys != null)
