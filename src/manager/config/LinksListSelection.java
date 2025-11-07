@@ -112,45 +112,63 @@ public interface LinksListSelection {
     /**
      * 
      * @param listID
+     * @param isVisible whether the selected index is visible
+     * @param firstIndex first visible index
+     * @param lastIndex last visible index
+     * @param visibleRect visible rectangle for the list
+     */
+    public default void setVisibleSection(int listID, Boolean isVisible, 
+            Integer firstIndex, Integer lastIndex, Rectangle visibleRect){
+        LinkManager.getLogger().entering("LinksListSelection", 
+                "setVisibleSection", new Object[]{listID,isVisible,firstIndex,
+                    lastIndex,visibleRect});
+            // If the first visible index is negative
+        if (firstIndex < 0)
+            firstIndex = null;
+            // If the last visible index is negative
+        if (lastIndex < 0)
+            lastIndex = null;
+            // Set the first visible index for the list
+        setFirstVisibleIndex(listID,firstIndex);
+            // Set the last visible index for the list
+        setLastVisibleIndex(listID,lastIndex);
+            // Set whether the selected link is visible
+        setSelectedLinkVisible(listID,isVisible);
+            // Set the visible rectangle for the list
+        setVisibleRect(listID,visibleRect);
+        LinkManager.getLogger().exiting("LinksListSelection", 
+                "setVisibleSection");
+    }
+    /**
+     * 
+     * @param listID
      * @param panel 
      */
     public default void setVisibleSection(int listID, LinksListPanel panel){
         LinkManager.getLogger().entering("LinksListSelection", 
                 "setVisibleSection", new Object[]{listID,panel});
             // This will get the first visible index
-        Integer firstVisIndex = null;
+        Integer firstIndex = null;
             // This will get the last visible index
-        Integer lastVisIndex = null;
+        Integer lastIndex = null;
             // This will get whether the selected index is visible
-        Boolean isSelVis = null;
+        Boolean isVisible = null;
             // This will get the visible rectangle for the list
-        Rectangle visRect = null;
+        Rectangle visibleRect = null;
             // If the panel is not null
         if (panel != null){
                 // Get the first visible index for the list
-            firstVisIndex = panel.getList().getFirstVisibleIndex();
-                // If the first visible index is negative
-            if (firstVisIndex < 0)
-                firstVisIndex = null;
+            firstIndex = panel.getList().getFirstVisibleIndex();
                 // Get the last visible index for the list
-            lastVisIndex = panel.getList().getLastVisibleIndex();
-                // If the last visible index is negative
-            if (lastVisIndex < 0)
-                lastVisIndex = null;
+            lastIndex = panel.getList().getLastVisibleIndex();
                 // If the panel's selection is not empty
             if (!panel.isSelectionEmpty())
                     // Get whether the selected indes is visible
-                isSelVis = panel.isIndexVisible(panel.getSelectedIndex());
+                isVisible = panel.isIndexVisible(panel.getSelectedIndex());
                 // Get the panel's list's visible rectangle
-            visRect = panel.getList().getVisibleRect();
-        }   // Set the first visible index for the list
-        setFirstVisibleIndex(listID,firstVisIndex);
-            // Set the last visible index for the list
-        setLastVisibleIndex(listID,lastVisIndex);
-            // Set whether the selected link is visible
-        setSelectedLinkVisible(listID,isSelVis);
-            // Set the visible rectangle for the list
-        setVisibleRect(listID,visRect);
+            visibleRect = panel.getList().getVisibleRect();
+        }
+        setVisibleSection(listID,isVisible,firstIndex,lastIndex,visibleRect);
         LinkManager.getLogger().exiting("LinksListSelection", 
                 "setVisibleSection");
     }
