@@ -5888,6 +5888,167 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
+     * @param programID
+     * @param listID
+     * @param linkID
+     * @param isVisible
+     * @param firstVisIndex
+     * @param lastVisIndex
+     * @param visRect
+     * @throws SQLException 
+     */
+    public void setSelectionForList(int programID, int listID, Long linkID, 
+            boolean isVisible, Integer firstVisIndex, Integer lastVisIndex, 
+            Rectangle visRect) throws SQLException{
+        boolean contains = selectionTableContains(programID,listID);
+        if (contains || linkID != null || isVisible || firstVisIndex != null || 
+                lastVisIndex != null || visRect != null){
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    (contains)?
+                            "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ?, %s = ? WHERE %s = ? AND %s = ?":
+                            "INSERT INTO %s(%s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        LIST_SELECTION_TABLE_NAME,
+                        LINK_ID_COLUMN_NAME,
+                        SELECTION_IS_VISIBLE_COLUMN_NAME,
+                        FIRST_VISIBLE_INDEX_COLUMN_NAME,
+                        LAST_VISIBLE_INDEX_COLUMN_NAME,
+                        VISIBLE_RECTANGLE_COLUMN_NAME,
+                        PROGRAM_ID_COLUMN_NAME,
+                        LIST_ID_COLUMN_NAME))){
+                setParameter(pstmt,1,linkID);
+                pstmt.setBoolean(2, isVisible);
+                setParameter(pstmt,3,firstVisIndex);
+                setParameter(pstmt,4,lastVisIndex);
+                setParameter(pstmt,5,visRect);
+                pstmt.setInt(6, programID);
+                pstmt.setInt(7, listID);
+                pstmt.executeUpdate();
+            }
+        }
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @param linkID
+     * @param isVisible
+     * @param firstVisIndex
+     * @param lastVisIndex
+     * @param visRect
+     * @throws SQLException 
+     */
+    public void setSelectionForList(UUID userID, UUID programID, int listID, 
+            Long linkID, boolean isVisible, Integer firstVisIndex, 
+            Integer lastVisIndex, Rectangle visRect) throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        setSelectionForList(id,listID,linkID,isVisible,firstVisIndex,
+                lastVisIndex,visRect);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @param panel 
+     * @param linkIDMap 
+     * @throws java.sql.SQLException 
+     */
+    public void setSelectionForList(int programID, int listID, LinksListPanel panel, 
+            Map<String,Long> linkIDMap) throws SQLException{
+        if (linkIDMap == null)
+            linkIDMap = getLinkMap().inverse();
+        setSelectionForList(programID,listID,
+                linkIDMap.get(panel.getSelectedValue()),
+                panel.isIndexVisible(panel.getSelectedIndex()),
+                panel.getList().getFirstVisibleIndex(),
+                panel.getList().getLastVisibleIndex(),
+                panel.getList().getVisibleRect());
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @param panel
+     * @throws SQLException 
+     */
+    public void setSelectionForList(int programID, int listID, LinksListPanel panel)
+            throws SQLException{
+        setSelectionForList(programID,listID,panel,null);
+    }
+    /**
+     * 
+     * @param programID
+     * @param panel
+     * @param linkIDMap
+     * @throws SQLException 
+     */
+    public void setSelectionForList(int programID, LinksListPanel panel, 
+            Map<String,Long> linkIDMap) throws SQLException{
+        if (panel.getListID() != null)
+            setSelectionForList(programID,panel.getListID(),panel,linkIDMap);
+    }
+    /**
+     * 
+     * @param programID
+     * @param panel
+     * @throws SQLException 
+     */
+    public void setSelectionForList(int programID, LinksListPanel panel) 
+            throws SQLException{
+        setSelectionForList(programID,panel,null);
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @param panel
+     * @param linkIDMap
+     * @throws SQLException 
+     */
+    public void setSelectionForList(UUID userID, UUID programID, int listID, 
+            LinksListPanel panel, Map<String,Long> linkIDMap) throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        setSelectionForList(id,listID,panel,linkIDMap);
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @param panel
+     * @throws SQLException 
+     */
+    public void setSelectionForList(UUID userID, UUID programID, int listID, 
+            LinksListPanel panel) throws SQLException{
+        setSelectionForList(userID,programID,listID,panel,null);
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param panel
+     * @param linkIDMap
+     * @throws SQLException 
+     */
+    public void setSelectionForList(UUID userID, UUID programID, 
+            LinksListPanel panel, Map<String,Long> linkIDMap) throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        setSelectionForList(id,panel,linkIDMap);
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param panel
+     * @throws SQLException 
+     */
+    public void setSelectionForList(UUID userID, UUID programID, 
+            LinksListPanel panel) throws SQLException{
+        setSelectionForList(userID,programID,panel,null);
+    }
+    /**
+     * 
      * @param <E> The type of elements stored in this set.
      */
     private abstract class AbstractQuerySet<E> extends AbstractSQLSet<E>{
