@@ -6285,7 +6285,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         Map<Integer,String> selMap = config.getSelectedLinkMap();
             // This maps the listIDs to whether the selected link is visible for 
             // that list
-        Map<Integer,Boolean> selVisMap = config.getSelectedLinkIsVisibleMap();
+        Map<Integer,Boolean> selVisMap = config.getSelectedLinkVisibleMap();
             // This maps the listIDs to the first visible index for that list
         Map<Integer,Integer> firstVisMap = config.getFirstVisibleIndexMap();
             // This maps the listIDs to the last visible index for that list
