@@ -6326,6 +6326,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                             selVisMap.getOrDefault(listID, false));
                 }   // Get the visible rectangle for the list
                 Rectangle rect = visRectMap.get(listID);
+                getLogger().log(Level.FINER, "Visible rectangle: {0}", rect);
                     // If there is a visible rectangle for the list
                 if (rect != null)
                         // Scroll the list to the visbile rectangle
@@ -6334,6 +6335,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // the last visible index if there isn't one
                 Integer visIndex = firstVisMap.getOrDefault(listID,
                         lastVisMap.get(listID));
+                getLogger().log(Level.FINER, "First visible index: {0}", firstVisMap.get(listID));
+                getLogger().log(Level.FINER, "Last visible index{0}", lastVisMap.get(listID));
                     // If there is a visible index for the list
                 if (visIndex != null)
                         // Ensure the visible index is visible
