@@ -191,41 +191,41 @@ public interface LinksListSettings {
      * @param lastIndex last visible index
      * @param visibleRect visible rectangle for the list
      */
-    public default void setSelection(int listID, String selection, 
+    public default void setListSettings(int listID, String selection, 
             Boolean isVisible, Integer firstIndex, Integer lastIndex, 
             Rectangle visibleRect){
         LinkManager.getLogger().entering("LinksListSettings", 
-                "setSelection", new Object[]{listID,selection,isVisible,firstIndex,
+                "setListSettings", new Object[]{listID,selection,isVisible,firstIndex,
                     lastIndex,visibleRect});
         if (selection == null)
             isVisible = null;
         setSelectedLink(listID,selection);
         setVisibleSection(listID,isVisible,firstIndex,lastIndex,visibleRect);
         LinkManager.getLogger().exiting("LinksListSettings", 
-                "setSelection");
+                "setListSettings");
     }
     /**
      * 
      * @param listID
      * @param panel 
      */
-    public default void setSelection(int listID, LinksListPanel panel){
+    public default void setListSettings(int listID, LinksListPanel panel){
         LinkManager.getLogger().entering("LinksListSettings", 
-                "setSelection", new Object[]{listID,panel});
+                "setListSettings", new Object[]{listID,panel});
         String selection = (panel!=null)?panel.getSelectedValue():null;
         setSelectedLink(listID,selection);
         setVisibleSection(listID,panel);
         LinkManager.getLogger().exiting("LinksListSettings", 
-                "setSelection");
+                "setListSettings");
     }
     /**
      * 
      * @param panel 
      */
-    public default void setSelection(LinksListPanel panel){
+    public default void setListSettings(LinksListPanel panel){
             // If the panel is not null and has a non-null listID
         if (panel != null && panel.getListID() != null)
-            setSelection(panel.getListID(),panel);
+            LinksListSettings.this.setListSettings(panel.getListID(),panel);
     }
     /**
      * 
@@ -253,4 +253,6 @@ public interface LinksListSettings {
      * @return 
      */
     public Set<Integer> getListIDs();
+    
+//    public void removeAll
 }

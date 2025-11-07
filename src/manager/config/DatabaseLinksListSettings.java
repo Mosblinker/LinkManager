@@ -102,17 +102,17 @@ public interface DatabaseLinksListSettings extends LinksListSettings{
      * @param lastIndex
      * @param visibleRect 
      */
-    public default void setSelection(int listID, Long linkID, Boolean isVisible, 
+    public default void setListSettings(int listID, Long linkID, Boolean isVisible, 
             Integer firstIndex, Integer lastIndex, Rectangle visibleRect){
         LinkManager.getLogger().entering("DatabaseLinksListSettings", 
-                "setSelection", new Object[]{listID,linkID,isVisible,firstIndex,
+                "setListSettings", new Object[]{listID,linkID,isVisible,firstIndex,
                     lastIndex,visibleRect});
         if (linkID == null)
             isVisible = null;
         setSelectedLinkID(listID,linkID);
         setVisibleSection(listID,isVisible,firstIndex,lastIndex,visibleRect);
         LinkManager.getLogger().exiting("DatabaseLinksListSettings", 
-                "setSelection");
+                "setListSettings");
     }
     /**
      * 
@@ -124,24 +124,24 @@ public interface DatabaseLinksListSettings extends LinksListSettings{
      * @param visibleRect
      * @param linkIDMap 
      */
-    public default void setSelection(int listID, String selection, 
+    public default void setListSettings(int listID, String selection, 
             Boolean isVisible, Integer firstIndex, Integer lastIndex, 
             Rectangle visibleRect, Map<String,Long> linkIDMap){
         LinkManager.getLogger().entering("DatabaseLinksListSettings", 
-                "setSelection", new Object[]{listID,selection,isVisible,firstIndex,
+                "setListSettings", new Object[]{listID,selection,isVisible,firstIndex,
                     lastIndex,visibleRect});
         if (linkIDMap == null)
             linkIDMap = getDefaultLinkIDMap();
-        setSelection(listID,linkIDMap.get(selection),isVisible,firstIndex,
+        setListSettings(listID,linkIDMap.get(selection),isVisible,firstIndex,
                 lastIndex,visibleRect);
         LinkManager.getLogger().exiting("DatabaseLinksListSettings", 
-                "setSelection");
+                "setListSettings");
     }
     @Override
-    public default void setSelection(int listID, String selection, 
+    public default void setListSettings(int listID, String selection, 
             Boolean isVisible, Integer firstIndex, Integer lastIndex, 
             Rectangle visibleRect){
-        setSelection(listID,selection,isVisible,firstIndex,lastIndex,
+        setListSettings(listID,selection,isVisible,firstIndex,lastIndex,
                 visibleRect,getDefaultLinkIDMap());
     }
     /**
@@ -150,10 +150,10 @@ public interface DatabaseLinksListSettings extends LinksListSettings{
      * @param panel
      * @param linkIDMap 
      */
-    public default void setSelection(int listID, LinksListPanel panel, 
+    public default void setListSettings(int listID, LinksListPanel panel, 
             Map<String,Long> linkIDMap){
         LinkManager.getLogger().entering("DatabaseLinksListSettings", 
-                "setSelection", new Object[]{listID,panel});
+                "setListSettings", new Object[]{listID,panel});
         String selection = null;
             // This will get the first visible index
         Integer firstIndex = null;
@@ -177,23 +177,23 @@ public interface DatabaseLinksListSettings extends LinksListSettings{
             visibleRect = panel.getList().getVisibleRect();
             selection = panel.getSelectedValue();
         }
-        setSelection(listID,selection,isVisible,firstIndex,lastIndex,
+        setListSettings(listID,selection,isVisible,firstIndex,lastIndex,
                 visibleRect,linkIDMap);
         LinkManager.getLogger().exiting("DatabaseLinksListSettings", 
-                "setSelection");
+                "setListSettings");
     }
     @Override
-    public default void setSelection(int listID, LinksListPanel panel){
-        setSelection(listID,panel,getDefaultLinkIDMap());
+    public default void setListSettings(int listID, LinksListPanel panel){
+        setListSettings(listID,panel,getDefaultLinkIDMap());
     }
     /**
      * 
      * @param panel
      * @param linkIDMap 
      */
-    public default void setSelection(LinksListPanel panel, Map<String,Long> linkIDMap){
+    public default void setListSettings(LinksListPanel panel, Map<String,Long> linkIDMap){
             // If the panel is not null and has a non-null listID
         if (panel != null && panel.getListID() != null)
-            setSelection(panel.getListID(),panel,linkIDMap);
+            setListSettings(panel.getListID(),panel,linkIDMap);
     }
 }
