@@ -1268,7 +1268,7 @@ public class LinkManagerConfig implements LinksListSelection{
             // Add all the values for the selected links in the lists
         getSelectedLinkMap().putAll(selMap);
             // Add all the values for the selected links are visible in the lists
-        getSelectedLinkIsVisibleMap().putAll(selVisMap);
+        getSelectedLinkVisibleMap().putAll(selVisMap);
             // Add all the values for the first visible indexes in the lists
         getFirstVisibleIndexMap().putAll(firstVisMap);
             // Add all the values for the last visible indexes in the lists
@@ -1316,7 +1316,7 @@ public class LinkManagerConfig implements LinksListSelection{
             addListDataToProperties(getSelectedLinkMap(),
                     SELECTED_LINK_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,prop);
                 // Add the selected link visibility data to the properties
-            addListDataToProperties(getSelectedLinkIsVisibleMap(),
+            addListDataToProperties(getSelectedLinkVisibleMap(),
                     SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY+
                             LIST_ID_PROPERTY_KEY_SUFFIX,prop);
                 // Add the first visible index data to the properties
@@ -2150,7 +2150,7 @@ public class LinkManagerConfig implements LinksListSelection{
      * @param value 
      */
     @Override
-    public void setSelectedLinkIsVisible(int listID, Boolean value){
+    public void setSelectedLinkVisible(int listID, Boolean value){
         getListPreferences(listID).putObject(
                 SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, value);
     }
@@ -2160,7 +2160,7 @@ public class LinkManagerConfig implements LinksListSelection{
      * @return 
      */
     @Override
-    public Boolean getSelectedLinkIsVisible(int listID){
+    public Boolean isSelectedLinkVisible(int listID){
         return getListPreferences(listID).getBoolean(
                 SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, false);
     }
@@ -2169,7 +2169,7 @@ public class LinkManagerConfig implements LinksListSelection{
      * @return 
      */
     @Override
-    public Map<Integer,Boolean> getSelectedLinkIsVisibleMap(){
+    public Map<Integer,Boolean> getSelectedLinkVisibleMap(){
         if (selLinkVisMap == null){
             selLinkVisMap = new ListConfigDataMap<>(){
                 @Override
@@ -2177,12 +2177,12 @@ public class LinkManagerConfig implements LinksListSelection{
                         // If the node contains the selected link is visible key
                     if (getListPreferences(key).containsKey(
                             SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
-                        return getSelectedLinkIsVisible(key);
+                        return isSelectedLinkVisible(key);
                     return null;
                 }
                 @Override
                 protected void putValue(int key, Boolean value) {
-                    setSelectedLinkIsVisible(key,value);
+                    setSelectedLinkVisible(key,value);
                 }
                 @Override
                 protected ListConfigNodeParent getNodes() {

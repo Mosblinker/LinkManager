@@ -37,18 +37,18 @@ public interface LinksListSelection {
      * @param listID
      * @param value 
      */
-    public void setSelectedLinkIsVisible(int listID, Boolean value);
+    public void setSelectedLinkVisible(int listID, Boolean value);
     /**
      * 
      * @param listID
      * @return 
      */
-    public Boolean getSelectedLinkIsVisible(int listID);
+    public Boolean isSelectedLinkVisible(int listID);
     /**
      * 
      * @return 
      */
-    public Map<Integer,Boolean> getSelectedLinkIsVisibleMap();
+    public Map<Integer,Boolean> getSelectedLinkVisibleMap();
     /**
      * 
      * @param listID
@@ -148,7 +148,7 @@ public interface LinksListSelection {
             // Set the last visible index for the list
         setLastVisibleIndex(listID,lastVisIndex);
             // Set whether the selected link is visible
-        setSelectedLinkIsVisible(listID,isSelVis);
+        setSelectedLinkVisible(listID,isSelVis);
             // Set the visible rectangle for the list
         setVisibleRect(listID,visRect);
         LinkManager.getLogger().exiting("LinksListSelection", 
