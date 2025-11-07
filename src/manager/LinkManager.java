@@ -4,7 +4,6 @@
  */
 package manager;
 
-import manager.config.DatabaseLinksListSettings;
 import com.dropbox.core.*;
 import com.dropbox.core.json.JsonReader;
 import com.dropbox.core.oauth.*;
@@ -6494,12 +6493,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         progressBar.setValue(0);
         progressBar.setIndeterminate(false);
             // Store the list ID of the selected list in the all lists panel
-        conn.setListTypeSelection(progID, LinkDatabaseConnection.LIST_OF_ALL_LISTS_TYPE, 
-                allListsTabsPanel.getSelectedListID());
+        listSettings.setSelectedTab(LinkDatabaseConnection.LIST_OF_ALL_LISTS_TYPE,
+                allListsTabsPanel);
         progressBar.setValue(1);
             // Store the list ID of the selected list in the shown lists panel
-        conn.setListTypeSelection(progID, LinkDatabaseConnection.LIST_OF_SHOWN_LISTS_TYPE, 
-                shownListsTabsPanel.getSelectedListID());
+        listSettings.setSelectedTab(LinkDatabaseConnection.LIST_OF_SHOWN_LISTS_TYPE, 
+                shownListsTabsPanel);
         progressBar.setValue(2);
             // Go through the panels
         for (LinksListPanel panel : panels.values()){
