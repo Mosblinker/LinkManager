@@ -5,10 +5,12 @@
 package manager.database;
 
 import java.awt.Rectangle;
+import java.sql.SQLException;
 import java.util.Map;
 import manager.LinkManager;
 import manager.config.LinksListSelection;
 import manager.links.LinksListPanel;
+import sql.UncheckedSQLException;
 
 /**
  *
@@ -19,12 +21,23 @@ public interface DatabaseLinksListSelection extends LinksListSelection{
      * 
      * @return 
      */
+    public LinkDatabaseConnection getConnection();
+    /**
+     * 
+     * @return 
+     */
     public int getProgramID();
     /**
      * 
      * @return 
      */
-    public LinkMap getDefaultLinkMap();
+    public default LinkMap getDefaultLinkMap(){
+        try {
+            return getConnection().getLinkMap();
+        } catch (SQLException ex) {
+            throw new UncheckedSQLException(ex);
+        }
+    }
     /**
      * 
      * @return 
