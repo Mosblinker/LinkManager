@@ -2,13 +2,14 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
  */
-package manager.database;
+package manager.config;
 
 import java.awt.Rectangle;
 import java.sql.SQLException;
 import java.util.Map;
 import manager.LinkManager;
-import manager.config.LinksListSelection;
+import manager.database.LinkDatabaseConnection;
+import manager.database.LinkMap;
 import manager.links.LinksListPanel;
 import sql.UncheckedSQLException;
 
@@ -16,7 +17,7 @@ import sql.UncheckedSQLException;
  *
  * @author Mosblinker
  */
-public interface DatabaseLinksListSelection extends LinksListSelection{
+public interface DatabaseLinksListSettings extends LinksListSelection{
     /**
      * 
      * @return 
@@ -59,12 +60,12 @@ public interface DatabaseLinksListSelection extends LinksListSelection{
      */
     public default void setSelectedLink(int listID, String value, 
             Map<String,Long> linkIDMap){
-        LinkManager.getLogger().entering("DatabaseLinksListSelection", 
+        LinkManager.getLogger().entering("DatabaseLinksListSettings", 
                 "setSelectedLink",new Object[]{listID,value,getProgramID()});
         if (linkIDMap == null)
             linkIDMap = getDefaultLinkIDMap();
         setSelectedLinkID(listID,linkIDMap.get(value));
-        LinkManager.getLogger().exiting("DatabaseLinksListSelection", 
+        LinkManager.getLogger().exiting("DatabaseLinksListSettings", 
                 "setSelectedLink");
     }
     @Override
@@ -103,14 +104,14 @@ public interface DatabaseLinksListSelection extends LinksListSelection{
      */
     public default void setSelection(int listID, Long linkID, Boolean isVisible, 
             Integer firstIndex, Integer lastIndex, Rectangle visibleRect){
-        LinkManager.getLogger().entering("DatabaseLinksListSelection", 
+        LinkManager.getLogger().entering("DatabaseLinksListSettings", 
                 "setSelection", new Object[]{listID,linkID,isVisible,firstIndex,
                     lastIndex,visibleRect});
         if (linkID == null)
             isVisible = null;
         setSelectedLinkID(listID,linkID);
         setVisibleSection(listID,isVisible,firstIndex,lastIndex,visibleRect);
-        LinkManager.getLogger().exiting("DatabaseLinksListSelection", 
+        LinkManager.getLogger().exiting("DatabaseLinksListSettings", 
                 "setSelection");
     }
     /**
@@ -126,14 +127,14 @@ public interface DatabaseLinksListSelection extends LinksListSelection{
     public default void setSelection(int listID, String selection, 
             Boolean isVisible, Integer firstIndex, Integer lastIndex, 
             Rectangle visibleRect, Map<String,Long> linkIDMap){
-        LinkManager.getLogger().entering("DatabaseLinksListSelection", 
+        LinkManager.getLogger().entering("DatabaseLinksListSettings", 
                 "setSelection", new Object[]{listID,selection,isVisible,firstIndex,
                     lastIndex,visibleRect});
         if (linkIDMap == null)
             linkIDMap = getDefaultLinkIDMap();
         setSelection(listID,linkIDMap.get(selection),isVisible,firstIndex,
                 lastIndex,visibleRect);
-        LinkManager.getLogger().exiting("DatabaseLinksListSelection", 
+        LinkManager.getLogger().exiting("DatabaseLinksListSettings", 
                 "setSelection");
     }
     @Override
@@ -151,7 +152,7 @@ public interface DatabaseLinksListSelection extends LinksListSelection{
      */
     public default void setSelection(int listID, LinksListPanel panel, 
             Map<String,Long> linkIDMap){
-        LinkManager.getLogger().entering("DatabaseLinksListSelection", 
+        LinkManager.getLogger().entering("DatabaseLinksListSettings", 
                 "setSelection", new Object[]{listID,panel});
         String selection = null;
             // This will get the first visible index
@@ -178,7 +179,7 @@ public interface DatabaseLinksListSelection extends LinksListSelection{
         }
         setSelection(listID,selection,isVisible,firstIndex,lastIndex,
                 visibleRect,linkIDMap);
-        LinkManager.getLogger().exiting("DatabaseLinksListSelection", 
+        LinkManager.getLogger().exiting("DatabaseLinksListSettings", 
                 "setSelection");
     }
     @Override
