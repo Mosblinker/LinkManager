@@ -225,24 +225,24 @@ public interface LinksListSettings {
     public default void setListSettings(LinksListPanel panel){
             // If the panel is not null and has a non-null listID
         if (panel != null && panel.getListID() != null)
-            LinksListSettings.this.setListSettings(panel.getListID(),panel);
+            setListSettings(panel.getListID(),panel);
     }
     /**
      * 
      * @param listID
      * @return 
      */
-    public boolean removeListSelection(int listID);
+    public boolean removeListSettings(int listID);
     /**
      * 
      * @param listIDs
      * @return 
      */
-    public default boolean removeListSelection(Collection<Integer> listIDs){
+    public default boolean removeListSettings(Collection<Integer> listIDs){
         boolean changed = false;
         for (Integer listID : listIDs){
             if (listID != null){
-                boolean removed = LinksListSettings.this.removeListSelection(listID);
+                boolean removed = removeListSettings(listID);
                 changed |= removed;
             }
         }

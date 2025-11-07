@@ -2252,7 +2252,7 @@ public class LinkManagerConfig implements LinksListSettings{
         return visRectMap;
     }
     @Override
-    public boolean removeListSelection(int listID){
+    public boolean removeListSettings(int listID){
         return listIDNodes.removeNode(listID);
     }
     /**
