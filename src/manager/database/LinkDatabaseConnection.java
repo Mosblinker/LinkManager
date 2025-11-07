@@ -6148,6 +6148,42 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
+     * @param programID
+     * @return
+     * @throws SQLException 
+     */
+    public List<Integer> getListSelectionIDs(int programID) throws SQLException{
+        ArrayList<Integer> listIDs = new ArrayList<>();
+        try(PreparedStatement pstmt = prepareStatement(String.format(
+            "SELECT %s FROM %s WHERE %s = ?",
+                LIST_ID_COLUMN_NAME,
+                LIST_SELECTION_TABLE_NAME,
+                PROGRAM_ID_COLUMN_NAME))){
+            pstmt.setInt(1, programID);
+                // Get the results of the query
+            ResultSet rs = pstmt.executeQuery();
+            while(rs.next()){
+                listIDs.add(rs.getInt(LIST_ID_COLUMN_NAME));
+            }
+        }
+        return Collections.unmodifiableList(listIDs);
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @return
+     * @throws SQLException 
+     */
+    public List<Integer> getListSelectionIDs(UUID userID, UUID programID) 
+            throws SQLException{
+        Integer id = getProgramUUIDMap(userID).get(programID);
+        if (id == null)
+            return Collections.emptyList();
+        return getListSelectionIDs(id);
+    }
+    /**
+     * 
      * @param <E> The type of elements stored in this set.
      */
     private abstract class AbstractQuerySet<E> extends AbstractSQLSet<E>{
