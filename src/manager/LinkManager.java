@@ -5832,7 +5832,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         progressBar.setValue(2);
             // Go through the panels
         for (LinksListPanel panel : panels.values()){
-            conn.setSelectionForList(progID, panel,linkIDMap);
+            conn.setSelectionForList(progID, panel);
             progressBar.setValue(progressBar.getValue()+1);
         }
         progressBar.setIndeterminate(true);

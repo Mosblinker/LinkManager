@@ -775,8 +775,8 @@ class LinkMapImpl extends AbstractQueryRowMap<Long,String> implements LinkMap {
          */
         @Override
         public Long get(Object key){
-                // If the given key is a String or null
-            if ((key instanceof String) || key == null){
+                // If the given key is a String 
+            if (key instanceof String){
                     // Get the first key in the parent map for the given key
                 return getParentMap().firstKeyFor((String)key);
             }
