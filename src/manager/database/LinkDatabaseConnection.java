@@ -1782,7 +1782,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     
     public static final int DATABASE_MAJOR_VERSION = 3;
     
-    public static final int DATABASE_MINOR_VERSION = 3;
+    public static final int DATABASE_MINOR_VERSION = 4;
     
     public static final int DATABASE_PATCH_VERSION = 0;
     
@@ -3723,7 +3723,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 setDatabaseLastModified();
             case("3.2.0"):      // If version 3.2.0
                 setDatabaseUUIDIfAbsent();
-//            case("3.3.0"):      // If version 3.3.0
+            case("3.3.0"):      // If version 3.3.0
+                createTables(stmt); // Create the new tables
+//            case("3.4.0"):      // If version 3.4.0
         }
             // If foreign keys are supported
         if (foreignKeys != null)
