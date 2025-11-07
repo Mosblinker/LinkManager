@@ -253,6 +253,10 @@ public interface LinksListSettings {
      * @return 
      */
     public Set<Integer> getListIDs();
-    
-//    public void removeAll
+    /**
+     * 
+     */
+    public default void removeAllListSettings(){
+        removeListSettings(getListIDs());
+    }
 }
