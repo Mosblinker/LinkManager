@@ -28,7 +28,7 @@ import utils.SwingExtendedUtilities;
  * as Strings.
  * @author Milo Steier
  */
-public class LinkManagerConfig {
+public class LinkManagerConfig implements LinksListSelection{
     /**
      * This is the configuration key for the progress display setting.
      */
@@ -2103,6 +2103,7 @@ public class LinkManagerConfig {
      * @param listID
      * @param value 
      */
+    @Override
     public void setSelectedLink(int listID, String value){
         LinkManager.getLogger().entering(this.getClass().getName(), 
                 "setSelectedLink", new Object[]{listID,value});
@@ -2115,6 +2116,7 @@ public class LinkManagerConfig {
      * @param listID
      * @return 
      */
+    @Override
     public String getSelectedLink(int listID){
         return getListPreferences(listID).get(SELECTED_LINK_FOR_LIST_KEY, null);
     }
@@ -2122,6 +2124,7 @@ public class LinkManagerConfig {
      * 
      * @return 
      */
+    @Override
     public Map<Integer,String> getSelectedLinkMap(){
         if (selLinkMap == null){
             selLinkMap = new ListConfigDataMap<>(){
@@ -2146,6 +2149,7 @@ public class LinkManagerConfig {
      * @param listID
      * @param value 
      */
+    @Override
     public void setSelectedLinkIsVisible(int listID, Boolean value){
         getListPreferences(listID).putObject(
                 SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, value);
@@ -2155,7 +2159,8 @@ public class LinkManagerConfig {
      * @param listID
      * @return 
      */
-    public boolean getSelectedLinkIsVisible(int listID){
+    @Override
+    public Boolean getSelectedLinkIsVisible(int listID){
         return getListPreferences(listID).getBoolean(
                 SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, false);
     }
@@ -2163,6 +2168,7 @@ public class LinkManagerConfig {
      * 
      * @return 
      */
+    @Override
     public Map<Integer,Boolean> getSelectedLinkIsVisibleMap(){
         if (selLinkVisMap == null){
             selLinkVisMap = new ListConfigDataMap<>(){
@@ -2191,6 +2197,7 @@ public class LinkManagerConfig {
      * @param listID
      * @param value 
      */
+    @Override
     public void setFirstVisibleIndex(int listID, Integer value){
         getListPreferences(listID).putObject(FIRST_VISIBLE_INDEX_FOR_LIST_KEY,
                 value);
@@ -2200,6 +2207,7 @@ public class LinkManagerConfig {
      * @param listID
      * @return 
      */
+    @Override
     public Integer getFirstVisibleIndex(int listID){
         return getIntegerPreference(getListPreferences(listID), 
                 FIRST_VISIBLE_INDEX_FOR_LIST_KEY);
@@ -2208,6 +2216,7 @@ public class LinkManagerConfig {
      * 
      * @return 
      */
+    @Override
     public Map<Integer, Integer> getFirstVisibleIndexMap(){
         if (firstVisIndexMap == null){
             firstVisIndexMap = new ListConfigDataMap<>(){
@@ -2232,6 +2241,7 @@ public class LinkManagerConfig {
      * @param listID
      * @param value 
      */
+    @Override
     public void setLastVisibleIndex(int listID, Integer value){
         getListPreferences(listID).putObject(LAST_VISIBLE_INDEX_FOR_LIST_KEY,
                 value);
@@ -2241,6 +2251,7 @@ public class LinkManagerConfig {
      * @param listID
      * @return 
      */
+    @Override
     public Integer getLastVisibleIndex(int listID){
         return getIntegerPreference(getListPreferences(listID), 
                 LAST_VISIBLE_INDEX_FOR_LIST_KEY);
@@ -2249,6 +2260,7 @@ public class LinkManagerConfig {
      * 
      * @return 
      */
+    @Override
     public Map<Integer, Integer> getLastVisibleIndexMap(){
         if (lastVisIndexMap == null){
             lastVisIndexMap = new ListConfigDataMap<>(){
@@ -2273,6 +2285,7 @@ public class LinkManagerConfig {
      * @param listID
      * @param value 
      */
+    @Override
     public void setVisibleRect(int listID, Rectangle value){
         getListPreferences(listID).putObject(VISIBLE_RECTANGLE_FOR_LIST_KEY, 
                 value);
@@ -2283,22 +2296,16 @@ public class LinkManagerConfig {
      * @param defaultValue
      * @return 
      */
+    @Override
     public Rectangle getVisibleRect(int listID, Rectangle defaultValue){
         return getListPreferences(listID).getRectangle(
                 VISIBLE_RECTANGLE_FOR_LIST_KEY, defaultValue);
     }
     /**
      * 
-     * @param listID
      * @return 
      */
-    public Rectangle getVisibleRect(int listID){
-        return getVisibleRect(listID,null);
-    }
-    /**
-     * 
-     * @return 
-     */
+    @Override
     public Map<Integer, Rectangle> getVisibleRectMap(){
         if (visRectMap == null){
             visRectMap = new ListConfigDataMap<>(){
@@ -2320,80 +2327,12 @@ public class LinkManagerConfig {
     }
     /**
      * 
-     * @param listID
-     * @param panel 
-     */
-    public void setVisibleSection(int listID, LinksListPanel panel){
-        LinkManager.getLogger().entering(this.getClass().getName(), 
-                "setVisibleSection", new Object[]{listID,panel});
-            // This will get the first visible index
-        Integer firstVisIndex = null;
-            // This will get the last visible index
-        Integer lastVisIndex = null;
-            // This will get whether the selected index is visible
-        Boolean isSelVis = null;
-            // This will get the visible rectangle for the list
-        Rectangle visRect = null;
-            // If the panel is not null
-        if (panel != null){
-                // Get the first visible index for the list
-            firstVisIndex = panel.getList().getFirstVisibleIndex();
-                // If the first visible index is negative
-            if (firstVisIndex < 0)
-                firstVisIndex = null;
-                // Get the last visible index for the list
-            lastVisIndex = panel.getList().getLastVisibleIndex();
-                // If the last visible index is negative
-            if (lastVisIndex < 0)
-                lastVisIndex = null;
-                // If the panel's selection is not empty
-            if (!panel.isSelectionEmpty())
-                    // Get whether the selected indes is visible
-                isSelVis = panel.isIndexVisible(panel.getSelectedIndex());
-                // Get the panel's list's visible rectangle
-            visRect = panel.getList().getVisibleRect();
-        }   // Set the first visible index for the list
-        setFirstVisibleIndex(listID,firstVisIndex);
-            // Set the last visible index for the list
-        setLastVisibleIndex(listID,lastVisIndex);
-            // Set whether the selected link is visible
-        setSelectedLinkIsVisible(listID,isSelVis);
-            // Set the visible rectangle for the list
-        setVisibleRect(listID,visRect);
-        LinkManager.getLogger().exiting(this.getClass().getName(), 
-                "setVisibleSection");
-    }
-    /**
-     * 
-     * @param panel 
-     */
-    public void setVisibleSection(LinksListPanel panel){
-            // If the panel is not null and has a non-null listID
-        if (panel != null && panel.getListID() != null)
-            setVisibleSection(panel.getListID(),panel);
-    }
-    /**
-     * 
      * @param listID 
      * @return  
      */
+    @Override
     public boolean removeListPreferences(int listID){
         return listIDNodes.removeNode(listID);
-    }
-    /**
-     * 
-     * @param listIDs
-     * @return 
-     */
-    public boolean removeListPreferences(Collection<Integer> listIDs){
-        boolean changed = false;
-        for (Integer listID : listIDs){
-            if (listID != null){
-                boolean removed = removeListPreferences(listID);
-                changed |= removed;
-            }
-        }
-        return changed;
     }
     /**
      * This returns the user ID set for this configuration.
