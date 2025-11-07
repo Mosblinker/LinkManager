@@ -7,7 +7,7 @@ package manager.config;
 import java.awt.Rectangle;
 import java.util.Collection;
 import java.util.Map;
-import java.util.TreeSet;
+import java.util.Set;
 import manager.LinkManager;
 import manager.links.LinksListPanel;
 
@@ -248,4 +248,9 @@ public interface LinksListSettings {
         }
         return changed;
     }
+    /**
+     * 
+     * @return 
+     */
+    public Set<Integer> getListIDs();
 }

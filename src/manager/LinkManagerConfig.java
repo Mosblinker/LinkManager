@@ -490,10 +490,7 @@ public class LinkManagerConfig implements LinksListSettings{
     public ConfigPreferences getListPreferences(int listID){
         return listIDNodes.getNode(listID);
     }
-    /**
-     * 
-     * @return 
-     */
+    @Override
     public Set<Integer> getListIDs(){
         return Collections.unmodifiableSet(listIDNodes.getKeys());
     }
@@ -2098,11 +2095,6 @@ public class LinkManagerConfig implements LinksListSettings{
         setCurrentTabListID(listType,listID);
         setCurrentTabIndex(listType, index);
     }
-    /**
-     * 
-     * @param listID
-     * @param value 
-     */
     @Override
     public void setSelectedLink(int listID, String value){
         LinkManager.getLogger().entering(this.getClass().getName(), 
@@ -2111,19 +2103,10 @@ public class LinkManagerConfig implements LinksListSettings{
         LinkManager.getLogger().exiting(this.getClass().getName(), 
                 "setSelectedLink");
     }
-    /**
-     * 
-     * @param listID
-     * @return 
-     */
     @Override
     public String getSelectedLink(int listID){
         return getListPreferences(listID).get(SELECTED_LINK_FOR_LIST_KEY, null);
     }
-    /**
-     * 
-     * @return 
-     */
     @Override
     public Map<Integer,String> getSelectedLinkMap(){
         if (selLinkMap == null){
@@ -2144,30 +2127,16 @@ public class LinkManagerConfig implements LinksListSettings{
         }
         return selLinkMap;
     }
-    /**
-     * 
-     * @param listID
-     * @param value 
-     */
     @Override
     public void setSelectedLinkVisible(int listID, Boolean value){
         getListPreferences(listID).putObject(
                 SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, value);
     }
-    /**
-     * 
-     * @param listID
-     * @return 
-     */
     @Override
     public Boolean isSelectedLinkVisible(int listID){
         return getListPreferences(listID).getBoolean(
                 SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, false);
     }
-    /**
-     * 
-     * @return 
-     */
     @Override
     public Map<Integer,Boolean> getSelectedLinkVisibleMap(){
         if (selLinkVisMap == null){
@@ -2192,30 +2161,16 @@ public class LinkManagerConfig implements LinksListSettings{
         }
         return selLinkVisMap;
     }
-    /**
-     * 
-     * @param listID
-     * @param value 
-     */
     @Override
     public void setFirstVisibleIndex(int listID, Integer value){
         getListPreferences(listID).putObject(FIRST_VISIBLE_INDEX_FOR_LIST_KEY,
                 value);
     }
-    /**
-     * 
-     * @param listID
-     * @return 
-     */
     @Override
     public Integer getFirstVisibleIndex(int listID){
         return getIntegerPreference(getListPreferences(listID), 
                 FIRST_VISIBLE_INDEX_FOR_LIST_KEY);
     }
-    /**
-     * 
-     * @return 
-     */
     @Override
     public Map<Integer, Integer> getFirstVisibleIndexMap(){
         if (firstVisIndexMap == null){
@@ -2236,30 +2191,16 @@ public class LinkManagerConfig implements LinksListSettings{
         }
         return firstVisIndexMap;
     }
-    /**
-     * 
-     * @param listID
-     * @param value 
-     */
     @Override
     public void setLastVisibleIndex(int listID, Integer value){
         getListPreferences(listID).putObject(LAST_VISIBLE_INDEX_FOR_LIST_KEY,
                 value);
     }
-    /**
-     * 
-     * @param listID
-     * @return 
-     */
     @Override
     public Integer getLastVisibleIndex(int listID){
         return getIntegerPreference(getListPreferences(listID), 
                 LAST_VISIBLE_INDEX_FOR_LIST_KEY);
     }
-    /**
-     * 
-     * @return 
-     */
     @Override
     public Map<Integer, Integer> getLastVisibleIndexMap(){
         if (lastVisIndexMap == null){
@@ -2280,31 +2221,16 @@ public class LinkManagerConfig implements LinksListSettings{
         }
         return lastVisIndexMap;
     }
-    /**
-     * 
-     * @param listID
-     * @param value 
-     */
     @Override
     public void setVisibleRect(int listID, Rectangle value){
         getListPreferences(listID).putObject(VISIBLE_RECTANGLE_FOR_LIST_KEY, 
                 value);
     }
-    /**
-     * 
-     * @param listID
-     * @param defaultValue
-     * @return 
-     */
     @Override
     public Rectangle getVisibleRect(int listID, Rectangle defaultValue){
         return getListPreferences(listID).getRectangle(
                 VISIBLE_RECTANGLE_FOR_LIST_KEY, defaultValue);
     }
-    /**
-     * 
-     * @return 
-     */
     @Override
     public Map<Integer, Rectangle> getVisibleRectMap(){
         if (visRectMap == null){
@@ -2325,11 +2251,6 @@ public class LinkManagerConfig implements LinksListSettings{
         }
         return visRectMap;
     }
-    /**
-     * 
-     * @param listID 
-     * @return  
-     */
     @Override
     public boolean removeListSelection(int listID){
         return listIDNodes.removeNode(listID);
