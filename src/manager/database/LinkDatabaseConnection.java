@@ -1517,7 +1517,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    public static final String LIST_TYPE_SETTINGS_TABLE_NAME = "listTypeSelection";
+    public static final String LIST_TYPE_SETTINGS_TABLE_NAME = "listTypeSettings";
     /**
      * 
      */
@@ -1556,14 +1556,14 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    public static final String LIST_TYPE_SETTINGS_INDEX_NAME = "listTypeSelectionIndex";
+    public static final String LIST_TYPE_SETTINGS_INDEX_NAME = "listTypeSettingsIndex";
     /**
      * 
      */
     public static final String LIST_TYPE_SETTINGS_INDEX_CREATION_QUERY = String.format(
             "CREATE UNIQUE INDEX IF NOT EXISTS %s ON %s(%s, %s);",
                 LIST_TYPE_SETTINGS_INDEX_NAME,
-                    // Applied on the list type selection table
+                    // Applied on the list type settings table
                 LIST_TYPE_SETTINGS_TABLE_NAME,
                     // First column is the program ID
                 PROGRAM_ID_COLUMN_NAME,
@@ -1572,7 +1572,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    public static final String LIST_SETTINGS_TABLE_NAME = "listSelection";
+    public static final String LIST_SETTINGS_TABLE_NAME = "listSettings";
     /**
      * 
      */
@@ -1651,14 +1651,14 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    public static final String LIST_SETTINGS_INDEX_NAME = "listSelectionIndex";
+    public static final String LIST_SETTINGS_INDEX_NAME = "listSettingsIndex";
     /**
      * 
      */
     public static final String LIST_SETTINGS_INDEX_CREATION_QUERY = String.format(
             "CREATE UNIQUE INDEX IF NOT EXISTS %s ON %s(%s, %s);",
                 LIST_SETTINGS_INDEX_NAME,
-                    // Applied on the list selection table
+                    // Applied on the list settings table
                 LIST_SETTINGS_TABLE_NAME,
                     // First column is the program ID
                 PROGRAM_ID_COLUMN_NAME,
@@ -3753,6 +3753,22 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 LinkManager.getLogger().finer("Updating to version 3.3.0");
                 setDatabaseUUIDIfAbsent();
             case("3.3.0"):      // If version 3.3.0
+            case("3.4.0"):      // If version 3.4.0
+                    // Delete the old indexes
+                deleteIndex("listTypeSelectionIndex",stmt);
+                deleteIndex("listSelectionIndex",stmt);
+                if (showTables().contains("listTypeSelection")){
+                        // Delete the created table since they just need to be renamed
+                    deleteTable(LIST_TYPE_SETTINGS_TABLE_NAME,stmt);
+                        // Rename the old table
+                    renameTable("listTypeSelection",LIST_TYPE_SETTINGS_TABLE_NAME,stmt);
+                }
+                if (showTables().contains("listSelection")){
+                        // Delete the created table since they just need to be renamed
+                    deleteTable(LIST_SETTINGS_TABLE_NAME,stmt);
+                        // Rename the old table
+                    renameTable("listSelection",LIST_SETTINGS_TABLE_NAME,stmt);
+                }
                 createTables(stmt); // Create the new tables
 //            case("3.4.0"):      // If version 3.4.0
         }
