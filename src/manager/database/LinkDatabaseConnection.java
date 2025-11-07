@@ -8237,15 +8237,6 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
-        @Override
-        public boolean exists() {
-            try {
-                return programIDsContainsUserID(userID);
-            } catch (SQLException ex) {
-                appendWarning(ex);
-                throw new UncheckedSQLException(ex);
-            }
-        }
     }
     /**
      * 
