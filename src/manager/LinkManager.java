@@ -9584,8 +9584,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         tabsModels.entrySet()){
                         // Get the tabs panel
                     LinksListTabsPanel tabsPanel = entry.getKey();
-                        // Set the models for the tabs panel
-                    tabsPanel.setModels(entry.getValue());
+                    try{    // Set the models for the tabs panel
+                        tabsPanel.setModels(entry.getValue());
+                    } catch (NullPointerException ex){
+                        getLogger().log(Level.WARNING,"Null encountered while setting models",ex);
+                    }
                         // Go through the lists for the tabs panel
                     for (LinksListPanel panel : tabsPanel){
                             // Set the read only toggle for the current list to 
