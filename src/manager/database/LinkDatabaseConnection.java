@@ -1614,9 +1614,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     "%s integer NOT NULL, "+
                         // Link ID column definition. Can be null
                     "%s integer DEFAULT NULL, "+
-                        // Whether the selected link is visible. Must be either 
-                        // 1 or 0
-                    "%s integer DEFAULT 0 CHECK (%s >= 0 AND %s <= 1), "+
+                        // Whether the selected link is visible.
+                    "%s BOOLEAN DEFAULT 0, "+
                         // First visible index column definition. Can be null
                     "%s integer DEFAULT NULL, "+
                         // Last visible index column definition. Can be null
@@ -1636,8 +1635,6 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             LIST_ID_COLUMN_NAME,
             LINK_ID_COLUMN_NAME,
             SELECTION_IS_VISIBLE_COLUMN_NAME,
-                // Check for the selection is visible value
-            SELECTION_IS_VISIBLE_COLUMN_NAME,SELECTION_IS_VISIBLE_COLUMN_NAME,
             FIRST_VISIBLE_INDEX_COLUMN_NAME,
             LAST_VISIBLE_INDEX_COLUMN_NAME,
             VISIBLE_RECTANGLE_COLUMN_NAME,
@@ -4483,6 +4480,20 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
+     * @param pstmt
+     * @param parameterIndex
+     * @param value
+     * @throws SQLException 
+     */
+    protected static void setParameter(PreparedStatement pstmt, 
+            int parameterIndex, Boolean value) throws SQLException{
+        if (value == null)
+            pstmt.setNull(parameterIndex, Types.BOOLEAN);
+        else
+            pstmt.setBoolean(parameterIndex, value);
+    }
+    /**
+     * 
      * @param stmt
      * @return 
      */
@@ -5636,7 +5647,21 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     public void setSelectedLinkVisible(int programID, int listID, boolean visible) 
             throws SQLException{
-        setSelectionInteger(programID,listID,(visible)?1:0,SELECTION_IS_VISIBLE_COLUMN_NAME);
+        boolean contains = selectionTableContains(programID,listID);
+        if (contains || visible){
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
+                            "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
+                        LIST_SELECTION_TABLE_NAME,
+                        SELECTION_IS_VISIBLE_COLUMN_NAME,
+                        PROGRAM_ID_COLUMN_NAME,
+                        LIST_ID_COLUMN_NAME))){
+                pstmt.setBoolean(1, visible);
+                pstmt.setInt(2, programID);
+                pstmt.setInt(3, listID);
+                pstmt.executeUpdate();
+            }
+        }
     }
     /**
      * 
@@ -5659,9 +5684,22 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @throws SQLException 
      */
     public Boolean isSelectedLinkVisible(int programID, int listID) throws SQLException{
-        Integer value = getSelectionInteger(programID,listID,SELECTION_IS_VISIBLE_COLUMN_NAME);
-        if (value != null)
-            return value > 0;
+        try(PreparedStatement pstmt = prepareStatement(String.format(
+            "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
+                SELECTION_IS_VISIBLE_COLUMN_NAME,
+                LIST_SELECTION_TABLE_NAME,
+                PROGRAM_ID_COLUMN_NAME,
+                LIST_ID_COLUMN_NAME))){
+            pstmt.setInt(1, programID);
+            pstmt.setInt(2, listID);
+                // Get the results of the query
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()){
+                Boolean value = rs.getBoolean(SELECTION_IS_VISIBLE_COLUMN_NAME);
+                if (!rs.wasNull())
+                    return value;
+            }
+        }
         return null;
     }
     /**
