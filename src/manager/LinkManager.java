@@ -6300,6 +6300,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         Map<Integer,Rectangle> visRectMap = config.getVisibleRectMap();
             // Go through the list tabs panels
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
+            getLogger().log(Level.FINER, "Loading tabs for {0}", tabsPanel.getName());
                 // Go through the list panels in the current list tabs panel
             for (LinksListPanel panel : tabsPanel){
                     // If the current list panel does not have a listID
@@ -6307,15 +6308,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     continue;
                     // Get the current list panel's listID
                 int listID = panel.getListID();
+                getLogger().log(Level.FINER, "Loading selection for panel [{0}: {1}]", 
+                        new Object[]{listID,panel.getListName()});
                     // If the link selection map contains the listID for the list
                 if (selMap.containsKey(listID)){
                         // Get the selected link for the list
                     String selected = selMap.get(listID);
+                    getLogger().log(Level.FINER, "Selection: {0}", selected);
                         // If the list does not contain the selected link
-                    if (!panel.getModel().contains(selected))
+                    if (!panel.getModel().contains(selected)){
                             // No link will be selected for the list
                         selected = null;
-                        // Set the selected link for the list, scrolling to the 
+                        getLogger().finer("Selection not found in model");
+                    }   // Set the selected link for the list, scrolling to the 
                         // link if it is meant to be visible
                     panel.setSelectedValue(selected, 
                             selVisMap.getOrDefault(listID, false));
@@ -6348,6 +6353,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         selListIDMap.values().removeIf((Integer t) -> t == null || t < 0);
             // Go through the tabs panel array
         for (int i = 0; i < listsTabPanels.length; i++){
+            getLogger().log(Level.FINER, "Setting selected list for [{0}: {1}]", 
+                    new Object[]{i, listsTabPanels[i].getName()});
                 // Get the index of the selected list, prioritizing the index 
                 // for the selected listID (since listIDs don't typically change 
                 // between instances of the program), then the index of the 

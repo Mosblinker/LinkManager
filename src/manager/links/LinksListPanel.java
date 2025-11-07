@@ -128,7 +128,7 @@ public class LinksListPanel extends JPanel implements Comparable<LinksListPanel>
         if (model == this.model)
             return;
         LinkManager.getLogger().entering(this.getClass().getName(), 
-                "setModel", new Object[]{keepSelection,shouldScroll});
+                "setModel", new Object[]{keepSelection,shouldScroll,getListID()});
         String selected = list.getSelectedValue();
         LinksListModel old = this.model;
         this.model = model;
