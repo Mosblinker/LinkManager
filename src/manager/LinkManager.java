@@ -6169,6 +6169,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This loads the configuration for the program from the configuration map.
      */
     private void configureProgram(){
+        getLogger().entering(this.getClass().getName(), "configureProgram");
             // Get the progress display value from the config
         int temp = config.getProgressDisplaySetting(0);
             // If the progress display value is not zero
@@ -6232,9 +6233,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 checkUpdatesAtStartToggle.isSelected()));
             // If the program has fully loaded
         if (fullyLoaded){
+            getLogger().finer("Program is fully loaded");
                 // Set the selection from the config
             setSelectedFromConfig();
         } else {    // Only load these settings when the program first starts up
+            getLogger().finer("Program is starting up");
                 // If the auto hide menu is set to automatically hide the hidden 
             if (autoHideMenu.getDurationIndex() != 0)   // lists
                     // Clear the hidden lists are chown value
@@ -6271,11 +6274,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setFilesAreHidden(showHiddenFilesToggle.isSelected());
             // Update the visible lists
         updateVisibleTabsPanel();
+        getLogger().exiting(this.getClass().getName(), "configureProgram");
     }
     /**
      * 
      */
     private void setSelectedFromConfig(){
+        getLogger().entering(this.getClass().getName(), "setSelectedFromConfig");
             // This maps listIDs to the selected link for that list
         Map<Integer,String> selMap = config.getSelectedLinkMap();
             // This maps the listIDs to whether the selected link is visible for 
@@ -6352,6 +6357,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (index >= -1 && index<listsTabPanels[i].getTabCount()) // cleared
                 listsTabPanels[i].setSelectedIndex(index);
         }
+        getLogger().exiting(this.getClass().getName(), "setSelectedFromConfig");
     }
     /**
      * 
