@@ -28,7 +28,7 @@ import utils.SwingExtendedUtilities;
  * as Strings.
  * @author Milo Steier
  */
-public class LinkManagerConfig implements LinksListSelection{
+public class LinkManagerConfig implements LinksListSettings{
     /**
      * This is the configuration key for the progress display setting.
      */

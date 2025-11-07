@@ -7,6 +7,7 @@ package manager.config;
 import java.awt.Rectangle;
 import java.util.Collection;
 import java.util.Map;
+import java.util.TreeSet;
 import manager.LinkManager;
 import manager.links.LinksListPanel;
 
@@ -14,7 +15,7 @@ import manager.links.LinksListPanel;
  *
  * @author Mosblinker
  */
-public interface LinksListSelection {
+public interface LinksListSettings {
     /**
      * 
      * @param listID
@@ -119,7 +120,7 @@ public interface LinksListSelection {
      */
     public default void setVisibleSection(int listID, Boolean isVisible, 
             Integer firstIndex, Integer lastIndex, Rectangle visibleRect){
-        LinkManager.getLogger().entering("LinksListSelection", 
+        LinkManager.getLogger().entering("LinksListSettings", 
                 "setVisibleSection", new Object[]{listID,isVisible,firstIndex,
                     lastIndex,visibleRect});
             // If the first visible index is negative
@@ -136,7 +137,7 @@ public interface LinksListSelection {
         setSelectedLinkVisible(listID,isVisible);
             // Set the visible rectangle for the list
         setVisibleRect(listID,visibleRect);
-        LinkManager.getLogger().exiting("LinksListSelection", 
+        LinkManager.getLogger().exiting("LinksListSettings", 
                 "setVisibleSection");
     }
     /**
@@ -145,7 +146,7 @@ public interface LinksListSelection {
      * @param panel 
      */
     public default void setVisibleSection(int listID, LinksListPanel panel){
-        LinkManager.getLogger().entering("LinksListSelection", 
+        LinkManager.getLogger().entering("LinksListSettings", 
                 "setVisibleSection", new Object[]{listID,panel});
             // This will get the first visible index
         Integer firstIndex = null;
@@ -169,7 +170,7 @@ public interface LinksListSelection {
             visibleRect = panel.getList().getVisibleRect();
         }
         setVisibleSection(listID,isVisible,firstIndex,lastIndex,visibleRect);
-        LinkManager.getLogger().exiting("LinksListSelection", 
+        LinkManager.getLogger().exiting("LinksListSettings", 
                 "setVisibleSection");
     }
     /**
@@ -193,14 +194,14 @@ public interface LinksListSelection {
     public default void setSelection(int listID, String selection, 
             Boolean isVisible, Integer firstIndex, Integer lastIndex, 
             Rectangle visibleRect){
-        LinkManager.getLogger().entering("LinksListSelection", 
+        LinkManager.getLogger().entering("LinksListSettings", 
                 "setSelection", new Object[]{listID,selection,isVisible,firstIndex,
                     lastIndex,visibleRect});
         if (selection == null)
             isVisible = null;
         setSelectedLink(listID,selection);
         setVisibleSection(listID,isVisible,firstIndex,lastIndex,visibleRect);
-        LinkManager.getLogger().exiting("LinksListSelection", 
+        LinkManager.getLogger().exiting("LinksListSettings", 
                 "setSelection");
     }
     /**
@@ -209,12 +210,12 @@ public interface LinksListSelection {
      * @param panel 
      */
     public default void setSelection(int listID, LinksListPanel panel){
-        LinkManager.getLogger().entering("LinksListSelection", 
+        LinkManager.getLogger().entering("LinksListSettings", 
                 "setSelection", new Object[]{listID,panel});
         String selection = (panel!=null)?panel.getSelectedValue():null;
         setSelectedLink(listID,selection);
         setVisibleSection(listID,panel);
-        LinkManager.getLogger().exiting("LinksListSelection", 
+        LinkManager.getLogger().exiting("LinksListSettings", 
                 "setSelection");
     }
     /**
@@ -241,7 +242,7 @@ public interface LinksListSelection {
         boolean changed = false;
         for (Integer listID : listIDs){
             if (listID != null){
-                boolean removed = LinksListSelection.this.removeListSelection(listID);
+                boolean removed = LinksListSettings.this.removeListSelection(listID);
                 changed |= removed;
             }
         }

@@ -17,7 +17,7 @@ import sql.UncheckedSQLException;
  *
  * @author Mosblinker
  */
-public interface DatabaseLinksListSettings extends LinksListSelection{
+public interface DatabaseLinksListSettings extends LinksListSettings{
     /**
      * 
      * @return 
