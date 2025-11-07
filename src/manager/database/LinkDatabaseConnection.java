@@ -4,6 +4,8 @@
  */
 package manager.database;
 
+import config.ConfigUtilities;
+import java.awt.Rectangle;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
@@ -4456,6 +4458,31 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
+     * @param pstmt
+     * @param parameterIndex
+     * @param bytes
+     * @throws SQLException 
+     */
+    protected static void setParameter(PreparedStatement pstmt, 
+            int parameterIndex, byte[] bytes) throws SQLException{
+        if (bytes == null)
+            pstmt.setNull(parameterIndex, Types.VARBINARY);
+        else
+            pstmt.setBytes(parameterIndex, bytes);
+    }
+    /**
+     * 
+     * @param pstmt
+     * @param parameterIndex
+     * @param rect
+     * @throws SQLException 
+     */
+    protected static void setParameter(PreparedStatement pstmt, 
+            int parameterIndex, Rectangle rect) throws SQLException{
+        setParameter(pstmt,parameterIndex,ConfigUtilities.rectangleToByteArray(rect));
+    }
+    /**
+     * 
      * @param stmt
      * @return 
      */
@@ -5365,6 +5392,461 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             int listType) throws SQLException{
         Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
         return getListTypeSelection(id,listType);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public boolean selectionTableContains(int programID, int listID) throws SQLException{
+        try(PreparedStatement pstmt = prepareStatement(String.format(
+                TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_SELECTION_TABLE_NAME,
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_ID_COLUMN_NAME))){
+            pstmt.setInt(1, programID);
+            pstmt.setInt(2, listID);
+            return containsCountResult(pstmt.executeQuery());
+        }
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public boolean selectionTableContains(UUID userID, UUID programID, int listID) 
+            throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        return selectionTableContains(id,listID);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @param linkID
+     * @throws SQLException 
+     */
+    public void setSelectedLink(int programID, int listID, Long linkID) throws SQLException{
+        boolean contains = selectionTableContains(programID,listID);
+        if (contains || linkID != null){
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
+                            "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
+                        LIST_SELECTION_TABLE_NAME,
+                        LINK_ID_COLUMN_NAME,
+                        PROGRAM_ID_COLUMN_NAME,
+                        LIST_ID_COLUMN_NAME))){
+                setParameter(pstmt,1,linkID);
+                pstmt.setInt(2, programID);
+                pstmt.setInt(3, listID);
+                pstmt.executeUpdate();
+            }
+        }
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @param link
+     * @param linkIDMap 
+     * @throws java.sql.SQLException 
+     */
+    public void setSelectedLink(int programID, int listID, String link, 
+            Map<String,Long> linkIDMap) throws SQLException{
+        if (linkIDMap == null)
+            linkIDMap = getLinkMap().inverse();
+        setSelectedLink(programID,listID,linkIDMap.get(link));
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @param link
+     * @throws SQLException 
+     */
+    public void setSelectedLink(int programID, int listID, String link) throws SQLException{
+        setSelectedLink(programID,listID,link,null);
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @param linkID
+     * @throws SQLException 
+     */
+    public void setSelectedLink(UUID userID, UUID programID, int listID, Long linkID) throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        setSelectedLink(id,listID,linkID);
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @param link
+     * @param linkIDMap
+     * @throws SQLException 
+     */
+    public void setSelectedLink(UUID userID, UUID programID, int listID, 
+            String link, Map<String,Long> linkIDMap) throws SQLException{
+        if (linkIDMap == null)
+            linkIDMap = getLinkMap().inverse();
+        setSelectedLink(userID,programID,listID,linkIDMap.get(link));
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @param link
+     * @throws SQLException 
+     */
+    public void setSelectedLink(UUID userID, UUID programID, int listID, 
+            String link) throws SQLException{
+        setSelectedLink(userID,programID,listID,link,null);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public Long getSelectedLinkID(int programID, int listID) throws SQLException{
+        try(PreparedStatement pstmt = prepareStatement(String.format(
+            "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
+                LINK_ID_COLUMN_NAME,
+                LIST_SELECTION_TABLE_NAME,
+                PROGRAM_ID_COLUMN_NAME,
+                LIST_ID_COLUMN_NAME))){
+            pstmt.setInt(1, programID);
+            pstmt.setInt(2, listID);
+                // Get the results of the query
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()){
+                long value = rs.getLong(LINK_ID_COLUMN_NAME);
+                if (!rs.wasNull())
+                    return value;
+            }
+        }
+        return null;
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public Long getSelectedLinkID(UUID userID, UUID programID, int listID) 
+            throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        return getSelectedLinkID(id,listID);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public String getSelectedLink(int programID, int listID) throws SQLException{
+        return getLinkMap().get(getSelectedLinkID(programID,listID));
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public String getSelectedLink(UUID userID, UUID programID, int listID) 
+            throws SQLException{
+        return getLinkMap().get(getSelectedLinkID(userID,programID,listID));
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @param value
+     * @param columnName
+     * @throws SQLException 
+     */
+    private void setSelectionInteger(int programID, int listID, 
+            Integer value, String columnName)throws SQLException{
+        boolean contains = selectionTableContains(programID,listID);
+        if (contains || value != null){
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
+                            "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
+                        LIST_SELECTION_TABLE_NAME,
+                        columnName,
+                        PROGRAM_ID_COLUMN_NAME,
+                        LIST_ID_COLUMN_NAME))){
+                setParameter(pstmt,1,value);
+                pstmt.setInt(2, programID);
+                pstmt.setInt(3, listID);
+                pstmt.executeUpdate();
+            }
+        }
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @param columnName
+     * @return
+     * @throws SQLException 
+     */
+    private Integer getSelectionInteger(int programID, int listID, 
+            String columnName)throws SQLException{
+        try(PreparedStatement pstmt = prepareStatement(String.format(
+            "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
+                columnName,
+                LIST_SELECTION_TABLE_NAME,
+                PROGRAM_ID_COLUMN_NAME,
+                LIST_ID_COLUMN_NAME))){
+            pstmt.setInt(1, programID);
+            pstmt.setInt(2, listID);
+                // Get the results of the query
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()){
+                int value = rs.getInt(columnName);
+                if (!rs.wasNull())
+                    return value;
+            }
+        }
+        return null;
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @param visible
+     * @throws SQLException 
+     */
+    public void setSelectedLinkVisible(int programID, int listID, boolean visible) 
+            throws SQLException{
+        setSelectionInteger(programID,listID,(visible)?1:0,SELECTION_IS_VISIBLE_COLUMN_NAME);
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @param visible
+     * @throws SQLException 
+     */
+    public void setSelectedLinkVisible(UUID userID, UUID programID, int listID, 
+            boolean visible) throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        setSelectedLinkVisible(id,listID,visible);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public Boolean isSelectedLinkVisible(int programID, int listID) throws SQLException{
+        Integer value = getSelectionInteger(programID,listID,SELECTION_IS_VISIBLE_COLUMN_NAME);
+        if (value != null)
+            return value > 0;
+        return null;
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public Boolean isSelectedLinkVisible(UUID userID, UUID programID, 
+            int listID) throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        return isSelectedLinkVisible(id,listID);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @param index
+     * @throws SQLException 
+     */
+    public void setFirstVisibleIndex(int programID, int listID, Integer index)
+            throws SQLException{
+        setSelectionInteger(programID,listID,index,FIRST_VISIBLE_INDEX_COLUMN_NAME);
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @param index
+     * @throws SQLException 
+     */
+    public void setFirstVisibleIndex(UUID userID, UUID programID, int listID, 
+            Integer index)throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        setFirstVisibleIndex(id,listID,index);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public Integer getFirstVisibleIndex(int programID, int listID) throws SQLException{
+        return getSelectionInteger(programID,listID,FIRST_VISIBLE_INDEX_COLUMN_NAME);
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public Integer getFirstVisibleIndex(UUID userID, UUID programID, int listID) 
+            throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        return getFirstVisibleIndex(id,listID);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @param index
+     * @throws SQLException 
+     */
+    public void setLastVisibleIndex(int programID, int listID, Integer index)
+            throws SQLException{
+        setSelectionInteger(programID,listID,index,LAST_VISIBLE_INDEX_COLUMN_NAME);
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @param index
+     * @throws SQLException 
+     */
+    public void setLastVisibleIndex(UUID userID, UUID programID, int listID, 
+            Integer index)throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        setLastVisibleIndex(id,listID,index);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public Integer getLastVisibleIndex(int programID, int listID) throws SQLException{
+        return getSelectionInteger(programID,listID,LAST_VISIBLE_INDEX_COLUMN_NAME);
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public Integer getLastVisibleIndex(UUID userID, UUID programID, int listID) 
+            throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        return getLastVisibleIndex(id,listID);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @param visRect
+     * @throws SQLException 
+     */
+    public void setListVisibleRect(int programID, int listID, Rectangle visRect)
+            throws SQLException{
+        boolean contains = selectionTableContains(programID,listID);
+        if (contains || visRect != null){
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
+                            "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
+                        LIST_SELECTION_TABLE_NAME,
+                        VISIBLE_RECTANGLE_COLUMN_NAME,
+                        PROGRAM_ID_COLUMN_NAME,
+                        LIST_ID_COLUMN_NAME))){
+                setParameter(pstmt,1,visRect);
+                pstmt.setInt(2, programID);
+                pstmt.setInt(3, listID);
+                pstmt.executeUpdate();
+            }
+        }
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @param visRect
+     * @throws SQLException 
+     */
+    public void setListVisibleRect(UUID userID, UUID programID, int listID, 
+            Rectangle visRect) throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        setListVisibleRect(id,listID,visRect);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public Rectangle getListVisibleRect(int programID, int listID)throws SQLException{
+        try(PreparedStatement pstmt = prepareStatement(String.format(
+            "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
+                VISIBLE_RECTANGLE_COLUMN_NAME,
+                LIST_SELECTION_TABLE_NAME,
+                PROGRAM_ID_COLUMN_NAME,
+                LIST_ID_COLUMN_NAME))){
+            pstmt.setInt(1, programID);
+            pstmt.setInt(2, listID);
+                // Get the results of the query
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()){
+                byte[] bytes = rs.getBytes(VISIBLE_RECTANGLE_COLUMN_NAME);
+                if (!rs.wasNull())
+                    return ConfigUtilities.rectangleFromByteArray(bytes);
+            }
+        }
+        return null;
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public Rectangle getListVisibleRect(UUID userID, UUID programID, int listID)
+            throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        return getListVisibleRect(id,listID);
     }
     /**
      * 
