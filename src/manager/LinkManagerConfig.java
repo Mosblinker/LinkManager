@@ -2331,7 +2331,7 @@ public class LinkManagerConfig implements LinksListSelection{
      * @return  
      */
     @Override
-    public boolean removeListPreferences(int listID){
+    public boolean removeListSelection(int listID){
         return listIDNodes.removeNode(listID);
     }
     /**

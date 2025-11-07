@@ -231,17 +231,17 @@ public interface LinksListSelection {
      * @param listID
      * @return 
      */
-    public boolean removeListPreferences(int listID);
+    public boolean removeListSelection(int listID);
     /**
      * 
      * @param listIDs
      * @return 
      */
-    public default boolean removeListPreferences(Collection<Integer> listIDs){
+    public default boolean removeListSelection(Collection<Integer> listIDs){
         boolean changed = false;
         for (Integer listID : listIDs){
             if (listID != null){
-                boolean removed = removeListPreferences(listID);
+                boolean removed = LinksListSelection.this.removeListSelection(listID);
                 changed |= removed;
             }
         }
