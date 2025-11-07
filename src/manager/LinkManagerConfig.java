@@ -2134,8 +2134,11 @@ public class LinkManagerConfig implements LinksListSettings{
     }
     @Override
     public Boolean isSelectedLinkVisible(int listID){
-        return getListPreferences(listID).getBoolean(
-                SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, false);
+        if (getListPreferences(listID).containsKey(
+                            SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
+            return getListPreferences(listID).getBoolean(
+                    SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, false);
+        return null;
     }
     @Override
     public Map<Integer,Boolean> getSelectedLinkVisibleMap(){
@@ -2143,11 +2146,7 @@ public class LinkManagerConfig implements LinksListSettings{
             selLinkVisMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected Boolean getValue(int key) {
-                        // If the node contains the selected link is visible key
-                    if (getListPreferences(key).containsKey(
-                            SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
-                        return isSelectedLinkVisible(key);
-                    return null;
+                    return isSelectedLinkVisible(key);
                 }
                 @Override
                 protected void putValue(int key, Boolean value) {
