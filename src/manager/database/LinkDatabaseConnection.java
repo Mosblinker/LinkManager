@@ -5401,7 +5401,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     public Integer getListTypeSelection(UUID userID, UUID programID, 
             int listType) throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        Integer id = getProgramUUIDMap(userID).get(programID);
+        if (id == null)
+            return null;
         return getListTypeSelection(id,listType);
     }
     /**
@@ -5590,7 +5592,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     public Long getSelectedLinkID(UUID userID, UUID programID, int listID) 
             throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        Integer id = getProgramUUIDMap(userID).get(programID);
+        if (id == null)
+            return null;
         return getSelectedLinkID(id,listID);
     }
     /**
@@ -5743,7 +5747,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     public Boolean isSelectedLinkVisible(UUID userID, UUID programID, 
             int listID) throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        Integer id = getProgramUUIDMap(userID).get(programID);
+        if (id == null)
+            return null;
         return isSelectedLinkVisible(id,listID);
     }
     /**
@@ -5790,7 +5796,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     public Integer getFirstVisibleIndex(UUID userID, UUID programID, int listID) 
             throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        Integer id = getProgramUUIDMap(userID).get(programID);
+        if (id == null)
+            return null;
         return getFirstVisibleIndex(id,listID);
     }
     /**
@@ -5837,7 +5845,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     public Integer getLastVisibleIndex(UUID userID, UUID programID, int listID) 
             throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        Integer id = getProgramUUIDMap(userID).get(programID);
+        if (id == null)
+            return null;
         return getLastVisibleIndex(id,listID);
     }
     /**
@@ -5914,7 +5924,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     public Rectangle getListVisibleRect(UUID userID, UUID programID, int listID)
             throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        Integer id = getProgramUUIDMap(userID).get(programID);
+        if (id == null)
+            return null;
         return getListVisibleRect(id,listID);
     }
     /**
