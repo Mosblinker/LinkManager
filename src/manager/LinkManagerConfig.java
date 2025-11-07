@@ -146,19 +146,19 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
      * This is the configuration key for the listID of the currently selected 
      * list if a list with a listID is selected.
      */
-    public static final String CURRENT_TAB_LIST_ID_KEY = "CurrentTabListID";
+    public static final String SELECTED_LIST_ID_KEY = "CurrentTabListID";
     /**
      * This is the configuration key for the index of the currently selected 
-     * tab if a tab is selected. This value is used as a fallback value to be 
-     * used when the value for {@link CURRENT_TAB_LIST_ID_KEY} is unavailable 
-     * either due to the currently selected list not having a listID, no lists 
-     * have the selected listID, or the current tab is not a list. The value for 
-     * {@code CURRENT_TAB_LIST_ID_KEY} takes priority over this value due to 
+     * tab if a tab is selected.This value is used as a fallback value to be 
+ used when the value for {@link CURRENT_TAB_LIST_ID_KEY#SELECTED_TAB_LIST_ID_KEY} is unavailable 
+ either due to the currently selected list not having a listID, no lists 
+ have the selected listID, or the current tab is not a list. The value for 
+ {@code CURRENT_TAB_LIST_ID_KEY} takes priority over this value due to 
      * the listIDs staying more or less constant for any given list saved to or 
      * loaded from the database, whereas the index for any given list may vary 
      * between instances of the program.
      */
-    public static final String CURRENT_TAB_INDEX_KEY = "CurrentTabIndex";
+    public static final String SELECTED_TAB_INDEX_KEY = "CurrentTabIndex";
     /**
      * This is the configuration key for the currently selected link in a list 
      * with a listID.
@@ -251,8 +251,8 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
      * that deal with list types.
      */
     private static final String[] LIST_TYPE_PROPERTY_KEY_PREFIXES = {
-        CURRENT_TAB_LIST_ID_KEY,
-        CURRENT_TAB_INDEX_KEY
+        SELECTED_LIST_ID_KEY,
+        SELECTED_TAB_INDEX_KEY
     };
     /**
      * This is an array that contains the prefixes for the keys in properties 
@@ -1211,11 +1211,11 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
                         lastVisMap.put(type, cProp.getIntProperty(key));
                         break;
                         // If this is the current tab listID key
-                    case(CURRENT_TAB_LIST_ID_KEY):
+                    case(SELECTED_LIST_ID_KEY):
                         selListIDMap.put(type, cProp.getIntProperty(key));
                         break;
                         // If this is the current tab index key
-                    case(CURRENT_TAB_INDEX_KEY):
+                    case(SELECTED_TAB_INDEX_KEY):
                         selListMap.put(type, cProp.getIntProperty(key));
                         break;
                         // If this is the visible rectangle index key
@@ -1246,9 +1246,9 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
             // Add all the values for the last visible indexes in the lists
         getLastVisibleIndexMap().putAll(lastVisMap);
             // Add all the values for the current tab listIDs 
-        getCurrentTabListIDMap().putAll(selListIDMap);
+        getSelectedListIDMap().putAll(selListIDMap);
             // Add all the values for the current tab indexes
-        getCurrentTabIndexMap().putAll(selListMap);
+        getSelectedTabIndexMap().putAll(selListMap);
             // Add all the values for the visible rectangles for the lists
         getVisibleRectMap().putAll(visRectMap);
     }
@@ -1279,11 +1279,11 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
                 prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY, 
                         getDropboxDatabaseFileName());
             }   // Add the current tab listID data to the properties
-            addListDataToProperties(getCurrentTabListIDMap(),
-                    CURRENT_TAB_LIST_ID_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
+            addListDataToProperties(getSelectedListIDMap(),
+                    SELECTED_LIST_ID_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
                 // Add the current tab index data to the properties
-            addListDataToProperties(getCurrentTabIndexMap(),
-                    CURRENT_TAB_INDEX_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
+            addListDataToProperties(getSelectedTabIndexMap(),
+                    SELECTED_TAB_INDEX_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
                 // Add the selected link data to the properties
             addListDataToProperties(getSelectedLinkMap(),
                     SELECTED_LINK_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,prop);
@@ -1970,8 +1970,8 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
      * @param listType
      * @param listID 
      */
-    public void setCurrentTabListID(int listType, Integer listID){
-        getListTypePreferences(listType).putObject(CURRENT_TAB_LIST_ID_KEY, 
+    public void setSelectedListID(int listType, Integer listID){
+        getListTypePreferences(listType).putObject(SELECTED_LIST_ID_KEY, 
                 listID);
     }
     /**
@@ -1979,24 +1979,24 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
      * @param listType
      * @return 
      */
-    public Integer getCurrentTabListID(int listType){
+    public Integer getSelectedListID(int listType){
         return getIntegerPreference(getListTypePreferences(listType), 
-                CURRENT_TAB_LIST_ID_KEY);
+                SELECTED_LIST_ID_KEY);
     }
     /**
      * 
      * @return 
      */
-    public Map<Integer, Integer> getCurrentTabListIDMap(){
+    public Map<Integer, Integer> getSelectedListIDMap(){
         if (currTabIDMap == null){
             currTabIDMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected Integer getValue(int key) {
-                    return getCurrentTabListID(key);
+                    return getSelectedListID(key);
                 }
                 @Override
                 protected void putValue(int key, Integer value) {
-                    setCurrentTabListID(key,value);
+                    setSelectedListID(key,value);
                 }
                 @Override
                 protected ListConfigNodeParent getNodes() {
@@ -2011,35 +2011,34 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
      * @param listType
      * @param index 
      */
-    public void setCurrentTabIndex(int listType, Integer index){
-        getListTypePreferences(listType).putObject(CURRENT_TAB_INDEX_KEY,index);
+    public void setSelectedTabIndex(int listType, Integer index){
+        getListTypePreferences(listType).putObject(SELECTED_TAB_INDEX_KEY,index);
     }
     /**
      * 
      * @param listType
      * @return 
      */
-    public int getCurrentTabIndex(int listType){
-        return getListTypePreferences(listType).getInt(CURRENT_TAB_INDEX_KEY,0);
+    public int getSelectedTabIndex(int listType){
+        return getListTypePreferences(listType).getInt(SELECTED_TAB_INDEX_KEY,0);
     }
     /**
      * 
      * @return 
      */
-    public Map<Integer, Integer> getCurrentTabIndexMap(){
+    public Map<Integer, Integer> getSelectedTabIndexMap(){
         if (currTabIndexMap == null){
             currTabIndexMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected Integer getValue(int key) {
                          // If the node contains the current tab index key
-                    if (getListTypePreferences(key).containsKey(
-                            CURRENT_TAB_INDEX_KEY))
-                        return getCurrentTabIndex(key);
+                    if (getListTypePreferences(key).containsKey(SELECTED_TAB_INDEX_KEY))
+                        return getSelectedTabIndex(key);
                     return null;
                 }
                 @Override
                 protected void putValue(int key, Integer value) {
-                    setCurrentTabIndex(key,value);
+                    setSelectedTabIndex(key,value);
                 }
                 @Override
                 protected ListConfigNodeParent getNodes() {
@@ -2054,7 +2053,7 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
      * @param listType
      * @param tabsPanel 
      */
-    public void setCurrentTab(int listType, LinksListTabsPanel tabsPanel){
+    public void setSelectedTab(int listType, LinksListTabsPanel tabsPanel){
             // The listID of the current tab
         Integer listID = null;
             // The index of the current tab
@@ -2067,8 +2066,8 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
             index = (tabsPanel.isSelectionEmpty()) ? null :
                     tabsPanel.getSelectedIndex();
         }
-        setCurrentTabListID(listType,listID);
-        setCurrentTabIndex(listType, index);
+        setSelectedListID(listType,listID);
+        setSelectedTabIndex(listType, index);
     }
     @Override
     public void setSelectedLink(int listID, String value){

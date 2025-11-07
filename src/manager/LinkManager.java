@@ -4116,7 +4116,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     type = i;
             }   // If the event source is found in the list tabs panel array (it 
             if (type >= 0)  // should be)
-                config.setCurrentTab(type, listsTabPanels[type]);
+                config.setSelectedTab(type, listsTabPanels[type]);
             else{
                 getLogger().log(Level.WARNING, 
                         "Source not found in list tabs panels: {0}", evt.getSource());
@@ -6293,10 +6293,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         Map<Integer,Integer> lastVisMap = config.getLastVisibleIndexMap();
             // This maps the tabs panel indexes to the listID of the selected 
             // list for that tabs panel
-        Map<Integer,Integer> selListIDMap = new HashMap<>(config.getCurrentTabListIDMap());
+        Map<Integer,Integer> selListIDMap = new HashMap<>(config.getSelectedListIDMap());
             // This maps the tabs panel indexes to the selected index of the 
             // tab for that tabs panel
-        Map<Integer,Integer> selListMap = config.getCurrentTabIndexMap();
+        Map<Integer,Integer> selListMap = config.getSelectedTabIndexMap();
             // This maps the listIDs to the visible rectangle for that list
         Map<Integer,Rectangle> visRectMap = config.getVisibleRectMap();
             // Go through the list tabs panels
