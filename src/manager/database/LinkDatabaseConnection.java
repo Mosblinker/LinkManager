@@ -5473,6 +5473,38 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param programID
+     * @param listType
+     * @return
+     * @throws SQLException 
+     */
+    public boolean listSelectionTableContains(int programID, int listType) throws SQLException{
+        try(PreparedStatement pstmt = prepareStatement(String.format(
+                TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_TYPE_SELECTION_TABLE_NAME,
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_TYPE_COLUMN_NAME))){
+            pstmt.setInt(1, programID);
+            pstmt.setInt(2, listType);
+            return containsCountResult(pstmt.executeQuery());
+        }
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @param listType
+     * @return
+     * @throws SQLException 
+     */
+    public boolean listSelectionTableContains(UUID userID, UUID programID, int listType) 
+            throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        return listSelectionTableContains(id,listType);
+    }
+    /**
+     * 
+     * @param programID
      * @param listID
      * @return
      * @throws SQLException 
