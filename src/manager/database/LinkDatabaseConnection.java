@@ -12,6 +12,8 @@ import java.util.*;
 import java.util.logging.Level;
 import javax.swing.table.*;
 import manager.*;
+import manager.config.AbstractLinksListSettings;
+import manager.config.DatabaseLinksListSettings;
 import manager.links.*;
 import org.sqlite.*;
 import sql.*;
@@ -8296,6 +8298,386 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     return rs.getInt(COUNT_COLUMN_NAME);
             }
             return 0;
+        }
+    }
+    /**
+     * 
+     */
+    private class LinksListSettingsImpl extends AbstractLinksListSettings 
+            implements DatabaseLinksListSettings{
+        /**
+         * 
+         */
+        private final int programID;
+        /**
+         * 
+         * @param programID 
+         */
+        private LinksListSettingsImpl(int programID) {
+            this.programID = programID;
+        }
+        @Override
+        public int getProgramID() {
+            return programID;
+        }
+        @Override
+        public LinkDatabaseConnection getConnection() {
+            return LinkDatabaseConnection.this;
+        }
+        @Override
+        public void setSelectedLinkID(int listID, Long value) {
+            LinkManager.getLogger().entering(this.getClass().getName(), 
+                    "setSelectedLinkID",new Object[]{listID,value,getProgramID()});
+            try{
+                boolean contains = selectionTableContains(programID,listID);
+                if (contains || value != null){
+                    try(PreparedStatement pstmt = prepareStatement(String.format(
+                            (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
+                                    "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
+                                LIST_SELECTION_TABLE_NAME,
+                                LINK_ID_COLUMN_NAME,
+                                PROGRAM_ID_COLUMN_NAME,
+                                LIST_ID_COLUMN_NAME))){
+                        setParameter(pstmt,1,value);
+                        pstmt.setInt(2, programID);
+                        pstmt.setInt(3, listID);
+                        pstmt.executeUpdate();
+                    }
+                }
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+            LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "setSelectedLinkID");
+        }
+        @Override
+        public Long getSelectedLinkID(int listID) {
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
+                    LINK_ID_COLUMN_NAME,
+                    LIST_SELECTION_TABLE_NAME,
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_ID_COLUMN_NAME))){
+                pstmt.setInt(1, programID);
+                pstmt.setInt(2, listID);
+                    // Get the results of the query
+                ResultSet rs = pstmt.executeQuery();
+                if (rs.next()){
+                    long value = rs.getLong(LINK_ID_COLUMN_NAME);
+                    if (!rs.wasNull())
+                        return value;
+                }
+            } catch (SQLException ex) {
+                throw new UncheckedSQLException(ex);
+            }
+            return null;
+        }
+        @Override
+        public void setSelectedLinkVisible(int listID, Boolean value) {
+            try{
+                boolean contains = selectionTableContains(programID,listID);
+                if (contains || value != null){
+                    try(PreparedStatement pstmt = prepareStatement(String.format(
+                            (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
+                                    "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
+                                LIST_SELECTION_TABLE_NAME,
+                                SELECTION_IS_VISIBLE_COLUMN_NAME,
+                                PROGRAM_ID_COLUMN_NAME,
+                                LIST_ID_COLUMN_NAME))){
+                        setParameter(pstmt,1,value);
+                        pstmt.setInt(2, programID);
+                        pstmt.setInt(3, listID);
+                        pstmt.executeUpdate();
+                    }
+                }
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+        }
+        @Override
+        public Boolean isSelectedLinkVisible(int listID) {
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
+                    SELECTION_IS_VISIBLE_COLUMN_NAME,
+                    LIST_SELECTION_TABLE_NAME,
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_ID_COLUMN_NAME))){
+                pstmt.setInt(1, programID);
+                pstmt.setInt(2, listID);
+                    // Get the results of the query
+                ResultSet rs = pstmt.executeQuery();
+                if (rs.next()){
+                    Boolean value = rs.getBoolean(SELECTION_IS_VISIBLE_COLUMN_NAME);
+                    if (!rs.wasNull())
+                        return value;
+                }
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+            return null;
+        }
+        /**
+         * 
+         * @param listID
+         * @param value
+         * @param columnName
+         */
+        private void setSelectionInteger(int listID, Integer value, String columnName) {
+            try{
+                boolean contains = selectionTableContains(programID,listID);
+                if (contains || value != null){
+                    try(PreparedStatement pstmt = prepareStatement(String.format(
+                            (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
+                                    "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
+                                LIST_SELECTION_TABLE_NAME,
+                                columnName,
+                                PROGRAM_ID_COLUMN_NAME,
+                                LIST_ID_COLUMN_NAME))){
+                        setParameter(pstmt,1,value);
+                        pstmt.setInt(2, programID);
+                        pstmt.setInt(3, listID);
+                        pstmt.executeUpdate();
+                    }
+                }
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+        }
+        private Integer getSelectionInteger(int listID, String columnName){
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
+                    columnName,
+                    LIST_SELECTION_TABLE_NAME,
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_ID_COLUMN_NAME))){
+                pstmt.setInt(1, programID);
+                pstmt.setInt(2, listID);
+                    // Get the results of the query
+                ResultSet rs = pstmt.executeQuery();
+                if (rs.next()){
+                    int value = rs.getInt(columnName);
+                    if (!rs.wasNull())
+                        return value;
+                }
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+            return null;
+        }
+        @Override
+        public void setFirstVisibleIndex(int listID, Integer value) {
+            setSelectionInteger(listID,value,FIRST_VISIBLE_INDEX_COLUMN_NAME);
+        }
+        @Override
+        public Integer getFirstVisibleIndex(int listID) {
+            return getSelectionInteger(listID,FIRST_VISIBLE_INDEX_COLUMN_NAME);
+        }
+        @Override
+        public void setLastVisibleIndex(int listID, Integer value) {
+            setSelectionInteger(listID,value,LAST_VISIBLE_INDEX_COLUMN_NAME);
+        }
+        @Override
+        public Integer getLastVisibleIndex(int listID) {
+            return getSelectionInteger(listID,LAST_VISIBLE_INDEX_COLUMN_NAME);
+        }
+        @Override
+        public void setVisibleRect(int listID, Rectangle value) {
+            try{
+                boolean contains = selectionTableContains(programID,listID);
+                if (contains || value != null){
+                    try(PreparedStatement pstmt = prepareStatement(String.format(
+                            (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
+                                    "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
+                                LIST_SELECTION_TABLE_NAME,
+                                VISIBLE_RECTANGLE_COLUMN_NAME,
+                                PROGRAM_ID_COLUMN_NAME,
+                                LIST_ID_COLUMN_NAME))){
+                        setParameter(pstmt,1,value);
+                        pstmt.setInt(2, programID);
+                        pstmt.setInt(3, listID);
+                        pstmt.executeUpdate();
+                    }
+                }
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+        }
+        @Override
+        public Rectangle getVisibleRect(int listID, Rectangle defaultValue) {
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
+                    VISIBLE_RECTANGLE_COLUMN_NAME,
+                    LIST_SELECTION_TABLE_NAME,
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_ID_COLUMN_NAME))){
+                pstmt.setInt(1, programID);
+                pstmt.setInt(2, listID);
+                    // Get the results of the query
+                ResultSet rs = pstmt.executeQuery();
+                if (rs.next()){
+                    byte[] bytes = rs.getBytes(VISIBLE_RECTANGLE_COLUMN_NAME);
+                    if (!rs.wasNull())
+                        return ConfigUtilities.rectangleFromByteArray(bytes);
+                }
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+            return null;
+        }
+        @Override
+        public void setVisibleSection(int listID, Boolean isVisible, 
+                Integer firstIndex, Integer lastIndex, Rectangle visibleRect){
+            LinkManager.getLogger().entering(this.getClass().getName(), 
+                    "setVisibleSection", new Object[]{listID,isVisible,firstIndex,
+                        lastIndex,visibleRect});
+                // If the first visible index is negative
+            if (firstIndex < 0)
+                firstIndex = null;
+                // If the last visible index is negative
+            if (lastIndex < 0)
+                lastIndex = null;
+            try{
+                boolean contains = selectionTableContains(programID,listID);
+                if (contains || isVisible != null || firstIndex != null || 
+                        lastIndex != null || visibleRect != null){
+                    try(PreparedStatement pstmt = prepareStatement(String.format(
+                            (contains)?
+                                    "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ? WHERE %s = ? AND %s = ?":
+                                    "INSERT INTO %s(%s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                                LIST_SELECTION_TABLE_NAME,
+                                SELECTION_IS_VISIBLE_COLUMN_NAME,
+                                FIRST_VISIBLE_INDEX_COLUMN_NAME,
+                                LAST_VISIBLE_INDEX_COLUMN_NAME,
+                                VISIBLE_RECTANGLE_COLUMN_NAME,
+                                PROGRAM_ID_COLUMN_NAME,
+                                LIST_ID_COLUMN_NAME))){
+                        pstmt.setBoolean(1, isVisible);
+                        setParameter(pstmt,2,firstIndex);
+                        setParameter(pstmt,3,lastIndex);
+                        setParameter(pstmt,4,visibleRect);
+                        pstmt.setInt(5, programID);
+                        pstmt.setInt(6, listID);
+                        pstmt.executeUpdate();
+                    }
+                }
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+            LinkManager.getLogger().exiting(this.getClass().getName(), 
+                    "setVisibleSection");
+        }
+        @Override
+        public void setListSettings(int listID, Long linkID, Boolean isVisible, 
+                Integer firstIndex, Integer lastIndex, Rectangle visibleRect){
+            LinkManager.getLogger().entering(this.getClass().getName(), 
+                    "setListSettings", new Object[]{listID,linkID,isVisible,
+                    firstIndex,lastIndex,visibleRect});
+                // If the first visible index is negative
+            if (firstIndex < 0)
+                firstIndex = null;
+                // If the last visible index is negative
+            if (lastIndex < 0)
+                lastIndex = null;
+            try{
+                boolean contains = selectionTableContains(programID,listID);
+                if (contains || linkID != null || isVisible != null || 
+                        firstIndex != null || lastIndex != null || visibleRect != null){
+                    try(PreparedStatement pstmt = prepareStatement(String.format(
+                            (contains)?
+                                    "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ?, %s = ? WHERE %s = ? AND %s = ?":
+                                    "INSERT INTO %s(%s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                                LIST_SELECTION_TABLE_NAME,
+                                LINK_ID_COLUMN_NAME,
+                                SELECTION_IS_VISIBLE_COLUMN_NAME,
+                                FIRST_VISIBLE_INDEX_COLUMN_NAME,
+                                LAST_VISIBLE_INDEX_COLUMN_NAME,
+                                VISIBLE_RECTANGLE_COLUMN_NAME,
+                                PROGRAM_ID_COLUMN_NAME,
+                                LIST_ID_COLUMN_NAME))){
+                        setParameter(pstmt,1,linkID);
+                        pstmt.setBoolean(2, isVisible);
+                        setParameter(pstmt,3,firstIndex);
+                        setParameter(pstmt,4,lastIndex);
+                        setParameter(pstmt,5,visibleRect);
+                        pstmt.setInt(6, programID);
+                        pstmt.setInt(7, listID);
+                        pstmt.executeUpdate();
+                    }
+                }
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+            LinkManager.getLogger().exiting(this.getClass().getName(), 
+                    "setListSettings");
+        }
+        @Override
+        public boolean removeListSettings(int listID) {
+                // Prepare a statement to remove the entry with the given program ID 
+                // and listID
+            try (PreparedStatement pstmt = prepareStatement(
+                    String.format("DELETE FROM %s WHERE %s = ? AND %s = ?", 
+                            LIST_SELECTION_TABLE_NAME,
+                            PROGRAM_ID_COLUMN_NAME,
+                            LIST_ID_COLUMN_NAME))) {
+                    // Set the program ID to remove for
+                pstmt.setInt(1, programID);
+                pstmt.setInt(2, listID);
+                    // Update the database
+                return pstmt.executeUpdate() > 0;
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+        }
+        @Override
+        public boolean removeListSettings(Collection<Integer> listIDs) {
+            try{    // Get the current state of the auto-commit
+                boolean autoCommit = getAutoCommit();
+                    // Turn off the auto-commit in order to group the following 
+                    // database transactions to improve performance
+                setAutoCommit(false);
+                boolean modified = DatabaseLinksListSettings.super.removeListSettings(listIDs);
+                    // Commit the changes to the database
+                commit();
+                    // Restore the auto-commit back to what it was set to before
+                setAutoCommit(autoCommit);
+                return modified;
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+        }
+        @Override
+        public Set<Integer> getListIDs(){
+            Set<Integer> listIDs = new TreeSet<>();
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                "SELECT DISTINCT %s FROM %s WHERE %s = ?",
+                    LIST_ID_COLUMN_NAME,
+                    LIST_SELECTION_TABLE_NAME,
+                    PROGRAM_ID_COLUMN_NAME))){
+                pstmt.setInt(1, programID);
+                    // Get the results of the query
+                ResultSet rs = pstmt.executeQuery();
+                while (rs.next()){
+                    listIDs.add(rs.getInt(LIST_ID_COLUMN_NAME));
+                }
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+            return Collections.unmodifiableSet(listIDs);
+        }
+        @Override
+        public void removeAllListSettings(){
+                // Prepare a statement to remove the entries with the given program ID 
+            try (PreparedStatement pstmt = prepareStatement(
+                    String.format("DELETE FROM %s WHERE %s = ?", 
+                            LIST_SELECTION_TABLE_NAME,
+                            PROGRAM_ID_COLUMN_NAME))) {
+                    // Set the program ID to remove for
+                pstmt.setInt(1, programID);
+                    // Update the database
+                pstmt.executeUpdate();
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
         }
     }
 }
