@@ -2104,7 +2104,11 @@ public class LinkManagerConfig {
      * @param value 
      */
     public void setSelectedLink(int listID, String value){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "setSelectedLink", new Object[]{listID,value});
         getListPreferences(listID).put(SELECTED_LINK_FOR_LIST_KEY, value);
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "setSelectedLink");
     }
     /**
      * 
