@@ -6782,6 +6782,46 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private LinksListModel addAllToCopy(LinksListPanel panel, Collection<String> list){
         return addAllToCopy(panel.getModel(),list);
     }
+    /**
+     * 
+     * @param parent
+     * @return 
+     */
+    private Boolean checkForUpdates(Component parent){
+        getLogger().entering(this.getClass().getName(), "checkForUpdates");
+            // Whether this should retry to check for an update
+        boolean retry = false;
+        boolean success = false;
+        do{
+            useWaitCursor(true);
+            try{    // Check for an update
+                updateChecker.check();
+                success = true;
+            } catch (Exception ex){
+                getLogger().log(Level.WARNING, 
+                        "An error occurred while checking the latest version",
+                        ex);
+                useWaitCursor(false);
+                    // Ask the user if they would like to try checking for 
+                    // updates again
+                retry = JOptionPane.showConfirmDialog(parent,
+                    "Failed to check for updates.\nWould you like to try again?",
+                    "Update Checker Failed",JOptionPane.YES_NO_OPTION,
+                    JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
+            }
+        }   // While this has not checked for an update and the user wants 
+            // to try again
+        while (!success && retry);
+        if (!success){
+            getLogger().exiting(this.getClass().getName(), "checkForUpdates", null);
+            return null;
+        }
+            // Get whether there is an update available
+        boolean updateAvailable = updateChecker.isUpdateAvailable();
+        getLogger().exiting(this.getClass().getName(), "checkForUpdates", 
+                updateAvailable);
+        return updateAvailable;
+    }
     
     private class LinksListHandler implements ListDataListener, 
             ListSelectionListener, ChangeListener, ContainerListener, 
@@ -11689,30 +11729,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected Boolean backgroundAction() throws Exception {
             getLogger().entering(this.getClass().getName(), "backgroundAction");
-                // Whether this should retry to check for an update
-            boolean retry = false;
-            do{
-                useWaitCursor(true);
-                try{    // Check for an update
-                    updateChecker.check();
-                    success = true;
-                } catch (Exception ex){
-                    getLogger().log(Level.WARNING, 
-                            "An error occurred while checking the latest version",
-                            ex);
-                    useWaitCursor(false);
-                        // Ask the user if they would like to try checking for 
-                        // updates again
-                    retry = JOptionPane.showConfirmDialog(getParentComponent(),
-                        "Failed to check for updates.\nWould you like to try again?",
-                        "Update Checker Failed",JOptionPane.YES_NO_OPTION,
-                        JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
-                }
-            }   // While this has not checked for an update and the user wants 
-                // to try again
-            while (!success && retry);
-                // Get whether there is an update available
-            updateAvailable = updateChecker.isUpdateAvailable();
+            Boolean value = checkForUpdates(getParentComponent());
+            success = value != null;
+            if (!success)
+                updateAvailable = value;
             getLogger().exiting(this.getClass().getName(), "backgroundAction", 
                     updateAvailable);
             return updateAvailable;
