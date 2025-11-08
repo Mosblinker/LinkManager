@@ -5457,142 +5457,6 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
-     * @param <E> The type of elements stored in this set.
-     */
-    private abstract class AbstractQuerySet<E> extends AbstractSQLSet<E>{
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public LinkDatabaseConnection getConnection() throws SQLException {
-            return LinkDatabaseConnection.this;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected boolean addAllSQL(Collection<? extends E> c)throws SQLException{
-                // Get the current state of the auto-commit
-            boolean autoCommit = getAutoCommit();
-                // Turn off the auto-commit in order to group the following 
-                // database transactions to improve performance
-            setAutoCommit(false);
-                // Add all the elements in the given collection to this set and 
-                // get if this set was modified as a result
-            boolean modified = super.addAllSQL(c);
-            commit();       // Commit the changes to the database
-                // Restore the auto-commit back to what it was set to before
-            setAutoCommit(autoCommit);
-            return modified;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected boolean removeAllSQL(Collection<?> c)throws SQLException{
-                // Get the current state of the auto-commit
-            boolean autoCommit = getAutoCommit();
-                // Turn off the auto-commit in order to group the following 
-                // database transactions to improve performance
-            setAutoCommit(false);
-                // Remove any elements in this set that are also in the given 
-                // collection and get if this set was modified as a result
-            boolean modified = super.removeAllSQL(c);
-            commit();       // Commit the changes to the database
-                // Restore the auto-commit back to what it was set to before
-            setAutoCommit(autoCommit);
-            return modified;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected boolean retainAllSQL(Collection<?> c)throws SQLException{
-                // Get the current state of the auto-commit
-            boolean autoCommit = getAutoCommit();
-                // Turn off the auto-commit in order to group the following 
-                // database transactions to improve performance
-            setAutoCommit(false);
-                // Retain only the elements in this set that are also in the 
-                // given collection and get if this set was modified as a result
-            boolean modified = super.retainAllSQL(c);
-            commit();       // Commit the changes to the database
-                // Restore the auto-commit back to what it was set to before
-            setAutoCommit(autoCommit);
-            return modified;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected abstract boolean containsSQL(Object o) throws SQLException;
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected abstract boolean removeSQL(Object o) throws SQLException;
-        /**
-         * 
-         * @return
-         * @throws SQLException 
-         */
-        protected abstract Set<E> valueCacheSet() throws SQLException;
-        /**
-         * 
-         * @return
-         * @throws SQLException 
-         */
-        protected Iterator<E> iteratorSQL() throws SQLException{
-            return new CacheSetIterator<>(valueCacheSet()){
-                @Override
-                protected void remove(E value) {
-                    AbstractQuerySet.this.remove(value);
-                }
-            };
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public Iterator<E> iterator(){
-            try{
-                return iteratorSQL();
-            } catch (SQLException ex) {
-                LinkManager.getLogger().log(Level.WARNING, 
-                        "Failed to get iterator for query set", ex);
-                appendWarning(ex);
-                return Collections.emptyIterator();
-            }
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public boolean equals(Object obj){
-                // If the given object is this set
-            if (obj == this)
-                return true;
-                // If the given object is a set
-            else if (obj instanceof Set){
-                    // Create a copy of this set (to reduce the number of 
-                Set<E> temp = new HashSet<>(this);  // queries)
-                    // Return whether the object matches the copy
-                return temp.equals(obj);
-            }
-            return false;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public int hashCode() {
-                // Create a copy of this set (to reduce the number of queries)
-            Set<E> temp = new HashSet<>(this);
-            return temp.hashCode();
-        }
-    }
-    /**
-     * 
      * @param <K> The type of keys maintained by the map.
      * @param <V> The type of mapped values.
      */
@@ -5735,6 +5599,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * @param type 
          */
         protected SchemaViewSet(String type) {
+            super(LinkDatabaseConnection.this);
             this.type = type;
         }
         /**
@@ -6343,6 +6208,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * 
      */
     private class ListTypeSet extends AbstractQuerySet<Integer>{
+        /**
+         * 
+         * @param conn 
+         */
+        ListTypeSet() {
+            super(LinkDatabaseConnection.this);
+        }
         /**
          * {@inheritDoc }
          */
@@ -7458,6 +7330,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * 
      */
     private class ProgramUserIDSet extends AbstractQuerySet<UUID>{
+        /**
+         * 
+         */
+        ProgramUserIDSet() {
+            super(LinkDatabaseConnection.this);
+        }
         @Override
         protected boolean containsSQL(Object o) throws SQLException {
                 // If the given object is null or not a UUID
