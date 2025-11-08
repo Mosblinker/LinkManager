@@ -3649,7 +3649,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
         }
         if (showTables().contains(LIST_SETTINGS_TABLE_NAME)){
-            ResultSet rs = stmt.executeQuery(String.format("SELECT %s, %s, %s, %s, %s, %s FROM %s", 
+            ResultSet rs = stmt.executeQuery(String.format("SELECT %s, %s, %s, %s, %s, %s, %s FROM %s", 
                     PROGRAM_ID_COLUMN_NAME,
                     LIST_ID_COLUMN_NAME,
                     LINK_ID_COLUMN_NAME,
