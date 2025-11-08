@@ -2235,6 +2235,8 @@
         </Component>
       </SubComponents>
     </Container>
+    <Component class="manager.dropbox.JDropboxFileChooser" name="dropboxFC">
+    </Component>
     <Menu class="javax.swing.JMenuBar" name="menuBar">
       <SubComponents>
         <Menu class="javax.swing.JMenu" name="fileMenu">

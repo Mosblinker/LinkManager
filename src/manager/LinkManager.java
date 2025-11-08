@@ -1337,6 +1337,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         latestVersLabel = new javax.swing.JLabel();
         updateContinueButton = new javax.swing.JButton();
         updateOpenButton = new javax.swing.JButton();
+        dropboxFC = new manager.dropbox.JDropboxFileChooser();
         progressBar = new javax.swing.JProgressBar();
         javax.swing.JLabel newLinkLabel = new javax.swing.JLabel();
         linkTextField = new javax.swing.JTextField();
@@ -5858,6 +5859,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenu debugMenu;
     private javax.swing.JCheckBoxMenuItem doubleNewLinesToggle;
     private javax.swing.JMenuItem downloadDBItem;
+    private manager.dropbox.JDropboxFileChooser dropboxFC;
     private javax.swing.JMenuItem dropboxRefreshTestButton;
     private manager.dropbox.DropboxSetupPanel dropboxSetupPanel;
     private javax.swing.JMenu dropboxTestMenu;
