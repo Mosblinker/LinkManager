@@ -2105,22 +2105,6 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
     public Set<Integer> getListTypes(){
         return listTypeNodes.getKeys();
     }
-    @Override
-    protected Set<Integer> getListIDSet(){
-        return listIDNodes.getKeys();
-    }
-    @Override
-    protected int getListIDSize(){
-        return getListIDSet().size();
-    }
-    @Override
-    protected Set<Integer> getListTypeSet(){
-        return listTypeNodes.getKeys();
-    }
-    @Override
-    protected int getListTypeSize(){
-        return getListTypeSet().size();
-    }
     /**
      * This returns the user ID set for this configuration.
      * @return The user ID.

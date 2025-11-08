@@ -211,27 +211,11 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
             };
         return listTypes;
     }
-    @Override
-    protected Set<Integer> getListIDSet(){
-        return getKeySet(LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
-    }
-    @Override
-    protected int getListIDSize(){
-        return getKeyCount(LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
-    }
-    @Override
+    
     protected boolean containsListID(int listID){
         return containsKey(listID,LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
     }
-    @Override
-    protected Set<Integer> getListTypeSet(){
-        return getKeySet(LIST_TYPE_COLUMN_NAME,LIST_TYPE_SETTINGS_TABLE_NAME);
-    }
-    @Override
-    protected int getListTypeSize(){
-        return getKeyCount(LIST_TYPE_COLUMN_NAME,LIST_TYPE_SETTINGS_TABLE_NAME);
-    }
-    @Override
+    
     protected boolean containsListType(int listType){
         return containsKey(listType,LIST_TYPE_COLUMN_NAME,LIST_TYPE_SETTINGS_TABLE_NAME);
     }

@@ -5,14 +5,9 @@
 package manager.config;
 
 import java.awt.Rectangle;
-import java.util.AbstractSet;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import manager.database.CacheSetIterator;
 
 /**
  *
@@ -49,14 +44,6 @@ public abstract class AbstractLinksListSettings implements LinksListSettings{
      * and is initialized when first used.
      */
     private Map<Integer, Integer> currTabIDMap = null;
-    /**
-     * 
-     */
-    private Set<Integer> listIDs = null;
-    /**
-     * 
-     */
-    private Set<Integer> listTypes = null;
     @Override
     public Map<Integer, String> getSelectedLinkMap() {
         if (selLinkMap == null){
@@ -180,141 +167,6 @@ public abstract class AbstractLinksListSettings implements LinksListSettings{
             };
         }
         return currTabIDMap;
-    }
-    /**
-     * 
-     * @return 
-     */
-    protected abstract Set<Integer> getListIDSet();
-    /**
-     * 
-     * @return 
-     */
-    protected Iterator<Integer> getListIDIterator(){
-        return new CacheSetIterator<>(getListIDSet()){
-            @Override
-            protected void remove(Integer value) {
-                removeListSettings(value);
-            }
-        };
-    }
-    /**
-     * 
-     * @return 
-     */
-    protected abstract int getListIDSize();
-    /**
-     * 
-     * @param listID
-     * @return 
-     */
-    protected boolean containsListID(int listID){
-        return getListIDSet().contains(listID);
-    }
-    @Override
-    public Set<Integer> getListIDs(){
-        if (listIDs == null){
-            listIDs = new AbstractSet<>(){
-                @Override
-                public Iterator<Integer> iterator() {
-                    return getListIDIterator();
-                }
-                @Override
-                public int size() {
-                    return getListIDSize();
-                }
-                @Override
-                public boolean remove(Object o){
-                    if (o instanceof Integer)
-                        return removeListSettings((Integer)o);
-                    return false;
-                }
-                @Override
-                public boolean contains(Object o){
-                    if (o instanceof Integer)
-                        return containsListID((Integer)o);
-                    return false;
-                }
-                @Override
-                public boolean removeAll(Collection<?> c){
-                    Collection<Integer> t = new HashSet<>();
-                    for (Object o : c){
-                        if (o instanceof Integer)
-                            t.add((Integer)o);
-                        else if (o != null)
-                            throw new ClassCastException();
-                    }
-                    return removeListSettings(t);
-                }
-                @Override
-                public void clear(){
-                    clearListSettings();
-                }
-            };
-        }
-        return listIDs;
-    }
-    /**
-     * 
-     * @return 
-     */
-    protected abstract Set<Integer> getListTypeSet();
-    /**
-     * 
-     * @return 
-     */
-    protected Iterator<Integer> getListTypeIterator(){
-        return new CacheSetIterator<>(getListTypeSet()){
-            @Override
-            protected void remove(Integer value) {
-                removeSelectedTab(value);
-            }
-        };
-    }
-    /**
-     * 
-     * @return 
-     */
-    protected abstract int getListTypeSize();
-    /**
-     * 
-     * @param listType
-     * @return 
-     */
-    protected boolean containsListType(int listType){
-        return getListTypeSet().contains(listType);
-    }
-    @Override
-    public Set<Integer> getListTypes(){
-        if (listTypes == null){
-            listTypes = new AbstractSet<>(){
-                @Override
-                public Iterator<Integer> iterator() {
-                    return getListTypeIterator();
-                }
-                @Override
-                public int size() {
-                    return getListTypeSize();
-                }
-                @Override
-                public boolean remove(Object o){
-                    if (o instanceof Integer)
-                        return removeSelectedTab((Integer)o);
-                    return false;
-                }
-                @Override
-                public boolean contains(Object o){
-                    if (o instanceof Integer)
-                        return containsListType((Integer)o);
-                    return false;
-                }
-                @Override
-                public void clear(){
-                    clearSelectedTabs();
-                }
-            };
-        }
-        return listTypes;
     }
     /**
      * 
