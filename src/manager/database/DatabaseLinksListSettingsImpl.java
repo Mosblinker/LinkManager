@@ -170,15 +170,15 @@ class DatabaseLinksListSettingsImpl implements DatabaseLinksListSettings{
      * @param keyColumnName
      * @param valueColumnName
      * @param key
+     * @param update
      * @return
      * @throws SQLException 
      */
-    protected PreparedStatement createSetStatement(String tableName, 
-            String keyColumnName, String valueColumnName, int key) 
-            throws SQLException{
+    private PreparedStatement createSetStatement(String tableName, 
+            String keyColumnName, String valueColumnName, int key, 
+            boolean update) throws SQLException{
         PreparedStatement pstmt = conn.prepareStatement(String.format(
-                (containsKeySQL(key,keyColumnName,tableName))?
-                        UPDATE_VALUE_TEMPLATE:INSERT_VALUE_TEMPLATE,
+                (update)?UPDATE_VALUE_TEMPLATE:INSERT_VALUE_TEMPLATE,
                     tableName,
                     valueColumnName,
                     PROGRAM_ID_COLUMN_NAME,
@@ -186,6 +186,21 @@ class DatabaseLinksListSettingsImpl implements DatabaseLinksListSettings{
         pstmt.setInt(2, programID);
         pstmt.setInt(3, key);
         return pstmt;
+    }
+    /**
+     * 
+     * @param tableName
+     * @param keyColumnName
+     * @param valueColumnName
+     * @param key
+     * @return
+     * @throws SQLException 
+     */
+    protected PreparedStatement createSetStatement(String tableName, 
+            String keyColumnName, String valueColumnName, int key) 
+            throws SQLException{
+        return createSetStatement(tableName,keyColumnName,valueColumnName,key,
+                containsKeySQL(key,keyColumnName,tableName));
     }
     /**
      * 
@@ -794,7 +809,7 @@ class DatabaseLinksListSettingsImpl implements DatabaseLinksListSettings{
             Objects.requireNonNull(value);
             V old = getSQL(key);
             try(PreparedStatement pstmt = createSetStatement(getTableName(),
-                    getKeyColumnName(),getValueColumnName(),key)){
+                    getKeyColumnName(),getValueColumnName(),key,old!=null)){
                 setValue(pstmt,1,value);
                 pstmt.executeUpdate();
             }
