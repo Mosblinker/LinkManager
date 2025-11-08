@@ -567,8 +567,8 @@ public class DropboxUtilities {
             Metadata metadata, boolean includeDeleted) throws DbxException{
         LinkManager.getLogger().entering("DropboxUtilities", "listFolderTree",
                 new Object[]{client,metadata,includeDeleted});
-        if (metadata == null || 
-                (metadata instanceof DeletedMetadata && !includeDeleted)){
+        Objects.requireNonNull(metadata);
+        if (metadata instanceof DeletedMetadata && !includeDeleted){
             LinkManager.getLogger().exiting("DropboxUtilities", 
                     "listFolderTree", null);
             return null;
@@ -642,6 +642,8 @@ public class DropboxUtilities {
             //  Get the files and folder metadata from the Dropbox directory
         ListFolderResult results = client.files().listFolder((path!=null)?path:"");
         for (Metadata metadata : results.getEntries()){
+            if (metadata == null)
+                continue;
             DefaultMutableTreeNode node = listFolderTree(client,metadata,
                     includeDeleted);
             if (node != null)
@@ -650,6 +652,8 @@ public class DropboxUtilities {
         while (results.getHasMore()){
             results = client.files().listFolderContinue(results.getCursor());
             for (Metadata metadata : results.getEntries()){
+                if (metadata == null)
+                    continue;
                 DefaultMutableTreeNode node = listFolderTree(client,metadata,
                         includeDeleted);
                 if (node != null)
