@@ -10,6 +10,8 @@ import components.AbstractConfirmDialogPanel;
 import java.awt.Component;
 import java.util.logging.Level;
 import javax.swing.*;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.tree.*;
 import manager.LinkManager;
 
@@ -28,7 +30,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         UIDefaults uiDefaults = UIManager.getLookAndFeelDefaults();
         setButtonIcon(newFolderButton,uiDefaults,"FileChooser.newFolderIcon",
                 "New Folder");
+        Handler handler = new Handler();
         fileTreeModel = new DefaultTreeModel(null,true);
+        fileTreeModel.addTreeModelListener(handler);
         dropboxFileTree.setModel(fileTreeModel);
     }
     /**
@@ -273,5 +277,22 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.ButtonGroup viewButtonGroup;
     // End of variables declaration//GEN-END:variables
 
-    
+    private class Handler implements TreeModelListener{
+        @Override
+        public void treeNodesChanged(TreeModelEvent evt) {
+            
+        }
+        @Override
+        public void treeNodesInserted(TreeModelEvent evt) {
+            
+        }
+        @Override
+        public void treeNodesRemoved(TreeModelEvent evt) {
+            
+        }
+        @Override
+        public void treeStructureChanged(TreeModelEvent evt) {
+            
+        }
+    }
 }
