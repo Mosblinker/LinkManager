@@ -177,7 +177,7 @@ class DatabaseLinksListSettingsImpl implements DatabaseLinksListSettings{
             String keyColumnName, String valueColumnName, int key) 
             throws SQLException{
         PreparedStatement pstmt = conn.prepareStatement(String.format(
-                (containsKeySQL(key,tableName,keyColumnName))?
+                (containsKeySQL(key,keyColumnName,tableName))?
                         UPDATE_VALUE_TEMPLATE:INSERT_VALUE_TEMPLATE,
                     tableName,
                     valueColumnName,
