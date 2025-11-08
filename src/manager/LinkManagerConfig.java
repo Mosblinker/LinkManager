@@ -16,6 +16,7 @@ import javax.crypto.*;
 import javax.crypto.spec.*;
 import static manager.DatabaseSyncMode.DROPBOX;
 import manager.config.*;
+import manager.database.CacheSetIterator;
 import manager.dropbox.DropboxLinkUtils;
 import manager.links.*;
 import manager.security.*;
@@ -2097,6 +2098,14 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
         return listIDNodes.removeNode(listID);
     }
     @Override
+    public Set<Integer> getListIDs(){
+        return listIDNodes.getKeys();
+    }
+    @Override
+    public Set<Integer> getListTypes(){
+        return listTypeNodes.getKeys();
+    }
+    @Override
     protected Set<Integer> getListIDSet(){
         return listIDNodes.getKeys();
     }
@@ -2500,7 +2509,33 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
          * @return 
          */
         public Set<Integer> getKeys(){
-            return getKeyCache();
+            if (keys == null)
+                keys = new ListConfigKeySet();
+            return keys;
+        }
+        /**
+         * 
+         */
+        private class ListConfigKeySet extends AbstractSet<Integer>{
+            @Override
+            public Iterator<Integer> iterator() {
+                return new CacheSetIterator<>(getKeyCache()){
+                    @Override
+                    protected void remove(Integer value) {
+                        removeNode(value);
+                    }
+                };
+            }
+            @Override
+            public int size() {
+                return getKeyCache().size();
+            }
+            @Override
+            public boolean remove(Object o){
+                if (o instanceof Integer)
+                    return removeNode((Integer)o);
+                return false;
+            }
         }
     }
 }
