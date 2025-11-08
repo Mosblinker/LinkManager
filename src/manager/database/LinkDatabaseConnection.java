@@ -7569,7 +7569,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             try{
                 boolean contains = selectionTableContains(programID,listID);
                 if (contains || value != null){
-                    try(PreparedStatement pstmt = prepareStatement(String.format((contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
+                    try(PreparedStatement pstmt = prepareStatement(String.format(
+                            (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
                                     "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
                                 LIST_SETTINGS_TABLE_NAME,
                                 LINK_ID_COLUMN_NAME,
@@ -7589,7 +7590,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         }
         @Override
         public Long getSelectedLinkID(int listID) {
-            try(PreparedStatement pstmt = prepareStatement(String.format("SELECT %s FROM %s WHERE %s = ? AND %s = ?",
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
                     LINK_ID_COLUMN_NAME,
                     LIST_SETTINGS_TABLE_NAME,
                     PROGRAM_ID_COLUMN_NAME,
@@ -7613,7 +7615,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             try{
                 boolean contains = selectionTableContains(programID,listID);
                 if (contains || value != null){
-                    try(PreparedStatement pstmt = prepareStatement(String.format((contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
+                    try(PreparedStatement pstmt = prepareStatement(String.format(
+                            (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
                                     "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
                                 LIST_SETTINGS_TABLE_NAME,
                                 SELECTION_IS_VISIBLE_COLUMN_NAME,
@@ -7631,7 +7634,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         }
         @Override
         public Boolean isSelectedLinkVisible(int listID) {
-            try(PreparedStatement pstmt = prepareStatement(String.format("SELECT %s FROM %s WHERE %s = ? AND %s = ?",
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
                     SELECTION_IS_VISIBLE_COLUMN_NAME,
                     LIST_SETTINGS_TABLE_NAME,
                     PROGRAM_ID_COLUMN_NAME,
@@ -7660,7 +7664,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             try{
                 boolean contains = selectionTableContains(programID,listID);
                 if (contains || value != null){
-                    try(PreparedStatement pstmt = prepareStatement(String.format((contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
+                    try(PreparedStatement pstmt = prepareStatement(String.format(
+                            (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
                                     "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
                                 LIST_SETTINGS_TABLE_NAME,
                                 columnName,
@@ -7677,7 +7682,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
         }
         private Integer getSelectionInteger(int listID, String columnName){
-            try(PreparedStatement pstmt = prepareStatement(String.format("SELECT %s FROM %s WHERE %s = ? AND %s = ?",
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
                     columnName,
                     LIST_SETTINGS_TABLE_NAME,
                     PROGRAM_ID_COLUMN_NAME,
@@ -7717,7 +7723,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             try{
                 boolean contains = selectionTableContains(programID,listID);
                 if (contains || value != null){
-                    try(PreparedStatement pstmt = prepareStatement(String.format((contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
+                    try(PreparedStatement pstmt = prepareStatement(String.format(
+                            (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
                                     "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
                                 LIST_SETTINGS_TABLE_NAME,
                                 VISIBLE_RECTANGLE_COLUMN_NAME,
@@ -7735,7 +7742,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         }
         @Override
         public Rectangle getVisibleRect(int listID, Rectangle defaultValue) {
-            try(PreparedStatement pstmt = prepareStatement(String.format("SELECT %s FROM %s WHERE %s = ? AND %s = ?",
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
                     VISIBLE_RECTANGLE_COLUMN_NAME,
                     LIST_SETTINGS_TABLE_NAME,
                     PROGRAM_ID_COLUMN_NAME,
@@ -7842,7 +7850,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         public boolean removeListSettings(int listID) {
                 // Prepare a statement to remove the entry with the given program ID 
                 // and listID
-            try (PreparedStatement pstmt = prepareStatement(String.format("DELETE FROM %s WHERE %s = ? AND %s = ?", 
+            try (PreparedStatement pstmt = prepareStatement(String.format(
+                    "DELETE FROM %s WHERE %s = ? AND %s = ?", 
                             LIST_SETTINGS_TABLE_NAME,
                             PROGRAM_ID_COLUMN_NAME,
                             LIST_ID_COLUMN_NAME))) {
@@ -7967,7 +7976,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         @Override
         public void clearListSettings(){
                 // Prepare a statement to remove the entries with the given program ID 
-            try (PreparedStatement pstmt = prepareStatement(String.format("DELETE FROM %s WHERE %s = ?", 
+            try (PreparedStatement pstmt = prepareStatement(String.format(
+                    "DELETE FROM %s WHERE %s = ?", 
                             LIST_SETTINGS_TABLE_NAME,
                             PROGRAM_ID_COLUMN_NAME))) {
                     // Set the program ID to remove for
@@ -7982,7 +7992,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         public void setSelectedListID(int listType, Integer listID) {
             try{
                 if (listID == null){
-                    try(PreparedStatement pstmt = prepareStatement(String.format("DELETE FROM %s WHERE %s = ? AND %s = ?", 
+                    try(PreparedStatement pstmt = prepareStatement(String.format(
+                            "DELETE FROM %s WHERE %s = ? AND %s = ?", 
                                 LIST_TYPE_SETTINGS_TABLE_NAME,
                                 PROGRAM_ID_COLUMN_NAME,
                                 LIST_TYPE_COLUMN_NAME))){
@@ -7991,7 +8002,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         pstmt.executeUpdate();
                     }
                 } else{
-                    try(PreparedStatement pstmt = prepareStatement(String.format((listSelectionTableContains(programID, listType))?
+                    try(PreparedStatement pstmt = prepareStatement(String.format(
+                            (listSelectionTableContains(programID, listType))?
                                     "UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
                                     "INSERT INTO %s(%s, %s, %s) VALUES (?,?,?)",
                                 LIST_TYPE_SETTINGS_TABLE_NAME,
@@ -8010,7 +8022,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         }
         @Override
         public Integer getSelectedListID(int listType) {
-            try(PreparedStatement pstmt = prepareStatement(String.format("SELECT %s FROM %s WHERE %s = ? AND %s = ?",
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
                     LIST_ID_COLUMN_NAME,
                     LIST_TYPE_SETTINGS_TABLE_NAME,
                     PROGRAM_ID_COLUMN_NAME,
@@ -8033,7 +8046,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         public boolean removeSelectedTab(int listType) {
                 // Prepare a statement to remove the entry with the given program ID 
                 // and list type
-            try (PreparedStatement pstmt = prepareStatement(String.format("DELETE FROM %s WHERE %s = ? AND %s = ?", 
+            try (PreparedStatement pstmt = prepareStatement(String.format(
+                    "DELETE FROM %s WHERE %s = ? AND %s = ?", 
                             LIST_TYPE_SETTINGS_TABLE_NAME,
                             PROGRAM_ID_COLUMN_NAME,
                             LIST_TYPE_COLUMN_NAME))) {
@@ -8049,7 +8063,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         @Override
         public void clearSelectedTabs() {
                 // Prepare a statement to remove the entries with the given program ID 
-            try (PreparedStatement pstmt = prepareStatement(String.format("DELETE FROM %s WHERE %s = ?", 
+            try (PreparedStatement pstmt = prepareStatement(String.format(
+                    "DELETE FROM %s WHERE %s = ?", 
                             LIST_TYPE_SETTINGS_TABLE_NAME,
                             PROGRAM_ID_COLUMN_NAME))) {
                     // Set the program ID to remove for
