@@ -14,6 +14,7 @@ import javax.swing.table.*;
 import manager.*;
 import manager.config.AbstractLinksListSettings;
 import manager.config.DatabaseLinksListSettings;
+import manager.config.ListConfigDataMap;
 import manager.links.*;
 import org.sqlite.*;
 import sql.*;
@@ -7542,6 +7543,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          */
         private final int programID;
         /**
+         * This is initially 
+         * null and is initialized when first used.
+         */
+        private Map<Integer, Long> selLinkIDMap = null;
+        /**
          * 
          * @param programID 
          */
@@ -8053,6 +8059,26 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             } catch (SQLException ex){
                 throw new UncheckedSQLException(ex);
             }
+        }
+        @Override
+        public Map<Integer, Long> getSelectedLinkIDMap() {
+            if (selLinkIDMap == null){
+                selLinkIDMap = new ListConfigDataMap<>(){
+                    @Override
+                    protected Long getValue(int key) {
+                        return getSelectedLinkID(key);
+                    }
+                    @Override
+                    protected void putValue(int key, Long value) {
+                        setSelectedLinkID(key,value);
+                    }
+                    @Override
+                    protected Set<Integer> getKeys() {
+                        return removeUnusedKeys(getListIDs());
+                    }
+                };
+            }
+            return selLinkIDMap;
         }
     }
 }

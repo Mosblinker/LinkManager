@@ -95,6 +95,11 @@ public interface DatabaseLinksListSettings extends LinksListSettings{
     }
     /**
      * 
+     * @return 
+     */
+    public Map<Integer, Long> getSelectedLinkIDMap();
+    /**
+     * 
      * @param listID
      * @param linkID
      * @param isVisible
