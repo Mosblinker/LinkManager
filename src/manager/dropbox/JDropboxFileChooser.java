@@ -150,6 +150,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         viewButtonGroup = new javax.swing.ButtonGroup();
         filePopupMenu = new javax.swing.JPopupMenu();
+        newFolderItem = new javax.swing.JMenuItem();
         controlButtonPanel = new javax.swing.JPanel();
         javax.swing.JButton acceptButton = getAcceptButton();
         javax.swing.JButton cancelButton = getCancelButton();
@@ -159,6 +160,14 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileNameLabel = new javax.swing.JLabel();
         fileNameField = new javax.swing.JTextField();
         newFolderButton = new javax.swing.JButton();
+
+        newFolderItem.setText("New Folder");
+        newFolderItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                newFolderActionPerformed(evt);
+            }
+        });
+        filePopupMenu.add(newFolderItem);
 
         controlButtonPanel.setLayout(new java.awt.GridLayout(1, 0, 6, 0));
         controlButtonPanel.add(acceptButton);
@@ -236,6 +245,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JLabel fileNameLabel;
     private javax.swing.JPopupMenu filePopupMenu;
     private javax.swing.JButton newFolderButton;
+    private javax.swing.JMenuItem newFolderItem;
     private javax.swing.JPanel treePanel;
     private javax.swing.JScrollPane treeScrollPanel;
     private javax.swing.ButtonGroup viewButtonGroup;
