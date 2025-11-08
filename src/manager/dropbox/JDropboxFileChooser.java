@@ -23,6 +23,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     public JDropboxFileChooser() {
         initComponents();
+        dropboxFileTree.setCellRenderer(new MetadataTreeCellRenderer());
     }
     @Override
     protected String getDefaultAcceptButtonToolTipText() {
