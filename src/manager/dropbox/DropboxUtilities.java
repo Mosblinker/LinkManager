@@ -628,6 +628,27 @@ public class DropboxUtilities {
     /**
      * 
      * @param client
+     * @param includeDeleted
+     * @return
+     * @throws DbxException 
+     */
+    public static DefaultMutableTreeNode listFolderTree(DbxClientV2 client, 
+            boolean includeDeleted) throws DbxException{
+        return listFolderTree(client,(String)null,includeDeleted);
+    }
+    /**
+     * 
+     * @param client
+     * @return
+     * @throws DbxException 
+     */
+    public static DefaultMutableTreeNode listFolderTree(DbxClientV2 client) 
+            throws DbxException{
+        return listFolderTree(client,false);
+    }
+    /**
+     * 
+     * @param client
      * @param path
      * @param includeDeleted
      * @param root
