@@ -135,6 +135,7 @@
           <SubComponents>
             <Component class="javax.swing.JTree" name="dropboxFileTree">
               <Properties>
+                <Property name="editable" type="boolean" value="true"/>
                 <Property name="inheritsPopupMenu" type="boolean" value="true"/>
                 <Property name="rootVisible" type="boolean" value="false"/>
               </Properties>

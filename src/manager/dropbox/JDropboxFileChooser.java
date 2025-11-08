@@ -191,6 +191,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         treeScrollPanel.setInheritsPopupMenu(true);
 
+        dropboxFileTree.setEditable(true);
         dropboxFileTree.setInheritsPopupMenu(true);
         dropboxFileTree.setRootVisible(false);
         treeScrollPanel.setViewportView(dropboxFileTree);
