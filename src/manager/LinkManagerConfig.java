@@ -2377,6 +2377,10 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
         protected Map<Integer, ConfigPreferences> nodeMap = new HashMap<>();
         /**
          * 
+         */
+        private Set<Integer> keys;
+        /**
+         * 
          * @return 
          */
         public Map<Integer, ConfigPreferences> getNodeCache(){
@@ -2474,9 +2478,9 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
          * 
          * @return 
          */
-        public Set<Integer> getKeys(){
+        public Set<Integer> getKeyCache(){
                 // This will get the keys in this map
-            Set<Integer> keys = new TreeSet<>();
+            Set<Integer> cache = new TreeSet<>();
             try{    // Get the names of the child nodes in the parent preference 
                 String[] childNodes = getParentNode().childrenNames(); // node
                     // Go through the names of the child nodes
@@ -2484,12 +2488,19 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
                         // If the child's name is not null
                     if (child != null){
                         try{    // Parse the number
-                            keys.add(Integer.valueOf(child));
+                            cache.add(Integer.valueOf(child));
                         } catch (NumberFormatException ex) {}
                     }
                 }
             } catch (BackingStoreException ex) {}
-            return keys;
+            return cache;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public Set<Integer> getKeys(){
+            return getKeyCache();
         }
     }
 }
