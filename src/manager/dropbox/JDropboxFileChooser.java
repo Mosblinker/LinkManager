@@ -134,7 +134,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         LinkManager.getLogger().entering("JDropboxFileChooser", "loadFiles",
                 client);
         DefaultMutableTreeNode node = DropboxUtilities.listFolderTree(client);
-        node.setUserObject("/");
         DefaultTreeModel model = new DefaultTreeModel(node,true);
         dropboxFileTree.setModel(model);
         LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
@@ -188,7 +187,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         treeScrollPanel.setInheritsPopupMenu(true);
 
         dropboxFileTree.setInheritsPopupMenu(true);
-        dropboxFileTree.setShowsRootHandles(false);
+        dropboxFileTree.setRootVisible(false);
         treeScrollPanel.setViewportView(dropboxFileTree);
 
         treePanel.add(treeScrollPanel, java.awt.BorderLayout.CENTER);
