@@ -177,7 +177,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
      * @return
      * @throws SQLException 
      */
-    protected PreparedStatement getSetStatement(String tableName, 
+    protected PreparedStatement createSetStatement(String tableName, 
             String keyColumnName, String valueColumnName, int key) 
             throws SQLException{
         PreparedStatement pstmt = conn.prepareStatement(String.format(
@@ -200,7 +200,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
                     "setSelectedLinkID");
             return;
         }
-        try(PreparedStatement pstmt = getSetStatement(LIST_SETTINGS_TABLE_NAME,
+        try(PreparedStatement pstmt = createSetStatement(LIST_SETTINGS_TABLE_NAME,
                 LIST_ID_COLUMN_NAME,LINK_ID_COLUMN_NAME,listID)){
             setParameter(pstmt,1,value);
             pstmt.executeUpdate();
@@ -236,7 +236,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     public void setSelectedLinkVisible(int listID, Boolean value) {
         if (!containsListID(listID) && value == null)
             return;
-        try(PreparedStatement pstmt = getSetStatement(LIST_SETTINGS_TABLE_NAME,
+        try(PreparedStatement pstmt = createSetStatement(LIST_SETTINGS_TABLE_NAME,
                 LIST_ID_COLUMN_NAME,SELECTION_IS_VISIBLE_COLUMN_NAME,listID)){
             setParameter(pstmt,1,value);
             pstmt.executeUpdate();
@@ -275,7 +275,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     private void setSelectionInteger(int listID, Integer value, String columnName) {
         if (!containsListID(listID) && value == null)
             return;
-        try(PreparedStatement pstmt = getSetStatement(LIST_SETTINGS_TABLE_NAME,
+        try(PreparedStatement pstmt = createSetStatement(LIST_SETTINGS_TABLE_NAME,
                 LIST_ID_COLUMN_NAME,columnName,listID)){
             setParameter(pstmt,1,value);
             pstmt.executeUpdate();
@@ -324,7 +324,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     public void setVisibleRect(int listID, Rectangle value) {
         if (!containsListID(listID) && value == null)
             return;
-        try(PreparedStatement pstmt = getSetStatement(LIST_SETTINGS_TABLE_NAME,
+        try(PreparedStatement pstmt = createSetStatement(LIST_SETTINGS_TABLE_NAME,
                 LIST_ID_COLUMN_NAME,VISIBLE_RECTANGLE_COLUMN_NAME,listID)){
             setParameter(pstmt,1,value);
             pstmt.executeUpdate();
@@ -502,7 +502,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
                     pstmt.executeUpdate();
                 }
             } else{
-                try(PreparedStatement pstmt = getSetStatement(LIST_TYPE_SETTINGS_TABLE_NAME,
+                try(PreparedStatement pstmt = createSetStatement(LIST_TYPE_SETTINGS_TABLE_NAME,
                         LIST_TYPE_COLUMN_NAME,LIST_ID_COLUMN_NAME,listType)){
                     setParameter(pstmt,1,listID);
                     pstmt.executeUpdate();
