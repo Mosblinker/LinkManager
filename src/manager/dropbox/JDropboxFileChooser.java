@@ -9,7 +9,6 @@ import com.dropbox.core.v2.DbxClientV2;
 import components.AbstractConfirmDialogPanel;
 import java.awt.Component;
 import java.util.logging.Level;
-import javax.swing.JDialog;
 import manager.LinkManager;
 
 /**
@@ -89,9 +88,25 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }
     @Override
     public int showDialog(Component panel){
+        if (getDialog() != null)     // If the dialog is already showing
+            return ERROR_OPTION;
         if (getDropboxClient() == null)
             throw new IllegalStateException("No Dropbox client set");
+        try{
+            loadFiles(getDropboxClient());
+        } catch (DbxException ex){
+            LinkManager.getLogger().log(Level.WARNING, "Failed to load files from Dropbox", ex);
+            throw new UncheckedDbxException(ex);
+        }
         return super.showDialog(panel);
+    }
+    /**
+     * 
+     * @param client 
+     * @throws com.dropbox.core.DbxException 
+     */
+    protected void loadFiles(DbxClientV2 client) throws DbxException{
+        
     }
     /**
      * This method is called from within the constructor to initialize the form.
