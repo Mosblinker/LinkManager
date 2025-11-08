@@ -4,16 +4,11 @@
  */
 package manager.database;
 
-import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Set;
+import java.sql.*;
+import java.util.*;
 import java.util.logging.Level;
 import manager.LinkManager;
-import sql.util.AbstractSQLSet;
+import sql.util.*;
 
 /**
  *
