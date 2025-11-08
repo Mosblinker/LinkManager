@@ -46,6 +46,53 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     public void setDropboxClient(DbxClientV2 client){
         dbxClient = client;
     }
+    
+    
+    /**
+     * 
+     * @param panel
+     * @param client
+     * @return 
+     */
+    public int showOpenDialog(Component panel, DbxClientV2 client){
+        return showDialog(panel,client,"Open");
+    }
+    /**
+     * 
+     * @param panel
+     * @param client
+     * @return 
+     */
+    public int showSaveDialog(Component panel, DbxClientV2 client){
+        return showDialog(panel,client,"Save");
+    }
+    /**
+     * 
+     * @param panel
+     * @param client
+     * @param acceptText
+     * @return 
+     */
+    public int showDialog(Component panel, DbxClientV2 client, String acceptText){
+        setAcceptButtonText(acceptText);
+        return showDialog(panel,client);
+    }
+    /**
+     * 
+     * @param panel
+     * @param client
+     * @return 
+     */
+    public int showDialog(Component panel, DbxClientV2 client){
+        setDropboxClient(client);
+        return showDialog(panel);
+    }
+    @Override
+    public int showDialog(Component panel){
+        if (getDropboxClient() == null)
+            throw new IllegalStateException("No Dropbox client set");
+        return super.showDialog(panel);
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
