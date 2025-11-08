@@ -809,7 +809,7 @@ class DatabaseLinksListSettingsImpl implements DatabaseLinksListSettings{
             Objects.requireNonNull(value);
             V old = getSQL(key);
             try(PreparedStatement pstmt = createSetStatement(getTableName(),
-                    getKeyColumnName(),getValueColumnName(),key,old!=null)){
+                    getKeyColumnName(),getValueColumnName(),key)){
                 setValue(pstmt,1,value);
                 pstmt.executeUpdate();
             }
