@@ -4,7 +4,13 @@
  */
 package manager.dropbox;
 
+import com.dropbox.core.DbxException;
+import com.dropbox.core.v2.DbxClientV2;
 import components.AbstractConfirmDialogPanel;
+import java.awt.Component;
+import java.util.logging.Level;
+import javax.swing.JDialog;
+import manager.LinkManager;
 
 /**
  *
@@ -26,7 +32,20 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     protected String getDefaultCancelButtonToolTipText() {
         return "Abort Dropbox file chooser dialog";
     }
-
+    /**
+     * 
+     * @return 
+     */
+    public DbxClientV2 getDropboxClient(){
+        return dbxClient;
+    }
+    /**
+     * 
+     * @param client 
+     */
+    public void setDropboxClient(DbxClientV2 client){
+        dbxClient = client;
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -78,7 +97,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-
+    /**
+     * This is the Dropbox client being used currently.
+     */
+    private DbxClientV2 dbxClient = null;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JTree dropboxFileTree;
