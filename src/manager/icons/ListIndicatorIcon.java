@@ -9,7 +9,7 @@ import java.awt.*;
 import java.util.EventListener;
 import javax.swing.Painter;
 import javax.swing.event.*;
-import manager.LinkManager;
+import manager.LinkManagerUtilities;
 import manager.links.*;
 import manager.painters.indicators.*;
 
@@ -119,11 +119,11 @@ public class ListIndicatorIcon implements Icon2D{
     }
     
     public boolean getFlag(int flag){
-        return LinkManager.getFlag(getFlags(), flag);
+        return LinkManagerUtilities.getFlag(getFlags(), flag);
     }
     
     public ListIndicatorIcon setFlag(int flag, boolean value){
-        return setFlags(LinkManager.setFlag(getFlags(), flag, value));
+        return setFlags(LinkManagerUtilities.setFlag(getFlags(), flag, value));
     }
     
     public boolean isHidden(){

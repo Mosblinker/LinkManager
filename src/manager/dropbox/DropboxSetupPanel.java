@@ -5,11 +5,11 @@
 package manager.dropbox;
 
 import components.*;
-import components.label.HyperlinkLabel;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.net.URI;
 import java.util.Objects;
 import javax.swing.*;
 import javax.swing.event.*;
@@ -22,6 +22,12 @@ public class DropboxSetupPanel extends AbstractConfirmDialogPanel{
     
     public static final String AUTHORIZATION_LINK_PROPERTY_CHANGED = 
             "AuthorizationLinkPropertyChanged";
+    
+    public static final String COPY_HYPERLINK_ACTION_COMMAND = 
+            "CopyHyperlink";
+    
+    public static final String OPEN_HYPERLINK_ACTION_COMMAND = 
+            "OpenHyperlink";
 
     @Override
     protected String getDefaultAcceptButtonToolTipText() {
@@ -50,7 +56,7 @@ public class DropboxSetupPanel extends AbstractConfirmDialogPanel{
         addInstructionComponent(comp,y,0,0);
     }
     
-    private void initialize(String link){
+    private void initialize(URI link){
         setBorder(javax.swing.BorderFactory.createEmptyBorder(11, 10, 11, 10));
         setMinimumSize(new java.awt.Dimension(380, 240));
         setPreferredSize(new java.awt.Dimension(480, 240));
@@ -60,11 +66,22 @@ public class DropboxSetupPanel extends AbstractConfirmDialogPanel{
         authCodeField.addMouseListener(getDisabledComponentListener());
         authCodeField.getDocument().addDocumentListener(handler);
         authCodeField.setComponentPopupMenu(popupMenu);
-        authURLLabel = new HyperlinkLabel(
+        authURLLabel = new JHyperlinkLabel(
                 "Click on this link to go to the Dropbox Authorization Website", 
                 link);
-        hyperlinkPopup = new HyperlinkLabel.HyperlinkPopup(authURLLabel);
-        hyperlinkPopup.addMouseListener(getDisabledComponentListener());
+        hyperlinkPopup = new JPopupMenu();
+        hyperlinkOpenItem = new JMenuItem();
+        hyperlinkOpenItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, 0));
+        hyperlinkOpenItem.setText("Open Link");
+        hyperlinkOpenItem.setActionCommand(OPEN_HYPERLINK_ACTION_COMMAND);
+        hyperlinkOpenItem.addActionListener(handler);
+        hyperlinkPopup.add(hyperlinkOpenItem);
+        hyperlinkCopyItem = new JMenuItem();
+        hyperlinkCopyItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_L, 0));
+        hyperlinkCopyItem.setText("Copy Link");
+        hyperlinkCopyItem.setActionCommand(COPY_HYPERLINK_ACTION_COMMAND);
+        hyperlinkCopyItem.addActionListener(handler);
+        hyperlinkPopup.add(hyperlinkCopyItem);
         authURLLabel.setComponentPopupMenu(hyperlinkPopup);
         
         instPanel = new JPanel(new GridBagLayout());
@@ -117,9 +134,17 @@ public class DropboxSetupPanel extends AbstractConfirmDialogPanel{
         add(bottomPanel,BorderLayout.PAGE_END);
     }
     
-    public DropboxSetupPanel(String link, String title){
+    public DropboxSetupPanel(URI link, String title){
         super(new BorderLayout(10, 11), title);
         initialize(link);
+    }
+    
+    public DropboxSetupPanel(URI link){
+        this(link,null);
+    }
+    
+    public DropboxSetupPanel(String link, String title){
+        this((link!=null)?URI.create(link):null,title);
     }
     
     public DropboxSetupPanel(String link){
@@ -127,40 +152,43 @@ public class DropboxSetupPanel extends AbstractConfirmDialogPanel{
     }
     
     public DropboxSetupPanel(){
-        this(null);
+        this((URI)null);
     }
     
-    public String getAuthorizationLink(){
-        return authURLLabel.getLink();
+    public URI getAuthorizationLink(){
+        return authURLLabel.getURI();
+    }
+    
+    public void setAuthorizationLink(URI link){
+        if (Objects.equals(link, getAuthorizationLink()))
+            return;
+        URI old = getAuthorizationLink();
+        authURLLabel.setURI(link);
+        firePropertyChange(AUTHORIZATION_LINK_PROPERTY_CHANGED,old,link);
     }
     
     public void setAuthorizationLink(String link){
-        resetHyperlink();
-        if (Objects.equals(link, getAuthorizationLink()))
-            return;
-        String oldLink = getAuthorizationLink();
-        authURLLabel.setLink(link);
-        firePropertyChange(AUTHORIZATION_LINK_PROPERTY_CHANGED,oldLink,link);
+        setAuthorizationLink((link!=null)?URI.create(link):null);
     }
     
-    public URL getAuthorizationURL() throws MalformedURLException{
-        return authURLLabel.getURL();
+    public boolean isAuthorizationVisited(){
+        return authURLLabel.isVisited();
     }
     
-    public void resetHyperlink(){
-        authURLLabel.resetHyperlink();
+    public void setAuthorizationVisited(boolean value){
+        authURLLabel.setVisited(value);
     }
     
-    public boolean openAuthorizationLink(){
-        return authURLLabel.openLink();
+    public void openAuthorizationLink(){
+        authURLLabel.openHyperlink();
     }
     
     public void copyAuthorizationLink(Clipboard clipboard){
-        authURLLabel.copyLink(clipboard);
+        authURLLabel.copyHyperlink(clipboard);
     }
     
     public void copyAuthorizationLink(){
-        authURLLabel.copyLink();
+        authURLLabel.copyHyperlink();
     }
     
     public String getAuthorizationCode(){
@@ -211,7 +239,7 @@ public class DropboxSetupPanel extends AbstractConfirmDialogPanel{
     @Override
     public void cancel(){
         clearAuthorizationCode();
-        resetHyperlink();
+        setAuthorizationVisited(false);
         super.cancel();
     }
     @Override
@@ -222,7 +250,7 @@ public class DropboxSetupPanel extends AbstractConfirmDialogPanel{
     @Override
     public int showDialog(Component parent){
         clearAuthorizationCode();
-        resetHyperlink();
+        setAuthorizationVisited(false);
         return super.showDialog(parent);
     }
     
@@ -243,9 +271,13 @@ public class DropboxSetupPanel extends AbstractConfirmDialogPanel{
     
     protected JPanel instPanel;
     
-    private HyperlinkLabel authURLLabel;
+    private JHyperlinkLabel authURLLabel;
     
-    private HyperlinkLabel.HyperlinkPopup hyperlinkPopup;
+    private JPopupMenu hyperlinkPopup;
+    
+    private JMenuItem hyperlinkCopyItem;
+    
+    private JMenuItem hyperlinkOpenItem;
     
     private JTextField authCodeField;
     
@@ -253,7 +285,7 @@ public class DropboxSetupPanel extends AbstractConfirmDialogPanel{
     
     private JLabel[] textLabels;
     
-    private class Handler implements DocumentListener{
+    private class Handler implements DocumentListener, ActionListener{
         @Override
         public void insertUpdate(DocumentEvent e) {
             updateAcceptEnabled();
@@ -276,6 +308,20 @@ public class DropboxSetupPanel extends AbstractConfirmDialogPanel{
             for (DocumentListener l : getDocumentListeners()){
                 if (l != null)
                     l.changedUpdate(e);
+            }
+        }
+        @Override
+        public void actionPerformed(ActionEvent evt) {
+            if (getAuthorizationLink() == null){
+                UIManager.getLookAndFeel().provideErrorFeedback(authURLLabel);
+                return;
+            }
+            switch(evt.getActionCommand()){
+                case(OPEN_HYPERLINK_ACTION_COMMAND):
+                    authURLLabel.openHyperlink();
+                    break;
+                case(COPY_HYPERLINK_ACTION_COMMAND):
+                    authURLLabel.copyHyperlink();
             }
         }
     }

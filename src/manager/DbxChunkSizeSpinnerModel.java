@@ -4,14 +4,15 @@
  */
 package manager;
 
-import javax.swing.AbstractSpinnerModel;
+import java.util.*;
+import javax.swing.*;
 
 /**
  * This is a spinner model for setting the Dropbox chunk size to use when 
  * uploading large files. This is in Mebibytes.
  * @author Mosblinker
  */
-class DbxChunkSizeSpinnerModel extends AbstractSpinnerModel{
+class DbxChunkSizeSpinnerModel extends SpinnerListModel{
     /**
      * This is the minimum value for the multiplier.
      */
@@ -38,56 +39,73 @@ class DbxChunkSizeSpinnerModel extends AbstractSpinnerModel{
      */
     protected static final long BASE_CHUNK_SIZE = 0x400000;
     /**
-     * This is the multiplier for the value.
-     */
-    private int value = MULTIPLIER_MINIMUM;
-    /**
      * This constructs a DbxChunkSizeSpinnerModel that is set to 8 MiB.
      */
     protected DbxChunkSizeSpinnerModel(){
-        value = MULTIPLIER_MINIMUM+1;
+        super(new DbxChunkSizeList());
+        DbxChunkSizeSpinnerModel.this.setMultiplier(2);
     }
-    
+    /**
+     * 
+     * @return 
+     */
     public int getMultiplier(){
-        return value;
+        return getList().indexOf(getValue())+MULTIPLIER_MINIMUM;
     }
-    
+    /**
+     * 
+     * @param value 
+     */
     public void setMultiplier(int value){
-        if (this.value == value)
-            return;
-        if (value < MULTIPLIER_MINIMUM || value > MULTIPLIER_MAXIMUM)
-            throw new IllegalArgumentException();
-        this.value = value;
-        fireStateChanged();
+        setValue(getList().get(value-MULTIPLIER_MINIMUM));
     }
-    
-    public int getNumber(){
-        return BASE_VALUE * getMultiplier();
-    }
-    
+    /**
+     * 
+     * @return 
+     */
     public long getChunkSize(){
         return BASE_CHUNK_SIZE * getMultiplier();
     }
     @Override
-    public Object getValue() {
-        return getNumber();
+    public void setValue(Object elt){
+            // If the value is a String
+        if (elt instanceof String){
+            try{    // Try to parse the value as an integer and use that instead
+                elt = Integer.valueOf((String)elt);
+            } catch (NumberFormatException ex) {}
+        }
+        super.setValue(elt);
     }
-    @Override
-    public void setValue(Object value) {
-        if (value == null || !(value instanceof Number))
-            throw new IllegalArgumentException();
-        setMultiplier(((Number)value).intValue()/BASE_VALUE);
-    }
-    @Override
-    public Object getNextValue() {
-        if (getMultiplier() < MULTIPLIER_MAXIMUM)
-            return BASE_VALUE * (getMultiplier()+1);
-        return null;
-    }
-    @Override
-    public Object getPreviousValue() {
-        if (getMultiplier() > MULTIPLIER_MINIMUM)
-            return BASE_VALUE * (getMultiplier()-1);
-        return null;
+    /**
+     * 
+     */
+    protected static class DbxChunkSizeList extends AbstractList<Integer>{
+        @Override
+        public Integer get(int index) {
+                // Check the size
+            Objects.checkIndex(index, size());
+            return BASE_VALUE*(index+MULTIPLIER_MINIMUM);
+        }
+        @Override
+        public int indexOf(Object o){
+            if (o instanceof Integer){
+                int value = (Integer)o;
+                if (value % BASE_VALUE != 0)
+                    return -1;
+                value /= BASE_VALUE;
+                value -= MULTIPLIER_MINIMUM;
+                if (value >= 0 && value < size())
+                    return value;
+            }
+            return -1;
+        }
+        @Override
+        public int lastIndexOf(Object o){
+            return indexOf(o);
+        }
+        @Override
+        public int size() {
+            return MULTIPLIER_MAXIMUM-MULTIPLIER_MINIMUM+1;
+        }
     }
 }

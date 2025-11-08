@@ -7,8 +7,11 @@ package manager.security;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.security.*;
+import java.util.Objects;
+import java.util.logging.Level;
 import javax.crypto.*;
 import javax.crypto.spec.*;
+import manager.LinkManager;
 
 /**
  *
@@ -113,9 +116,9 @@ public class CipherUtilities {
      * @throws InvalidKeyException
      * @throws InvalidAlgorithmParameterException 
      */
-    private static Cipher createCipher(int mode, SecretKey key, 
-            IvParameterSpec iv, SecureRandom rand) throws 
-            NoSuchAlgorithmException,NoSuchPaddingException,InvalidKeyException, 
+    public static Cipher createCipher(int mode,SecretKey key,IvParameterSpec iv, 
+            SecureRandom rand) throws NoSuchAlgorithmException, 
+            NoSuchPaddingException, InvalidKeyException, 
             InvalidAlgorithmParameterException{
         Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
         cipher.init(mode, key, iv, rand);
@@ -158,6 +161,31 @@ public class CipherUtilities {
     /**
      * 
      * @param value
+     * @param cipher
+     * @return
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException 
+     * @throws NullPointerException
+     */
+    public static byte[] encryptByteArray(byte[] value, Cipher cipher) throws 
+            IllegalBlockSizeException, BadPaddingException{
+            // Check that the value is not null
+        Objects.requireNonNull(value);
+            // Encrypt the given byte array
+        byte[] encrypted = cipher.doFinal(value);
+            // This will get the encrypted byte array expanded by two bytes
+        byte[] output = new byte[encrypted.length+2];
+            // Create a byte buffer to write the expanded array
+        ByteBuffer buffer = ByteBuffer.wrap(output);
+            // Put the encrypted value header at the start
+        buffer.putShort(ENCRYPTED_VALUE_HEADER);
+            // Put the encrypted value into the byte buffer
+        buffer.put(encrypted);
+        return output;
+    }
+    /**
+     * 
+     * @param value
      * @param key
      * @param iv
      * @param rand
@@ -168,23 +196,43 @@ public class CipherUtilities {
      * @throws InvalidAlgorithmParameterException
      * @throws IllegalBlockSizeException
      * @throws BadPaddingException 
+     * @throws NullPointerException
      */
     public static byte[] encryptByteArray(byte[] value, SecretKey key, 
             IvParameterSpec iv, SecureRandom rand) throws NoSuchAlgorithmException, 
             NoSuchPaddingException, InvalidKeyException, 
             InvalidAlgorithmParameterException, IllegalBlockSizeException, 
             BadPaddingException{
-            // Encrypt the given byte array
-        byte[] encrypted = createEncryptCipher(key,iv,rand).doFinal(value);
-            // This will get the encrypted byte array expanded by two bytes
-        byte[] output = new byte[encrypted.length+2];
-            // Create a byte buffer to write the expanded array
-        ByteBuffer buffer = ByteBuffer.wrap(output);
-            // Put the encrypted value header at the start
-        buffer.putShort(ENCRYPTED_VALUE_HEADER);
-            // Put the encrypted value into the byte buffer
-        buffer.put(encrypted);
-        return output;
+        return encryptByteArray(value,createEncryptCipher(key,iv,rand));
+    }
+    /**
+     * 
+     * @param encryptedValue
+     * @param cipher
+     * @return
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException 
+     * @throws NullPointerException
+     */
+    public static byte[] decryptByteArray(byte[] encryptedValue, Cipher cipher) 
+            throws IllegalBlockSizeException, BadPaddingException{
+            // Check that the value is not null
+        Objects.requireNonNull(encryptedValue);
+            // Wrap the byte array with a read only byte buffer to read from to 
+            // it
+        ByteBuffer buffer = ByteBuffer.wrap(encryptedValue).asReadOnlyBuffer(); 
+        try{    // If the byte array's header matches the encrypted value header
+            if (buffer.getShort() == ENCRYPTED_VALUE_HEADER){
+                    // Decrypt all but the first two bytes, since the first two 
+                    // bytes are a header
+                return cipher.doFinal(encryptedValue, Short.BYTES, 
+                        encryptedValue.length-Short.BYTES);
+            }
+        } catch (BufferUnderflowException ex){ 
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Buffer underflow encountered while checking header", ex);
+        }
+        return null;
     }
     /**
      * 
@@ -199,23 +247,13 @@ public class CipherUtilities {
      * @throws InvalidAlgorithmParameterException
      * @throws IllegalBlockSizeException
      * @throws BadPaddingException 
+     * @throws NullPointerException
      */
     public static byte[] decryptByteArray(byte[] encryptedValue, SecretKey key, 
             IvParameterSpec iv, SecureRandom rand) throws NoSuchAlgorithmException, 
             NoSuchPaddingException, InvalidKeyException, 
             InvalidAlgorithmParameterException, IllegalBlockSizeException, 
             BadPaddingException{
-            // Wrap the byte array with a read only byte buffer to read from to 
-            // it
-        ByteBuffer buffer = ByteBuffer.wrap(encryptedValue).asReadOnlyBuffer(); 
-        try{    // If the byte array's header matches the encrypted value header
-            if (buffer.getShort() == ENCRYPTED_VALUE_HEADER){
-                    // Decrypt all but the first two bytes, since the first 
-                    // two bytes are a header
-                return createDecryptCipher(key,iv,rand).doFinal(encryptedValue, 
-                        Short.BYTES, encryptedValue.length-Short.BYTES);
-            }
-        } catch (BufferUnderflowException ex){ }
-        return null;
+        return decryptByteArray(encryptedValue,createDecryptCipher(key,iv,rand));
     }
 }

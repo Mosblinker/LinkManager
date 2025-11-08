@@ -4,11 +4,12 @@
  */
 package manager.config;
 
+import config.ConfigUtilities;
+import static config.ConfigUtilities.*;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.*;
-import static manager.config.ConfigUtilities.*;
 
 /**
  *
@@ -189,6 +190,10 @@ public class ConfigProperties extends Properties{
         else if (value instanceof Rectangle)
                 // Set the value as a rectangle
             return setRectangleProperty(key,(Rectangle)value);
+            // If the new value is a UUID
+        else if (value instanceof UUID)
+                // Set the value as a UUID
+            return setUUIDProperty(key,(UUID)value);
             // Set the property as a String
         return setProperty(key,value.toString());
     }
@@ -408,5 +413,37 @@ public class ConfigProperties extends Properties{
      */
     public Rectangle getRectangleProperty(String key){
         return getRectangleProperty(key, null);
+    }
+    /**
+     * 
+     * @param key
+     * @param value 
+     * @return  
+     */
+    public Object setUUIDProperty(String key, UUID value){
+        return setProperty(key,(value!=null)?value.toString():null);
+    }
+    /**
+     * 
+     * @param key
+     * @param defaultValue
+     * @return 
+     */
+    public UUID getUUIDProperty(String key, UUID defaultValue){
+        String value = getProperty(key);
+        if (value != null && !value.isEmpty()){
+            try{
+                return UUID.fromString(value);
+            } catch (IllegalArgumentException ex){ }
+        }
+        return defaultValue;
+    }
+    /**
+     * 
+     * @param key
+     * @return 
+     */
+    public UUID getUUIDProperty(String key){
+        return getUUIDProperty(key,null);
     }
 }

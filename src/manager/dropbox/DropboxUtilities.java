@@ -9,13 +9,15 @@ import com.dropbox.core.util.IOUtil.ProgressListener;
 import com.dropbox.core.v2.*;
 import com.dropbox.core.v2.files.*;
 import com.dropbox.core.v2.users.*;
+import icons.DefaultPfpIcon;
 import java.awt.Color;
 import java.awt.MediaTracker;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.logging.Level;
 import javax.swing.*;
-import manager.icons.DefaultPfpIcon;
+import manager.*;
 
 /**
  * A utility library used with Dropbox stuff.
@@ -48,6 +50,18 @@ public class DropboxUtilities {
     private DropboxUtilities() {}
     /**
      * 
+     * @param path
+     * @return 
+     */
+    public static String formatDropboxPath(String path){
+            // If the path does not start with a slash
+        if (!path.startsWith("/"))
+                // Add a slash to the start of the file name
+            return "/"+path;
+        return path.trim();
+    }
+    /**
+     * 
      * @param account
      * @param userName
      * @return 
@@ -64,7 +78,10 @@ public class DropboxUtilities {
                             // Set the description to state that it's the user's 
                             // profile picture
                         userName+"'s Profile Picture");
-            } catch (MalformedURLException ex){ }
+            } catch (MalformedURLException ex){ 
+                LinkManager.getLogger().log(Level.INFO, 
+                        "Dropbox user PFP URL is malformed", ex);
+            }
         }   // If the user did not have a profile picture set or the profile 
             // picture failed to load
         if (pfpIcon == null || (pfpIcon.getImageLoadStatus() 
@@ -182,12 +199,18 @@ public class DropboxUtilities {
             throws IOException, DbxException{
         try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file));
                 DbxDownloader<FileMetadata> dbxDown = dbxFiles.downloadBuilder(path).start()){
+                // This is the metadata of the file that will be downloaded
+            FileMetadata metadata;
                 // If no progress listener was provided
             if (l == null)
                     // Download the file from Dropbox
-                return dbxDown.download(out);
-                // Download the file from Dropbox
-            return dbxDown.download(out, l);
+                metadata = dbxDown.download(out);
+            else
+                    // Download the file from Dropbox
+                metadata = dbxDown.download(out, l);
+                // Set the last modified time of the file from the server
+            file.setLastModified(metadata.getServerModified().getTime());
+            return metadata;
         }
     }
     /**
@@ -218,6 +241,8 @@ public class DropboxUtilities {
     public static FileMetadata upload(File file, String path, 
             DbxUserFilesRequests dbxFiles, long chunkSize, boolean overwrite, 
             ProgressListener l) throws IOException, DbxException{
+        LinkManager.getLogger().entering("DropboxUtilities", "upload",
+                new Object[]{file,path,dbxFiles,chunkSize,overwrite,l});
             // If the chunk size is smaller than the minimum chunk size
         if (chunkSize < MINIMUM_CHUNK_SIZE)
             throw new IllegalArgumentException("Chunk size is too small ("+
@@ -243,12 +268,16 @@ public class DropboxUtilities {
                             // Set the client modified date to the file's last 
                             // modified date
                         .withClientModified(new Date(file.lastModified()));
+                FileMetadata metadata;
                     // If the progress listener is null
                 if (l == null)
                         // Upload the file to Dropbox
-                    return uploader.uploadAndFinish(in);
-                    // Upload the file to Dropbox
-                return uploader.uploadAndFinish(in, l);
+                    metadata = uploader.uploadAndFinish(in);
+                else
+                        // Upload the file to Dropbox
+                    metadata = uploader.uploadAndFinish(in, l);
+                LinkManager.getLogger().exiting("DropboxUtilities", "upload", metadata);
+                return metadata;
             }
         } else {    // Code is heavily based off the upload file example for Dropbox
                 // The amount of bytes that have been uploaded so far
@@ -280,6 +309,8 @@ public class DropboxUtilities {
                 // failed at some point
             for (int i = 0; i < CHUNKED_UPLOAD_MAX_ATTEMPTS && metadata == null; 
                     i++){
+                LinkManager.getLogger().log(Level.FINER, "Uploading attempt {0}", i);
+                dbxEx = null;
                     // Create an input stream to load the file 
                 try (InputStream in = new BufferedInputStream(new FileInputStream(file))){
                         // Skip the bytes we've already read
@@ -315,6 +346,7 @@ public class DropboxUtilities {
                     metadata = dbxFiles.uploadSessionFinish(cursor, info)
                             .uploadAndFinish(in, fileSize - uploaded, listener);
                 } catch (RetryException ex){
+                    LinkManager.getLogger().log(Level.INFO, "Uploading attempt "+i+" failed", ex);
                         // This is thrown when the program wants us to back off 
                         // for a bit
                     dbxEx = ex;
@@ -323,6 +355,8 @@ public class DropboxUtilities {
                         Thread.sleep(ex.getBackoffMillis()+1);  // measure
                     } catch (InterruptedException ex1){ }
                 } catch (NetworkIOException ex){
+                    LinkManager.getLogger().log(Level.INFO, "Uploading attempt "+i+" failed", ex);
+                    LinkManager.getLogger().log(Level.INFO, "Network error encountered", ex.getCause());
                         // If the previous error was also a network issue with 
                         // Dropbox
                     if (dbxEx instanceof NetworkIOException){
@@ -332,6 +366,7 @@ public class DropboxUtilities {
                     }
                     dbxEx = ex;
                 } catch (UploadSessionFinishErrorException ex){
+                    LinkManager.getLogger().log(Level.INFO, "Uploading attempt "+i+" failed", ex);
                         // If the offset into the stream doesn't match the 
                         // amount we've uploaded
                     if (ex.errorValue.isLookupFailed() && 
@@ -348,6 +383,7 @@ public class DropboxUtilities {
                 // we have a Dropbox error to forward
             if (metadata == null && dbxEx != null)
                 throw dbxEx;
+            LinkManager.getLogger().exiting("DropboxUtilities", "upload", metadata);
             return metadata;
         }
     }
@@ -456,5 +492,28 @@ public class DropboxUtilities {
     public static FileMetadata upload(File file, String path, 
             DbxUserFilesRequests dbxFiles) throws IOException, DbxException{
         return upload(file,path,dbxFiles,null);
+    }
+    /**
+     * 
+     * @param fileSize
+     * @param l
+     * @return 
+     */
+    public static ProgressListener setUpProgressListener(long fileSize, 
+            ProgressObserver l){
+            // Set the progress to be zero
+        l.setValue(0);
+            // Get the value needed to divide the file length to get it back 
+            // into the range of integers
+        double div = LinkManagerUtilities.getFileSizeDivider(fileSize);
+            // Set the progress maximum to the file length divided by the 
+            // divisor
+        l.setMaximum((int)Math.ceil(fileSize / div));
+            // Create and return a progress listener that will update the 
+            // progress bar to reflect the bytes that have been written so far
+        return (long bytesWritten) -> {
+                // Update the progress with the amount of bytes written
+            l.setValue((int)Math.ceil(bytesWritten / div));
+        };
     }
 }

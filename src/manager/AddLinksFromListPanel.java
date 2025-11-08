@@ -5,7 +5,7 @@
 package manager;
 
 import components.*;
-import java.awt.event.ActionEvent;
+import java.awt.Component;
 import javax.swing.*;
 
 /**
@@ -39,43 +39,38 @@ public class AddLinksFromListPanel extends AbstractConfirmDialogPanel{
         super(new java.awt.BorderLayout(10, 11));
         initialize();
     }
-
     @Override
     protected String getDefaultAcceptButtonToolTipText() {
         return "Add the links to the selected list.";
     }
-
     @Override
     protected String getDefaultCancelButtonToolTipText() {
         return null;
     }
-    
     @Override
     protected String getDefaultAcceptButtonText(){
         return "Add Links";
     }
-    
     @Override
     public void accept(){
-        text = textArea.getText();
         super.accept();
     }
-    
     @Override
     public void cancel(){
-        text = "";
         super.cancel();
-        
     }
     
-    @Override
-    protected void closeDialog(ActionEvent evt, String command){
-        super.closeDialog(evt, command);
-        textArea.setText("");
+    public int showDialog(Component parent, String text){
+        setText(text);
+        return super.showDialog(parent);
+    }
+    
+    public void setText(String text){
+        textArea.setText(text);
     }
     
     public String getText(){
-        return text;
+        return textArea.getText();
     }
     
     public JScrollPane getScrollPane(){
@@ -94,5 +89,4 @@ public class AddLinksFromListPanel extends AbstractConfirmDialogPanel{
     private JScrollPane scrollPane;
     private JTextArea textArea;
     private JPanel controlPanel;
-    private String text = "";
 }

@@ -5,6 +5,8 @@
 package manager.database;
 
 import java.util.Objects;
+import java.util.logging.Level;
+import manager.LinkManager;
 import manager.links.LinksListModel;
 import sql.UncheckedSQLException;
 
@@ -160,6 +162,7 @@ public interface ListNameMap extends SQLRowMap<Integer, String>{
             // If the model does not have a listID or the map does not currently 
         if (listID == null || !containsKey(listID)){    // contain the list
             model.setListID(add(model));
+            LinkManager.getLogger().log(Level.FINER, "Creating List with ID {0}", model.getListID());
         }
         return model.getListID();
     }

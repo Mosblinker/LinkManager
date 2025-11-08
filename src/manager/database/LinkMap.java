@@ -5,7 +5,7 @@
 package manager.database;
 
 import java.util.*;
-import java.util.function.BiConsumer;
+import manager.ProgressObserver;
 import sql.UncheckedSQLException;
 
 /**
@@ -182,11 +182,7 @@ public interface LinkMap extends SQLRowMap<Long, String>{
      * generated keys to each element.
      * @param c The collection of values to put in this map.
      * @param observer An observer to use to observe the progress of this 
-     * method, or null. The first parameter provided to it will be the progress 
-     * value, and the second parameter will be the progress maximum. A null 
-     * value for the second parameter indicates that this is to switch whether 
-     * the progress is indeterminate, with a non-zero first parameter indicating 
-     * that the progress is currently indeterminate.
+     * method, or null.
      * @return Whether this map was altered as a result of calling this method. 
      * @throws UnsupportedOperationException If the {@code add} operation is not 
      * supported by this map.
@@ -201,7 +197,7 @@ public interface LinkMap extends SQLRowMap<Long, String>{
      * are not required to, throw this if a database error occurs.
      */
     public boolean addAll(Collection<? extends String> c, 
-            BiConsumer<Integer,Integer> observer);
+            ProgressObserver observer);
     /**
      * This maps any elements in the given collection that are not currently 
      * associated with a key to a new, unique key for that element, and returns 
@@ -214,11 +210,7 @@ public interface LinkMap extends SQLRowMap<Long, String>{
      * 
      * @param c The collection of values to put in this map.
      * @param observer An observer to use to observe the progress of this 
-     * method, or null. The first parameter provided to it will be the progress 
-     * value, and the second parameter will be the progress maximum. A null 
-     * value for the second parameter indicates that this is to switch whether 
-     * the progress is indeterminate, with a non-zero first parameter indicating 
-     * that the progress is currently indeterminate.
+     * method, or null.
      * @return Whether this map was altered as a result of calling this method. 
      * @throws UnsupportedOperationException If the {@code add} operation is not 
      * supported by this map.
@@ -233,5 +225,5 @@ public interface LinkMap extends SQLRowMap<Long, String>{
      * are not required to, throw this if a database error occurs.
      */
     public boolean addAllIfAbsent(Collection<? extends String> c, 
-            BiConsumer<Integer,Integer> observer);
+            ProgressObserver observer);
 }

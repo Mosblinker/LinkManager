@@ -10,14 +10,18 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.security.*;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.prefs.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
+import static manager.DatabaseSyncMode.DROPBOX;
 import manager.config.*;
+import manager.database.CacheSetIterator;
 import manager.dropbox.DropboxLinkUtils;
 import manager.links.*;
 import manager.security.*;
 import org.sqlite.SQLiteConfig;
+import utils.SwingExtendedUtilities;
 
 /**
  * This is a class that is used to store and manage the configuration for 
@@ -25,7 +29,7 @@ import org.sqlite.SQLiteConfig;
  * as Strings.
  * @author Milo Steier
  */
-public class LinkManagerConfig {
+public class LinkManagerConfig implements LinksListSettings{
     /**
      * This is the configuration key for the progress display setting.
      */
@@ -119,6 +123,8 @@ public class LinkManagerConfig {
             "ReplaceOutdatedLists";
     
     public static final String SYNC_DATABASE_KEY = "SyncDatabase";
+    
+    public static final String HIDDEN_FILES_ARE_SHOWN_KEY = "HiddenFilesAreShown";
     /**
      * This is the configuration key for the encrypted access token for the 
      * Dropbox account to use to access the database file if the database file 
@@ -141,19 +147,19 @@ public class LinkManagerConfig {
      * This is the configuration key for the listID of the currently selected 
      * list if a list with a listID is selected.
      */
-    public static final String CURRENT_TAB_LIST_ID_KEY = "CurrentTabListID";
+    public static final String SELECTED_LIST_ID_KEY = "CurrentTabListID";
     /**
      * This is the configuration key for the index of the currently selected 
-     * tab if a tab is selected. This value is used as a fallback value to be 
-     * used when the value for {@link CURRENT_TAB_LIST_ID_KEY} is unavailable 
-     * either due to the currently selected list not having a listID, no lists 
-     * have the selected listID, or the current tab is not a list. The value for 
-     * {@code CURRENT_TAB_LIST_ID_KEY} takes priority over this value due to 
+     * tab if a tab is selected.This value is used as a fallback value to be 
+ used when the value for {@link CURRENT_TAB_LIST_ID_KEY#SELECTED_TAB_LIST_ID_KEY} is unavailable 
+ either due to the currently selected list not having a listID, no lists 
+ have the selected listID, or the current tab is not a list. The value for 
+ {@code CURRENT_TAB_LIST_ID_KEY} takes priority over this value due to 
      * the listIDs staying more or less constant for any given list saved to or 
      * loaded from the database, whereas the index for any given list may vary 
      * between instances of the program.
      */
-    public static final String CURRENT_TAB_INDEX_KEY = "CurrentTabIndex";
+    public static final String SELECTED_TAB_INDEX_KEY = "CurrentTabIndex";
     /**
      * This is the configuration key for the currently selected link in a list 
      * with a listID.
@@ -174,6 +180,11 @@ public class LinkManagerConfig {
     public static final String LAST_VISIBLE_INDEX_FOR_LIST_KEY = 
             "LastVisibleIndex";
     /**
+     * 
+     */
+    public static final String VISIBLE_RECTANGLE_FOR_LIST_KEY = 
+            "VisibleRect";
+    /**
      * This is the user and program specific encryption key for the program. 
      * This encryption key is, in it of itself, encrypted by another encryption 
      * key stored along side the program ID.
@@ -184,6 +195,10 @@ public class LinkManagerConfig {
      * chunk size used when uploading large files.
      */
     public static final String CHUNK_SIZE_MULTIPLIER_KEY = "ChunkSizeMultiplier";
+    /**
+     * This is the configuration key for the UUID for the user of the program.
+     */
+    public static final String USER_ID_KEY = "UserID";
     /**
      * This is the suffix for the configuration keys for the size of a 
      * component.
@@ -225,12 +240,20 @@ public class LinkManagerConfig {
      */
     public static final String LIST_ID_PROPERTY_KEY_SUFFIX = "ForList";
     /**
+     * This is an array that contains the suffixes for the keys in properties 
+     * that deal with list stuff.
+     */
+    private static final String[] LIST_PROPERTY_KEY_SUFFIXES = {
+        LIST_TYPE_PROPERTY_KEY_SUFFIX,
+        LIST_ID_PROPERTY_KEY_SUFFIX
+    };
+    /**
      * This is an array that contains the prefixes for the keys in properties 
      * that deal with list types.
      */
     private static final String[] LIST_TYPE_PROPERTY_KEY_PREFIXES = {
-        CURRENT_TAB_LIST_ID_KEY,
-        CURRENT_TAB_INDEX_KEY
+        SELECTED_LIST_ID_KEY,
+        SELECTED_TAB_INDEX_KEY
     };
     /**
      * This is an array that contains the prefixes for the keys in properties 
@@ -240,7 +263,8 @@ public class LinkManagerConfig {
         SELECTED_LINK_FOR_LIST_KEY,
         SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY,
         FIRST_VISIBLE_INDEX_FOR_LIST_KEY,
-        LAST_VISIBLE_INDEX_FOR_LIST_KEY
+        LAST_VISIBLE_INDEX_FOR_LIST_KEY,
+        VISIBLE_RECTANGLE_FOR_LIST_KEY
     };
     /**
      * This is the name of the preference node used to store the data for 
@@ -248,18 +272,22 @@ public class LinkManagerConfig {
      */
     public static final String DROPBOX_PREFERENCE_NODE_NAME = "dropbox";
     /**
-     * This is the prefix for the name of the preference nodes used to store 
-     * the settings relating to a specific type of list. The list type is 
-     * appended to the end of this to get the preference node specific for that 
-     * list type.
+     * This is the name of the preference node used to store the preference 
+     * nodes that store the settings relating to a specific type of list. The 
+     * list type is used as the name of the preference node that corresponds to 
+     * that list type.
      */
-    public static final String LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX="listType=";
+    public static final String LIST_TYPE_PREFERENCE_NODE_NAME = "listType";
     /**
-     * This is the prefix for the name of the preference nodes used to store 
-     * the settings relating to a specific list. The list's listID is appended 
-     * to the end of this to get the preference node specific for that list.
+     * This is the name of the preference node used to store the preference 
+     * nodes that store the settings relating to a specific list. The listID is 
+     * used as the name of the preference node that corresponds to that list.
      */
-    public static final String LIST_ID_PREFERENCE_NODE_NAME_PREFIX = "listID=";
+    public static final String LIST_ID_PREFERENCE_NODE_NAME = "listID";
+    /**
+     * 
+     */
+    public static final String CHECK_FOR_UPDATES_AT_START_KEY = "CheckForUpdatesAtStartup";
     /**
      * This is the preference node containing all the preferences for 
      * LinkManager. This is the parent preference node for all other nodes, and 
@@ -320,38 +348,31 @@ public class LinkManagerConfig {
      */
     private Map<Integer, Integer> lastVisIndexMap = null;
     /**
+     * This is a map view of the visible rectangles for the lists. This is 
+     * initially null and is initialized when first used.
+     */
+    private Map<Integer, Rectangle> visRectMap = null;
+    /**
      * This is the preference node that stores the settings and tokens for 
      * Dropbox.
      */
     protected ConfigPreferences dropboxNode = null;
     /**
-     * This is a map that caches the list type preference nodes.
+     * This is used to handle the list type preference nodes.
      */
-    protected Map<Integer, ConfigPreferences> listTypeNodeMap;
+    protected final ListConfigNodeParent listTypeNodes;
     /**
-     * This is a map that caches the listID preference nodes.
+     * This is used to handle the listID preference nodes.
      */
-    protected Map<Integer, ConfigPreferences> listIDNodeMap;
+    protected final ListConfigNodeParent listIDNodes;
     /**
      * This is the ID for the program.
      */
     private UUID programID = null;
     /**
-     * This is the secret key used for the cipher.
+     * This is a utilities object for encrypting and decrypting values.
      */
-    protected SecretKey secretKey = null;
-    /**
-     * This is the IV Parameter used for the cipher.
-     */
-    protected IvParameterSpec cipherIV = null;
-    /**
-     * This is the SecureRandom used to generate random numbers for the cipher.
-     */
-    protected SecureRandom secureRand = null;
-    /**
-     * The key generator used to generate the secret keys.
-     */
-    protected KeyGenerator keyGen = null;
+    protected CipherUtils cipherUtils = null;
     /**
      * 
      * @param sqlProp
@@ -367,8 +388,18 @@ public class LinkManagerConfig {
             sqlConfig = new SQLiteConfig();
         programNode = node;
         localDefaults = new ConfigProperties();
-        listTypeNodeMap = new HashMap<>();
-        listIDNodeMap = new HashMap<>();
+        listTypeNodes = new ListConfigNodeParent(){
+            @Override
+            public String getParentPath() {
+                return LIST_TYPE_PREFERENCE_NODE_NAME;
+            }
+        };
+        listIDNodes = new ListConfigNodeParent(){
+            @Override
+            public String getParentPath() {
+                return LIST_ID_PREFERENCE_NODE_NAME;
+            }
+        };;
     }
     /**
      * 
@@ -387,10 +418,7 @@ public class LinkManagerConfig {
         this.compNameMap.putAll(linkConfig.compNameMap);
         this.localDefaults.addProperties(linkConfig.localDefaults);
         LinkManagerConfig.this.setProgramID(linkConfig.programID);
-        this.secretKey = linkConfig.secretKey;
-        this.cipherIV = linkConfig.cipherIV;
-        this.secureRand = linkConfig.secureRand;
-        this.keyGen = linkConfig.keyGen;
+        this.cipherUtils = new CipherUtils(linkConfig.cipherUtils);
     }
     /**
      * This returns the preference node used to store the shared configuration 
@@ -437,28 +465,8 @@ public class LinkManagerConfig {
     public ConfigPreferences getDropboxPreferences(){
             // If the Dropbox node is currently null
         if (dropboxNode == null)
-            dropboxNode = getPreferences().node(DROPBOX_PREFERENCE_NODE_NAME);
+            dropboxNode = getLocalChild(DROPBOX_PREFERENCE_NODE_NAME);
         return dropboxNode;
-    }
-    /**
-     * 
-     * @param key
-     * @param prefix
-     * @param cache
-     * @return 
-     */
-    private ConfigPreferences getListDataPreferences(int key, String prefix, 
-            Map<Integer, ConfigPreferences> cache){
-            // Check the preference node cache for the node
-        ConfigPreferences node = cache.get(key);
-            // If the cache does not have the preference node
-        if (node == null){
-                // Get the node
-            node = getPreferences().node(prefix+key);
-                // Cache the node
-            cache.put(key, node);
-        }
-        return node;
     }
     /**
      * 
@@ -466,8 +474,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public ConfigPreferences getListTypePreferences(int type){
-        return getListDataPreferences(type,LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX,
-                listTypeNodeMap);
+        return listTypeNodes.getNode(type);
     }
     /**
      * 
@@ -475,8 +482,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public ConfigPreferences getListPreferences(int listID){
-        return getListDataPreferences(listID,LIST_ID_PREFERENCE_NODE_NAME_PREFIX,
-                listIDNodeMap);
+        return listIDNodes.getNode(listID);
     }
     /**
      * This returns the SQLite configuration for the database used by 
@@ -527,6 +533,92 @@ public class LinkManagerConfig {
         return programNode.node(programID.toString(), getDefaults());
     }
     /**
+     * 
+     * @param path
+     * @param defaults
+     * @return 
+     */
+    protected ConfigPreferences getLocalChild(String path, Properties defaults){
+        return getPreferences().node(path, defaults);
+    }
+    /**
+     * 
+     * @param path
+     * @return 
+     */
+    protected ConfigPreferences getLocalChild(String path){
+        return getLocalChild(path,null);
+    }
+    /**
+     * 
+     */
+    protected void updatePreferences(){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "updatePreferences");
+        try{    // Get the names of the child nodes in the parent preference 
+            String[] childNodes = getPreferences().childrenNames();     // node
+                // Go through the names of the child nodes
+            for (String child : childNodes){
+                    // If the child's name is not null
+                if (child != null){
+                        // Get the index of the equals sign in the child's name
+                    int index = child.indexOf("=");
+                        // If the child has an equals sign in its name
+                    if (index >= 0){
+                        try{    // Parse the number at the end of the child's 
+                                // name
+                            int value = Integer.parseInt(child.substring(index+1));
+                                // Get the prefix for the child name
+                            String prefix = child.substring(0,index);
+                                // This is the parent object for the node type
+                            ListConfigNodeParent parent;
+                                // Determine how to treat this node
+                            switch(prefix){
+                                    // If it's an old list type node
+                                case(LIST_TYPE_PREFERENCE_NODE_NAME):
+                                    parent = listTypeNodes;
+                                    break;
+                                    // If it's an old listID node
+                                case(LIST_ID_PREFERENCE_NODE_NAME):
+                                    parent = listIDNodes;
+                                    break;
+                                default:
+                                    continue;
+                            }   // Get the original node
+                            Preferences oldNode = getLocalChild(child);
+                                // Get the new node
+                            ConfigPreferences node = parent.getNode(value);
+                            try{    // Go through the keys in the old node
+                                for (String key : oldNode.keys()){
+                                        // If the new node doesn't have a value 
+                                        // set for the current key
+                                    if (!node.isKeySet(key))
+                                            // Put the value from the old node 
+                                            // into the new node
+                                        node.put(key, oldNode.get(key, ""));
+                                }
+                            } catch (BackingStoreException ex) {
+                                LinkManager.getLogger().log(Level.WARNING, 
+                                        "Failed to get keys for a node", ex);
+                            }
+                                // Remove the old node
+                            removeNode(oldNode);
+                        } catch (NumberFormatException | 
+                                IllegalStateException ex) {
+                            LinkManager.getLogger().log(Level.WARNING,
+                                    "Unable to get old node", ex);
+                        }
+                    }
+                }
+            }
+        } catch (BackingStoreException ex) {
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Backing store exception thrown", ex);
+        }
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "updatePreferences");
+    }
+    /**
      * This returns the program ID set for this configuration.
      * @return The program ID.
      */
@@ -551,12 +643,16 @@ public class LinkManagerConfig {
         programID = id;
             // Set the local preference node
         localNode = createPreferences();
-            // Clear the list type preference node cache
-        listTypeNodeMap.clear();
-            // Clear the listID preference node cache
-        listIDNodeMap.clear();
+            // Get the parent node for the list type preference nodes and clear 
+            // the node cache
+        listTypeNodes.setParentNode();
+            // Get the parent node for the listID preference nodes and clear the 
+            // node cache
+        listIDNodes.setParentNode();
             // Reset the Dropbox node to null
         dropboxNode = null;
+            // Update the values in the preference nodes
+        updatePreferences();
     }
     /**
      * This sets the program ID to be a random {@code UUID}.
@@ -577,56 +673,15 @@ public class LinkManagerConfig {
      * 
      * @return 
      */
-    public SecureRandom getSecureRandom(){
-        return secureRand;
+    public CipherUtils getCipher(){
+        return cipherUtils;
     }
     /**
      * 
-     * @param rand 
+     * @param utils 
      */
-    public void setSecureRandom(SecureRandom rand){
-        secureRand = rand;
-    }
-    /**
-     * 
-     * @return 
-     * @throws java.security.NoSuchAlgorithmException 
-     */
-    public SecureRandom setSecureRandom() throws NoSuchAlgorithmException{
-        setSecureRandom(SecureRandom.getInstanceStrong());
-        return getSecureRandom();
-    }
-    /**
-     * 
-     * @return 
-     */
-    public KeyGenerator getKeyGenerator(){
-        return keyGen;
-    }
-    /**
-     * 
-     * @param keyGen 
-     */
-    public void setKeyGenerator(KeyGenerator keyGen){
-        this.keyGen = keyGen;
-    }
-    /**
-     * 
-     * @param rand
-     * @return
-     * @throws NoSuchAlgorithmException 
-     */
-    public KeyGenerator setKeyGenerator(SecureRandom rand) throws NoSuchAlgorithmException{
-        setKeyGenerator(CipherUtilities.getKeyGenerator(rand));
-        return getKeyGenerator();
-    }
-    /**
-     * 
-     * @return
-     * @throws NoSuchAlgorithmException 
-     */
-    public KeyGenerator setKeyGenerator() throws NoSuchAlgorithmException{
-        return setKeyGenerator(getSecureRandom());
+    public void setCipher(CipherUtils utils){
+        this.cipherUtils = utils;
     }
     /**
      * 
@@ -644,16 +699,15 @@ public class LinkManagerConfig {
     }
     /**
      * 
-     * @param key
-     * @param iv 
-     * @throws java.security.NoSuchAlgorithmException 
-     * @throws javax.crypto.NoSuchPaddingException 
-     * @throws java.security.InvalidKeyException 
-     * @throws java.security.InvalidAlgorithmParameterException 
-     * @throws javax.crypto.IllegalBlockSizeException 
-     * @throws javax.crypto.BadPaddingException 
+     * @param userUtils
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException 
      */
-    public void initializeEncryption(SecretKey key, IvParameterSpec iv) throws 
+    protected void loadEncryptionKey(CipherUtils userUtils) throws 
             NoSuchAlgorithmException, NoSuchPaddingException, 
             InvalidKeyException, InvalidAlgorithmParameterException, 
             IllegalBlockSizeException, BadPaddingException{
@@ -665,27 +719,61 @@ public class LinkManagerConfig {
             String accessToken = getDropboxAccessToken();
                 // Get the unencrypted Dropbox refresh token
             String refreshToken = getDropboxRefreshToken();
-                // Generate the secret key
-            secretKey = getKeyGenerator().generateKey();
-                // Generate the IV
-            cipherIV = CipherUtilities.generateIV(getSecureRandom());
-                // Get the encryption key for the program
-            localKey = CipherUtilities.getEncryptionKey(secretKey, cipherIV);
+                // Generate the encryption key for the cipher
+            getCipher().generateEncryptionKey();
                 // Encrypt the encryption key and store it
-            setRawEncryptionKey(CipherUtilities.encryptByteArray(localKey, key,
-                    iv, getSecureRandom()));
+            setRawEncryptionKey(userUtils.encryptByteArray(
+                    getCipher().getEncryptionKey()));
                 // Set the Dropbox access token, which should encrypt it now
             setDropboxAccessToken(accessToken);
                 // Set the Dropbox refresh token, which should encrypt it now
             setDropboxRefreshToken(refreshToken);
         } else {    // Decrypt the encryption key
-            localKey = CipherUtilities.decryptByteArray(localKey, key, iv, 
-                    getSecureRandom());
-                // Extract the secret key from the encryption key
-            secretKey = CipherUtilities.getSecretKeyFromEncryptionKey(localKey);
-                // Extract the IV from the encryption key
-            cipherIV = CipherUtilities.getIVFromEncryptionKey(localKey);
+            localKey = userUtils.decryptByteArray(localKey);
+                // Set the encryption key for the cipher
+            getCipher().setEncryptionKey(localKey);
         }
+    }
+    /**
+     * 
+     * @param userUtils
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     * @throws InvalidKeyException
+     * @throws InvalidAlgorithmParameterException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException 
+     */
+    public void initEncryption(CipherUtils userUtils) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+            // Set the CipherUtils to use a copy of the user CipherUtils
+        setCipher(new CipherUtils(userUtils));
+            // If the user CipherUtils did not have a key generator
+        if (getCipher().getKeyGenerator() == null)
+            getCipher().setKeyGenerator();
+            // Initialize the encryption
+        loadEncryptionKey(userUtils);
+    }
+    /**
+     * 
+     * @param key
+     * @param iv 
+     * @throws java.security.NoSuchAlgorithmException 
+     * @throws javax.crypto.NoSuchPaddingException 
+     * @throws java.security.InvalidKeyException 
+     * @throws java.security.InvalidAlgorithmParameterException 
+     * @throws javax.crypto.IllegalBlockSizeException 
+     * @throws javax.crypto.BadPaddingException 
+     */
+    public void initEncryption(SecretKey key, IvParameterSpec iv) throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, 
+            InvalidKeyException, InvalidAlgorithmParameterException, 
+            IllegalBlockSizeException, BadPaddingException{
+            // Initialize the encryption using the given key and IV parameters
+        loadEncryptionKey(new CipherUtils(getCipher()).setKey(key)
+                .setIV(iv));
     }
     /**
      * 
@@ -697,20 +785,22 @@ public class LinkManagerConfig {
      * @throws javax.crypto.IllegalBlockSizeException 
      * @throws javax.crypto.BadPaddingException 
      */
-    public void initializeEncryption(byte[] encryptKey) throws 
+    public void initEncryption(byte[] encryptKey) throws 
             NoSuchAlgorithmException, NoSuchPaddingException, 
             InvalidKeyException, InvalidAlgorithmParameterException, 
             IllegalBlockSizeException, BadPaddingException{
-        initializeEncryption(
-                CipherUtilities.getSecretKeyFromEncryptionKey(encryptKey),
-                CipherUtilities.getIVFromEncryptionKey(encryptKey));
+            // Initialize the encryption using the given encryption key
+        loadEncryptionKey(new CipherUtils(getCipher())
+                .setEncryptionKey(encryptKey));
     }
     /**
      * 
      */
     public void resetEncryption(){
-        cipherIV = null;
-        secretKey = null;
+            // If the CipherUtils object is not null
+        if (getCipher() != null)
+                // Clear the encryption key
+            getCipher().clearEncryptionKey();
             // If there was an encryption key set
         if (getRawEncryptionKey() != null)
             clearDropboxToken();
@@ -721,7 +811,7 @@ public class LinkManagerConfig {
      * @return 
      */
     public boolean isEncryptionEnabled(){
-        return secretKey != null && cipherIV != null && getSecureRandom()!=null;
+        return getCipher() != null && getCipher().isEncryptionKeySet();
     }
     /**
      * 
@@ -740,8 +830,7 @@ public class LinkManagerConfig {
             IllegalBlockSizeException, BadPaddingException{
             // If the encryption is enabled and the value is not null
         if (isEncryptionEnabled() && value != null)
-            return CipherUtilities.encryptByteArray(value, secretKey, cipherIV, 
-                    getSecureRandom());
+            return getCipher().encryptByteArray(value);
         return value;
     }
     /**
@@ -761,8 +850,7 @@ public class LinkManagerConfig {
             IllegalBlockSizeException, BadPaddingException{
             // If the encryption is enabled and the value is not null
         if (isEncryptionEnabled() && value != null)
-            return CipherUtilities.decryptByteArray(value, secretKey, cipherIV, 
-                    getSecureRandom());
+            return getCipher().decryptByteArray(value);
         return value;
     }
     /**
@@ -1035,6 +1123,9 @@ public class LinkManagerConfig {
         if (b != null)
                 // Set whether database will sync from the properties
             setDatabaseWillSync(b);
+        b = cProp.getBooleanProperty(HIDDEN_FILES_ARE_SHOWN_KEY);
+        if (b != null)
+            setHiddenFilesAreShown(b);
             // Get the value for the Dropbox database file path from the 
             // properties
         str = cProp.getProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY);    
@@ -1042,6 +1133,9 @@ public class LinkManagerConfig {
         if (str != null)
                 // Set the Dropbox database file path from the properties
             setDropboxDatabaseFileName(str);
+        b = cProp.getBooleanProperty(CHECK_FOR_UPDATES_AT_START_KEY);
+        if (b != null)
+            setCheckForUpdateAtStartup(b);
             // Go through the entries in the component name map
         for (Map.Entry<Component,String> entry:getComponentNames().entrySet()){
                 // Get the dimension for the component from the properties
@@ -1079,6 +1173,8 @@ public class LinkManagerConfig {
             // This maps the list types to the selected index of the tab for 
             // that list type
         Map<Integer,Integer> selListMap = new HashMap<>();
+            // This maps the listIDs to the visible rectangle for that list
+        Map<Integer,Rectangle> visRectMap = new HashMap<>();
             // This gets a set of keys for the properties that deal with lists
         Set<String> listKeys = new HashSet<>(cProp.stringPropertyNames());
             // Remove any null keys and keys that aren't prefixed keys for the 
@@ -1088,31 +1184,26 @@ public class LinkManagerConfig {
         });
             // Go through the property keys that deal with lists
         for (String key : listKeys){
-            String keyPrefix;   // Get the prefix for the current key
+                // The prefix for the current key
+            String keyPrefix = null;
                 // The suffix for the property version of the key
-            String keySuffix = LIST_ID_PROPERTY_KEY_SUFFIX;   
-                // If the key starts with the selected link key
-            if (key.startsWith(SELECTED_LINK_FOR_LIST_KEY))
-                keyPrefix = SELECTED_LINK_FOR_LIST_KEY;
-                // If the key starts with the selected link is visible key
-            else if (key.startsWith(SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
-                keyPrefix = SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY;
-                // If the key starts with the first visible index key
-            else if (key.startsWith(FIRST_VISIBLE_INDEX_FOR_LIST_KEY))
-                keyPrefix = FIRST_VISIBLE_INDEX_FOR_LIST_KEY;
-                // If the key starts with the last visible index key
-            else if (key.startsWith(LAST_VISIBLE_INDEX_FOR_LIST_KEY))
-                keyPrefix = LAST_VISIBLE_INDEX_FOR_LIST_KEY;
-                // If the key starts with the current tab listID key
-            else if (key.startsWith(CURRENT_TAB_LIST_ID_KEY)){
-                keyPrefix = CURRENT_TAB_LIST_ID_KEY;
-                keySuffix = LIST_TYPE_PROPERTY_KEY_SUFFIX;
-            }   // If the key starts with the current tab index key
-            else if (key.startsWith(CURRENT_TAB_INDEX_KEY)){
-                keyPrefix = CURRENT_TAB_INDEX_KEY;
-                keySuffix = LIST_TYPE_PROPERTY_KEY_SUFFIX;
-            } else  // Skip this key
-                continue;
+            String keySuffix = null;
+                // Go through the possible list property key suffixes
+            for (String suffix : LIST_PROPERTY_KEY_SUFFIXES){
+                    // Get the index of the start of the current suffix if 
+                    // present in the current key
+                int index = key.lastIndexOf(suffix);
+                    // If the suffix is present in the current key
+                if (index >= 0){
+                        // This is the suffix for the key
+                    keySuffix = suffix;
+                        // Get the prefix for the key
+                    keyPrefix = key.substring(0, index);
+                    break;
+                }
+            }   // If this key does not have a matching key prefix or suffix
+            if (keySuffix == null || keyPrefix == null)
+                continue;   // Skip this key
             try{    // Get the list or tabs panel that this key is for
                 int type = Integer.parseInt(key.substring(keyPrefix.length()+
                         keySuffix.length()));
@@ -1135,12 +1226,16 @@ public class LinkManagerConfig {
                         lastVisMap.put(type, cProp.getIntProperty(key));
                         break;
                         // If this is the current tab listID key
-                    case(CURRENT_TAB_LIST_ID_KEY):
+                    case(SELECTED_LIST_ID_KEY):
                         selListIDMap.put(type, cProp.getIntProperty(key));
                         break;
                         // If this is the current tab index key
-                    case(CURRENT_TAB_INDEX_KEY):
+                    case(SELECTED_TAB_INDEX_KEY):
                         selListMap.put(type, cProp.getIntProperty(key));
+                        break;
+                        // If this is the visible rectangle index key
+                    case(VISIBLE_RECTANGLE_FOR_LIST_KEY):
+                        visRectMap.put(type, cProp.getRectangleProperty(key));
                 }
             } catch(NumberFormatException ex){ }
         }   // Remove all null values from the selected links
@@ -1155,18 +1250,22 @@ public class LinkManagerConfig {
         selListIDMap.values().removeIf((Integer t) -> t == null);
             // Remove all null values from the current tab indexes
         selListMap.values().removeIf((Integer t) -> t == null);
+            // Remove all null values from the visible rectangles
+        visRectMap.values().removeIf((Rectangle t) -> t == null);
             // Add all the values for the selected links in the lists
         getSelectedLinkMap().putAll(selMap);
             // Add all the values for the selected links are visible in the lists
-        getSelectedLinkIsVisibleMap().putAll(selVisMap);
+        getSelectedLinkVisibleMap().putAll(selVisMap);
             // Add all the values for the first visible indexes in the lists
         getFirstVisibleIndexMap().putAll(firstVisMap);
             // Add all the values for the last visible indexes in the lists
         getLastVisibleIndexMap().putAll(lastVisMap);
             // Add all the values for the current tab listIDs 
-        getCurrentTabListIDMap().putAll(selListIDMap);
+        getSelectedListIDMap().putAll(selListIDMap);
             // Add all the values for the current tab indexes
-        getCurrentTabIndexMap().putAll(selListMap);
+        getSelectedTabIndexMap().putAll(selListMap);
+            // Add all the values for the visible rectangles for the lists
+        getVisibleRectMap().putAll(visRectMap);
     }
     /**
      * 
@@ -1195,16 +1294,16 @@ public class LinkManagerConfig {
                 prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY, 
                         getDropboxDatabaseFileName());
             }   // Add the current tab listID data to the properties
-            addListDataToProperties(getCurrentTabListIDMap(),
-                    CURRENT_TAB_LIST_ID_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
+            addListDataToProperties(getSelectedListIDMap(),
+                    SELECTED_LIST_ID_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
                 // Add the current tab index data to the properties
-            addListDataToProperties(getCurrentTabIndexMap(),
-                    CURRENT_TAB_INDEX_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
+            addListDataToProperties(getSelectedTabIndexMap(),
+                    SELECTED_TAB_INDEX_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
                 // Add the selected link data to the properties
             addListDataToProperties(getSelectedLinkMap(),
                     SELECTED_LINK_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,prop);
                 // Add the selected link visibility data to the properties
-            addListDataToProperties(getSelectedLinkIsVisibleMap(),
+            addListDataToProperties(getSelectedLinkVisibleMap(),
                     SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY+
                             LIST_ID_PROPERTY_KEY_SUFFIX,prop);
                 // Add the first visible index data to the properties
@@ -1214,6 +1313,10 @@ public class LinkManagerConfig {
                 // Add the last visible index data to the properties
             addListDataToProperties(getLastVisibleIndexMap(),
                     LAST_VISIBLE_INDEX_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
+                    prop);
+                // Add the visible rectangle data to the properties
+            addListDataToProperties(getVisibleRectMap(),
+                    VISIBLE_RECTANGLE_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
                     prop);
                 // Remove the encryption key from the properties
             prop.remove(ENCRYPTION_KEY_KEY);
@@ -1506,6 +1609,20 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @param value 
+     */
+    public void setHiddenFilesAreShown(Boolean value){
+        getPreferences().putObject(HIDDEN_FILES_ARE_SHOWN_KEY, value);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public boolean getHiddenFilesAreShown(){
+        return getPreferences().getBoolean(HIDDEN_FILES_ARE_SHOWN_KEY,true);
+    }
+    /**
+     * 
      * @param comp
      * @param width
      * @param height 
@@ -1588,6 +1705,30 @@ public class LinkManagerConfig {
     /**
      * 
      * @param comp
+     * @param defaultValue
+     * @return 
+     */
+    public Dimension loadComponentSize(Component comp, Dimension defaultValue){
+            // Get the size for the component
+        Dimension dim = getComponentSize(comp,defaultValue);
+            // If the size for the component is not null and the component is 
+            // not null
+        if (dim != null && comp != null)
+                // Set the size of the component
+            SwingExtendedUtilities.setComponentSize(comp, dim);
+        return dim;
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Dimension loadComponentSize(Component comp){
+        return loadComponentSize(comp,null);
+    }
+    /**
+     * 
+     * @param comp
      * @param x
      * @param y 
      */
@@ -1665,6 +1806,30 @@ public class LinkManagerConfig {
     public boolean isComponentLocationSet(Component comp){
         return getPreferences().isKeySet(getComponentName(comp)+
                 COMPONENT_LOCATION_KEY_SUFFIX);
+    }
+    /**
+     * 
+     * @param comp
+     * @param defaultValue
+     * @return 
+     */
+    public Point loadComponentLocation(Component comp, Point defaultValue){
+            // Get the location for the component
+        Point point = getComponentLocation(comp,defaultValue);
+            // If the location for the component is not null and the component 
+            // is not null
+        if (point != null && comp != null)
+                // Set the location for the component
+            comp.setLocation(point);
+        return point;
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Point loadComponentLocation(Component comp){
+        return loadComponentLocation(comp,null);
     }
     /**
      * 
@@ -1774,6 +1939,36 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @param comp
+     * @param defaultValue
+     * @return 
+     */
+    public Rectangle loadComponentBounds(Component comp,Rectangle defaultValue){
+            // Get the bounds for the component
+        Rectangle rect = getComponentBounds(comp, defaultValue);
+            // If the bounds for the component are not null and the component is 
+            // not null
+        if (rect != null && comp != null){
+                // If the component is the program window
+            if (comp instanceof LinkManager){
+                    // If the component bounds are not set
+                if (!isComponentBoundsSet(comp))
+                    return rect;
+            }   // Set the bounds for the component
+            SwingExtendedUtilities.setComponentBounds(comp, rect);
+        }
+        return rect;
+    }
+    /**
+     * 
+     * @param comp
+     * @return 
+     */
+    public Rectangle loadComponentBounds(Component comp){
+        return loadComponentBounds(comp,null);
+    }
+    /**
+     * 
      * @param node
      * @param key
      * @return 
@@ -1785,42 +1980,31 @@ public class LinkManagerConfig {
             return node.getInt(key, 0);
         return null;
     }
-    /**
-     * 
-     * @param listType
-     * @param listID 
-     */
-    public void setCurrentTabListID(int listType, Integer listID){
-        getListTypePreferences(listType).putObject(CURRENT_TAB_LIST_ID_KEY, 
+    @Override
+    public void setSelectedListID(int listType, Integer listID){
+        getListTypePreferences(listType).putObject(SELECTED_LIST_ID_KEY, 
                 listID);
     }
-    /**
-     * 
-     * @param listType
-     * @return 
-     */
-    public Integer getCurrentTabListID(int listType){
+    @Override
+    public Integer getSelectedListID(int listType){
         return getIntegerPreference(getListTypePreferences(listType), 
-                CURRENT_TAB_LIST_ID_KEY);
+                SELECTED_LIST_ID_KEY);
     }
-    /**
-     * 
-     * @return 
-     */
-    public Map<Integer, Integer> getCurrentTabListIDMap(){
+    @Override
+    public Map<Integer, Integer> getSelectedListIDMap(){
         if (currTabIDMap == null){
-            currTabIDMap = new ListConfigDataMap<>(){
+            currTabIDMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected Integer getValue(int key) {
-                    return getCurrentTabListID(key);
+                    return getSelectedListID(key);
                 }
                 @Override
                 protected void putValue(int key, Integer value) {
-                    setCurrentTabListID(key,value);
+                    setSelectedListID(key,value);
                 }
                 @Override
-                protected String getPrefixForNodes() {
-                    return LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX;
+                protected ListConfigNodeParent getNodes() {
+                    return listTypeNodes;
                 }
             };
         }
@@ -1831,39 +2015,38 @@ public class LinkManagerConfig {
      * @param listType
      * @param index 
      */
-    public void setCurrentTabIndex(int listType, Integer index){
-        getListTypePreferences(listType).putObject(CURRENT_TAB_INDEX_KEY,index);
+    public void setSelectedTabIndex(int listType, Integer index){
+        getListTypePreferences(listType).putObject(SELECTED_TAB_INDEX_KEY,index);
     }
     /**
      * 
      * @param listType
      * @return 
      */
-    public int getCurrentTabIndex(int listType){
-        return getListTypePreferences(listType).getInt(CURRENT_TAB_INDEX_KEY,0);
+    public int getSelectedTabIndex(int listType){
+        return getListTypePreferences(listType).getInt(SELECTED_TAB_INDEX_KEY,0);
     }
     /**
      * 
      * @return 
      */
-    public Map<Integer, Integer> getCurrentTabIndexMap(){
+    public Map<Integer, Integer> getSelectedTabIndexMap(){
         if (currTabIndexMap == null){
-            currTabIndexMap = new ListConfigDataMap<>(){
+            currTabIndexMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected Integer getValue(int key) {
                          // If the node contains the current tab index key
-                    if (getListTypePreferences(key).containsKey(
-                            CURRENT_TAB_INDEX_KEY))
-                        return getCurrentTabIndex(key);
+                    if (getListTypePreferences(key).containsKey(SELECTED_TAB_INDEX_KEY))
+                        return getSelectedTabIndex(key);
                     return null;
                 }
                 @Override
                 protected void putValue(int key, Integer value) {
-                    setCurrentTabIndex(key,value);
+                    setSelectedTabIndex(key,value);
                 }
                 @Override
-                protected String getPrefixForNodes() {
-                    return LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX;
+                protected ListConfigNodeParent getNodes() {
+                    return listTypeNodes;
                 }
             };
         }
@@ -1874,7 +2057,8 @@ public class LinkManagerConfig {
      * @param listType
      * @param tabsPanel 
      */
-    public void setCurrentTab(int listType, LinksListTabsPanel tabsPanel){
+    @Override
+    public void setSelectedTab(int listType, LinksListTabsPanel tabsPanel){
             // The listID of the current tab
         Integer listID = null;
             // The index of the current tab
@@ -1887,32 +2071,29 @@ public class LinkManagerConfig {
             index = (tabsPanel.isSelectionEmpty()) ? null :
                     tabsPanel.getSelectedIndex();
         }
-        setCurrentTabListID(listType,listID);
-        setCurrentTabIndex(listType, index);
+        setSelectedListID(listType,listID);
+        setSelectedTabIndex(listType, index);
     }
-    /**
-     * 
-     * @param listID
-     * @param value 
-     */
+    @Override
+    public boolean removeSelectedTab(int listType) {
+        return listTypeNodes.removeNode(listType);
+    }
+    @Override
     public void setSelectedLink(int listID, String value){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "setSelectedLink", new Object[]{listID,value});
         getListPreferences(listID).put(SELECTED_LINK_FOR_LIST_KEY, value);
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "setSelectedLink");
     }
-    /**
-     * 
-     * @param listID
-     * @return 
-     */
+    @Override
     public String getSelectedLink(int listID){
         return getListPreferences(listID).get(SELECTED_LINK_FOR_LIST_KEY, null);
     }
-    /**
-     * 
-     * @return 
-     */
+    @Override
     public Map<Integer,String> getSelectedLinkMap(){
         if (selLinkMap == null){
-            selLinkMap = new ListConfigDataMap<>(){
+            selLinkMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected String getValue(int key) {
                     return getSelectedLink(key);
@@ -1922,83 +2103,60 @@ public class LinkManagerConfig {
                     setSelectedLink(key,value);
                 }
                 @Override
-                protected String getPrefixForNodes() {
-                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
                 }
             };
         }
         return selLinkMap;
     }
-    /**
-     * 
-     * @param listID
-     * @param value 
-     */
-    public void setSelectedLinkIsVisible(int listID, Boolean value){
+    @Override
+    public void setSelectedLinkVisible(int listID, Boolean value){
         getListPreferences(listID).putObject(
                 SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, value);
     }
-    /**
-     * 
-     * @param listID
-     * @return 
-     */
-    public boolean getSelectedLinkIsVisible(int listID){
-        return getListPreferences(listID).getBoolean(
-                SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, false);
+    @Override
+    public Boolean isSelectedLinkVisible(int listID){
+        if (getListPreferences(listID).containsKey(
+                            SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
+            return getListPreferences(listID).getBoolean(
+                    SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, false);
+        return null;
     }
-    /**
-     * 
-     * @return 
-     */
-    public Map<Integer,Boolean> getSelectedLinkIsVisibleMap(){
+    @Override
+    public Map<Integer,Boolean> getSelectedLinkVisibleMap(){
         if (selLinkVisMap == null){
-            selLinkVisMap = new ListConfigDataMap<>(){
+            selLinkVisMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected Boolean getValue(int key) {
-                        // If the node contains the selected link is visible key
-                    if (getListPreferences(key).containsKey(
-                            SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
-                        return getSelectedLinkIsVisible(key);
-                    return null;
+                    return isSelectedLinkVisible(key);
                 }
                 @Override
                 protected void putValue(int key, Boolean value) {
-                    setSelectedLinkIsVisible(key,value);
+                    setSelectedLinkVisible(key,value);
                 }
                 @Override
-                protected String getPrefixForNodes() {
-                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
                 }
             };
         }
         return selLinkVisMap;
     }
-    /**
-     * 
-     * @param listID
-     * @param value 
-     */
+    @Override
     public void setFirstVisibleIndex(int listID, Integer value){
         getListPreferences(listID).putObject(FIRST_VISIBLE_INDEX_FOR_LIST_KEY,
                 value);
     }
-    /**
-     * 
-     * @param listID
-     * @return 
-     */
+    @Override
     public Integer getFirstVisibleIndex(int listID){
         return getIntegerPreference(getListPreferences(listID), 
                 FIRST_VISIBLE_INDEX_FOR_LIST_KEY);
     }
-    /**
-     * 
-     * @return 
-     */
+    @Override
     public Map<Integer, Integer> getFirstVisibleIndexMap(){
         if (firstVisIndexMap == null){
-            firstVisIndexMap = new ListConfigDataMap<>(){
+            firstVisIndexMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected Integer getValue(int key) {
                     return getFirstVisibleIndex(key);
@@ -2008,38 +2166,27 @@ public class LinkManagerConfig {
                     setFirstVisibleIndex(key,value);
                 }
                 @Override
-                protected String getPrefixForNodes() {
-                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
                 }
             };
         }
         return firstVisIndexMap;
     }
-    /**
-     * 
-     * @param listID
-     * @param value 
-     */
+    @Override
     public void setLastVisibleIndex(int listID, Integer value){
         getListPreferences(listID).putObject(LAST_VISIBLE_INDEX_FOR_LIST_KEY,
                 value);
     }
-    /**
-     * 
-     * @param listID
-     * @return 
-     */
+    @Override
     public Integer getLastVisibleIndex(int listID){
         return getIntegerPreference(getListPreferences(listID), 
                 LAST_VISIBLE_INDEX_FOR_LIST_KEY);
     }
-    /**
-     * 
-     * @return 
-     */
+    @Override
     public Map<Integer, Integer> getLastVisibleIndexMap(){
         if (lastVisIndexMap == null){
-            lastVisIndexMap = new ListConfigDataMap<>(){
+            lastVisIndexMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected Integer getValue(int key) {
                     return getLastVisibleIndex(key);
@@ -2049,68 +2196,83 @@ public class LinkManagerConfig {
                     setLastVisibleIndex(key,value);
                 }
                 @Override
-                protected String getPrefixForNodes() {
-                    return LIST_ID_PREFERENCE_NODE_NAME_PREFIX;
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
                 }
             };
         }
         return lastVisIndexMap;
     }
-    /**
-     * 
-     * @param listID
-     * @param panel 
-     */
-    public void setVisibleSection(int listID, LinksListPanel panel){
-            // This will get the first visible index
-        Integer firstVisIndex = null;
-            // This will get the last visible index
-        Integer lastVisIndex = null;
-            // This will get whether the selected index is visible
-        Boolean isSelVis = null;
-            // If the panel is not null
-        if (panel != null){
-                // Get the first visible index for the list
-            firstVisIndex = panel.getList().getFirstVisibleIndex();
-                // If the first visible index is negative
-            if (firstVisIndex < 0)
-                firstVisIndex = null;
-                // Get the last visible index for the list
-            lastVisIndex = panel.getList().getLastVisibleIndex();
-                // If the last visible index is negative
-            if (lastVisIndex < 0)
-                lastVisIndex = null;
-                // If the panel's selection is not empty
-            if (!panel.isSelectionEmpty())
-                    // Get whether the selected indes is visible
-                isSelVis = panel.isIndexVisible(panel.getSelectedIndex());
-        }   // Set the first visible index for the list
-        setFirstVisibleIndex(listID,firstVisIndex);
-            // Set the last visible index for the list
-        setLastVisibleIndex(listID,lastVisIndex);
-            // Set whether the selected link is visible
-        setSelectedLinkIsVisible(listID,isSelVis);
+    @Override
+    public void setVisibleRect(int listID, Rectangle value){
+        getListPreferences(listID).putObject(VISIBLE_RECTANGLE_FOR_LIST_KEY, 
+                value);
+    }
+    @Override
+    public Rectangle getVisibleRect(int listID, Rectangle defaultValue){
+        return getListPreferences(listID).getRectangle(
+                VISIBLE_RECTANGLE_FOR_LIST_KEY, defaultValue);
+    }
+    @Override
+    public Map<Integer, Rectangle> getVisibleRectMap(){
+        if (visRectMap == null){
+            visRectMap = new ListConfigDataMapImpl<>(){
+                @Override
+                protected Rectangle getValue(int key) {
+                    return getVisibleRect(key);
+                }
+                @Override
+                protected void putValue(int key, Rectangle value) {
+                    setVisibleRect(key,value);
+                }
+                @Override
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
+                }
+            };
+        }
+        return visRectMap;
+    }
+    @Override
+    public boolean removeListSettings(int listID){
+        return listIDNodes.removeNode(listID);
+    }
+    @Override
+    public Set<Integer> getListIDs(){
+        return listIDNodes.getKeys();
+    }
+    @Override
+    public Set<Integer> getListTypes(){
+        return listTypeNodes.getKeys();
     }
     /**
-     * 
-     * @param panel 
+     * This returns the user ID set for this configuration.
+     * @return The user ID.
      */
-    public void setVisibleSection(LinksListPanel panel){
-            // If the panel is not null and has a non-null listID
-        if (panel != null && panel.getListID() != null)
-            setVisibleSection(panel.getListID(),panel);
+    public UUID getUserID(){
+        return getSharedPreferences().getUUID(USER_ID_KEY, null);
     }
     /**
-     * 
-     * @param listID 
+     * This sets the user ID for this configuration.
+     * @param id The new user ID.
+     * @throws NullPointerException If the user ID is null.
      */
-    public void removeListPreferences(int listID){
-            // If there is a list preference node for the given listID
-        if (listIDNodeMap.containsKey(listID))
-                // Remove it
-            removeNode(listIDNodeMap.get(listID));
-            // Remove it from the cache
-        listIDNodeMap.remove(listID);
+    public void setUserID(UUID id){
+            // Check if the user ID is null
+        Objects.requireNonNull(id, "User ID cannot be null");
+        getSharedPreferences().putObject(USER_ID_KEY, id);
+    }
+    /**
+     * This sets the user ID to be a random {@code UUID}.
+     * @return The {@code UUID} used as the user ID.
+     * @see UUID#randomUUID() 
+     */
+    public UUID setRandomUserID(){
+            // Generate a random UUID
+        UUID id = UUID.randomUUID();
+            // Set the user ID to the generated UUID
+        setUserID(id);
+        return id;
     }
     /**
      * 
@@ -2159,6 +2321,8 @@ public class LinkManagerConfig {
             try{    // Encrypt the token
                 value = encryptValue(token.getBytes());
             } catch (GeneralSecurityException ex){
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to encrypt value", ex);
 //                throw new UncheckedSecurityException(ex);
             }
         }   // Get the Dropbox preference node and put the token in it
@@ -2180,6 +2344,8 @@ public class LinkManagerConfig {
                 if (arr != null)
                     return new String(arr);
             } catch (GeneralSecurityException ex){
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to decrypt value", ex);
 //                throw new UncheckedSecurityException(ex);
             }
         }
@@ -2246,6 +2412,55 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @param mode
+     * @return 
+     */
+    public String getDatabaseFileSyncPath(DatabaseSyncMode mode){
+        if (mode != null){
+            switch(mode){
+                case DROPBOX:
+                    return getDropboxDatabaseFileName();
+            }
+        }
+        return null;
+    }
+    /**
+     * 
+     * @param mode
+     * @param value 
+     */
+    public void setDatabaseFileSyncPath(DatabaseSyncMode mode, String value){
+        if (mode != null){
+            switch(mode){
+                case DROPBOX:
+                    setDropboxDatabaseFileName(value);
+            }
+        }
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean getCheckForUpdateAtStartup(boolean defaultValue){
+        return getPreferences().getBoolean(CHECK_FOR_UPDATES_AT_START_KEY, defaultValue);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public boolean getCheckForUpdateAtStartup(){
+        return getCheckForUpdateAtStartup(true);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setCheckForUpdateAtStartup(boolean value){
+        getPreferences().putBoolean(CHECK_FOR_UPDATES_AT_START_KEY, value);
+    }
+    /**
+     * 
      */
     public abstract class DropboxLinkUtilsConfig extends DropboxLinkUtils{
         @Override
@@ -2282,175 +2497,184 @@ public class LinkManagerConfig {
      * 
      * @param <V> 
      */
-    private abstract class ListConfigDataMap<V> extends AbstractMap<Integer,V>{
+    private abstract class ListConfigDataMapImpl<V> extends ListConfigDataMap<V>{
         /**
-         * This is an array containing the entries in this map. This is 
-         * initially null and is initialized the first time it is used.
+         * 
+         * @return 
          */
-        private Set<Entry<Integer, V>> entries = null;
+        protected abstract ListConfigNodeParent getNodes();
+        @Override
+        protected Set<Integer> getKeys(){
+            return removeUnusedKeys(getNodes().getKeys());
+        }
+    }
+    /**
+     * This is a class that handles dealing with nodes used for list 
+     * configuration data.
+     */
+    protected abstract class ListConfigNodeParent{
         /**
-         * This returns the value to which the specified key is mapped to, or 
-         * null if this map contains no mapping for the key. This is called by 
-         * the {@code get} method to get the value to return.
-         * @param key The key whose associated value is to be returned.
-         * @return The value to which the specified key is mapped to, or null if 
-         * this map contains no mapping for the key.
+         * This is the parent preference node for the the list configuration 
+         * data preference nodes.
          */
-        protected abstract V getValue(int key);
-        @Override
-        public V get(Object key){
-                // Require the key to not be null
-            Objects.requireNonNull(key, "Key cannot be null");
-                // If the key is an integer
-            if (key instanceof Integer)
-                    // Get the value
-                return getValue((Integer)key);
-            else
-                throw new ClassCastException();
-        }
-        @Override
-        public boolean containsKey(Object key){
-                // If the given key is an integer
-            if (key instanceof Integer)
-                return getValue((Integer)key) != null;
-            return false;
-        }
+        protected ConfigPreferences parentNode = null;
         /**
-         * Associates the given value with the given key in this map, or removes 
-         * the given key if the given value is null. This is called by the 
-         * {@code put} method to put the values and {@code remove} method to 
-         * remove the key.
-         * @param key The key with which the given value is to be associated 
-         * with.
-         * @param value The value to be associated with the given key, or null 
-         * if the key is to be removed.
-         * @throws ClassCastException If the class of the given key or value 
-         * prevents it from being stored in this map.
-         * @see IllegalArgumentException If some property of the given key or 
-         * value prevents it from being stored in this map.
+         * This is a map that caches the list configuration data preference 
+         * nodes.
          */
-        protected abstract void putValue(int key, V value);
-        @Override
-        public V put(Integer key, V value){
-                // Require the key to not be null
-            Objects.requireNonNull(key, "Key cannot be null");
-                // Require the value to not be null
-            Objects.requireNonNull(value, "Value cannot be null");
-                // Get the old value for the key
-            V old = getValue(key);
-                // Put the value into the map
-            putValue(key,value);
-            return old;
-        }
-        @Override
-        public V remove(Object key){
-                // Require the key to not be null
-            Objects.requireNonNull(key, "Key cannot be null");
-                // If the key is an integer
-            if (key instanceof Integer){
-                    // Get the key as an integer
-                Integer keyInt = (Integer) key;
-                    // Get the old value for the key
-                V old = getValue(keyInt);
-                    // Put null for the value into the map
-                putValue(keyInt,null);
-                return old;
-            } else
-                throw new ClassCastException();
+        protected Map<Integer, ConfigPreferences> nodeMap = new HashMap<>();
+        /**
+         * 
+         */
+        private Set<Integer> keys;
+        /**
+         * 
+         * @return 
+         */
+        public Map<Integer, ConfigPreferences> getNodeCache(){
+            return nodeMap;
         }
         /**
          * 
          * @return 
          */
-        protected abstract String getPrefixForNodes();
+        public ConfigPreferences getParentNode(){
+            return parentNode;
+        }
         /**
-         * This returns a set containing the keys for this map.
-         * @return The set containing the keys for this map.
+         * 
+         * @param node 
          */
-        protected Set<Integer> getKeys(){
+        public void setParentNode(ConfigPreferences node){
+            this.parentNode = node;
+                // Clear the listID preference node cache
+            nodeMap.clear();
+        }
+        /**
+         * 
+         * @param path 
+         */
+        public void setParentNode(String path){
+            setParentNode(getLocalChild(path));
+        }
+        /**
+         * 
+         */
+        public void setParentNode(){
+            setParentNode(getParentPath());
+        }
+        /**
+         * 
+         * @return 
+         */
+        public abstract String getParentPath();
+        /**
+         * 
+         * @param key
+         * @return 
+         */
+        protected ConfigPreferences node(int key){
+            return getParentNode().node(Integer.toString(key));
+        }
+        /**
+         * 
+         * @param key
+         * @return 
+         */
+        public boolean nodeExists(int key){
+            return LinkManagerConfig.this.nodeExists(getParentNode(),
+                    Integer.toString(key));
+        }
+        /**
+         * 
+         * @param key
+         * @return 
+         */
+        public ConfigPreferences getNode(int key){
+                // Check the preference node cache for the node
+            ConfigPreferences node = nodeMap.get(key);
+                // If the cache does not have the preference node
+            if (node == null){
+                    // Get the node
+                node = node(key);
+                    // Cache the node
+                nodeMap.put(key, node);
+            }
+            return node;
+        }
+        /**
+         * 
+         * @param key
+         * @return 
+         */
+        public boolean removeNode(int key){
+                // Remove the node from the cache if there is one
+            Preferences node = nodeMap.remove(key);
+                // If there is no node cached for the key
+            if (node == null){
+                    // If there is a node for the list with the given listID
+                if (nodeExists(key))
+                        // Get that node
+                    node = node(key);
+            }   // If there is a list preference node for the given key
+            if (node != null)
+                    // Remove the node
+                LinkManagerConfig.this.removeNode(node);
+            return node != null;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public Set<Integer> getKeyCache(){
                 // This will get the keys in this map
-            Set<Integer> keys = new TreeSet<>();
-            try{    // Get the names of the child nodes in the local preference 
-                String[] childNodes = getPreferences().childrenNames(); // node
+            Set<Integer> cache = new TreeSet<>();
+            try{    // Get the names of the child nodes in the parent preference 
+                String[] childNodes = getParentNode().childrenNames(); // node
                     // Go through the names of the child nodes
                 for (String child : childNodes){
-                        // If the child's name is not null and starts with the 
-                        // prefix
-                    if (child != null && child.startsWith(getPrefixForNodes())){
-                        try{    // Parse the number at the end
-                            int value = Integer.parseInt(child.substring(
-                                    getPrefixForNodes().length()));
-                                // If this map contains a non-null value for 
-                            if (containsKey(value))     // that key
-                                keys.add(value);
+                        // If the child's name is not null
+                    if (child != null){
+                        try{    // Parse the number
+                            cache.add(Integer.valueOf(child));
                         } catch (NumberFormatException ex) {}
                     }
                 }
             } catch (BackingStoreException ex) {}
+            return cache;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public Set<Integer> getKeys(){
+            if (keys == null)
+                keys = new ListConfigKeySet();
             return keys;
         }
-        @Override
-        public Set<Entry<Integer, V>> entrySet() {
-                // If the entry set is null
-            if (entries == null){
-                    // Create a new AbstractSet to go through the entries
-                entries = new AbstractSet<>(){
+        /**
+         * 
+         */
+        private class ListConfigKeySet extends AbstractSet<Integer>{
+            @Override
+            public Iterator<Integer> iterator() {
+                return new CacheSetIterator<>(getKeyCache()){
                     @Override
-                    public Iterator<Entry<Integer, V>> iterator() {
-                        return new Iterator<>(){
-                            /**
-                             * Get an iterator to go over the keys.
-                             */
-                            Iterator<Integer> itr = getKeys().iterator();
-                            /**
-                             * This is the most recent key with an entry 
-                             * returned for.
-                             */
-                            Integer current = null;
-                            @Override
-                            public boolean hasNext() {
-                                return itr.hasNext();
-                            }
-                            @Override
-                            public Entry<Integer, V> next() {
-                                    // Get the next value in the key iterator
-                                current = itr.next();
-                                return new Entry<>(){
-                                    /**
-                                     * The key for this entry
-                                     */
-                                    Integer key = current;
-                                    @Override
-                                    public Integer getKey() {
-                                        return key;
-                                    }
-                                    @Override
-                                    public V getValue() {
-                                        return ListConfigDataMap.this.getValue(key);
-                                    }
-                                    @Override
-                                    public V setValue(V value) {
-                                        return put(key,value);
-                                    }
-                                };
-                            }
-                            @Override
-                            public void remove() {
-                                    // Remove the value, mostly to throw any 
-                                    // exceptions
-                                itr.remove();
-                                    // Actually remove the value from the map
-                                putValue(current,null);
-                            }
-                        };
-                    }
-                    @Override
-                    public int size() {
-                        return getKeys().size();
+                    protected void remove(Integer value) {
+                        removeNode(value);
                     }
                 };
             }
-            return entries;
+            @Override
+            public int size() {
+                return getKeyCache().size();
+            }
+            @Override
+            public boolean remove(Object o){
+                if (o instanceof Integer)
+                    return removeNode((Integer)o);
+                return false;
+            }
         }
     }
 }

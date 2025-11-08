@@ -6,6 +6,8 @@ package manager.database;
 
 import java.sql.*;
 import java.util.*;
+import java.util.logging.Level;
+import manager.LinkManager;
 import static manager.database.LinkDatabaseConnection.*;
 
 /**
@@ -718,6 +720,9 @@ abstract class AbstractQueryRowMap <K,V> extends AbstractSQLRowMap<K,V> {
     private Iterator<Entry<K,V>> createEntryIterator(boolean descending,
             boolean fromStart, K fromKey, boolean fromInclusive, 
             boolean toEnd, K toKey, boolean toInclusive){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "createEntryIterator", new Object[]{descending,fromStart,
+                    fromKey,fromInclusive,toEnd,toKey,toInclusive});
         if (!fromStart)
             checkKey(fromKey);
         if (!toEnd)
@@ -728,6 +733,8 @@ abstract class AbstractQueryRowMap <K,V> extends AbstractSQLRowMap<K,V> {
             toKey = temp;
         }
         try{
+            LinkManager.getLogger().exiting(this.getClass().getName(), 
+                    "createEntryIterator");
             return new CacheSetIterator<>(entryCacheSet(descending,
                     fromStart,fromKey,fromInclusive,
                     toEnd,toKey,toInclusive)){
@@ -737,7 +744,11 @@ abstract class AbstractQueryRowMap <K,V> extends AbstractSQLRowMap<K,V> {
                 }
             };
         } catch (SQLException ex) {
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to create entry iterator", ex);
             appendWarning(ex);
+            LinkManager.getLogger().exiting(this.getClass().getName(), 
+                    "createEntryIterator");
             return Collections.emptyIterator();
         }
     }
@@ -756,6 +767,9 @@ abstract class AbstractQueryRowMap <K,V> extends AbstractSQLRowMap<K,V> {
     private Iterator<K> createValueKeyIterator(boolean descending, V value,
             boolean fromStart, K fromKey, boolean fromInclusive, 
             boolean toEnd, K toKey, boolean toInclusive){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "createValueKeyIterator", new Object[]{descending,value,
+                    fromStart,fromKey,fromInclusive,toEnd,toKey,toInclusive});
         if (!fromStart)
             checkKey(fromKey);
         if (!toEnd)
@@ -766,6 +780,8 @@ abstract class AbstractQueryRowMap <K,V> extends AbstractSQLRowMap<K,V> {
             toKey = temp;
         }
         try{
+            LinkManager.getLogger().exiting(this.getClass().getName(), 
+                    "createValueKeyIterator");
             return new CacheSetIterator<>(valueKeyCacheSet(descending,value,
                     fromStart,fromKey,fromInclusive,
                     toEnd,toKey,toInclusive)){
@@ -775,7 +791,11 @@ abstract class AbstractQueryRowMap <K,V> extends AbstractSQLRowMap<K,V> {
                 }
             };
         } catch (SQLException ex) {
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to create key iterator for value", ex);
             appendWarning(ex);
+            LinkManager.getLogger().exiting(this.getClass().getName(), 
+                    "createValueKeyIterator");
             return Collections.emptyIterator();
         }
     }

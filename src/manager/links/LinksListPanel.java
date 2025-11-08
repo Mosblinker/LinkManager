@@ -13,8 +13,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.*;
+import manager.LinkManager;
 
 /**
  *
@@ -119,11 +121,18 @@ public class LinksListPanel extends JPanel implements Comparable<LinksListPanel>
         return model;
     }
     
-    public void setModel(LinksListModel model){
+    public void setModel(LinksListModel model, boolean keepSelection, 
+            boolean shouldScroll){
             // Check if the model is null
         Objects.requireNonNull(model, "Model cannot be null");
         if (model == this.model)
             return;
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "setModel", new Object[]{keepSelection,shouldScroll});
+        LinkManager.getLogger().log(Level.FINER, "Changing model to ID {0} -> {1}", 
+                new Object[]{(this.model!=null)?this.model.getListID():"null", 
+                    model.getListID()});
+        String selected = list.getSelectedValue();
         LinksListModel old = this.model;
         this.model = model;
         if (old != null){
@@ -160,6 +169,22 @@ public class LinksListPanel extends JPanel implements Comparable<LinksListPanel>
         }
         updateActionNames();
         fireStateChanged();
+        if (keepSelection){
+            if (model.contains(selected))
+                list.setSelectedValue(selected, shouldScroll);
+            else
+                list.clearSelection();
+        }
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "setModel");
+    }
+    
+    public void setModel(LinksListModel model, boolean keepSelection){
+        setModel(model,keepSelection,keepSelection);
+    }
+    
+    public void setModel(LinksListModel model){
+        setModel(model, false);
     }
     
     public Integer getListID(){
@@ -294,10 +319,14 @@ public class LinksListPanel extends JPanel implements Comparable<LinksListPanel>
     }
     
     public void updateModelContents(List<String> values, boolean shouldScroll){
+        LinkManager.getLogger().entering(this.getClass().getName(), 
+                "updateModelContents", shouldScroll);
         String selected = list.getSelectedValue();
         model.setContents(values);
         if (selected == null || model.contains(selected))
             list.setSelectedValue(selected, shouldScroll);
+        LinkManager.getLogger().exiting(this.getClass().getName(), 
+                "updateModelContents");
     }
     
     public void updateModelContents(List<String> values){
@@ -435,11 +464,15 @@ public class LinksListPanel extends JPanel implements Comparable<LinksListPanel>
      * @see javax.swing.JList#ensureIndexIsVisible(int) 
      */
     protected void scrollAfterAdding(ListDataEvent evt){
-            // If elements were added to the end of the model and the last 
-            // visible index was previously the last index in the list
-        if(evt.getIndex1()==model.size()-1&&
-                evt.getIndex0()-1==list.getLastVisibleIndex()){
-            list.ensureIndexIsVisible(evt.getIndex1());
+        try{    // If elements were added to the end of the model and the last 
+                // visible index was previously the last index in the list
+            if(evt.getIndex1()==model.size()-1&&
+                    evt.getIndex0()-1==list.getLastVisibleIndex()){
+                list.ensureIndexIsVisible(evt.getIndex1());
+            }
+        } catch (Exception ex){
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Exception thrown while scrolling after addition", ex);
         }
     }
     @Override

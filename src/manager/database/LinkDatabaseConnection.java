@@ -4,14 +4,16 @@
  */
 package manager.database;
 
-import components.disable.DisableGUIInput;
-import components.progress.JProgressDisplayMenu;
+import config.ConfigUtilities;
+import java.awt.Rectangle;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
-import javax.swing.JProgressBar;
+import java.util.logging.Level;
 import javax.swing.table.*;
-import manager.links.LinksListModel;
+import manager.*;
+import manager.config.DatabaseLinksListSettings;
+import manager.links.*;
 import org.sqlite.*;
 import sql.*;
 import sql.util.*;
@@ -1464,6 +1466,204 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             DATABASE_CONFIG_DEFAULT_COLUMN_NAME,
             DATABASE_CONFIG_VALUE_COLUMN_NAME);
     /**
+     * This is a table storing the IDs for the programs that have accessed the 
+     * database.
+     */
+    public static final String PROGRAM_ID_TABLE_NAME = "programIDs";
+    /**
+     * This is the name of the column in the program ID table for the ID for the 
+     * program in the database. 
+     */
+    public static final String PROGRAM_ID_COLUMN_NAME = "programID";
+    /**
+     * This is the name of the column in the program ID table for the UUID of 
+     * the user for the program.
+     */
+    public static final String PROGRAM_USER_ID_COLUMN_NAME = "userID";
+    /**
+     * This is the name of the column in the program ID table for the UUID of 
+     * a program.
+     */
+    public static final String PROGRAM_UUID_COLUMN_NAME = "programUUID";
+    /**
+     * 
+     */
+    public static final String[] PROGRAM_ID_TABLE_COLUMN_NAMES = {
+        PROGRAM_ID_COLUMN_NAME,
+        PROGRAM_USER_ID_COLUMN_NAME,
+        PROGRAM_UUID_COLUMN_NAME
+    };
+    /**
+     * 
+     */
+    public static final String PROGRAM_ID_TABLE_CREATION_QUERY = 
+            String.format("CREATE TABLE IF NOT EXISTS %s ("+
+                        // Program ID column definition. Primary key, cannot be 
+                        // null
+                    "%s integer NOT NULL PRIMARY KEY, "+ 
+                        // User ID column definition. Cannot be null
+                    "%s text NOT NULL, "+
+                        // Program UUID column definition. Cannot be null
+                    "%s text NOT NULL, "+
+                        // Unique constraint for user ID and program UUID
+                    "UNIQUE (%s, %s));",
+            PROGRAM_ID_TABLE_NAME,
+            PROGRAM_ID_COLUMN_NAME,
+            PROGRAM_USER_ID_COLUMN_NAME,
+            PROGRAM_UUID_COLUMN_NAME,
+            PROGRAM_USER_ID_COLUMN_NAME,
+            PROGRAM_UUID_COLUMN_NAME);
+    /**
+     * 
+     */
+    public static final String LIST_TYPE_SETTINGS_TABLE_NAME = "listTypeSettings";
+    /**
+     * 
+     */
+    public static final String[] LIST_TYPE_SETTINGS_TABLE_COLUMN_NAMES = {
+        PROGRAM_ID_COLUMN_NAME,
+        LIST_TYPE_COLUMN_NAME,
+        LIST_ID_COLUMN_NAME
+    };
+    /**
+     * 
+     */
+    public static final String LIST_TYPE_SETTINGS_TABLE_CREATION_QUERY = 
+            String.format("CREATE TABLE IF NOT EXISTS %s ("+
+                        // Program ID column definition. Cannot be null
+                    "%s integer NOT NULL, "+
+                        // List type column definition. Cannot be null
+                    "%s integer NOT NULL, "+
+                        // List ID column definition. Can be null
+                    "%s integer DEFAULT NULL, "+
+                        // Foreign key constraint for the program ID
+                    FOREIGN_KEY_TEMPLATE+", "+ 
+                        // Foreign key constraint for the list ID
+                    "FOREIGN KEY (%s) REFERENCES %s(%s) ON DELETE SET NULL, "+
+                        // Unique constraint for program ID and list type
+                    "UNIQUE (%s, %s));",
+            LIST_TYPE_SETTINGS_TABLE_NAME,
+            PROGRAM_ID_COLUMN_NAME,
+            LIST_TYPE_COLUMN_NAME,
+            LIST_ID_COLUMN_NAME,
+                // Foreign key constraint for the program ID
+            PROGRAM_ID_COLUMN_NAME,PROGRAM_ID_TABLE_NAME,PROGRAM_ID_COLUMN_NAME,
+                // Foreign key constraint for the list ID
+            LIST_ID_COLUMN_NAME,LIST_TABLE_NAME,LIST_ID_COLUMN_NAME,
+                // Unique constraint for program ID and list type
+            PROGRAM_ID_COLUMN_NAME,LIST_TYPE_COLUMN_NAME);
+    /**
+     * 
+     */
+    public static final String LIST_TYPE_SETTINGS_INDEX_NAME = "listTypeSettingsIndex";
+    /**
+     * 
+     */
+    public static final String LIST_TYPE_SETTINGS_INDEX_CREATION_QUERY = String.format(
+            "CREATE UNIQUE INDEX IF NOT EXISTS %s ON %s(%s, %s);",
+                LIST_TYPE_SETTINGS_INDEX_NAME,
+                    // Applied on the list type settings table
+                LIST_TYPE_SETTINGS_TABLE_NAME,
+                    // First column is the program ID
+                PROGRAM_ID_COLUMN_NAME,
+                    // Second column is the list type
+                LIST_TYPE_COLUMN_NAME);
+    /**
+     * 
+     */
+    public static final String LIST_SETTINGS_TABLE_NAME = "listSettings";
+    /**
+     * 
+     */
+    public static final String SELECTION_IS_VISIBLE_COLUMN_NAME = 
+            "selectionIsVisible";
+    /**
+     * 
+     */
+    public static final String FIRST_VISIBLE_INDEX_COLUMN_NAME = 
+            "firstVisibleIndex";
+    /**
+     * 
+     */
+    public static final String LAST_VISIBLE_INDEX_COLUMN_NAME = 
+            "lastVisibleIndex";
+    /**
+     * 
+     */
+    public static final String VISIBLE_RECTANGLE_COLUMN_NAME = 
+            "visibleRect";
+    /**
+     * 
+     */
+    public static final String[] LIST_SETTINGS_TABLE_COLUMN_NAMES = {
+        PROGRAM_ID_COLUMN_NAME,
+        LIST_ID_COLUMN_NAME,
+        LINK_ID_COLUMN_NAME,
+        SELECTION_IS_VISIBLE_COLUMN_NAME,
+        FIRST_VISIBLE_INDEX_COLUMN_NAME,
+        LAST_VISIBLE_INDEX_COLUMN_NAME,
+        VISIBLE_RECTANGLE_COLUMN_NAME
+    };
+    /**
+     * 
+     */
+    public static final String LIST_SETTINGS_TABLE_CREATION_QUERY = String.format(
+            "CREATE TABLE IF NOT EXISTS %s ("+
+                        // Program ID column definition. Cannot be null
+                    "%s integer NOT NULL, "+
+                        // List ID column definition. Cannot be null
+                    "%s integer NOT NULL, "+
+                        // Link ID column definition. Can be null
+                    "%s integer DEFAULT NULL, "+
+                        // Whether the selected link is visible.
+                    "%s BOOLEAN DEFAULT 0, "+
+                        // First visible index column definition. Can be null
+                    "%s integer DEFAULT NULL, "+
+                        // Last visible index column definition. Can be null
+                    "%s integer DEFAULT NULL, "+
+                        // Visible rect column definition. Can be null
+                    "%s VARBINARY DEFAULT NULL, "+
+                        // Foreign key constraint for the program ID
+                    FOREIGN_KEY_TEMPLATE+", "+ 
+                        // Foreign key constraint for the list ID
+                    FOREIGN_KEY_TEMPLATE+", "+
+                        // Foreign key constraint for the link ID
+                    "FOREIGN KEY (%s) REFERENCES %s(%s) ON DELETE SET NULL, "+
+                        // Unique constraint for program ID and list ID
+                    "UNIQUE (%s, %s));",
+            LIST_SETTINGS_TABLE_NAME,
+            PROGRAM_ID_COLUMN_NAME,
+            LIST_ID_COLUMN_NAME,
+            LINK_ID_COLUMN_NAME,
+            SELECTION_IS_VISIBLE_COLUMN_NAME,
+            FIRST_VISIBLE_INDEX_COLUMN_NAME,
+            LAST_VISIBLE_INDEX_COLUMN_NAME,
+            VISIBLE_RECTANGLE_COLUMN_NAME,
+                // Foreign key constraint for the program ID
+            PROGRAM_ID_COLUMN_NAME,PROGRAM_ID_TABLE_NAME,PROGRAM_ID_COLUMN_NAME,
+                // Foreign key constraint for the list ID
+            LIST_ID_COLUMN_NAME,LIST_TABLE_NAME,LIST_ID_COLUMN_NAME,
+                // Foreign key constraint for the link ID
+            LINK_ID_COLUMN_NAME,LINK_TABLE_NAME,LINK_ID_COLUMN_NAME,
+                // Unique constraint for program ID and list ID
+            PROGRAM_ID_COLUMN_NAME,LIST_ID_COLUMN_NAME);
+    /**
+     * 
+     */
+    public static final String LIST_SETTINGS_INDEX_NAME = "listSettingsIndex";
+    /**
+     * 
+     */
+    public static final String LIST_SETTINGS_INDEX_CREATION_QUERY = String.format(
+            "CREATE UNIQUE INDEX IF NOT EXISTS %s ON %s(%s, %s);",
+                LIST_SETTINGS_INDEX_NAME,
+                    // Applied on the list settings table
+                LIST_SETTINGS_TABLE_NAME,
+                    // First column is the program ID
+                PROGRAM_ID_COLUMN_NAME,
+                    // Second column is the list ID
+                LIST_ID_COLUMN_NAME);
+    /**
      * This is an array containing the queries used to create the tables, views, 
      * and indexes in the database.
      * @see PREFIX_TABLE_CREATION_QUERY
@@ -1483,6 +1683,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @see EXCLUSIVE_LISTS_TABLE_CREATION_QUERY
      * @see EXCLUSIVE_LISTS_INDEX_CREATION_QUERY
      * @see DATABASE_CONFIG_TABLE_CREATION_QUERY
+     * @see PROGRAM_ID_TABLE_CREATION_QUERY
+     * @see LIST_TYPE_SETTINGS_TABLE_CREATION_QUERY
+     * @see LIST_TYPE_SETTINGS_INDEX_CREATION_QUERY
+     * @see LIST_SETTINGS_TABLE_CREATION_QUERY
+     * @see LIST_SETTINGS_INDEX_CREATION_QUERY
      * @see #createTables(Statement) 
      * @see #createTables() 
      */
@@ -1504,7 +1709,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         // TODO: Implement Exclusive lists and create their tables in the database
 //        EXCLUSIVE_LISTS_TABLE_CREATION_QUERY,       // Exclusive lists table
 //        EXCLUSIVE_LISTS_INDEX_CREATION_QUERY,       // Exclusive lists index
-        DATABASE_CONFIG_TABLE_CREATION_QUERY        // Database settings table
+        DATABASE_CONFIG_TABLE_CREATION_QUERY,       // Database settings table
+        PROGRAM_ID_TABLE_CREATION_QUERY,            // Program ID table
+        LIST_TYPE_SETTINGS_TABLE_CREATION_QUERY,   // List type selection table
+        LIST_TYPE_SETTINGS_INDEX_CREATION_QUERY,   // List type selection index
+        LIST_SETTINGS_TABLE_CREATION_QUERY,        // List selection table
+        LIST_SETTINGS_INDEX_CREATION_QUERY// List selection index
     };
     
     
@@ -1571,9 +1781,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     
     protected static final String DEFAULT_DATABASE_VERSION = "0.5.0";
     
-    public static final int DATABASE_MAJOR_VERSION = 3;
+    public static final int DATABASE_MAJOR_VERSION = 4;
     
-    public static final int DATABASE_MINOR_VERSION = 3;
+    public static final int DATABASE_MINOR_VERSION = 1;
     
     public static final int DATABASE_PATCH_VERSION = 0;
     
@@ -1959,6 +2169,19 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     private DatabasePropertyMap propMap = null;
     /**
+     * This is a map that maps the program user IDs to the program UUID maps.
+     */
+    private final Map<UUID,ProgramUUIDMap> programIDs = new TreeMap<>();
+    /**
+     * 
+     */
+    private final Set<UUID> programUserIDs = new ProgramUserIDSet();
+    /**
+     * 
+     */
+    private final Map<Integer, DatabaseLinksListSettings> listSettingsMap = 
+            new TreeMap<>();
+    /**
      * This is the SQLiteConfig used to construct this connection if one was 
      * provided.
      */
@@ -2299,12 +2522,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * This renames the link column 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
     // Version 0.0.0 -> Version 0.0.1
-    public boolean updateRenameLinkColumns(Statement stmt, DisableGUIInput program) 
+    public boolean updateRenameLinkColumns(Statement stmt, ProgressObserver l) 
             throws SQLException{
             // Rename the old version 0.0.0 link column to its 0.0.1+ name
         renameColumn(OLD_DATABASE_TABLES[0][0][0], 
@@ -2324,37 +2547,32 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
     // Version 0.0.1 -> Version 0.1.0
-    public boolean updateRenameInitialColumns(Statement stmt, DisableGUIInput program) 
+    public boolean updateRenameInitialColumns(Statement stmt,ProgressObserver l) 
             throws SQLException{
-            // This gets the progress bar from the program if there is one
-        JProgressBar progressBar = null;
-            // If a program was provided
-        if (program != null)
-            progressBar = program.getProgressBar();
             // A two-dimensional array containing the indexes for the names of 
             // the columns that need renaming and the tables they are in
         int[][] updates = {
             {0, 3},     // Links table, link index column
             {1, 2},     // List table, list index column
             {1, 3}      // List table, list name column
-        };  // If the program has a progress bar
-        if (progressBar != null){
-            progressBar.setMaximum(updates.length);
-            progressBar.setIndeterminate(false);
+        };  // If a progress observer has been provided
+        if (l != null){
+            l.setMaximum(updates.length);
+            l.setIndeterminate(false);
         }   // Go through the tuples of table and columns that need renaming
         for (int[] update : updates){
                 // Rename the column from its 0.0.x name to its 0.1.0+ name
             renameColumn(OLD_DATABASE_TABLES[0][update[0]][0], 
                     OLD_DATABASE_TABLES[0][update[0]][update[1]], 
                     OLD_DATABASE_TABLES[1][update[0]][update[1]], stmt);
-                // If the program has a progress bar
-            if (progressBar != null)
-                progressBar.setValue(progressBar.getValue()+1);
+                // If a progress observer has been provided
+            if (l != null)
+                l.incrementValue();
         }
         return true;
     }
@@ -2370,12 +2588,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
     // Version 0.1.0 -> Version 0.2.0
-    public boolean updateAddListFlagsColumn(Statement stmt, DisableGUIInput program) 
+    public boolean updateAddListFlagsColumn(Statement stmt, ProgressObserver l) 
             throws SQLException{
             // Add the list flags column to the list table
         addColumn(OLD_DATABASE_TABLES[1][1][0], 
@@ -2395,23 +2613,18 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
     // Version 0.2.0 -> Version 0.3.0
-    public boolean updateAddPrefixTable(Statement stmt, DisableGUIInput program) 
+    public boolean updateAddPrefixTable(Statement stmt, ProgressObserver l) 
             throws SQLException{
             // Get the current state of the auto-commit
         boolean autoCommit = getAutoCommit();
             // Turn off the auto-commit in order to group the following database 
             // transactions to improve performance
         setAutoCommit(false);
-            // This gets the progress bar from the program if there is one
-        JProgressBar progressBar = null;
-            // If a program was provided
-        if (program != null)
-            progressBar = program.getProgressBar();
             // This will get a map that maps the linkIDs to the listIDs of the 
             // list containing the link
         TreeMap<Integer,Integer> listIDs = new TreeMap<>();
@@ -2420,10 +2633,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         TreeMap<Integer,Integer> indexes = new TreeMap<>();
             // This will get a map that maps the linkIDs to the links
         TreeMap<Integer,String> links = new TreeMap<>();
-        if (progressBar != null){   // If the program has a progress bar
-            progressBar.setMaximum(getTableSize(OLD_DATABASE_TABLES[1][0][0],
-                    "*",stmt));
-            progressBar.setIndeterminate(false);
+        if (l != null){     // If a progress observer has been provided
+            l.setMaximum(getTableSize(OLD_DATABASE_TABLES[1][0][0],"*",stmt));
+            l.setIndeterminate(false);
         }   // Query the database for the contents of the links table
         ResultSet results = stmt.executeQuery("SELECT * FROM "+OLD_DATABASE_TABLES[1][0][0]);
             // While there are still rows in the links table
@@ -2436,13 +2648,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             indexes.put(linkID, results.getInt(OLD_DATABASE_TABLES[1][0][3]));
                 // Get the current row's link
             links.put(linkID, results.getString(OLD_DATABASE_TABLES[1][0][4]));
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)  // If a progress observer has been provided
+                l.incrementValue();
         }
-        if (progressBar != null){   // If the program has a progress bar
-            progressBar.setIndeterminate(true);
-            progressBar.setValue(0);
-            progressBar.setMaximum(links.size());
+        if (l != null){     // If a progress observer has been provided
+            l.setIndeterminate(true);
+            l.clearValue();
+            l.setMaximum(links.size());
         }   // Delete the old links table
         deleteTable(OLD_DATABASE_TABLES[1][0][0],stmt);
         commit();       // Commit the changes to the database
@@ -2478,8 +2690,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             }
         }
         commit();       // Commit the changes to the database
-        if (progressBar != null)    // If the program has a progress bar
-            progressBar.setIndeterminate(false);
+        if (l != null)  // If a progress observer has been provided
+            l.setIndeterminate(false);
             // Go through the linkIDs of the links from the database
         for (Integer linkID : links.keySet()){
                 // Prepare a statement to insert the current link back into the 
@@ -2505,8 +2717,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // Execute the update
                 pstmt.executeUpdate();
             }
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)  // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Restore the auto-commit back to what it was set to before
@@ -2525,32 +2737,28 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
     // Version 0.3.0 -> Version 0.5.0
     // (Version 0.4.0 reworked the tables, version 0.5.0 added the size limit 
     // column)
-    public boolean updateToVersion0_5_0(Statement stmt, DisableGUIInput program) 
+    public boolean updateToVersion0_5_0(Statement stmt, ProgressObserver l) 
             throws SQLException{
             // Get the current state of the auto-commit
         boolean autoCommit = getAutoCommit();
             // Turn off the auto-commit in order to group the following database 
             // transactions to improve performance
         setAutoCommit(false);
-            // This gets the progress bar from the program if there is one
-        JProgressBar progressBar = null;
-        if (program != null)    // If a program was provided
-            progressBar = program.getProgressBar();
             // This will get the total size of the tables
         int max = 0;
             // Go through the tables in the database
         for (String[] table : OLD_DATABASE_TABLES[2])
             max += getTableSize(table[0],"*",stmt);
-        if (progressBar != null){   // If the program has a progress bar
-            progressBar.setMaximum(max);
-            progressBar.setIndeterminate(false);
+        if (l != null){     // If a progress observer has been provided
+            l.setMaximum(max);
+            l.setIndeterminate(false);
         }   // This will get a map mapping the prefixIDs to the prefixes
         TreeMap<Integer, String> oldPrefixes = new TreeMap<>();
             // This gets the prefixID for the empty prefix
@@ -2569,8 +2777,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             if (prefix.isEmpty())
                     // We found the empty prefixID
                 emptyPrefixID = prefixID;
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
             // If the database did not contain the empty prefix
         if (!oldPrefixes.containsValue("")){
@@ -2608,8 +2816,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // If the prefixID is was not null
             if (!results.wasNull())
                 oldPrefixIDs.put(linkID, prefixID);
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }   // This will get a map mapping listIDs to the list names
         TreeMap<Integer, String> listNames = new TreeMap<>();
             // This will get a map mapping listIDs to their tab indexes
@@ -2628,16 +2836,16 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             listIndexes.put(listID, results.getInt(OLD_DATABASE_TABLES[2][2][2]));
                 // Get the list flags for the current row
             listFlags.put(listID, results.getInt(OLD_DATABASE_TABLES[2][2][5]));
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
-        if (progressBar != null){       // If the program has a progress bar
-            progressBar.setValue(0);
+        if (l != null){         // If a progress observer has been provided
+            l.clearValue();
                 // Set the maximum to the amount of linkIDs + the amount of 
                 // links + the amount of lists + the amount of prefixes + the 
                 // amount of tables present in version 0.3.0 + the amount of 
                 // queries used to create the tables in version 0.5.0
-            progressBar.setMaximum(linkListIDs.size()+
+            l.setMaximum(linkListIDs.size()+
                     oldLinks.size()+
                     oldPrefixes.size()+
                     listNames.size()+
@@ -2647,15 +2855,15 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         for (String[] table : OLD_DATABASE_TABLES[2]){
                 // Delete the current table
             deleteTable(table[0],stmt);
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Go through the table creation queries for the tables in version 
         for (String query : OLD_DATABASE_DEFINITIONS[1]){   // 0.5.0
             stmt.execute(query);    // Create the table
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Go through the prefixes from the database
@@ -2676,8 +2884,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         // Update the database
                     pstmt.executeUpdate();
                 }
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Go through the linkIDs of the links from the database
@@ -2700,8 +2908,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // Update the database
                 pstmt.executeUpdate();
             }
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Go through the listIDs of the lists from the database
@@ -2729,8 +2937,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // Update the database
                 pstmt.executeUpdate();
             }
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Go through the linkIDs of the links in the lists
@@ -2752,8 +2960,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // Update the database
                 pstmt.executeUpdate();
             }
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Restore the auto-commit back to what it was set to before
@@ -2772,12 +2980,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
     public boolean updateAddListSizeLimitColumn(Statement stmt, 
-            DisableGUIInput program) throws SQLException{
+            ProgressObserver l) throws SQLException{
             // Add the list size limit column
         addColumn(OLD_DATABASE_TABLES[3][2][0], 
                 OLD_DATABASE_TABLES[3][2][5], 
@@ -2796,22 +3004,17 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
-    public boolean updateToVersion1_0_0(Statement stmt, DisableGUIInput program) 
+    public boolean updateToVersion1_0_0(Statement stmt, ProgressObserver l) 
             throws SQLException{
             // Get the current state of the auto-commit
         boolean autoCommit = getAutoCommit();
             // Turn off the auto-commit in order to group the following database 
             // transactions to improve performance
         setAutoCommit(false);
-            // This gets the progress bar from the program if there is one
-        JProgressBar progressBar = null;
-            // If a program was provided
-        if (program != null)
-            progressBar = program.getProgressBar();
             // This gets the size of all the tables currently in the database
         int max = 0;
             // Go through the tables in the database
@@ -2819,9 +3022,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             max += getTableSize(OLD_DATABASE_TABLES[3][i][0], 
                     OLD_DATABASE_TABLES[3][i][1],stmt);
         }
-        if (progressBar != null){       // If the program has a progress bar
-            progressBar.setMaximum(max);
-            progressBar.setIndeterminate(false);
+        if (l != null){ // If a progress observer has been provided
+            l.setMaximum(max);
+            l.setIndeterminate(false);
         }   // This is a set that will get the prefixes from the database
         Set<String> oldPrefixes = new LinkedHashSet<>();
             // Query the prefix table to get the prefixes
@@ -2830,8 +3033,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         while (results.next()){
                 // Add the prefix to the set
             oldPrefixes.add(results.getString(OLD_DATABASE_TABLES[3][0][2]));
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }   // This is a map that will get the full links from the database
         TreeMap<Long,String> oldLinks = new TreeMap<>();
             // Query the full links view to get the links
@@ -2841,8 +3044,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // Map the link to its linkID
             oldLinks.put(results.getLong(OLD_DATABASE_TABLES[3][4][1]), 
                     results.getString(OLD_DATABASE_TABLES[3][4][2]));
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }   // This is a map that will get the names of the lists
         TreeMap<Integer, String> oldListNames = new TreeMap<>();
             // This is a map that will get the listIDs of the lists in order
@@ -2875,8 +3078,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 listSizeLimit.put(listID, temp);
                 // Create the list to store the list data
             listData.put(listID, new ArrayList<>());
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }   // Query the list data table, sorted by listID and link index
         results = stmt.executeQuery(String.format(
                 "SELECT * FROM %s ORDER BY %s, %s NULLS LAST",
@@ -2889,11 +3092,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 // list
             listData.get(results.getInt(OLD_DATABASE_TABLES[3][3][1])).
                     add(results.getLong(OLD_DATABASE_TABLES[3][3][2]));
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
-        if (progressBar != null)        // If the program has a progress bar
-            progressBar.setIndeterminate(true);
+        if (l != null)          // If a progress observer has been provided
+            l.setIndeterminate(true);
             // Delete the index on the list data table
         deleteIndex(OLD_DATABASE_TABLES[3][5][0],stmt);
             // Delete the full links view
@@ -2904,30 +3107,30 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             deleteTable(OLD_DATABASE_TABLES[3][i][0],stmt);
         }
         createTables(stmt); // Create the new tables
-        commit();       // Commit the changes to the database
-        if (progressBar != null)        // If the program has a progress bar
-            progressBar.setValue(0);
+        commit();           // Commit the changes to the database
+        if (l != null)      // If a progress observer has been provided
+            l.clearValue();
             // Set the total size back to zero
         max = 0;
             // Go through the list data to get the total size
         for (List<Long> links : listData.values())
             max += links.size();
-        if (progressBar != null){       // If the program has a progress bar
+        if (l != null){     // If a progress observer has been provided
                 // Set the maximum value for the progress bar to the amount of 
                 // prefixes, links, lists (x2) and the total size of those lists
-            progressBar.setMaximum(oldPrefixes.size()+
+            l.setMaximum(oldPrefixes.size()+
                     oldLinks.size()+
                     oldListNames.size()+
                     listIndexes.size()+max);
-            progressBar.setIndeterminate(false);
+            l.setIndeterminate(false);
         }   // Get the prefix map of the new database
         PrefixMap prefixes = getPrefixMap();
             // Go through the prefixes from the old database
         for (String prefix : oldPrefixes){
                 // Add the prefix if not already added
             prefixes.addIfAbsent(prefix);
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Get the link map of the new database
@@ -2936,8 +3139,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         for (String link : oldLinks.values()){
                 // Add the link if not already added
             links.addIfAbsent(link);
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Get the list name map from the new database
@@ -2959,8 +3162,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     listSizeLimit.get(oldID));
                 // Map the list's new ID to its old ID
             listIDConversion.put(oldID, listID);
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }   // Go through the old list of listIDs 
         for (Integer oldID : listIndexes){
                 // Convert the current list's old listID to its new listID
@@ -2970,8 +3173,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             if ((listFlags.get(oldID) & 0x1) != 1)
                 shownLists.add(listID);
             allLists.add(listID);
-            if (progressBar != null)    // If the program has a progress bar
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         commit();       // Commit the changes to the database
             // Go through the old and new listIDs
@@ -2984,8 +3187,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             for (Long linkID : linkIndexes){
                     // Add the link at the linkID to the new list contents
                 listContents.add(oldLinks.get(linkID));
-                if (progressBar != null)    // If the program has a progress bar
-                    progressBar.setValue(progressBar.getValue()+1);
+                if (l != null)      // If a progress observer has been provided
+                    l.incrementValue();
             }
             commit();       // Commit the changes to the database
         }   // Remove any duplicate links
@@ -3011,11 +3214,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
-    public boolean updateAddConfigTable(Statement stmt, DisableGUIInput program) 
+    public boolean updateAddConfigTable(Statement stmt, ProgressObserver l) 
             throws SQLException{
         createTables(stmt); // Create any new tables
             // Set the database version to 1.0.0
@@ -3034,14 +3237,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param stmt
-     * @param program
+     * @param l
      * @param versionStr
      * @return
      * @throws SQLException 
      */
     protected boolean updateOldDatabaseDefinitions(Statement stmt, 
-            DisableGUIInput program, String versionStr)
-            throws SQLException{
+            ProgressObserver l, String versionStr)throws SQLException{
 //            // If the version is greater than zero
 //        if (version[0] > 0)
 //            return true;
@@ -3057,31 +3259,31 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         switch(versionStr){
             case("0.0.0"):      // If this is version 0.0.0 (Initial version)
                     // Update to version 0.0.1
-                updateSuccess = updateRenameLinkColumns(stmt,program);
+                updateSuccess = updateRenameLinkColumns(stmt,l);
                     // If the database was not successfully updated
                 if (!updateSuccess)
                     break;
             case("0.0.1"):      // If this is version 0.0.1 or earlier
                     // Update to version 0.1.0
-                updateSuccess = updateRenameInitialColumns(stmt,program);
+                updateSuccess = updateRenameInitialColumns(stmt,l);
                     // If the database was not successfully updated
                 if (!updateSuccess)
                     break;
             case("0.1.0"):      // If this is version 0.1.0 or earlier
                     // Update to version 0.2.0
-                updateSuccess = updateAddListFlagsColumn(stmt,program);
+                updateSuccess = updateAddListFlagsColumn(stmt,l);
                     // If the database was not successfully updated
                 if (!updateSuccess)
                     break;
             case("0.2.0"):      // If this is version 0.2.0 or earlier
                     // Update to version 0.3.0
-                updateSuccess = updateAddPrefixTable(stmt,program);
+                updateSuccess = updateAddPrefixTable(stmt,l);
                     // If the database was not successfully updated
                 if (!updateSuccess)
                     break;
             case("0.3.0"):      // If this is version 0.3.0 or earlier
                     // Update to version 0.5.0
-                updateSuccess = updateToVersion0_5_0(stmt,program);
+                updateSuccess = updateToVersion0_5_0(stmt,l);
                     // If the database was not successfully updated
                 if (!updateSuccess)
                     break;
@@ -3089,18 +3291,18 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // If this is version 0.4.0 only
                 if ("0.4.0".equals(versionStr)){
                         // Update to version 0.5.0
-                    updateSuccess = updateAddListSizeLimitColumn(stmt,program);
+                    updateSuccess = updateAddListSizeLimitColumn(stmt,l);
                         // If the database was not successfully updated
                     if (!updateSuccess)
                         break;
                 }
             case("0.5.0"):      // If this is version 0.5.0 or earlier
                     // Update to version 1.0.0
-                updateSuccess = updateToVersion1_0_0(stmt,program);
+                updateSuccess = updateToVersion1_0_0(stmt,l);
                 break;
             case("0.6.0"):      // If this is version 0.6.0
                     // Update to version 1.0.0
-                updateSuccess = updateAddConfigTable(stmt,program);
+                updateSuccess = updateAddConfigTable(stmt,l);
         }   // Set the database version to 1.0.0
         getDatabaseProperties().setProperty(DATABASE_VERSION_CONFIG_KEY,"1.0.0");
         commit();       // Commit the changes to the database
@@ -3112,14 +3314,14 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * This updates the database to version 2.1.0. List names can no longer have 
      * an asterisks.
      * @param stmt
-     * @param progressBar
+     * @param l
      * @return
      * @throws SQLException 
      */
-    protected boolean updateToVersion2_1_0(Statement stmt, 
-            JProgressBar progressBar) throws SQLException{
-        if (progressBar != null)        // If a progress bar was provided
-            progressBar.setIndeterminate(true);
+    protected boolean updateToVersion2_1_0(Statement stmt, ProgressObserver l) 
+            throws SQLException{
+        if (l != null)      // If a progress observer has been provided
+            l.setIndeterminate(true);
             // This is a table to contain the list names
         TreeMap<Integer, String> listNames = new TreeMap<>();
             // This is a table to contain the list creation times
@@ -3171,18 +3373,18 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             lists.put(listType, new ArrayList<>(getListIDs(listType)));
         }   // This is a map that contains the list data, since that will be 
             // erased when the list table is deleted
-        Map<Integer, List<Long>> data = loadListDataIDs(stmt,progressBar);
+        Map<Integer, List<Long>> data = loadListDataIDs(stmt,l);
             // Get the total size of the lists
         int totalSize = getListDataMap().totalSize();
-        if (progressBar != null){       // If a progress bar was provided
-            progressBar.setIndeterminate(true);
-            progressBar.setValue(0);
-            progressBar.setMaximum(listNames.size());
+        if (l != null){         // If a progress observer has been provided
+            l.setIndeterminate(true);
+            l.clearValue();
+            l.setMaximum(listNames.size());
         }   // Delete the old list table
         deleteTable(LIST_TABLE_NAME,stmt);
         createTables(stmt);     // Create the new tables
-        if (progressBar != null)        // If a progress bar was provided
-            progressBar.setIndeterminate(false);
+        if (l != null)          // If a progress observer has been provided
+            l.setIndeterminate(false);
             // Go through the listIDs of the stored lists
         for (Integer listID : listNames.navigableKeySet()){
                 // Prepare a statement to insert the list back into the list table
@@ -3213,50 +3415,50 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // Execute the update
                 pstmt.executeUpdate();
             }
-            if (progressBar != null)    // If a progress bar was provided
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
-        if (progressBar != null)        // If a progress bar was provided
-            progressBar.setIndeterminate(true);
+        if (l != null)          // If a progress observer has been provided
+            l.setIndeterminate(true);
         commit();       // Commit the changes to the database
-        if (progressBar != null){       // If a progress bar was provided
-            progressBar.setValue(0);
-            progressBar.setMaximum(lists.size());
-            progressBar.setIndeterminate(false);
+        if (l != null){         // If a progress observer has been provided
+            l.clearValue();
+            l.setMaximum(lists.size());
+            l.setIndeterminate(false);
         }   // Go through the stored lists of lists
         for (Map.Entry<Integer,List<Integer>> entry : lists.entrySet()){
                 // Get the listID list from the database and add all the listIDs 
                 // back to the list in the database
             getListIDs(entry.getKey()).addAll(entry.getValue());
-            if (progressBar != null)    // If a progress bar was provided
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
-        if (progressBar != null)        // If a progress bar was provided
-            progressBar.setIndeterminate(true);
+        if (l != null)          // If a progress observer has been provided
+            l.setIndeterminate(true);
         commit();       // Commit the changes to the database
-        if (progressBar != null){       // If a progress bar was provided
-            progressBar.setValue(0);
-            progressBar.setMaximum(totalSize);
+        if (l != null){         // If a progress observer has been provided
+            l.clearValue();
+            l.setMaximum(totalSize);
         }   // Repopulate the list data in the database
-        repopulateListData(data,progressBar);
+        repopulateListData(data,l);
         return true;
     }
     /**
      * 
      * @param stmt
-     * @param progressBar
+     * @param l
      * @return
      * @throws SQLException 
      */
     protected Map<Integer, List<Long>> loadListDataIDs(Statement stmt, 
-            JProgressBar progressBar)throws SQLException {
+            ProgressObserver l) throws SQLException {
             // A tree map to get the list data from the database
         TreeMap<Integer, List<Long>> listData = new TreeMap<>();
-        if (progressBar != null){       // If a progress bar was provided
-            progressBar.setValue(0);
-            progressBar.setMaximum(getTableSize(LIST_DATA_TABLE_NAME,
-                    LINK_ID_COLUMN_NAME,stmt));
-            progressBar.setIndeterminate(false);
+        if (l != null){     // If a progress observer has been provided
+            l.clearValue();
+            l.setMaximum(getTableSize(LIST_DATA_TABLE_NAME,LINK_ID_COLUMN_NAME,
+                    stmt));
+            l.setIndeterminate(false);
         }   // Get the contents of the list data table
         ResultSet rs = stmt.executeQuery(String.format(
                 "SELECT %s, %s, %s FROM %s ORDER BY %s, %s", 
@@ -3287,36 +3489,36 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 list.add(null);
             }
             list.add(linkID);   // Add the linkID to the list
-            if (progressBar != null)    // If a progress bar was provided
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
         return listData;
     }
     /**
      * 
      * @param listData
-     * @param progressBar
+     * @param l
      * @throws SQLException 
      */
     protected void repopulateListData(Map<Integer, List<Long>> listData, 
-            JProgressBar progressBar) throws SQLException{
+            ProgressObserver l) throws SQLException{
             // Go through the list data
         for (Map.Entry<Integer,List<Long>> entry : listData.entrySet()){
                 // Repopulate the current list in the database
-            repopulateListData(entry.getKey(),entry.getValue(),progressBar);
+            repopulateListData(entry.getKey(),entry.getValue(),l);
         }
     }
     /**
      * 
      * @param listID
      * @param linkIDs
-     * @param progressBar
+     * @param l
      * @throws SQLException 
      */
     protected void repopulateListData(int listID, List<Long> linkIDs, 
-            JProgressBar progressBar) throws SQLException{
-        if (progressBar != null)    // If a progress bar was provided
-            progressBar.setIndeterminate(false);
+            ProgressObserver l) throws SQLException{
+        if (l != null)      // If a progress observer has been provided
+            l.setIndeterminate(false);
             // Go through the linkIDs to re-insert into the list
         for (int i = 0; i < linkIDs.size(); i++){
                 // Get the linkID at the current index
@@ -3338,11 +3540,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         // Execute the update
                     pstmt.executeUpdate();
                 }
-            if (progressBar != null)    // If a progress bar was provided
-                progressBar.setValue(progressBar.getValue()+1);
+            if (l != null)      // If a progress observer has been provided
+                l.incrementValue();
         }
-        if (progressBar != null)    // If a progress bar was provided
-            progressBar.setIndeterminate(true);
+        if (l != null)      // If a progress observer has been provided
+            l.setIndeterminate(true);
         commit();       // Commit the changes to the database
     }
     /**
@@ -3352,14 +3554,14 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * was introduced to the list data table around version 2.0.0 where new 
      * databases would have a broken list data table.
      * @param stmt
-     * @param progressBar
+     * @param l
      * @return
      * @throws SQLException 
      */
-    protected boolean updateToVersion3_0_0(Statement stmt, 
-            JProgressBar progressBar) throws SQLException{
-        if (progressBar != null)        // If a progress bar was provided
-            progressBar.setIndeterminate(true);
+    protected boolean updateToVersion3_0_0(Statement stmt, ProgressObserver l) 
+            throws SQLException{
+        if (l != null)      // If a progress observer has been provided
+            l.setIndeterminate(true);
             // Delete the old distinct link view
         deleteView(DISTINCT_LINK_VIEW_NAME,stmt);
             // Delete the old tables view
@@ -3387,69 +3589,167 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             // I'm not even sure if this would fix this situation
             commit();       // Commit the changes to the database
                 // This is a map containing the list data from the database
-            Map<Integer, List<Long>> listData = loadListDataIDs(stmt,progressBar);
-            if (progressBar != null)    // If a progress bar was provided
-                progressBar.setIndeterminate(true);
+            Map<Integer, List<Long>> listData = loadListDataIDs(stmt,l);
+            if (l != null)      // If a progress observer has been provided
+                l.setIndeterminate(true);
                 // Delete the bugged list data table
             deleteTable(LIST_DATA_TABLE_NAME,stmt);
                 // Create the new tables
             createTables(stmt);
             commit();       // Commit the changes to the database
-            if (progressBar != null)    // If a progress bar was provided
-                progressBar.setValue(0);
+            if (l != null)      // If a progress observer has been provided
+                l.clearValue();
                 // This gets the total size of the lists
             int total = 0;
                 // Go through the list data to get the total size
             for (List<Long> temp : listData.values()){
                 total += temp.size();
             }
-            if (progressBar != null)    // If a progress bar was provided
-                progressBar.setMaximum(total);
+            if (l != null)      // If a progress observer has been provided
+                l.setMaximum(total);
                 // Repopulate the list data in the database
-            repopulateListData(listData,progressBar);
+            repopulateListData(listData,l);
         } else {
             createTables(stmt); // Create the new tables
         }
         return true;
     }
     /**
-     * 
+     * This updates the database to version 4.1.0. Version 4.1.0 updates 
+     * definitions of the two list settings tables to make it so that they don't 
+     * delete settings upon deletion of their foreign key constraints.
      * @param stmt
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
-    public boolean updateDatabaseDefinitions(Statement stmt, 
-            DisableGUIInput program) throws SQLException{
+    protected boolean updateToVersion4_1_0(Statement stmt, ProgressObserver l) 
+            throws SQLException{
+        Map<Integer,Map<Integer,Integer>> selLists = new TreeMap<>();
+        Map<Integer,Map<Integer,Long>> selLinkIDs = new TreeMap<>();
+        Map<Integer,Map<Integer,Boolean>> selVis = new TreeMap<>();
+        Map<Integer,Map<Integer,Integer>> firstVis = new TreeMap<>();
+        Map<Integer,Map<Integer,Integer>> lastVis = new TreeMap<>();
+        Map<Integer,Map<Integer,Rectangle>> visRect = new TreeMap<>();
+        Map<Integer,Set<Integer>> listIDs = new TreeMap<>();
+        if (showTables().contains(LIST_TYPE_SETTINGS_TABLE_NAME)){
+            ResultSet rs = stmt.executeQuery(String.format("SELECT %s, %s, %s FROM %s", 
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_TYPE_COLUMN_NAME,
+                    LIST_ID_COLUMN_NAME,
+                    LIST_TYPE_SETTINGS_TABLE_NAME));
+            while (rs.next()){
+                int id = rs.getInt(PROGRAM_ID_COLUMN_NAME);
+                if (!selLists.containsKey(id))
+                    selLists.put(id, new TreeMap<>());
+                Integer value = rs.getInt(LIST_ID_COLUMN_NAME);
+                if (rs.wasNull())
+                    value = null;
+                selLists.get(id).put(rs.getInt(LIST_TYPE_COLUMN_NAME), value);
+            }
+        }
+        if (showTables().contains(LIST_SETTINGS_TABLE_NAME)){
+            ResultSet rs = stmt.executeQuery(String.format("SELECT %s, %s, %s, %s, %s, %s, %s FROM %s", 
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_ID_COLUMN_NAME,
+                    LINK_ID_COLUMN_NAME,
+                    SELECTION_IS_VISIBLE_COLUMN_NAME,
+                    FIRST_VISIBLE_INDEX_COLUMN_NAME,
+                    LAST_VISIBLE_INDEX_COLUMN_NAME,
+                    VISIBLE_RECTANGLE_COLUMN_NAME,
+                    LIST_SETTINGS_TABLE_NAME));
+            while (rs.next()){
+                int progID = rs.getInt(PROGRAM_ID_COLUMN_NAME);
+                int listID = rs.getInt(LIST_ID_COLUMN_NAME);
+                if (!listIDs.containsKey(progID)){
+                    listIDs.put(progID, new TreeSet<>());
+                    selLinkIDs.put(progID, new TreeMap<>());
+                    selVis.put(progID, new TreeMap<>());
+                    firstVis.put(progID, new TreeMap<>());
+                    lastVis.put(progID, new TreeMap<>());
+                    visRect.put(progID, new TreeMap<>());
+                }
+                listIDs.get(progID).add(listID);
+                Long linkID = rs.getLong(LINK_ID_COLUMN_NAME);
+                if (rs.wasNull())
+                    linkID = null;
+                selLinkIDs.get(progID).put(listID, linkID);
+                Boolean vis = rs.getBoolean(SELECTION_IS_VISIBLE_COLUMN_NAME);
+                if (rs.wasNull())
+                    vis = null;
+                selVis.get(progID).put(listID, vis);
+                Integer index = rs.getInt(FIRST_VISIBLE_INDEX_COLUMN_NAME);
+                if (rs.wasNull())
+                    index = null;
+                firstVis.get(progID).put(listID, index);
+                index = rs.getInt(LAST_VISIBLE_INDEX_COLUMN_NAME);
+                if (rs.wasNull())
+                    index = null;
+                lastVis.get(progID).put(listID, index);
+                visRect.get(progID).put(listID, 
+                        ConfigUtilities.rectangleFromByteArray(
+                                rs.getBytes(VISIBLE_RECTANGLE_COLUMN_NAME)));
+            }
+        }
+        deleteTable(LIST_TYPE_SETTINGS_TABLE_NAME,stmt);
+        deleteTable(LIST_SETTINGS_TABLE_NAME,stmt);
+        createTables(stmt); // Create the new tables
+        commit();       // Commit the changes to the database
+        for (Map.Entry<Integer, Map<Integer,Integer>> entry : selLists.entrySet()){
+            getListSettings(entry.getKey()).getSelectedListIDMap().putAll(entry.getValue());
+        }
+        commit();       // Commit the changes to the database
+        for (Map.Entry<Integer,Set<Integer>> entry : listIDs.entrySet()){
+            DatabaseLinksListSettings settings = getListSettings(entry.getKey());
+            for (Integer listID : entry.getValue()){
+                settings.setListSettings(listID, 
+                        selLinkIDs.get(entry.getKey()).get(listID), 
+                        selVis.get(entry.getKey()).get(listID), 
+                        firstVis.get(entry.getKey()).get(listID), 
+                        lastVis.get(entry.getKey()).get(listID), 
+                        visRect.get(entry.getKey()).get(listID));
+            }
+        }
+        return true;
+    }
+    /**
+     * 
+     * @param stmt
+     * @param l
+     * @return
+     * @throws SQLException 
+     */
+    public boolean updateDatabaseDefinitions(Statement stmt, ProgressObserver l) 
+            throws SQLException{
+        LinkManager.getLogger().entering("LinkDatabaseConnection", "updateDatabaseDefinitions");
+            // This gets the database version as a String
+        String versionStr = getDatabaseVersionStr();
+        LinkManager.getLogger().log(Level.FINER, "Database version: {0}", versionStr);
+        LinkManager.getLogger().log(Level.FINER, "Latest database version: {0}", DATABASE_VERSION);
             // If the database cannot be automatically updated to the current version
-        if (!isDatabaseCompatible())
+        if (!isDatabaseCompatible()){
+            LinkManager.getLogger().finer("Database is incompatible with program");
+            LinkManager.getLogger().exiting("LinkDatabaseConnection", "updateDatabaseDefinitions",false);
             return false;
-            // If the database is currently up to date
-        if (!isDatabaseOutdated())
+        }   // If the database is currently up to date
+        if (!isDatabaseOutdated()){
+            LinkManager.getLogger().finer("Database is already up to date");
+            LinkManager.getLogger().exiting("LinkDatabaseConnection", "updateDatabaseDefinitions",true);
             return true;
-            // Get the current state of the auto-commit
+        }   // Get the current state of the auto-commit
         boolean autoCommit = getAutoCommit();
             // Turn off the auto-commit in order to group the following database 
             // transactions to improve performance
         setAutoCommit(false);
             // This gets the database properties map
         DatabasePropertyMap properties = getDatabaseProperties();
-            // This gets the database version as a String
-        String versionStr = getDatabaseVersionStr();
             // This gets the database version as an array of integers
         int[] version = getDatabaseVersion();
-            // This gets the progress bar from the program if there is one
-        JProgressBar progressBar = null;
-            // This gets the progress display menu from the program if there is 
-        JProgressDisplayMenu progressMenu = null;   // one
-        if (program != null){   // If a program was provided
-            progressMenu = program.getProgressDisplayMenu();
-            progressBar = program.getProgressBar();
-        }   // The progress text from the progress display menu
-        String progressText = null; 
-        if (progressMenu != null){  // If the program has a progress display menu
-            progressText = progressMenu.getString();
-            progressMenu.setString("Updating Database");
+            // The progress text from the progress observer
+        String progressText = null;
+        if (l != null){             // If a progress observer has been provided
+            progressText = l.getText();
+            l.setText("Updating Database");
         }   // This gets whether foreign keys are enabled (or supported)
         Boolean foreignKeys = null;
             // If foreign keys are supported
@@ -3475,11 +3775,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             // Determine the updates to apply based off the database version
         switch(versionStr){
             case("1.0.0"):      // If version 1.0.0
+                LinkManager.getLogger().finer("Updating to version 1.1.0");
                     // Delete the old prefix count view
                 deleteView(PREFIX_COUNT_VIEW_NAME,stmt);
                     // Delete the old list size view
                 deleteView(LIST_SIZE_VIEW_NAME,stmt);
             case("1.1.0"):      // If version 1.1.0
+                LinkManager.getLogger().finer("Updating to version 1.2.0");
                     // Update the prefix separators
                 properties.getDefaults().put(PREFIX_SEPARATORS_CONFIG_KEY, 
                         PREFIX_DEFAULT_SEPARATORS);
@@ -3488,53 +3790,92 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     properties.remove(prop, properties.getDefaults().get(prop));
                 }
             case("1.2.0"):      // If version 1.2.0
+                LinkManager.getLogger().finer("Updating to version 1.3.0");
                     // Delete the list contents view (adding the linkID column 
                     // to the list contents view)
                 deleteView(LIST_CONTENTS_VIEW_NAME,stmt);
             case("1.3.0"):      // If version 1.3.0
+                LinkManager.getLogger().finer("Updating to version 1.4.0");
                     // Delete the tables view
                 deleteView(TABLES_VIEW_NAME,stmt);
             case("1.4.0"):      // If version 1.4.0
+                LinkManager.getLogger().finer("Updating to version 1.4.1");
                     // Change the default database version
                 properties.getDefaults().put(DATABASE_VERSION_CONFIG_KEY, 
                         DEFAULT_DATABASE_VERSION);
             case("1.4.1"):      // If version 1.4.1
+                LinkManager.getLogger().finer("Updating to version 1.5.0");
                     // Delete the tables view (again)
                 deleteView(TABLES_VIEW_NAME,stmt);
             case("1.5.0"):      // If version 1.5.0
+                LinkManager.getLogger().finer("Updating to version 1.5.1");
                     // Delete the list size view again
                 deleteView(LIST_SIZE_VIEW_NAME,stmt);
             case("1.5.1"):      // If version 1.5.1
+                LinkManager.getLogger().finer("Updating to version 1.6.0");
                     // Delete the distinct links view
                 deleteView(DISTINCT_LINK_VIEW_NAME,stmt);
             case("1.6.0"):      // If version 1.6.0
+                LinkManager.getLogger().finer("Updating to version 2.0.0");
                 createTables(stmt); // Create the new tables
             case("2.0.0"):      // If version 2.0.0
+                LinkManager.getLogger().finer("Updating to version 2.1.0");
                     // Update the database to version 2.1.0
-                updateSuccess = updateToVersion2_1_0(stmt,progressBar);
+                updateSuccess = updateToVersion2_1_0(stmt,l);
                     // If the update was not successful
                 if (!updateSuccess)
                     break;
             case("2.1.0"):      // If version 2.1.0
+                LinkManager.getLogger().finer("Updating to version 2.2.0");
                     // Delete the list contents view
                 deleteView(LIST_CONTENTS_VIEW_NAME,stmt);
                     // Create the new tables
                 createTables(stmt);
             case("2.2.0"):      // If version 2.2.0
+                LinkManager.getLogger().finer("Updating to version 3.0.0");
                     // Update the database to version 3.0.0
-                updateSuccess = updateToVersion3_0_0(stmt,progressBar);
+                updateSuccess = updateToVersion3_0_0(stmt,l);
                     // If the update was not successful
                 if (!updateSuccess)
                     break;
             case("3.0.0"):      // If version 3.0.0
+                LinkManager.getLogger().finer("Updating to version 3.1.0");
             case("3.1.0"):      // If version 3.1.0
+                LinkManager.getLogger().finer("Updating to version 3.2.0");
                     // Ensure that the default is set properly
                 properties.getDefaults().setProperty(
                         DATABASE_LAST_MODIFIED_CONFIG_KEY, DATABASE_LAST_MODIFIED_CONFIG_DEFAULT);
                 setDatabaseLastModified();
             case("3.2.0"):      // If version 3.2.0
+                LinkManager.getLogger().finer("Updating to version 3.3.0");
                 setDatabaseUUIDIfAbsent();
-//            case("3.3.0"):      // If version 3.3.0
+            case("3.3.0"):      // If version 3.3.0
+                LinkManager.getLogger().finer("Updating to version 3.4.0");
+            case("3.4.0"):      // If version 3.4.0
+                LinkManager.getLogger().finer("Updating to version 4.0.0");
+                    // Delete the old indexes
+                deleteIndex("listTypeSelectionIndex",stmt);
+                deleteIndex("listSelectionIndex",stmt);
+                if (showTables().contains("listTypeSelection")){
+                        // Delete the created table since they just need to be renamed
+                    deleteTable(LIST_TYPE_SETTINGS_TABLE_NAME,stmt);
+                        // Rename the old table
+                    renameTable("listTypeSelection",LIST_TYPE_SETTINGS_TABLE_NAME,stmt);
+                }
+                if (showTables().contains("listSelection")){
+                        // Delete the created table since they just need to be renamed
+                    deleteTable(LIST_SETTINGS_TABLE_NAME,stmt);
+                        // Rename the old table
+                    renameTable("listSelection",LIST_SETTINGS_TABLE_NAME,stmt);
+                }
+            case("4.0.0"):      // If version 4.0.0
+                LinkManager.getLogger().finer("Updating to version 4.1.0");
+                    // Update the database to version 4.1.0
+                updateSuccess = updateToVersion4_1_0(stmt,l);
+                    // If the update was not successful
+                if (!updateSuccess)
+                    break;
+//            case("4.1.0"):      // If version 4.1.0
         }
             // If foreign keys are supported
         if (foreignKeys != null)
@@ -3542,11 +3883,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             setForeignKeysEnabled(foreignKeys, stmt);
             // Update the database version to the current version
         properties.setProperty(DATABASE_VERSION_CONFIG_KEY, DATABASE_VERSION);
-        if (progressMenu != null)   // If the program has a progress display menu
-            progressMenu.setText(progressText);
+        if (l != null)              // If a progress observer has been provided
+            l.setText(progressText);
         commit();       // Commit the changes to the database
             // Restore the auto-commit back to what it was set to before
         setAutoCommit(autoCommit);
+        LinkManager.getLogger().exiting("LinkDatabaseConnection", 
+                "updateDatabaseDefinitions",updateSuccess);
         return updateSuccess;
     }
     /**
@@ -3555,22 +3898,22 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @return
      * @throws SQLException 
      */
-    public boolean updateDatabaseDefinitions(Statement stmt) throws SQLException{
+    public boolean updateDatabaseDefinitions(Statement stmt)throws SQLException{
         return updateDatabaseDefinitions(stmt,null);
     }
     /**
      * 
-     * @param program
+     * @param l
      * @return
      * @throws SQLException 
      */
-    public boolean  updateDatabaseDefinitions(DisableGUIInput program) throws 
+    public boolean updateDatabaseDefinitions(ProgressObserver l) throws 
             SQLException{
             // Whether the update was successful
         boolean success;
             // Create a statement to rename the column
         try(Statement stmt = createStatement()){
-            success = updateDatabaseDefinitions(stmt, program);
+            success = updateDatabaseDefinitions(stmt, l);
         }
         return success;
     }
@@ -3580,7 +3923,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @throws SQLException 
      */
     public boolean updateDatabaseDefinitions() throws SQLException{
-        return updateDatabaseDefinitions((DisableGUIInput)null);
+        return updateDatabaseDefinitions(null,null);
     }
     /**
      * 
@@ -3609,6 +3952,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             try{
                 verArr[i] = Integer.parseInt(arr[i]);
             } catch(NumberFormatException ex){
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to get database version value for index "+i,ex);
                 verArr[i] = -1;
             }
         }
@@ -3629,6 +3974,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         try{
             return Integer.parseInt(arr[index]);
         } catch(NumberFormatException ex){
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to get database version number at index "+index,ex);
             return -1;
         }
     }
@@ -3713,6 +4060,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         try{    // Try to parse the UUID from a string
             return UUID.fromString(value.trim());
         } catch (IllegalArgumentException ex){ 
+            LinkManager.getLogger().log(Level.WARNING, "Invalid database ID", 
+                    ex);
             return null;
         }
     }
@@ -3757,7 +4106,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         if (lastMod != null){
             try{
                 return Long.parseLong(lastMod);
-            } catch(NumberFormatException ex){}
+            } catch(NumberFormatException ex){
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Invalid database last modified time", ex);
+            }
         }
         return 0;
     }
@@ -4257,6 +4609,45 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
+     * @param pstmt
+     * @param parameterIndex
+     * @param bytes
+     * @throws SQLException 
+     */
+    protected static void setParameter(PreparedStatement pstmt, 
+            int parameterIndex, byte[] bytes) throws SQLException{
+        if (bytes == null)
+            pstmt.setNull(parameterIndex, Types.VARBINARY);
+        else
+            pstmt.setBytes(parameterIndex, bytes);
+    }
+    /**
+     * 
+     * @param pstmt
+     * @param parameterIndex
+     * @param rect
+     * @throws SQLException 
+     */
+    protected static void setParameter(PreparedStatement pstmt, 
+            int parameterIndex, Rectangle rect) throws SQLException{
+        setParameter(pstmt,parameterIndex,ConfigUtilities.rectangleToByteArray(rect));
+    }
+    /**
+     * 
+     * @param pstmt
+     * @param parameterIndex
+     * @param value
+     * @throws SQLException 
+     */
+    protected static void setParameter(PreparedStatement pstmt, 
+            int parameterIndex, Boolean value) throws SQLException{
+        if (value == null)
+            pstmt.setNull(parameterIndex, Types.BOOLEAN);
+        else
+            pstmt.setBoolean(parameterIndex, value);
+    }
+    /**
+     * 
      * @param stmt
      * @return 
      */
@@ -4274,7 +4665,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     key = null;
             }
         }
-        catch(SQLException ex){ }
+        catch(SQLException ex){ 
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to get generated integer key", ex);
+        }
         return key;
     }
     /**
@@ -4296,7 +4690,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     key = null;
             }
         }
-        catch(SQLException ex){ }
+        catch(SQLException ex){ 
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to get generated long key", ex);
+        }
         return key;
     }
     /**
@@ -4751,13 +5148,20 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         String value = null;    // loaded from the database
         try {   // Get the threshold from the database
             value = getDatabaseProperties().getProperty(PREFIX_THRESHOLD_CONFIG_KEY);
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to get prefix threshold from database properties", 
+                    ex);
+        }
             // If the threshold property was successfully retrieved from the 
             // database
         if (value != null){
             try{    // Try to parse the value loaded
                 return Integer.parseInt(value);
-            } catch (NumberFormatException ex){ }
+            } catch (NumberFormatException ex){ 
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Invalid prefix threshold", ex);
+            }
         }   // Fall back to the default
         return PREFIX_THRESHOLD_CONFIG_DEFAULT;
     }
@@ -4777,28 +5181,82 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             return getDatabaseProperties().getProperty(
                     PREFIX_SEPARATORS_CONFIG_KEY,PREFIX_DEFAULT_SEPARATORS);
         } catch (SQLException ex) {
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Failed to get prefix speparators from database", ex);
             return PREFIX_DEFAULT_SEPARATORS;
         }
     }
     /**
      * 
      * @param linkID
+     * @param linkMap
+     * @param prefixMap
      * @throws SQLException 
      */
-    public void updateLinkData(long linkID) throws SQLException{
+    protected void updateLinkPrefix(long linkID, LinkMap linkMap, 
+            PrefixMap prefixMap) throws SQLException{
             // Get the link for the given linkID
-        String link = getLinkMap().get(linkID);
+        String link = linkMap.get(linkID);
             // If there is no link mapped to the given linkID
         if (link == null)
             throw new IllegalArgumentException("No link with link ID "+linkID);
             // Get the entry for the longest matching prefix for the link
-        Map.Entry<Integer,String> prefix = getPrefixMap().getLongestPrefixEntryFor(link);
+        Map.Entry<Integer,String> prefix = prefixMap.getLongestPrefixEntryFor(link);
             // If the prefix is not null and not empty
         if (prefix.getValue() != null && !prefix.getValue().isEmpty())
                 // Get the link's suffix
             link = link.substring(prefix.getValue().length());
             // Update the link in the database
         updateLink(linkID,prefix.getKey(),link);
+    }
+    /**
+     * 
+     * @param linkID
+     * @throws SQLException 
+     */
+    public void updateLinkPrefix(long linkID) throws SQLException{
+        updateLinkPrefix(linkID,getLinkMap(),getPrefixMap());
+    }
+    /**
+     * 
+     * @param linkIDs
+     * @param l 
+     * @throws SQLException 
+     */
+    public void updateLinkPrefix(Collection<Long> linkIDs, ProgressObserver l) 
+            throws SQLException{
+            // Get the link map
+        LinkMap linkMap = getLinkMap();
+            // Get the prefix map
+        PrefixMap prefixMap = getPrefixMap();
+            // Create a copy of the linkIDs that is a set
+        linkIDs = new LinkedHashSet<>(linkIDs);
+            // Get the current state of the auto-commit
+        boolean autoCommit = getAutoCommit();
+            // Turn off the auto-commit in order to group the following 
+            // database transactions to improve performance
+        setAutoCommit(false);
+        try{    // Go through the linkIDs of the links to be updated
+            for (Long linkID : linkIDs){
+                updateLinkPrefix(linkID,linkMap,prefixMap);
+                if (l != null)
+                    l.incrementValue();
+            }
+        } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex){
+            throw ex;
+        } finally {
+            commit();       // Commit the changes to the database
+                // Restore the auto-commit back to what it was set to before
+            setAutoCommit(autoCommit);
+        }
+    }
+    /**
+     * 
+     * @param linkIDs
+     * @throws SQLException 
+     */
+    public void updateLinkPrefix(Collection<Long> linkIDs) throws SQLException{
+        updateLinkPrefix(linkIDs,null);
     }
     /**
      * 
@@ -4888,266 +5346,218 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
-     * @param <E> The type of elements stored in this set.
+     * @param model
+     * @param linkIDMap
+     * @param l
+     * @throws SQLException 
      */
-    private abstract class AbstractQuerySet<E> extends AbstractSQLSet<E>{
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public LinkDatabaseConnection getConnection() throws SQLException {
-            return LinkDatabaseConnection.this;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected boolean addAllSQL(Collection<? extends E> c)throws SQLException{
-                // Get the current state of the auto-commit
-            boolean autoCommit = getAutoCommit();
-                // Turn off the auto-commit in order to group the following 
-                // database transactions to improve performance
-            setAutoCommit(false);
-                // Add all the elements in the given collection to this set and 
-                // get if this set was modified as a result
-            boolean modified = super.addAllSQL(c);
-            commit();       // Commit the changes to the database
-                // Restore the auto-commit back to what it was set to before
-            setAutoCommit(autoCommit);
-            return modified;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected boolean removeAllSQL(Collection<?> c)throws SQLException{
-                // Get the current state of the auto-commit
-            boolean autoCommit = getAutoCommit();
-                // Turn off the auto-commit in order to group the following 
-                // database transactions to improve performance
-            setAutoCommit(false);
-                // Remove any elements in this set that are also in the given 
-                // collection and get if this set was modified as a result
-            boolean modified = super.removeAllSQL(c);
-            commit();       // Commit the changes to the database
-                // Restore the auto-commit back to what it was set to before
-            setAutoCommit(autoCommit);
-            return modified;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected boolean retainAllSQL(Collection<?> c)throws SQLException{
-                // Get the current state of the auto-commit
-            boolean autoCommit = getAutoCommit();
-                // Turn off the auto-commit in order to group the following 
-                // database transactions to improve performance
-            setAutoCommit(false);
-                // Retain only the elements in this set that are also in the 
-                // given collection and get if this set was modified as a result
-            boolean modified = super.retainAllSQL(c);
-            commit();       // Commit the changes to the database
-                // Restore the auto-commit back to what it was set to before
-            setAutoCommit(autoCommit);
-            return modified;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected abstract boolean containsSQL(Object o) throws SQLException;
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected abstract boolean removeSQL(Object o) throws SQLException;
-        /**
-         * 
-         * @return
-         * @throws SQLException 
-         */
-        protected abstract Set<E> valueCacheSet() throws SQLException;
-        /**
-         * 
-         * @return
-         * @throws SQLException 
-         */
-        protected Iterator<E> iteratorSQL() throws SQLException{
-            return new CacheSetIterator<>(valueCacheSet()){
-                @Override
-                protected void remove(E value) {
-                    AbstractQuerySet.this.remove(value);
-                }
-            };
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public Iterator<E> iterator(){
-            try{
-                return iteratorSQL();
-            } catch (SQLException ex) {
-                appendWarning(ex);
-                return Collections.emptyIterator();
-            }
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public boolean equals(Object obj){
-                // If the given object is this set
-            if (obj == this)
-                return true;
-                // If the given object is a set
-            else if (obj instanceof Set){
-                    // Create a copy of this set (to reduce the number of 
-                Set<E> temp = new HashSet<>(this);  // queries)
-                    // Return whether the object matches the copy
-                return temp.equals(obj);
-            }
-            return false;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public int hashCode() {
-                // Create a copy of this set (to reduce the number of queries)
-            Set<E> temp = new HashSet<>(this);
-            return temp.hashCode();
+    public void updateListContents(LinksListModel model,
+            Map<String,Long> linkIDMap, ProgressObserver l) throws SQLException{
+        Objects.requireNonNull(model);
+        if (model.getListID() == null)
+            throw new IllegalArgumentException("Model must have a non-null listID");
+            // Get the current state of the connection's auto-commit
+        boolean autoCommit = getAutoCommit();
+            // Turn off the connection's auto-commit to group the following 
+            // database transactions to improve performance
+        setAutoCommit(false);
+            // Update the contents of the list based off the contents of the model
+        getListContents(model.getListID()).updateContents(model, l,linkIDMap);
+        commit();               // Commit the changes to the database
+        model.clearEdited();    // Clear whether the list was edited
+        System.gc();            // Run the garbage collector
+            // Restore the connection's auto-commit back to what it was set to 
+        setAutoCommit(autoCommit);      // before
+    }
+    /**
+     * 
+     * @param model
+     * @param linkIDMap
+     * @throws SQLException 
+     */
+    public void updateListContents(LinksListModel model,
+            Map<String,Long> linkIDMap) throws SQLException{
+        updateListContents(model,linkIDMap,null);
+    }
+    /**
+     * 
+     * @param listIDs
+     * @param tabsPanel
+     * @param l
+     * @throws SQLException 
+     */
+    public void updateListIDList(ListIDList listIDs, 
+            LinksListTabsPanel tabsPanel,ProgressObserver l)throws SQLException{
+            // Get a copy of the list IDs in the list from the database
+        Set<Integer> missingIDs = new LinkedHashSet<>(listIDs);
+            // Remove null listIDs
+        missingIDs.remove(null);
+            // Remove any listIDs that are in the tabs panel
+        missingIDs.removeAll(tabsPanel.getListIDs());
+            // Remove any listIDs that have been removed
+        missingIDs.removeAll(tabsPanel.getRemovedListIDs());
+            // Clear the list in the database
+        listIDs.clear();
+            // Add all the listIDs that are in the tabs panel
+        listIDs.addAll(tabsPanel.getListIDs());
+            // Remove any that are null
+        listIDs.removeIf((Integer t) -> t == null);
+            // Add any that are missing from the tabs panel
+        listIDs.addAll(missingIDs);
+    }
+    /**
+     * 
+     * @param listIDs
+     * @param tabsPanel
+     * @throws SQLException 
+     */
+    public void updateListIDList(ListIDList listIDs, 
+            LinksListTabsPanel tabsPanel) throws SQLException{
+        updateListIDList(listIDs,tabsPanel,null);
+    }
+    /**
+     * 
+     * @param listType
+     * @param tabsPanel
+     * @param l
+     * @throws SQLException 
+     */
+    public void updateListIDList(int listType, LinksListTabsPanel tabsPanel,
+            ProgressObserver l) throws SQLException{
+        updateListIDList(getListIDs(listType),tabsPanel,l);
+    }
+    /**
+     * 
+     * @param listType
+     * @param tabsPanel
+     * @throws SQLException 
+     */
+    public void updateListIDList(int listType, LinksListTabsPanel tabsPanel) 
+            throws SQLException{
+        updateListIDList(listType,tabsPanel,null);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Set<UUID> getProgramUserIDs(){
+        return programUserIDs;
+    }
+    /**
+     * 
+     * @param userID
+     * @return 
+     */
+    public ProgramUUIDMap getProgramUUIDMap(UUID userID){
+        if (!programIDs.containsKey(userID))
+            programIDs.put(userID, new ProgramUUIDMapImpl(userID));
+        return programIDs.get(userID);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<UUID, ProgramUUIDMap> getProgramIDMap(){
+        return Collections.unmodifiableMap(programIDs);
+    }
+    /**
+     * 
+     * @param userID
+     * @return 
+     * @throws java.sql.SQLException 
+     */
+    public boolean removeProgramUserID(UUID userID) throws SQLException{
+        return getProgramUserIDs().remove(userID);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listType
+     * @return
+     * @throws SQLException 
+     */
+    public boolean listSelectionTableContains(int programID, int listType) throws SQLException{
+        try(PreparedStatement pstmt = prepareStatement(String.format(TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_TYPE_SETTINGS_TABLE_NAME,
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_TYPE_COLUMN_NAME))){
+            pstmt.setInt(1, programID);
+            pstmt.setInt(2, listType);
+            return containsCountResult(pstmt.executeQuery());
         }
     }
     /**
      * 
-     * @param <K> The type of keys maintained by the map.
-     * @param <V> The type of mapped values.
+     * @param userID
+     * @param programID
+     * @param listType
+     * @return
+     * @throws SQLException 
      */
-    private abstract class AbstractQueryMap<K, V> extends AbstractSQLMap<K, V>{
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public LinkDatabaseConnection getConnection() throws SQLException {
-            return LinkDatabaseConnection.this;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected abstract boolean containsKeySQL(Object key) throws SQLException;
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected abstract V removeSQL(Object key) throws SQLException;
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected abstract V getSQL(Object key) throws SQLException;
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected abstract V putSQL(K key, V value) throws SQLException;
-        /**
-         * 
-         * @return
-         * @throws SQLException 
-         */
-        protected abstract Set<Entry<K,V>> entryCacheSet() throws SQLException;
-        /**
-         * 
-         * @return
-         * @throws SQLException 
-         */
-        protected Iterator<Entry<K,V>> entryIteratorSQL() throws SQLException{
-            return new CacheSetIterator<>(entryCacheSet()){
-                @Override
-                protected void remove(Entry<K,V> value) {
-                    AbstractQueryMap.this.remove(value.getKey(),value.getValue());
-                }
-            };
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected Iterator<Entry<K,V>> entryIterator(){
-            try{
-                return entryIteratorSQL();
-            } catch (SQLException ex) {
-                appendWarning(ex);
-                return Collections.emptyIterator();
-            }
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected void putAllSQL(Map<? extends K, ? extends V> m) 
-                throws SQLException{
-                // Get the current state of the auto-commit
-            boolean autoCommit = getAutoCommit();
-                // Turn off the auto-commit in order to group the following 
-                // database transactions to improve performance
-            setAutoCommit(false);
-                // Put all the entries in the given map into this map
-            super.putAllSQL(m);
-            commit();       // Commit the changes to the database
-                // Restore the auto-commit back to what it was set to before
-            setAutoCommit(autoCommit);
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public boolean equals(Object obj){
-                // If the given object is this map
-            if (obj == this)
-                return true;
-                // If the given object is a map
-            else if (obj instanceof Map){
-                    // Create a copy of this map (to reduce the number of 
-                Map<K, V> temp = new HashMap<>(this);   // queries)
-                    // Return whether the object matches the copy
-                return temp.equals(obj);
-            }
-            return false;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public int hashCode() {
-                // Create a copy of this map (to reduce the number of queries)
-            Map<K, V> temp = new HashMap<>(this);
-            return temp.hashCode();
+    public boolean listSelectionTableContains(UUID userID, UUID programID, int listType) 
+            throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        return listSelectionTableContains(id,listType);
+    }
+    /**
+     * 
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
+     */
+    public boolean selectionTableContains(int programID, int listID) throws SQLException{
+        try(PreparedStatement pstmt = prepareStatement(String.format(TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_SETTINGS_TABLE_NAME,
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_ID_COLUMN_NAME))){
+            pstmt.setInt(1, programID);
+            pstmt.setInt(2, listID);
+            return containsCountResult(pstmt.executeQuery());
         }
     }
     /**
      * 
-     * @param <V> The type of mapped values.
+     * @param userID
+     * @param programID
+     * @param listID
+     * @return
+     * @throws SQLException 
      */
-    private abstract class AbstractDatabaseTypeIDMap<V> extends 
-            AbstractNavigableTypeIDMap<V>{
-        /**
-         * 
-         * @param typeIDSet 
-         */
-        AbstractDatabaseTypeIDMap(NavigableSet<Integer> typeIDSet){
-            super(typeIDSet);
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public LinkDatabaseConnection getConnection() throws SQLException {
-            return LinkDatabaseConnection.this;
-        }
+    public boolean selectionTableContains(UUID userID, UUID programID, int listID) 
+            throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        return selectionTableContains(id,listID);
+    }
+    /**
+     * 
+     * @param programID
+     * @return 
+     */
+    public DatabaseLinksListSettings getListSettings(int programID){
+        if (!listSettingsMap.containsKey(programID))
+            listSettingsMap.put(programID, new DatabaseLinksListSettingsImpl(this,programID));
+        return listSettingsMap.get(programID);
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @return 
+     */
+    public DatabaseLinksListSettings getListSettings(UUID userID, UUID programID){
+        return getListSettings(getProgramUUIDMap(userID).addIfAbsent(programID));
+    }
+    /**
+     * 
+     * @param userID
+     * @param programID
+     * @return 
+     */
+    public DatabaseLinksListSettings getListSettingsOrNull(UUID userID, UUID programID){
+        return getListSettings(getProgramUUIDMap(userID).get(programID));
     }
     /**
      * 
@@ -5162,6 +5572,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * @param type 
          */
         protected SchemaViewSet(String type) {
+            super(LinkDatabaseConnection.this);
             this.type = type;
         }
         /**
@@ -5304,6 +5715,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * 
      */
     private class TableStructureMap extends AbstractQueryMap<String, String>{
+        /**
+         * 
+         * @param conn 
+         */
+        TableStructureMap() {
+            super(LinkDatabaseConnection.this);
+        }
         /**
          * {@inheritDoc }
          */
@@ -5469,6 +5887,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     private class ListNameMapImpl extends AbstractQueryRowMap<Integer, String> 
             implements ListNameMap{
+        /**
+         * 
+         */
         ListNameMapImpl() {
             super(LinkDatabaseConnection.this);
         }
@@ -5771,6 +6192,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     private class ListTypeSet extends AbstractQuerySet<Integer>{
         /**
+         * 
+         * @param conn 
+         */
+        ListTypeSet() {
+            super(LinkDatabaseConnection.this);
+        }
+        /**
          * {@inheritDoc }
          */
         @Override
@@ -5953,6 +6381,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             try{
                 return getTotalSizeOfLists(getListType());
             } catch (SQLException ex) {
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to get total size of lists", ex);
                 appendWarning(ex);
             }
             return 0;
@@ -5994,14 +6424,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * @throws SQLException 
          */
         ListTypeMapImpl() throws SQLException{
+            super(LinkDatabaseConnection.this);
             this.listTypeSet = getListTypes();
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public LinkDatabaseConnection getConnection() throws SQLException {
-            return LinkDatabaseConnection.this;
         }
         /**
          * {@inheritDoc }
@@ -6080,14 +6504,15 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    private class ListDataMapImpl extends AbstractDatabaseTypeIDMap<ListContents> 
+    private class ListDataMapImpl extends AbstractNavigableTypeIDMap<ListContents> 
             implements ListDataMap{
         /**
          * 
          * @throws SQLException 
          */
         ListDataMapImpl() throws SQLException {
-            super(LinkDatabaseConnection.this.getListNameMap().navigableKeySet());
+            super(LinkDatabaseConnection.this,
+                    LinkDatabaseConnection.this.getListNameMap().navigableKeySet());
         }
         /**
          * {@inheritDoc }
@@ -6128,6 +6553,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
             try{
                 return getTotalSizeOfLists();
             } catch (SQLException ex) {
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to get total size of lists", ex);
                 appendWarning(ex);
                 return 0;
             }
@@ -6180,6 +6607,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     private abstract class AbstractDatabasePropertyMap extends 
             AbstractQueryMap<String,String> implements DatabasePropertyMap{
+        /**
+         * 
+         */
+        AbstractDatabasePropertyMap() {
+            super(LinkDatabaseConnection.this);
+        }
         /**
          * 
          * @return 
@@ -6520,6 +6953,8 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         cache.add(rs.getString(DATABASE_CONFIG_KEY_COLUMN_NAME));
                 }
             } catch (SQLException ex) {
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to create set of database property names", ex);
                 appendWarning(ex);
             }   // Return an unmodifiable version of the set
             return Collections.unmodifiableSet(cache);
@@ -6622,9 +7057,350 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     }
                 }
             } catch (SQLException ex) {
+                LinkManager.getLogger().log(Level.WARNING, 
+                        "Failed to create set of database property entries", 
+                        ex);
                 appendWarning(ex);
             }   // Return an unmodifiable version of the set
             return Collections.unmodifiableSet(cache);
+        }
+    }
+    /**
+     * 
+     */
+    private class ProgramUUIDMapImpl extends AbstractQueryMap<UUID, Integer> 
+            implements ProgramUUIDMap{
+        /**
+         * The user ID for this portion of the table.
+         */
+        private UUID userID;
+        /**
+         * 
+         * @param userID 
+         */
+        ProgramUUIDMapImpl(UUID userID){
+            super(LinkDatabaseConnection.this);
+            this.userID = Objects.requireNonNull(userID);
+        }
+        @Override
+        protected boolean containsKeySQL(Object key) throws SQLException {
+                // If the given key is null or not a UUID
+            if (key == null || !(key instanceof UUID))
+                return false;
+                // Prepare a statement to check if the given UUID is found in 
+                // the program ID table and with the UUID of the user
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
+                            PROGRAM_ID_COLUMN_NAME,
+                            PROGRAM_ID_TABLE_NAME,
+                            PROGRAM_USER_ID_COLUMN_NAME,
+                            PROGRAM_UUID_COLUMN_NAME))){
+                    // Set the user ID to search for
+                pstmt.setString(1, userID.toString());
+                    // Set the program UUID to search for
+                pstmt.setString(2, key.toString());
+                return containsCountResult(pstmt.executeQuery());
+            }
+        }
+        @Override
+        protected boolean containsValueSQL(Object value) throws SQLException {
+                // If the given key is null or not an Integer
+            if (value == null || !(value instanceof Integer))
+                return false;
+                // Prepare a statement to check if the given value is found in 
+                // the program ID table with the UUID of the user
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
+                            PROGRAM_ID_COLUMN_NAME,
+                            PROGRAM_ID_TABLE_NAME,
+                            PROGRAM_USER_ID_COLUMN_NAME,
+                            PROGRAM_ID_COLUMN_NAME))){
+                    // Set the user ID to search for
+                pstmt.setString(1, userID.toString());
+                    // Set the program ID to search for
+                pstmt.setInt(2, (int)value);
+                return containsCountResult(pstmt.executeQuery());
+            }
+        }
+        @Override
+        protected Integer removeSQL(Object key) throws SQLException {
+                // If the given key is null or not a UUID
+            if (key == null || !(key instanceof UUID))
+                return null;
+                // Get the old value
+            Integer value = getSQL(key);
+                // If the old value is null
+            if (value == null)
+                return null;
+                // Prepare a statement to remove the entry with the program UUID
+            try (PreparedStatement pstmt = prepareStatement(
+                    String.format("DELETE FROM %s WHERE %s = ? AND %s = ?", 
+                            PROGRAM_ID_TABLE_NAME,
+                            PROGRAM_USER_ID_COLUMN_NAME,
+                            PROGRAM_UUID_COLUMN_NAME))) {
+                    // Set the user ID to search for
+                pstmt.setString(1, userID.toString());
+                    // Set the program UUID to search for
+                pstmt.setString(2, key.toString());
+                    // Update the database
+                pstmt.executeUpdate();
+            }
+            return value;
+        }
+        @Override
+        protected Integer putSQL(UUID key, Integer value) throws SQLException {
+                // Check if the key is null
+            Objects.requireNonNull(key);
+                // Check if the value is null
+            Objects.requireNonNull(value);
+                // The old value for the key
+            Integer oldValue = getSQL(key);
+                // Prepare a statement to either insert or update the ID for 
+                // the user ID and program UUID in the program ID table
+            try (PreparedStatement pstmt = prepareStatement(String.format(
+                        // If the table previously contained the key, update the 
+                        // value. Otherwise, insert the key and value into the 
+                    (oldValue != null) ?     // table
+                            "UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?" : 
+                            "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
+                        PROGRAM_ID_TABLE_NAME,
+                        PROGRAM_ID_COLUMN_NAME,
+                        PROGRAM_USER_ID_COLUMN_NAME,
+                        PROGRAM_UUID_COLUMN_NAME))){
+                    // Set the program ID
+                pstmt.setInt(1, value);
+                    // Set the user ID
+                pstmt.setString(2, userID.toString());
+                    // Set the program UUID
+                pstmt.setString(3, key.toString());
+                    // Update the database
+                pstmt.executeUpdate();
+            }
+            return oldValue;
+        }
+        @Override
+        protected Integer getSQL(Object key) throws SQLException {
+                // If the given key is null or not a UUID
+            if (key == null || !(key instanceof UUID))
+                return null;
+                // Prepare a statement to check if the given UUID is found in 
+                // the program ID table and with the UUID of the user
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    "SELECT %s FROM %s WHERE %s = ? AND %s = ?", 
+                            PROGRAM_ID_COLUMN_NAME,
+                            PROGRAM_ID_TABLE_NAME,
+                            PROGRAM_USER_ID_COLUMN_NAME,
+                            PROGRAM_UUID_COLUMN_NAME))){
+                    // Set the user ID to search for
+                pstmt.setString(1, userID.toString());
+                    // Set the program UUID to search for
+                pstmt.setString(2, key.toString());
+                    // Query the database
+                ResultSet rs = pstmt.executeQuery();
+                    // If there are any results
+                if (rs.next())
+                    return rs.getInt(PROGRAM_ID_COLUMN_NAME);
+            }
+            return null;
+        }
+        @Override
+        protected Set<Entry<UUID, Integer>> entryCacheSet() throws SQLException {
+                // A set to cache the entries from the database
+            Set<Entry<UUID, Integer>> cache = new LinkedHashSet<>();
+                // Prepare a statement to go through the keys and values in the 
+                // database config table where the values are not null
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    "SELECT %s, %s FROM %s WHERE %s = ?", 
+                            PROGRAM_UUID_COLUMN_NAME,
+                            PROGRAM_ID_COLUMN_NAME,
+                            PROGRAM_ID_TABLE_NAME,
+                            PROGRAM_USER_ID_COLUMN_NAME))){
+                pstmt.setString(1, userID.toString());
+                    // Query the database
+                ResultSet rs = pstmt.executeQuery();
+                    // While there are still results to go through
+                while (rs.next()){
+                    String uuid = rs.getString(PROGRAM_UUID_COLUMN_NAME);
+                    try{    // Add the current entry to the cache
+                        cache.add(new AbstractMap.SimpleImmutableEntry<>(
+                                UUID.fromString(uuid),
+                                rs.getInt(PROGRAM_ID_COLUMN_NAME)));
+                    } catch (IllegalArgumentException ex){
+                        LinkManager.getLogger().log(Level.INFO,
+                                "Invalid UUID for program UUID", ex);
+                    }
+                }
+            }
+            return cache;
+        }
+        @Override
+        protected int sizeSQL() throws SQLException {
+                // Prepare a statement to get the amount of entries in the 
+                // program ID table with the user ID
+            try (PreparedStatement pstmt = prepareStatement(String.format(
+                    TABLE_SIZE_QUERY_TEMPLATE+" WHERE %s = ?", 
+                        PROGRAM_ID_COLUMN_NAME,
+                        PROGRAM_ID_TABLE_NAME,
+                        PROGRAM_USER_ID_COLUMN_NAME))){
+                pstmt.setString(1, userID.toString());
+                    // Query the database
+                ResultSet rs = pstmt.executeQuery();
+                    // If there are any results from the query
+                if (rs.next())
+                    return rs.getInt(COUNT_COLUMN_NAME);
+            }
+            return 0;
+        }
+        @Override
+        public UUID getUserID() {
+            return userID;
+        }
+        /**
+         * 
+         * @param key
+         * @return
+         * @throws SQLException 
+         */
+        private Integer addSQL(UUID key) throws SQLException{
+                // This is the programID of the program UUID that just was added
+            Integer id;
+                // Prepare a statement to insert the user ID and program UUID 
+                // into the program ID table
+            try (PreparedStatement pstmt = getConnection().prepareStatement(
+                    String.format("INSERT INTO %s(%s, %s) VALUES (?, ?)", 
+                            PROGRAM_ID_TABLE_NAME, 
+                            PROGRAM_USER_ID_COLUMN_NAME,
+                            PROGRAM_UUID_COLUMN_NAME))){
+                    // Set the user ID to be added
+                pstmt.setString(1, userID.toString());
+                    // Set the program UUID to be added
+                pstmt.setString(2, key.toString());
+                    // Update the database
+                pstmt.executeUpdate();
+                    // Get the key that was generated
+                id = getGeneratedIntegerKey(pstmt);
+            }   // If the programID of the added program UUID was not found
+            if (id == null)
+                    // Get the programID for the newly added program UUID 
+                id = get(key);
+            return id;
+        }
+        @Override
+        public Integer add(UUID key) {
+            Objects.requireNonNull(key);
+            try {
+                if (containsKeySQL(key))
+                    throw new IllegalArgumentException("Cannot add key, "+key+" already exists in map");
+                return addSQL(key);
+            } catch (SQLException ex) {
+                ConnectionBased.throwConstraintException(ex);
+                appendWarning(ex);
+                throw new UncheckedSQLException(ex);
+            }
+        }
+        /**
+         * 
+         * @param key
+         * @return 
+         */
+        @Override
+        public Integer addIfAbsent(UUID key){
+            Objects.requireNonNull(key);
+            try {
+                Integer value = getSQL(key);
+                if (value != null)
+                    return value;
+                return addSQL(key);
+            } catch (SQLException ex) {
+                ConnectionBased.throwConstraintException(ex);
+                appendWarning(ex);
+                throw new UncheckedSQLException(ex);
+            }
+        }
+    }
+    /**
+     * 
+     */
+    private class ProgramUserIDSet extends AbstractQuerySet<UUID>{
+        /**
+         * 
+         */
+        ProgramUserIDSet() {
+            super(LinkDatabaseConnection.this);
+        }
+        @Override
+        protected boolean containsSQL(Object o) throws SQLException {
+                // If the given object is null or not a UUID
+            if (o == null || !(o instanceof UUID))
+                return false;
+                // Prepare a statement to check if the given user ID is found in the 
+                // program ID table
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    TABLE_CONTAINS_QUERY_TEMPLATE, 
+                            PROGRAM_ID_COLUMN_NAME,
+                            PROGRAM_ID_TABLE_NAME,
+                            PROGRAM_USER_ID_COLUMN_NAME))){
+                    // Set the user ID to search for
+                pstmt.setString(1, o.toString());
+                return containsCountResult(pstmt.executeQuery());
+            }
+        }
+        @Override
+        protected boolean removeSQL(Object o) throws SQLException {
+                // If the given object is null or not a UUID
+            if (o == null || !(o instanceof UUID))
+                return false;
+            UUID userID = (UUID) o;
+                // Prepare a statement to remove the entry with the given user ID
+            try (PreparedStatement pstmt = prepareStatement(
+                    String.format("DELETE FROM %s WHERE %s = ?", 
+                            PROGRAM_ID_TABLE_NAME,
+                            PROGRAM_USER_ID_COLUMN_NAME))) {
+                    // Set the user ID to remove for
+                pstmt.setString(1, userID.toString());
+                    // Update the database
+                return pstmt.executeUpdate() > 0;
+            }
+        }
+        @Override
+        protected Set<UUID> valueCacheSet() throws SQLException {
+            Set<UUID> cache = new LinkedHashSet<>();
+                // Prepare a statement to go through the keys and values in the 
+                // database config table where the values are not null
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    "SELECT DISTINCT %s FROM %s", 
+                            PROGRAM_USER_ID_COLUMN_NAME,
+                            PROGRAM_ID_TABLE_NAME))){
+                    // Query the database
+                ResultSet rs = pstmt.executeQuery();
+                    // While there are still results to go through
+                while (rs.next()){
+                    String uuid = rs.getString(PROGRAM_USER_ID_COLUMN_NAME);
+                    try{    // Add the current entry to the cache
+                        cache.add(UUID.fromString(uuid));
+                    } catch (IllegalArgumentException ex){
+                        LinkManager.getLogger().log(Level.INFO,
+                                "Invalid UUID for user UUID", ex);
+                    }
+                }
+            }
+            return cache;
+        }
+        @Override
+        protected int sizeSQL() throws SQLException {
+                // Prepare a statement to count the unique instances of the user 
+                // IDs in the program ID table
+            try(PreparedStatement pstmt = prepareStatement(
+                    String.format(TABLE_SIZE_QUERY_TEMPLATE, 
+                            "DISTINCT "+PROGRAM_USER_ID_COLUMN_NAME,
+                            PROGRAM_ID_TABLE_NAME))){
+                    // Query the database
+                ResultSet rs = pstmt.executeQuery();
+                    // If there are any results from the query
+                if (rs.next())
+                    return rs.getInt(COUNT_COLUMN_NAME);
+            }
+            return 0;
         }
     }
 }

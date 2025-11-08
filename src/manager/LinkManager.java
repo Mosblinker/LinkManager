@@ -11,6 +11,7 @@ import com.dropbox.core.util.IOUtil.ProgressListener;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import com.dropbox.core.v2.users.*;
+import com.technicjelle.UpdateChecker;
 import components.*;
 import components.debug.DebugCapable;
 import components.disable.DisableGUIInput;
@@ -26,15 +27,11 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
-import java.awt.Window;
-import java.awt.datatransfer.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
@@ -42,25 +39,31 @@ import java.security.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.function.BiConsumer;
+import java.util.logging.*;
 import java.util.prefs.*;
 import javax.crypto.*;
-import javax.crypto.spec.IvParameterSpec;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
 import javax.swing.table.*;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+import javax.swing.text.StyledDocument;
 import javax.swing.tree.*;
-import static manager.LinkManagerConfig.*;
 import manager.config.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
+import manager.icons.LinkManagerIcon;
 import manager.links.*;
 import manager.painters.LinkManagerIconPainter;
-import manager.security.CipherUtilities;
+import manager.renderer.*;
+import manager.security.*;
 import manager.timermenu.*;
 import measure.format.binary.ByteUnitFormat;
 import org.sqlite.*;
@@ -79,7 +82,52 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This is the version of the program.
      */
-    public static final String PROGRAM_VERSION = "0.6.0";
+    public static final String PROGRAM_VERSION = "0.4.0";
+    /**
+     * The name of the author and main developer.
+     */
+    protected static final String AUTHOR_NAME = "Mosblinker";
+    /**
+     * This is the internal name for the program.
+     */
+    protected static final String INTERNAL_PROGRAM_NAME = "LinkManager";
+    /**
+     * This is the credits for the program. This is currently private as I plan 
+     * to rework it.
+     * @todo Rework this and then make it public. Also add any additional 
+     * credits necessary
+     */
+    private static final String[][] CREDITS = {{
+            "Developers",
+            "Mosblinker - Main developer and artist."
+//        },{
+//            "Testers",
+//            "*Insert Testers Here*"
+    }};
+    /**
+     * 
+     */
+    private static final String[][] LIBRARY_CREDITS = {
+        {"Thumbnailator","coobird","https://github.com/coobird/thumbnailator"},
+        {"SwingExtended","Mosblinker","https://github.com/Mosblinker/SwingExtended"},
+        {"FilesExtended","Mosblinker","https://github.com/Mosblinker/FilesExtended"},
+        {"SwingFilesExtended","Mosblinker",null},
+        {"Measure","Mosblinker",null},
+        {"GUIComponents","Mosblinker",null},
+        {"FileComponents","Mosblinker",null},
+        {"SQLCollections","Mosblinker",null},
+        {"ConfigUtilities","Mosblinker","https://github.com/Mosblinker/ConfigUtilities"},
+        {"UpdateChecker","TechnicJelle","https://github.com/TechnicJelle/UpdateCheckerJava"},
+        {"sqlite-jdbc","xerial","https://github.com/xerial/sqlite-jdbc"},
+        {"jackson-core","FasterXML","https://github.com/FasterXML/jackson-core"},
+        {"dropbox-core-sdk","Dropbox","https://github.com/dropbox/dropbox-sdk-java"}
+    };
+    /**
+     * This is the pattern for the file handler to use for the log files of this 
+     * program.
+     */
+    private static final String PROGRAM_LOG_PATTERN = 
+            "%h/.mosblinker/logs/"+INTERNAL_PROGRAM_NAME+"-%u.%g.log";
     /**
      * This is an array containing the widths and heights for the icon images 
      * for this program. The icon images are generated on the fly.
@@ -87,10 +135,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private static final int[] ICON_SIZES = {16, 24, 32, 48, 64, 96, 128, 256, 512};
     /**
      * This is the client identifier to pass to Dropbox for this program. This 
-     * contains the name of this program (without any spaces) and the version.
+     * contains the name of this program and the version.
      */
-    private static final String DROPBOX_CLIENT_ID = PROGRAM_NAME.replaceAll(" ",
-            "")+"/"+PROGRAM_VERSION;
+    private static final String DROPBOX_CLIENT_ID = INTERNAL_PROGRAM_NAME+"/"+
+            PROGRAM_VERSION;
     /**
      * This is a list containing the default names for the lists of links. <p>
      * 0: Links
@@ -109,15 +157,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public static final String CONFIG_FILE_ARGUMENT = "-config=";
     /**
+     * The file extension for database files.
+     */
+    public static final String DATABASE_FILE_EXTENSION = "db";
+    /**
      * This holds the abstract path to the default database file storing the 
      * tables containing the links.
      */
-    public static final String LINK_DATABASE_FILE = "LinkManager.db";
+    public static final String LINK_DATABASE_FILE = "LinkManager."+DATABASE_FILE_EXTENSION;
     /**
      * This is the name of the preference node used to store the settings for 
      * this program.
      */
-    private static final String PREFERENCE_NODE_NAME = "milo/link/LinkManager";
+    private static final String PREFERENCE_NODE_NAME = "mosblinker/link/"+INTERNAL_PROGRAM_NAME;
     /**
      * This is the name of the file used to store the configuration.
      */
@@ -130,7 +182,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is the header  for the general settings in the configuration 
      * file.
      */
-    private static final String GENERAL_CONFIG_HEADER = "[LinkManager Config]";
+    private static final String GENERAL_CONFIG_HEADER = "["+INTERNAL_PROGRAM_NAME+" Config]";
     /**
      * This is the configuration key for the program ID. This is used to
      * determine what preference node to use for the program.
@@ -168,7 +220,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private static final String SEARCH_DIALOG_NAME = "SearchDialog";
     
-    private static final String LINK_MANAGER_NAME = "LinkManager";
+    private static final String LINK_MANAGER_NAME = INTERNAL_PROGRAM_NAME;
     /**
      * This is a collection storing the required Dropbox scope for the program. 
      * If this is null, then the program does not specify the scope it requires. 
@@ -176,10 +228,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final Collection<String> DROPBOX_SCOPE_PERMISSIONS = null;
     /**
+     * This is the file extension for log files.
+     */
+    public static final String LOG_FILE_EXTENSION = "log";
+    /**
      * This contains the file filter for log files.
      */
     public static final FileNameExtensionFilter LOG_FILE_FILTER = 
-            generateExtensionFilter("Log File","log");
+            generateExtensionFilter("Log File",LOG_FILE_EXTENSION);
     /**
      * This contains the file filter for Internet Shortcut files.
      */
@@ -198,12 +254,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This contains the file filter for database files.
      */
     public static final FileNameExtensionFilter DATABASE_FILE_FILTER = 
-            generateExtensionFilter("Data Base File","db");
+            generateExtensionFilter("Database File",DATABASE_FILE_EXTENSION);
     /**
      * This is the file extension for backup copy files generated by this 
      * program.
      */
-    protected static final String BACKUP_FILE_EXTENSION = "bak";
+    public static final String BACKUP_FILE_EXTENSION = "bak";
     /**
      * This is the action command for exiting the program.
      */
@@ -278,173 +334,35 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     protected static final SimpleDateFormat DEBUG_DATE_FORMAT = 
             new SimpleDateFormat("M/d/yyyy h:mm:ss a");
     /**
-     * This adds the given string to the the system clipboard.
-     * @param text The text to place into the system clipboard.
+     * This is a logger used to log messages for the program.
      */
-    public static void copyText(String text){
-            // A StringSelection to transfer the text
-        StringSelection selection = new StringSelection(text);  
-        Toolkit.getDefaultToolkit().getSystemClipboard()
-                .setContents(selection, selection);
-    }
+    private static final Logger linkManLogger = 
+            Logger.getLogger(INTERNAL_PROGRAM_NAME+"-"+PROGRAM_VERSION);
     /**
-     * This opens the link provided if the link is not null or blank.
-     * @param link The link to open.
-     * @throws NullPointerException If the link is null.
-     * @throws IllegalArgumentException If the link is blank.
-     * @throws MalformedURLException If the link is not a valid URL.
-     * @throws URISyntaxException If the link is not formatted strictly 
-     * according to RFC2396 and thus cannot be converted to a URI.
-     * @throws IOException If the user's default browser is not found, fails to 
-     * launch, or the default handler application fails to launch.
+     * This returns the logger used to log messages for this program.
+     * @return The logger used to log message for the program.
      */
-    public static void openLink(String link) throws URISyntaxException, 
-            MalformedURLException, IOException {
-        Objects.requireNonNull(link);   // Check for null links
-        if (link.isBlank())             // If the link is blank
-            throw new IllegalArgumentException("Link cannot be blank");
-        Desktop.getDesktop().browse(new URL(link).toURI());
-    }
-    /**
-     * This adds the given commands to the given popup menu. This will also 
-     * apply the commands to the text component that was registered with the 
-     * text edit commands.
-     * @param menu The popup menu to add the commands to.
-     * @param undoCommands The undo commands to add to the popup menu.
-     * @param editCommands The text edit commands to add to the popup menu.
-     * @param pasteAndAddAction The paste and add action if one should be added 
-     * to the popup menu, or null.
-     */
-    private static void addToPopupMenu(JPopupMenu menu, 
-            UndoManagerCommands undoCommands,TextComponentCommands editCommands, 
-            Action pasteAndAddAction){
-        undoCommands.addToTextComponent(editCommands.getTextComponent());
-        editCommands.addToTextComponent();
-        menu.add(undoCommands.getUndoOrRedoAction());
-        menu.addSeparator();
-        menu.add(editCommands.getCutAction());
-        menu.add(editCommands.getCopyAction());
-        menu.add(editCommands.getPasteAction());
-            // If a "paste and add" action was provided 
-        if (pasteAndAddAction != null)   
-            menu.add(pasteAndAddAction);
-        menu.add(editCommands.getDeleteAction());
-        menu.addSeparator();
-        menu.add(editCommands.getSelectAllAction());
-    }
-    /**
-     * This adds the given commands to the given popup menu. This will also 
-     * apply the commands to the text component that was registered with the 
-     * text edit commands.
-     * @param menu The popup menu to add the commands to.
-     * @param undoCommands The undo commands to add to the popup menu.
-     * @param editCommands The text edit commands to add to the popup menu.
-     */
-    public static void addToPopupMenu(JPopupMenu menu, 
-            UndoManagerCommands undoCommands,
-            TextComponentCommands editCommands){
-        addToPopupMenu(menu,undoCommands,editCommands,null);
-    }
-    /**
-     * This gets the hexadecimal String representation of the given UUID.
-     * @param uuid The UUID to get the hexadecimal representation of (cannot be 
-     * null).
-     * @return The hexadecimal string representation of the given UUID.
-     * @throws NullPointerException If the given UUID is null.
-     * @see #uuidFromHex(String) 
-     */
-    public static String uuidToHex(UUID uuid){
-            // Make sure the UUID is not null.
-        Objects.requireNonNull(uuid);
-        return String.format("%016X%016X",uuid.getMostSignificantBits(),
-                    uuid.getLeastSignificantBits());
-    }
-    /**
-     * This creates a UUID from the given hexadecimal string. This effectively 
-     * does the reverse of the {@link #uuidToHex(UUID) uuidToHex} method.
-     * @param value The String to convert to a UUID.
-     * @return The UUID represented by the given String.
-     * @throws NullPointerException If the String is null.
-     * @throws NumberFormatException If the String does not contain one or two 
-     * parsable {@code long} values encoded in base-16 (hexadecimal).
-     * @see #uuidToHex(UUID) 
-     * @see Long#parseUnsignedLong(String, int) 
-     */
-    public static UUID uuidFromHex(String value){
-            // Make sure the String is not null
-        Objects.requireNonNull(value);
-            // If the String is empty
-        if (value.isEmpty())
-            throw new NumberFormatException("UUID hex string cannot be empty");
-            // If the String is too long to be two long values
-        if (value.length() > 32)
-            throw new NumberFormatException("UUID hex string (" + value + 
-                    ") is too long ("+ value.length() + " > 32)");
-            // This gets the start of the least significant half of the UUID. 
-            // If the String only has the least significant half, then this will 
-            // be 0. Otherwise, this will contain the offset into the String
-        int lowStart = Math.max(value.length() - 16,0);
-            // Get the least significant half of the UUID
-        long leastSig = Long.parseUnsignedLong(value.substring(lowStart), 16);
-            // This will get the most significant half of the UUID
-        long mostSig = 0;
-            // If the String contains the most significant half of the UUID 
-            // (i.e. The string is longer than 16 characters
-        if (lowStart > 0)
-                // Get the most significant half of the UUID
-            mostSig = Long.parseUnsignedLong(value.substring(0, lowStart),16);
-            // Create and return a UUID with the least and most significant bits
-        return new UUID(mostSig,leastSig);
-    }
-    /**
-     * This returns the working directory for this program.
-     * @return The working directory for the program.
-     */
-    private String getWorkingDirectory(){
-        return System.getProperty("user.dir");
-    }
-    /**
-     * This returns the file located in the working directory
-     * @param fileName
-     * @return 
-     */
-    private File getRelativeFile(String fileName){
-        return new File(getWorkingDirectory(),fileName);
-    }
-    /**
-     * This returns the directory of this program.
-     * @return The directory containing this program.
-     */
-    private String getProgramDirectory(){
-            // Get the location of this program, as a URL
-        URL url = LinkManager.class.getProtectionDomain().getCodeSource().getLocation();
-            // If a URL was found
-        if (url != null)
-            try {   // Get the parent of this program
-                return new File(url.toURI()).getParent();
-            } catch (URISyntaxException ex) {
-                    // If this is in debug mode
-                if (isInDebug())
-                    System.out.println("Error: " + ex);
-            }
-        return getWorkingDirectory();
+    public static Logger getLogger(){
+        return linkManLogger;
     }
     /**
      * This returns the file used to store the configuration of the program.
      * @return The configuration file.
      */
     private File getConfigFile(){
-            // If a configuration file was specified
-        if (configFile != null)
-            return configFile;
-        return new File(getProgramDirectory(),CONFIG_FILE);
+            // If no configuration file was specified and the default config 
+            // file has not been retrieved yet
+        if (configFile == null)
+            configFile = new File(LinkManagerUtilities.getProgramDirectory(),
+                    CONFIG_FILE);
+        return configFile;
     }
     /**
      * This returns the file containing the Dropbox API keys for this program.
      * @return The dropbox API key file.
      */
     private File getDropboxAPIFile(){
-        return new File(getProgramDirectory(),DROPBOX_API_KEY_FILE);
+        return new File(LinkManagerUtilities.getProgramDirectory(),DROPBOX_API_KEY_FILE);
     }
     /**
      * 
@@ -458,7 +376,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         File file = new File(fileName);
             // If the database file is relative
         if (!file.isAbsolute()){
-            return getRelativeFile(fileName);
+            return new File(LinkManagerUtilities.getWorkingDirectory(),fileName);
         }
         return file;
     }
@@ -508,23 +426,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      * @return 
      */
+    private static File createTempFile(String suffix) throws IOException{
+        return File.createTempFile("LinkManager", suffix);
+    }
+    /**
+     * 
+     * @return 
+     */
     private static File createTempFile() throws IOException{
-        return File.createTempFile("LinkManager", null);
+        return createTempFile(null);
     }
     
     private DropboxLinkUtils loadDbxUtils(){
             // Get the file containing the API keys
         File dbxKey = getDropboxAPIFile();
             // If the file is null or doesn't exist
-        if (dbxKey == null || !dbxKey.exists())
+        if (dbxKey == null || !dbxKey.exists()){
+            getLogger().warning("Dropbox API file not found.");
             return null;
+        }
         if (dbxUtils == null){
             DbxAppInfo appInfo;
             try{
                 appInfo = DbxAppInfo.Reader.readFromFile(dbxKey);
             } catch (JsonReader.FileLoadException ex){
-                if (isInDebug())
-                    System.out.println("Error Reading File: " + ex);
+                getLogger().log(Level.WARNING,"Dropbox API file failed to load", 
+                        ex);
                 return null;
             }
             dbxUtils = config.new DropboxLinkUtilsConfig(){
@@ -554,61 +481,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return dbxUtils;
     }
     /**
-     * This returns whether the given flag has been set on the given value. 
-     * @param flags The value to check whether the flag is set for.
-     * @param flag The flag to check for.
-     * @return Whether the given flag is set.
-     * @see #setFlag
-     * @see #toggleFlag
-     */
-    public static boolean getFlag(int flags, int flag){
-        return (flags & flag) == flag;
-    }
-    /**
-     * This sets whether the given flag is set based off the given {@code 
-     * value}.
-     * @param flags The value to set the flag on.
-     * @param flag The flag to be set or cleared based off {@code value}.
-     * @param value Whether the flag should be set or cleared.
-     * @return The value with the given flag either set or cleared.
-     * @see #getFlag
-     * @see #toggleFlag
-     */
-    public static int setFlag(int flags, int flag, boolean value){
-            // If the flag is to be set, OR the flags with the flag. Otherwise, 
-            // AND the flags with the inverse of the flag.
-        return (value) ? flags | flag : flags & ~flag;
-    }
-    /**
-     * This toggles whether the given flag is set.
-     * @param flags The value to toggle the flag on.
-     * @param flag The flag to be toggled.
-     * @return The value with the given flag toggled.
-     * @see #getFlag
-     * @see #setFlag
-     */
-    public static int toggleFlag(int flags, int flag){
-        return flags ^ flag;
-    }
-    /**
      * 
      * @return 
      */
-    private java.util.List<BufferedImage> generateIconImages(){
-            // Create a list to get the images
-        ArrayList<BufferedImage> iconImages = new ArrayList<>();
-            // Create the painter to generate the images
-        LinkManagerIconPainter painter = new LinkManagerIconPainter();
-            // Go through the sizes for the images
-        for (int size : ICON_SIZES){
-            BufferedImage img = new BufferedImage(size,size,
-                    BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g = img.createGraphics();
-            painter.paint(g, null, size, size);
-            g.dispose();
-            iconImages.add(img);
-        }
-        return iconImages;
+    private DatabaseSyncMode getSyncMode(){
+        if (isLoggedInToDropbox())
+            return DatabaseSyncMode.DROPBOX;
+        return null;
     }
     /**
      * This constructs a new LinkManager with the given value determining if it 
@@ -621,27 +500,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public LinkManager(boolean debugMode, UUID programID, File configFile) {
         this.debugMode = debugMode;
-        setIconImages(generateIconImages());
+        LinkManagerIconPainter iconPainter = new LinkManagerIconPainter();
+            // Generate the icons for this program
+        setIconImages(LinkManagerUtilities.generateIconImages(ICON_SIZES, 
+                iconPainter));
         editCommands = new HashMap<>();
         undoCommands = new HashMap<>();
         textPopupMenus = new HashMap<>();
         this.configFile = configFile;
+        listHandler = new LinksListHandler();
         
             // This will get the preference node for the program
         Preferences node = null;
         try{    // Try to get the preference node used for the program
             node = Preferences.userRoot().node(PREFERENCE_NODE_NAME);
         } catch (SecurityException | IllegalStateException ex){
-            System.out.println("Unable to load preference node: " +ex);
+            getLogger().log(Level.SEVERE, "Unable to load preference node", ex);
             // TODO: Error message window
         }
         
             // Create the configuration for the program
         config = new LinkManagerConfig(node);
         try{    // Try to load the configuration file into the properties
-            loadProperties(getConfigFile(),config.getProperties());
+            LinkManagerUtilities.loadProperties(getConfigFile(),config.getProperties());
         } catch (IOException ex){
-            System.out.println("Config Load Error: " + ex);
+            getLogger().log(Level.WARNING, "Unable to load configuration file", 
+                    ex);
             // TODO: Error message window
         }
             // If no program ID was provided to the program
@@ -660,41 +544,46 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         else{   // Set and store a random program ID
             config.getProperties().setProperty(PROGRAM_ID_KEY, 
                     config.setRandomProgramID());
-        }
-        try{    // The SecureRandom object to use for a secure source of randomness
-            SecureRandom rand = config.setSecureRandom();
-                // The KeyGenerator to use to generate secret keys
-            KeyGenerator keyGen = config.setKeyGenerator();
+        }   // Log the program ID
+        getLogger().log(Level.FINER, "Using program ID {0}", programID);
+            // Get the ID for the user
+        UUID userID = config.getUserID();
+            // If there is no user ID set
+        if (userID == null)
+                // Create and store a random user ID
+            userID = config.setRandomUserID();
+           // Log the user ID
+        getLogger().log(Level.FINER, "Using user ID {0}",userID);
+        try{    // Create a CipherUtils object
+            CipherUtils cipher = new CipherUtils();
                 // Get the encryption key from the config file if there is one
-            byte[] encryptKey = config.getProperties().getByteArrayProperty(USER_ENCRYPTION_KEY_KEY);
+            byte[] encryptKey = config.getProperties().
+                    getByteArrayProperty(USER_ENCRYPTION_KEY_KEY);
                 // If there isn't an encryption key
             if (encryptKey == null){
                     // Reset the encryption on the config just in case there was 
                     // one set previously
                 config.resetEncryption();
-                    // Generate a secret key
-                SecretKey key = keyGen.generateKey();
-                    // Generate the IVs
-                IvParameterSpec iv = CipherUtilities.generateIV(rand);
+                    // Generate a new encryption key
+                cipher.generateEncryptionKey();
                     // Store the encryption key
                 config.getProperties().setProperty(USER_ENCRYPTION_KEY_KEY, 
-                        CipherUtilities.getEncryptionKey(key, iv));
-                    // Initialize the encryption on the configuration
-                config.initializeEncryption(key, iv);
-            } else {
-                    // Initialize the encryption on the configuration
-                config.initializeEncryption(encryptKey);
-            }
+                        cipher.getEncryptionKey());
+            } else {// Set the encryption key for the cipher
+                cipher.setEncryptionKey(encryptKey);
+            }   // Initialize the encryption on the configuration
+            config.initEncryption(cipher);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | 
                 InvalidKeyException | InvalidAlgorithmParameterException | 
                 IllegalBlockSizeException | BadPaddingException ex) {
-            System.out.println("Encryption Error: " + ex);
+            getLogger().log(Level.WARNING, "Unable to load encryption keys", ex);
             config.resetEncryption();
         }
         try{    // Try to save the properties to the configuration file
             saveConfigFile();
         } catch (IOException ex) {
-            System.out.println("Config Save Error: " + ex);
+            getLogger().log(Level.WARNING,"Unable to save configuration to file",
+                    ex);
             // TODO: Error message window
         }
         
@@ -707,6 +596,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             allListsTabsPanel,
             shownListsTabsPanel
         };
+        for (LinksListTabsPanel tabsPanel : listsTabPanels){
+            tabsPanel.getTabbedPane().setName(tabsPanel.getName());
+            tabsPanel.getTabbedPane().addContainerListener(listHandler);
+        }
         debugMenu.setVisible(debugMode);
         
         allListsTabsPanel.setListActionMapper((String t, LinksListPanel u) -> {
@@ -741,19 +634,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         listBOpCombo.setRenderer(new LinksListCellRenderer());
         listCOpCombo.setRenderer(new LinksListCellRenderer());
         
-        dbListTable.setDefaultRenderer(java.util.Date.class, new DefaultTableCellRenderer(){
-            @Override
-            public java.awt.Component getTableCellRendererComponent(
-                    JTable table, Object value, boolean isSelected, 
-                    boolean hasFocus, int row, int column) {
-                    // If the value is a date
-                if (value instanceof java.util.Date){
-                    value = DEBUG_DATE_FORMAT.format((java.util.Date) value);
-                }
-                return super.getTableCellRendererComponent(table, value, 
-                        isSelected, hasFocus, row, column);
-            }
-        });
+        dbListTable.setDefaultRenderer(java.util.Date.class, new DateTableCellRenderer(DEBUG_DATE_FORMAT));
         dbListTable.setDefaultRenderer(Integer.class, new DefaultTableCellRenderer(){
             @Override
             public java.awt.Component getTableCellRendererComponent(
@@ -813,32 +694,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (listID != null)
                 dbListIDCombo.setSelectedItem(listID);
         });
-        dbCreatePrefixTree.setCellRenderer(new DefaultTreeCellRenderer(){
-            @Override
-            public Component getTreeCellRendererComponent(JTree tree, Object value,
-                    boolean sel,boolean expanded,boolean leaf,int row,boolean hasFocus){
-                    // If the value is a DefaultMutableTreeNode
-                if (value instanceof DefaultMutableTreeNode){
-                        // Get the value as a DefaultMutableTreeNode
-                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-                        // If the node's user object is a String and the node 
-                        // allows children
-                    if (node.getUserObject() instanceof String && 
-                            node.getAllowsChildren()){
-                            // Get the amount of child nodes
-                        int children = node.getChildCount();
-                            // Get the node's user object and append the child 
-                            // count
-                        value = node.getUserObject() + " ["+children+
-                                    // If there is only one child, do not show 
-                                    // an "s" at the end of the word
-                                " Item"+((children!=1)?"s":"")+"]";
-                    }
-                }
-                return super.getTreeCellRendererComponent(tree, value, sel, 
-                        expanded, leaf, row, hasFocus);
-            }
-        });
+        dbCreatePrefixTree.setCellRenderer(new ChildCountTreeCellRenderer());
         
         listManipulator.addListSelectionListener(listManipSelCountPanel);
         copyOrMoveListSelector.addListSelectionListener(copyOrMoveSelCountPanel);
@@ -846,16 +702,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         progressBar.addChangeListener(progressDisplay);
         progressBar.addPropertyChangeListener(progressDisplay);
         
-        textPopupMenus.put(linkTextField, editPopupMenu);
-        textPopupMenus.put(dbQueryField, queryPopupMenu);
-        textPopupMenus.put(prefixField, prefixPopupMenu);
-        textPopupMenus.put(dbTableStructText, dbStructurePopupMenu);
-        textPopupMenus.put(dbFileField, dbFilePopupMenu);
+        textPopupMenus.put(linkTextField, new JPopupMenu());
+        textPopupMenus.put(dbQueryPanel.getQueryTextField(), dbQueryPanel.getQueryPopupMenu());
+        textPopupMenus.put(prefixField, new JPopupMenu());
+        textPopupMenus.put(dbTableStructText, new JPopupMenu());
+        textPopupMenus.put(dbFileField, new JPopupMenu());
         textPopupMenus.put(searchPanel.getSearchTextField(), searchPanel.getSearchPopupMenu());
         textPopupMenus.put(addLinksPanel.getTextArea(), addLinksPanel.getTextPopupMenu());
         textPopupMenus.put(dropboxSetupPanel.getAuthorizationCodeField(), 
                 dropboxSetupPanel.getAuthorizationCodePopupMenu());
-        textPopupMenus.put(dbxDbFileField, dbxDbFilePopupMenu);
+        textPopupMenus.put(dbxDbFileField, new JPopupMenu());
         
         pasteAndAddAction = new PasteAndAddAction(){
             @Override
@@ -880,12 +736,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 entry.getValue().add(textCmd.getSelectAllAction());
                 continue;
             }
-            UndoManagerCommands undoCmd = new UndoManagerCommands(new CompoundUndoManager(),false);
+            UndoManagerCommands undoCmd = new UndoManagerCommands(
+                    new CompoundUndoManager(),false);
             undoCommands.put(comp, undoCmd);
             if (comp == linkTextField)
-                addToPopupMenu(entry.getValue(),undoCmd,textCmd,pasteAndAddAction);
+                LinkManagerUtilities.addToPopupMenu(entry.getValue(),undoCmd,
+                        textCmd,pasteAndAddAction);
             else
-                addToPopupMenu(entry.getValue(),undoCmd,textCmd);
+                LinkManagerUtilities.addToPopupMenu(entry.getValue(),undoCmd,
+                        textCmd);
+            comp.setComponentPopupMenu(entry.getValue());
         }
         
         editCommands.get(linkTextField).getPasteAction().
@@ -899,7 +759,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         Action linkFieldCancel = new AbstractAction("LinkCancel"){
             @Override
             public void actionPerformed(ActionEvent e) {
-                resetLinkField();
+                linkTextField.setText("");
             }
         };
         linkTextField.getInputMap(JComponent.WHEN_FOCUSED)
@@ -919,14 +779,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 updateNewLinkButton();
             }
         });
-        
-        dbQueryField.getDocument().addDocumentListener(new SingleMethodDocumentListener(){
-            @Override
-            public void documentUpdate(DocumentEvent evt, DocumentEvent.EventType type) {
-                updateExecuteQueryEnabled();
-            }
-        });
-        
         dbFileField.getDocument().addDocumentListener(new SingleMethodDocumentListener(){
             @Override
             public void documentUpdate(DocumentEvent evt, DocumentEvent.EventType type) {
@@ -991,21 +843,106 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Set the SQLite config to enforce the foreign keys
         config.getSQLiteConfig().enforceForeignKeys(foreignKeysToggle.isSelected());
         
-        listContentsObserver = (Integer index, Integer size) -> {
-                // If the size is null (indicates whether this is to toggle 
-                // whether progress is indeterminate)
-            if (size == null)
-                setIndeterminate(index != 0);
-            else{
-                incrementProgressValue();
+        try{
+            updateChecker = new UpdateChecker(AUTHOR_NAME,INTERNAL_PROGRAM_NAME,
+                    PROGRAM_VERSION);
+        } catch (RuntimeException ex){
+            getLogger().log(Level.WARNING, "UpdateChecker could not be constructed", 
+                    ex);
+        }
+        
+        progressObserver = new DefaultProgressObserver(progressBar){
+            @Override
+            public DefaultProgressObserver setValue(int value) {
+                super.setValue(value);
                 slowTestToggle.runSlowTest();
+                return this;
+            }
+            @Override
+            public String getText() {
+                return progressDisplay.getString();
+            }
+            @Override
+            public DefaultProgressObserver setText(String text) {
+                progressDisplay.setString(text);
+                return this;
             }
         };
+        
+        aboutPanel.setProgramIcon(new LinkManagerIcon(128,iconPainter));
+        updateIconLabel.setIcon(new LinkManagerIcon(64,iconPainter));
+        
+            // Create a style to use to center the text on the text pane
+        SimpleAttributeSet centeredText = new SimpleAttributeSet();
+            // Make the style center the text
+        StyleConstants.setAlignment(centeredText, StyleConstants.ALIGN_CENTER);
+        SimpleAttributeSet leftText = new SimpleAttributeSet();
+        StyleConstants.setAlignment(leftText, StyleConstants.ALIGN_LEFT);
+            // Get the document for the credits text pane
+        StyledDocument creditsDoc = aboutPanel.getCreditsDocument();
+        try{
+                // Go through the credits arrays
+            for (String[] creditSection : CREDITS) {
+                int start = creditsDoc.getLength();
+                    // Add the header for this section
+                creditsDoc.insertString(start, 
+                        "---- "+creditSection[0]+" ----"+System.lineSeparator(), 
+                        null);
+                    // Center the header
+                creditsDoc.setParagraphAttributes(start, creditsDoc.getLength(),
+                        centeredText, false);
+                    // Rest of the text is left aligned
+                creditsDoc.setParagraphAttributes(creditsDoc.getLength(), 1,
+                        leftText, false);
+                    // Go through the credits in this section
+                for (int j = 1; j < creditSection.length; j++) {
+                    creditsDoc.insertString(creditsDoc.getLength(), 
+                            creditSection[j] + System.lineSeparator(), null);
+                }
+                creditsDoc.insertString(creditsDoc.getLength(), 
+                        System.lineSeparator(),null);
+            }
+                // Center the header
+            creditsDoc.setParagraphAttributes(creditsDoc.getLength(), 1,
+                    centeredText, false);
+            creditsDoc.insertString(creditsDoc.getLength(), 
+                    "---- Libraries ----"+System.lineSeparator(),null);
+                // Rest of the text is left aligned
+            creditsDoc.setParagraphAttributes(creditsDoc.getLength(), 1,
+                    leftText, false);
+            Style defStyle = StyleContext.getDefaultStyleContext().
+                    getStyle(StyleContext.DEFAULT_STYLE);
+            for (int i = 0; i < LIBRARY_CREDITS.length; i++){
+                if (i > 0)
+                    creditsDoc.insertString(creditsDoc.getLength(), 
+                            System.lineSeparator(),null);
+                Style linkStyle = null;
+                if (LIBRARY_CREDITS[i].length > 2 && LIBRARY_CREDITS[i][2] != null){
+                    linkStyle = creditsDoc.addStyle("hyperlink"+i, defStyle);
+                    JHyperlinkLabel hyperlink = new JHyperlinkLabel(LIBRARY_CREDITS[i][0],
+                            URI.create(LIBRARY_CREDITS[i][2]));
+                    hyperlink.setAlignmentY((float) 0.85);
+                    StyleConstants.setComponent(linkStyle, hyperlink);
+                }
+                creditsDoc.insertString(creditsDoc.getLength(), 
+                        LIBRARY_CREDITS[i][0],linkStyle);
+                if (LIBRARY_CREDITS[i].length > 1 && LIBRARY_CREDITS[i][1] != null) 
+                    creditsDoc.insertString(creditsDoc.getLength(), 
+                            " - " + LIBRARY_CREDITS[i][1],null);
+            }
+        } catch (BadLocationException ex){
+            getLogger().log(Level.WARNING, "Bad location found while populating credits", 
+                    ex);
+        }
         
         System.gc();        // Run the garbage collector
             // Configure the program from the settings
         configureProgram();
-        if (ENABLE_INITIAL_LOAD_AND_SAVE){
+        if (!debugMode && checkUpdatesAtStartToggle.isSelected()){
+            updateWorker = new UpdateCheckWorker(true);
+            updateWorker.execute();
+        }
+        else if (ENABLE_INITIAL_LOAD_AND_SAVE){
             loadDatabase(DATABASE_LOADER_LOAD_ALL_FLAG);// | DATABASE_LOADER_CHECK_LOCAL_FLAG);
         }
     }
@@ -1126,29 +1063,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
-     * @param panel
-     * @param cardName 
-     */
-    public static void setCard(JPanel panel, String cardName){
-        ((java.awt.CardLayout) panel.getLayout()).show(panel, cardName);
-    }
-    /**
-     * 
-     * @param panel
-     * @param card 
-     */
-    public static void setCard(JPanel panel, JComponent card){
-        setCard(panel,card.getName());
-    }
-    /**
-     * 
      * @param panel 
      */
     private void setVisibleTabsPanel(LinksListTabsPanel panel){
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
             tabsPanel.setListActionMenusVisible(panel == tabsPanel);
         }
-        setCard(tabsPanelDisplay,panel);
+        LinkManagerUtilities.setCard(tabsPanelDisplay,panel);
         updateButtons();
     }
     /**
@@ -1182,6 +1103,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private LinksListPanel getSelectedList(){
         return getSelectedTabsPanel().getSelectedList();
+    }
+    /**
+     * 
+     * @param object
+     * @return 
+     */
+    private boolean isListSelected(Object object){
+        return Objects.equals(getSelectedTabsPanel().getSelectedModel(),object) || 
+                Objects.equals(getSelectedList(), object);
     }
     /**
      * 
@@ -1252,31 +1182,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         exportFC = new javax.swing.JFileChooser();
         databaseUpdateFC = new javax.swing.JFileChooser();
         databaseFC = new javax.swing.JFileChooser();
-        editPopupMenu = new javax.swing.JPopupMenu();
-        queryPopupMenu = new javax.swing.JPopupMenu();
-        prefixPopupMenu = new javax.swing.JPopupMenu();
-        dbStructurePopupMenu = new javax.swing.JPopupMenu();
-        dbFilePopupMenu = new javax.swing.JPopupMenu();
-        dbxDbFilePopupMenu = new javax.swing.JPopupMenu();
         setLocationDialog = new javax.swing.JDialog(this);
         setLocationPanel = new javax.swing.JPanel();
         setExternalCard = new javax.swing.JPanel();
         dbxLogInButton = new javax.swing.JButton();
         setDropboxCard = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
         dbxDbFileField = new javax.swing.JTextField();
         dbxDataPanel = new javax.swing.JPanel();
         dbxPfpLabel = new components.JThumbnailLabel();
         dbxAccountLabel = new javax.swing.JLabel();
-        jLabel1 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
         dbxSpaceUsedLabel = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel5 = new javax.swing.JLabel();
         dbxSpaceFreeLabel = new javax.swing.JLabel();
         dbxLogOutButton = new javax.swing.JButton();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
-        jLabel7 = new javax.swing.JLabel();
+        javax.swing.Box.Filler filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
+        javax.swing.JLabel jLabel7 = new javax.swing.JLabel();
         dbxChunkSizeSpinner = new javax.swing.JSpinner();
-        jLabel11 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel11 = new javax.swing.JLabel();
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
@@ -1290,25 +1214,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         databaseDialog = new javax.swing.JDialog(this);
         dbTabbedPane = new javax.swing.JTabbedPane();
         dbViewer = new manager.database.DatabaseTableViewer();
-        dbQueryPanel = new javax.swing.JPanel();
-        javax.swing.JLabel dbQueryLabel = new javax.swing.JLabel();
-        dbQueryField = new javax.swing.JTextField();
-        executeQueryButton = new javax.swing.JButton();
-        jPanel1 = new javax.swing.JPanel();
-        jLabel4 = new javax.swing.JLabel();
-        dbQueryTimeLabel = new javax.swing.JLabel();
-        dbQueryResultsPanel = new javax.swing.JPanel();
-        dbQueryBlankCard = new javax.swing.JLabel();
-        dbQueryScrollPane = new javax.swing.JScrollPane();
-        dbQueryTable = new javax.swing.JTable();
-        dbQueryUpdatePanel = new javax.swing.JPanel();
-        javax.swing.JLabel jLabel3 = new javax.swing.JLabel();
-        dbQueryUpdateLabel = new javax.swing.JLabel();
-        dbQueryErrorPanel = new javax.swing.JPanel();
-        jLabel6 = new javax.swing.JLabel();
-        dbQueryErrorLabel = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
-        dbQueryErrorCodeLabel = new javax.swing.JLabel();
+        dbQueryPanel = new manager.database.DatabaseQueryTestPanel();
         dbFilePanel = new javax.swing.JPanel();
         javax.swing.JLabel dbFileNameLabel = new javax.swing.JLabel();
         dbFileNameField = new javax.swing.JTextField();
@@ -1329,7 +1235,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbFileSizeLabel = new javax.swing.JLabel();
         javax.swing.JLabel dbUUIDTextLabel = new javax.swing.JLabel();
         dbUUIDLabel = new javax.swing.JLabel();
-        dbLastModTextLabel = new javax.swing.JLabel();
+        javax.swing.JLabel dbLastModTextLabel = new javax.swing.JLabel();
         dbLastModLabel = new javax.swing.JLabel();
         javax.swing.JLabel linkCountTextLabel = new javax.swing.JLabel();
         linkCountLabel = new javax.swing.JLabel();
@@ -1337,9 +1243,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         shownTotalSizeLabel = new javax.swing.JLabel();
         javax.swing.JLabel allTotalSizeTextLabel = new javax.swing.JLabel();
         allTotalSizeLabel = new javax.swing.JLabel();
-        programIDTextLabel = new javax.swing.JLabel();
+        javax.swing.JLabel programIDTextLabel = new javax.swing.JLabel();
         programIDLabel = new javax.swing.JLabel();
-        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
+        javax.swing.Box.Filler filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 32767));
+        javax.swing.JLabel userIDTextLabel = new javax.swing.JLabel();
+        userIDLabel = new javax.swing.JLabel();
         dbUpdateLastModButton = new javax.swing.JButton();
         dbPrefixesPanel = new javax.swing.JPanel();
         dbPrefixScrollPane = new javax.swing.JScrollPane();
@@ -1386,7 +1294,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbTablePanel = new javax.swing.JPanel();
         dbTableScrollPane = new javax.swing.JScrollPane();
         dbTableTable = new javax.swing.JTable();
-        jScrollPane2 = new javax.swing.JScrollPane();
+        dbTableStructScrollPane = new javax.swing.JScrollPane();
         dbTableStructText = new javax.swing.JTextArea();
         dbCreatePrefixScrollPane = new javax.swing.JScrollPane();
         dbCreatePrefixTree = new javax.swing.JTree();
@@ -1415,6 +1323,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         listCOpCombo = new javax.swing.JComboBox<>();
         javax.swing.JLabel listCOpLabel = new javax.swing.JLabel();
         dropboxSetupPanel = new manager.dropbox.DropboxSetupPanel();
+        aboutDialog = new javax.swing.JDialog(this);
+        aboutPanel = new components.JAboutPanel();
+        updateCheckDialog = new javax.swing.JDialog(this);
+        updatePanel = new javax.swing.JPanel();
+        updateIconLabel = new javax.swing.JLabel();
+        updateTextLabel = new javax.swing.JLabel();
+        currentVersTextLabel = new javax.swing.JLabel();
+        latestVersTextLabel = new javax.swing.JLabel();
+        checkUpdatesAtStartToggle = new javax.swing.JCheckBox();
+        currentVersLabel = new javax.swing.JLabel();
+        latestVersLabel = new javax.swing.JLabel();
+        updateContinueButton = new javax.swing.JButton();
+        updateOpenButton = new javax.swing.JButton();
         progressBar = new javax.swing.JProgressBar();
         javax.swing.JLabel newLinkLabel = new javax.swing.JLabel();
         linkTextField = new javax.swing.JTextField();
@@ -1434,27 +1355,30 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         updateListsItem = new javax.swing.JMenuItem();
         reloadListsItem = new javax.swing.JMenuItem();
         exportListsItem = new javax.swing.JMenuItem();
-        jSeparator2 = new javax.swing.JPopupMenu.Separator();
+        javax.swing.JPopupMenu.Separator jSeparator2 = new javax.swing.JPopupMenu.Separator();
         uploadDBItem = new javax.swing.JMenuItem();
         downloadDBItem = new javax.swing.JMenuItem();
         javax.swing.JPopupMenu.Separator dbConfigSeparator = new javax.swing.JPopupMenu.Separator();
         saveConfigItem = new javax.swing.JMenuItem();
         loadConfigItem = new javax.swing.JMenuItem();
-        configExitSeparator = new javax.swing.JPopupMenu.Separator();
+        javax.swing.JPopupMenu.Separator jSeparator3 = new javax.swing.JPopupMenu.Separator();
+        aboutItem = new javax.swing.JMenuItem();
+        javax.swing.JPopupMenu.Separator configExitSeparator = new javax.swing.JPopupMenu.Separator();
         exitButton = new javax.swing.JMenuItem();
         listMenu = new javax.swing.JMenu();
         manageListsItem = new javax.swing.JMenuItem();
-        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        javax.swing.JPopupMenu.Separator jSeparator1 = new javax.swing.JPopupMenu.Separator();
         makeListReadOnlyMenuAll = new javax.swing.JMenu();
         makeListReadOnlyMenuShown = new javax.swing.JMenu();
         hideListsMenu = new javax.swing.JMenu();
-        jSeparator4 = new javax.swing.JPopupMenu.Separator();
+        javax.swing.JPopupMenu.Separator jSeparator4 = new javax.swing.JPopupMenu.Separator();
         showAllListsItem = new javax.swing.JMenuItem();
         hideAllListsItem = new javax.swing.JMenuItem();
+        showHiddenListsToggle = new javax.swing.JCheckBoxMenuItem();
         searchMenu = new javax.swing.JMenu();
         searchMenuItem = new javax.swing.JMenuItem();
         optionsMenu = new javax.swing.JMenu();
-        progressDisplay = new components.progress.JProgressDisplayMenu();
+        progressDisplay = new JByteProgressDisplayMenu();
         alwaysOnTopToggle = new javax.swing.JCheckBoxMenuItem();
         doubleNewLinesToggle = new javax.swing.JCheckBoxMenuItem();
         linkOperationToggle = new javax.swing.JCheckBoxMenuItem();
@@ -1463,8 +1387,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setDBLocationItem = new javax.swing.JMenuItem();
         syncDBToggle = new javax.swing.JCheckBoxMenuItem();
         autosaveMenu = new manager.timermenu.AutosaveMenu();
-        showHiddenListsToggle = new javax.swing.JCheckBoxMenuItem();
         autoHideMenu = new manager.timermenu.AutoHideMenu();
+        showHiddenFilesToggle = new javax.swing.JCheckBoxMenuItem();
         debugMenu = new javax.swing.JMenu();
         slowTestToggle = new components.debug.SlowTestMenuItem();
         activeToggle = new javax.swing.JCheckBoxMenuItem();
@@ -1477,10 +1401,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         clearSelTabItem = new javax.swing.JMenuItem();
         clearListSelItem = new javax.swing.JMenuItem();
         listSetOpItem = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
+        dropboxTestMenu = new javax.swing.JMenu();
         dbxPrintButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
+        jMenuItem1 = new javax.swing.JMenuItem();
 
         openFC.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1517,6 +1442,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         databaseUpdateFC.setApproveButtonText("Update");
         databaseUpdateFC.setDialogTitle("Update Database...");
         databaseUpdateFC.setFileFilter(DATABASE_FILE_FILTER);
+        databaseUpdateFC.setFileHidingEnabled(false);
         databaseUpdateFC.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fileChooserActionPerformed(evt);
@@ -1573,9 +1499,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setDropboxCard.setBorder(javax.swing.BorderFactory.createTitledBorder("Dropbox"));
         setDropboxCard.setName("setDropbox"); // NOI18N
 
+        jLabel2.setLabelFor(dbxDbFileField);
         jLabel2.setText("File:");
-
-        dbxDbFileField.setComponentPopupMenu(dbxDbFilePopupMenu);
 
         dbxDataPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -1601,6 +1526,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
         dbxDataPanel.add(dbxAccountLabel, gridBagConstraints);
 
+        jLabel1.setLabelFor(dbxSpaceUsedLabel);
         jLabel1.setText("Space Used:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1617,6 +1543,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
         dbxDataPanel.add(dbxSpaceUsedLabel, gridBagConstraints);
 
+        jLabel5.setLabelFor(dbxSpaceFreeLabel);
         jLabel5.setText("Space Free:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -1743,8 +1670,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbFileLabel.setLabelFor(dbFileField);
         dbFileLabel.setText("File:");
 
-        dbFileField.setComponentPopupMenu(dbFilePopupMenu);
-
         dbFileBrowseButton.setText("Browse");
         dbFileBrowseButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1811,172 +1736,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         dbTabbedPane.addTab("Table View", dbViewer);
 
-        dbQueryLabel.setLabelFor(dbQueryField);
-        dbQueryLabel.setText("Query:");
-
-        dbQueryField.setComponentPopupMenu(queryPopupMenu);
-        dbQueryField.addActionListener(new java.awt.event.ActionListener() {
+        dbQueryPanel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                executeQueryActionPerformed(evt);
+                dbQueryPanelActionPerformed(evt);
             }
         });
-
-        executeQueryButton.setText("Execute");
-        executeQueryButton.setEnabled(false);
-        executeQueryButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                executeQueryActionPerformed(evt);
-            }
-        });
-
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Results"));
-        jPanel1.setLayout(new java.awt.GridBagLayout());
-
-        jLabel4.setText("Time:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(13, 12, 0, 0);
-        jPanel1.add(jLabel4, gridBagConstraints);
-
-        dbQueryTimeLabel.setText("0 ms");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(13, 6, 0, 12);
-        jPanel1.add(dbQueryTimeLabel, gridBagConstraints);
-
-        dbQueryResultsPanel.setLayout(new java.awt.CardLayout());
-
-        dbQueryBlankCard.setName("blank"); // NOI18N
-        dbQueryResultsPanel.add(dbQueryBlankCard, "blank");
-
-        dbQueryScrollPane.setName("table"); // NOI18N
-
-        dbQueryTable.setAutoCreateRowSorter(true);
-        dbQueryTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
-        dbQueryScrollPane.setViewportView(dbQueryTable);
-
-        dbQueryResultsPanel.add(dbQueryScrollPane, "table");
-
-        dbQueryUpdatePanel.setName("update"); // NOI18N
-
-        jLabel3.setText("Update Count: ");
-
-        dbQueryUpdateLabel.setText("-1");
-
-        javax.swing.GroupLayout dbQueryUpdatePanelLayout = new javax.swing.GroupLayout(dbQueryUpdatePanel);
-        dbQueryUpdatePanel.setLayout(dbQueryUpdatePanelLayout);
-        dbQueryUpdatePanelLayout.setHorizontalGroup(
-            dbQueryUpdatePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dbQueryUpdatePanelLayout.createSequentialGroup()
-                .addGap(1, 1, 1)
-                .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(dbQueryUpdateLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        dbQueryUpdatePanelLayout.setVerticalGroup(
-            dbQueryUpdatePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dbQueryUpdatePanelLayout.createSequentialGroup()
-                .addGroup(dbQueryUpdatePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(dbQueryUpdateLabel))
-                .addGap(0, 208, Short.MAX_VALUE))
-        );
-
-        dbQueryResultsPanel.add(dbQueryUpdatePanel, "update");
-
-        dbQueryErrorPanel.setName("error"); // NOI18N
-
-        jLabel6.setText("Error:");
-
-        dbQueryErrorLabel.setText("N/A");
-
-        jLabel10.setText("Error Code:");
-
-        dbQueryErrorCodeLabel.setText("-1");
-
-        javax.swing.GroupLayout dbQueryErrorPanelLayout = new javax.swing.GroupLayout(dbQueryErrorPanel);
-        dbQueryErrorPanel.setLayout(dbQueryErrorPanelLayout);
-        dbQueryErrorPanelLayout.setHorizontalGroup(
-            dbQueryErrorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dbQueryErrorPanelLayout.createSequentialGroup()
-                .addComponent(jLabel6)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(dbQueryErrorLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(dbQueryErrorPanelLayout.createSequentialGroup()
-                .addComponent(jLabel10)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(dbQueryErrorCodeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 456, Short.MAX_VALUE))
-        );
-        dbQueryErrorPanelLayout.setVerticalGroup(
-            dbQueryErrorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dbQueryErrorPanelLayout.createSequentialGroup()
-                .addGroup(dbQueryErrorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel6)
-                    .addComponent(dbQueryErrorLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(dbQueryErrorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel10)
-                    .addComponent(dbQueryErrorCodeLabel))
-                .addGap(0, 185, Short.MAX_VALUE))
-        );
-
-        dbQueryResultsPanel.add(dbQueryErrorPanel, "error");
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.weightx = 0.9;
-        gridBagConstraints.weighty = 0.9;
-        gridBagConstraints.insets = new java.awt.Insets(7, 12, 13, 12);
-        jPanel1.add(dbQueryResultsPanel, gridBagConstraints);
-
-        javax.swing.GroupLayout dbQueryPanelLayout = new javax.swing.GroupLayout(dbQueryPanel);
-        dbQueryPanel.setLayout(dbQueryPanelLayout);
-        dbQueryPanelLayout.setHorizontalGroup(
-            dbQueryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dbQueryPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(dbQueryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(dbQueryPanelLayout.createSequentialGroup()
-                        .addComponent(dbQueryLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbQueryField)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(executeQueryButton)))
-                .addContainerGap())
-        );
-        dbQueryPanelLayout.setVerticalGroup(
-            dbQueryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dbQueryPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(dbQueryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(executeQueryButton)
-                    .addComponent(dbQueryField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(dbQueryLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-
         dbTabbedPane.addTab("Query", dbQueryPanel);
 
         dbFileNameLabel.setLabelFor(dbFileNameField);
@@ -2205,11 +1969,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbPropPanel.add(programIDLabel, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
         gridBagConstraints.weighty = 0.9;
         dbPropPanel.add(filler2, gridBagConstraints);
+
+        userIDTextLabel.setText("User ID:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        dbPropPanel.add(userIDTextLabel, gridBagConstraints);
+
+        userIDLabel.setText("N/A");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 6, 6, 0);
+        dbPropPanel.add(userIDLabel, gridBagConstraints);
 
         dbUpdateLastModButton.setText("Update Last Mod");
         dbUpdateLastModButton.addActionListener(new java.awt.event.ActionListener() {
@@ -2303,7 +2085,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         jLabel9.setLabelFor(prefixField);
         jLabel9.setText("Prefix:");
 
-        prefixField.setComponentPopupMenu(prefixPopupMenu);
         prefixField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addPrefixButtonActionPerformed(evt);
@@ -2492,7 +2273,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             .addGroup(dbLinkSearchPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(dbLinkSearchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(dbLinkSearchScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 558, Short.MAX_VALUE)
+                    .addComponent(dbLinkSearchScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 581, Short.MAX_VALUE)
                     .addGroup(dbLinkSearchPanelLayout.createSequentialGroup()
                         .addGroup(dbLinkSearchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(dbSearchPrefixCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -2514,12 +2295,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     .addComponent(jLabel8)
                     .addComponent(dbSearchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(dbSearchButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(dbLinkSearchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(dbSearchPrefixCheckBox)
-                    .addComponent(dbSearchPrefixCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(7, 7, 7)
+                .addGroup(dbLinkSearchPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(dbSearchPrefixCombo)
+                    .addComponent(dbSearchPrefixCheckBox, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(dbLinkSearchScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 264, Short.MAX_VALUE)
+                .addComponent(dbLinkSearchScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 262, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -2629,8 +2410,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbTableStructText.setLineWrap(true);
         dbTableStructText.setRows(5);
         dbTableStructText.setWrapStyleWord(true);
-        dbTableStructText.setComponentPopupMenu(dbStructurePopupMenu);
-        jScrollPane2.setViewportView(dbTableStructText);
+        dbTableStructScrollPane.setViewportView(dbTableStructText);
 
         javax.swing.GroupLayout dbTablePanelLayout = new javax.swing.GroupLayout(dbTablePanel);
         dbTablePanel.setLayout(dbTablePanelLayout);
@@ -2640,7 +2420,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addContainerGap()
                 .addGroup(dbTablePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(dbTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 558, Short.MAX_VALUE)
-                    .addComponent(jScrollPane2))
+                    .addComponent(dbTableStructScrollPane))
                 .addContainerGap())
         );
         dbTablePanelLayout.setVerticalGroup(
@@ -2649,7 +2429,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addContainerGap()
                 .addComponent(dbTableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(dbTableStructScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -2857,6 +2637,136 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         dropboxSetupPanel.setDialogTitle("Enter Dropbox Authorization Code");
 
+        aboutDialog.setTitle("About "+PROGRAM_NAME);
+        aboutDialog.setMinimumSize(new java.awt.Dimension(640, 400));
+        aboutDialog.setResizable(false);
+
+        aboutPanel.setProgramName(PROGRAM_NAME);
+        aboutPanel.setProgramVersion(PROGRAM_VERSION);
+        aboutPanel.setProgramWebsiteText("Visit the Github Repository");
+        aboutPanel.setProgramWebsiteURI(java.net.URI.create("https://github.com/Mosblinker/LinkManager"));
+        aboutPanel.setUpdateButtonIsShown(true);
+        aboutPanel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                aboutPanelActionPerformed(evt);
+            }
+        });
+        aboutDialog.getContentPane().add(aboutPanel, java.awt.BorderLayout.CENTER);
+
+        updateCheckDialog.setTitle(PROGRAM_NAME+" Update Checker");
+        updateCheckDialog.setMinimumSize(new java.awt.Dimension(400, 196));
+        updateCheckDialog.setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        updateCheckDialog.setResizable(false);
+
+        updatePanel.setLayout(new java.awt.GridBagLayout());
+
+        updateIconLabel.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 18);
+        updatePanel.add(updateIconLabel, gridBagConstraints);
+
+        updateTextLabel.setText("A new version of "+PROGRAM_NAME+" is available.");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.weightx = 0.9;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 18, 0);
+        updatePanel.add(updateTextLabel, gridBagConstraints);
+
+        currentVersTextLabel.setText("Current Version:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 12);
+        updatePanel.add(currentVersTextLabel, gridBagConstraints);
+
+        latestVersTextLabel.setText("Latest Version:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 12);
+        updatePanel.add(latestVersTextLabel, gridBagConstraints);
+
+        checkUpdatesAtStartToggle.setSelected(true);
+        checkUpdatesAtStartToggle.setText("Check for Updates at startup");
+        checkUpdatesAtStartToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                checkUpdatesAtStartToggleActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(13, 0, 0, 0);
+        updatePanel.add(checkUpdatesAtStartToggle, gridBagConstraints);
+
+        currentVersLabel.setText(PROGRAM_VERSION);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
+        updatePanel.add(currentVersLabel, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
+        updatePanel.add(latestVersLabel, gridBagConstraints);
+
+        updateContinueButton.setText("Continue");
+        updateContinueButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                updateContinueButtonActionPerformed(evt);
+            }
+        });
+
+        updateOpenButton.setText("Go to web page");
+        updateOpenButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                updateOpenButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout updateCheckDialogLayout = new javax.swing.GroupLayout(updateCheckDialog.getContentPane());
+        updateCheckDialog.getContentPane().setLayout(updateCheckDialogLayout);
+        updateCheckDialogLayout.setHorizontalGroup(
+            updateCheckDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(updateCheckDialogLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(updateCheckDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(updatePanel, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, updateCheckDialogLayout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(updateOpenButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(updateContinueButton)))
+                .addContainerGap())
+        );
+        updateCheckDialogLayout.setVerticalGroup(
+            updateCheckDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(updateCheckDialogLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(updatePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(13, 13, 13)
+                .addGroup(updateCheckDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(updateContinueButton)
+                    .addComponent(updateOpenButton))
+                .addContainerGap())
+        );
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle(PROGRAM_NAME);
         setLocationByPlatform(true);
@@ -2883,7 +2793,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         newLinkLabel.setText("Edit Link:");
 
-        linkTextField.setComponentPopupMenu(editPopupMenu);
         linkTextField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newLinkButtonActionPerformed(evt);
@@ -2955,11 +2864,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 listsTabsPanelPropertyChange(evt);
             }
         });
-        allListsTabsPanel.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                listsTabsPanelValueChanged(evt);
-            }
-        });
         tabsPanelDisplay.add(allListsTabsPanel, "allLists");
 
         shownListsTabsPanel.setName("shownLists"); // NOI18N
@@ -2971,11 +2875,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         shownListsTabsPanel.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
             public void propertyChange(java.beans.PropertyChangeEvent evt) {
                 listsTabsPanelPropertyChange(evt);
-            }
-        });
-        shownListsTabsPanel.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                listsTabsPanelValueChanged(evt);
             }
         });
         tabsPanelDisplay.add(shownListsTabsPanel, "shownLists");
@@ -3052,6 +2951,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         fileMenu.add(loadConfigItem);
+        fileMenu.add(jSeparator3);
+
+        aboutItem.setText("About Link Manager");
+        aboutItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                aboutItemActionPerformed(evt);
+            }
+        });
+        fileMenu.add(aboutItem);
         fileMenu.add(configExitSeparator);
 
         exitButton.setText("Exit");
@@ -3108,6 +3016,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         hideListsMenu.add(hideAllListsItem);
 
         listMenu.add(hideListsMenu);
+
+        showHiddenListsToggle.setText("Show Hidden Lists");
+        showHiddenListsToggle.setActionCommand(HIDDEN_LISTS_TOGGLE_COMMAND);
+        showHiddenListsToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showHiddenListsToggleActionPerformed(evt);
+            }
+        });
+        listMenu.add(showHiddenListsToggle);
 
         menuBar.add(listMenu);
 
@@ -3209,15 +3126,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         });
         optionsMenu.add(autosaveMenu);
 
-        showHiddenListsToggle.setText("Show Hidden Lists");
-        showHiddenListsToggle.setActionCommand(HIDDEN_LISTS_TOGGLE_COMMAND);
-        showHiddenListsToggle.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                showHiddenListsToggleActionPerformed(evt);
-            }
-        });
-        optionsMenu.add(showHiddenListsToggle);
-
         autoHideMenu.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 autoHideMenuActionPerformed(evt);
@@ -3229,6 +3137,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         optionsMenu.add(autoHideMenu);
+
+        showHiddenFilesToggle.setSelected(true);
+        showHiddenFilesToggle.setText("Show Hidden Files");
+        showHiddenFilesToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showHiddenFilesToggleActionPerformed(evt);
+            }
+        });
+        optionsMenu.add(showHiddenFilesToggle);
 
         menuBar.add(optionsMenu);
 
@@ -3301,7 +3218,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         });
         debugMenu.add(listSetOpItem);
 
-        jMenu2.setText("Dropbox Tests");
+        dropboxTestMenu.setText("Dropbox Tests");
 
         dbxPrintButton.setText("Print Dropbox Data");
         dbxPrintButton.addActionListener(new java.awt.event.ActionListener() {
@@ -3309,7 +3226,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxPrintButtonActionPerformed(evt);
             }
         });
-        jMenu2.add(dbxPrintButton);
+        dropboxTestMenu.add(dbxPrintButton);
 
         setDropboxTestButton.setText("Set Dropbox Access Token");
         setDropboxTestButton.addActionListener(new java.awt.event.ActionListener() {
@@ -3317,7 +3234,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 setDropboxTestButtonActionPerformed(evt);
             }
         });
-        jMenu2.add(setDropboxTestButton);
+        dropboxTestMenu.add(setDropboxTestButton);
 
         dropboxRefreshTestButton.setText("Refresh Dropbox Token");
         dropboxRefreshTestButton.addActionListener(new java.awt.event.ActionListener() {
@@ -3325,9 +3242,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dropboxRefreshTestButtonActionPerformed(evt);
             }
         });
-        jMenu2.add(dropboxRefreshTestButton);
+        dropboxTestMenu.add(dropboxRefreshTestButton);
 
-        debugMenu.add(jMenu2);
+        debugMenu.add(dropboxTestMenu);
+
+        jMenuItem1.setText("New Download");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        debugMenu.add(jMenuItem1);
 
         menuBar.add(debugMenu);
 
@@ -3454,6 +3379,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.out.println("Selected List: " + getSelectedList());
         System.out.println("Can Act Upon Selected List: " + canActUponSelectedList());
         System.out.println("Program Will Close Once Saved: " + (saver != null && saver.getExitAfterSaving()));
+        System.out.println("Sync Mode: " + getSyncMode());
         System.out.println();
         
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
@@ -3509,6 +3435,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         System.out.println();
         
+        System.out.println("Models: ");
+        for (LinksListModel model : listModels){
+            System.out.printf("%6s: %s%n",Objects.toString(model.getListID(), ""),model.getListName());
+        }
+        System.out.println();
+        
         System.out.println("Configuration: " + config.getProperties().size() + 
                 " " + config.getProperties().stringPropertyNames().size());
         config.getProperties().list(System.out);
@@ -3529,6 +3461,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.out.println(this.getMaximumSize());
         System.out.println(Toolkit.getDefaultToolkit().getScreenSize());
         System.out.println(Toolkit.getDefaultToolkit().getScreenResolution());
+        
+        for (LinksListTabsPanel tabsPanel : listsTabPanels){
+            for (LinksListPanel panel : tabsPanel){
+                System.out.println(panel);
+                System.out.println("\t       Data: " + Arrays.toString(panel.getListDataListeners()));
+                System.out.println("\t  Selection: " + Arrays.toString(panel.getListSelectionListeners()));
+                System.out.println("\t     Change: " + Arrays.toString(panel.getChangeListeners()));
+                System.out.println("\tProp Change: " + Arrays.toString(panel.getPropertyChangeListeners()));
+                System.out.println("\tM      Data: " + Arrays.toString(panel.getModel().getListDataListeners()));
+                System.out.println("\tM Selection: " + Arrays.toString(panel.getModel().getListSelectionListeners()));
+                System.out.println("\tM    Change: " + Arrays.toString(panel.getModel().getChangeListeners()));
+                System.out.println("\tM P. Change: " + Arrays.toString(panel.getModel().getPropertyChangeListeners()));
+            }
+        }
     }//GEN-LAST:event_printDataItemActionPerformed
     /**
      * This opens up a dialog window that displays the contents of the database.
@@ -3584,7 +3530,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             prefixField.setText("");
             ((DefaultTableModel)dbPrefixTable.getModel()).addRow(
                     new Object[]{key,prefixMap.get(key)});
-            ((List)dbUsedPrefixCombo.getModel()).add(key+" - "+prefix);
+            String selValue = key+" - "+prefix;
+            ((List)dbUsedPrefixCombo.getModel()).add(selValue);
+            ((List)dbSearchPrefixCombo.getModel()).add(selValue);
             LinkMap linkMap = conn.getLinkMap();
                 // Turn off the connection's auto-commit to group the following 
                 // database transactions to improve performance
@@ -3592,7 +3540,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             Set<Long> outdatedLinks = new LinkedHashSet<>(
                     linkMap.getStartsWith(prefix).navigableKeySet());
             for (Long linkID : outdatedLinks){
-                conn.updateLinkData(linkID);
+                conn.updateLinkPrefix(linkID);
 //                progressBar.setValue(progressBar.getValue()+1);
             }
                // Ensure that the database last modified time is updated
@@ -3601,12 +3549,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 //            conn.setAutoCommit(true);
 //            searchUsedPrefixes(conn,key);
         }
-        catch (SQLException ex) {
-            System.out.println("Error: "+ex);
-            JOptionPane.showMessageDialog(this, "Could Not Add Prefix \""+
-                prefixField.getText()+"\".\n"+
-                        "Database Error: " + ex,
-                "Database Error", JOptionPane.ERROR_MESSAGE);
+        catch (SQLException | UncheckedSQLException ex) {
+            String msg = "Could not add prefix \""+prefixField.getText()+"\"";
+            String errMsg = "Database Error: " + ex;
+            getLogger().log(Level.WARNING, msg, ex);
+            if (ex instanceof UncheckedSQLException){
+                getLogger().log(Level.WARNING,msg + " cause", ex.getCause());
+                errMsg += "\nCause: " + ex.getCause();
+            }
+            JOptionPane.showMessageDialog(this, msg+".\n"+errMsg,
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -3625,79 +3577,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     dbPrefixTable.getValueAt(selRow, 0));
                // Ensure that the database last modified time is updated
             conn.setDatabaseLastModified();
-            System.out.println("Removed Prefix: \""+prefix+"\"");
+            getLogger().log(Level.FINER,"Removed prefix \"{0}\"",prefix);
             ((DefaultTableModel)dbPrefixTable.getModel()).removeRow(selRow);
         }
-        catch (SQLException | IllegalArgumentException ex) {
-            System.out.println("Error: "+ex);
-            JOptionPane.showMessageDialog(this, "Could Not Remove Prefix "+
-                    dbPrefixTable.getValueAt(selRow, 0)+": \""+
-                    dbPrefixTable.getValueAt(selRow, 1)+"\".\n"+ 
-                            "Database Error: " + ex,
-                "Database Error", JOptionPane.ERROR_MESSAGE);
+        catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
+            String msg = String.format("Could not remove prefix %d: \"%s\"",
+                    dbPrefixTable.getValueAt(selRow, 0),
+                    dbPrefixTable.getValueAt(selRow, 1));
+            String errMsg = "Database Error: " + ex;
+            getLogger().log(Level.WARNING,msg, ex);
+            if (ex instanceof UncheckedSQLException){
+                getLogger().log(Level.WARNING,msg + " cause", ex.getCause());
+                errMsg += "\nCause: " + ex.getCause();
+            }
+            JOptionPane.showMessageDialog(this, msg + ".\n"+ errMsg,
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
     }//GEN-LAST:event_removePrefixButtonActionPerformed
-    /**
-     * This executes a query directly on the database.
-     * @param evt The ActionEvent.
-     */
-    private void executeQueryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_executeQueryActionPerformed
-            // If the execute query button is disabled
-        if (!executeQueryButton.isEnabled()){
-            beep();
-            return;
-        }   // The name of the card to display on the results panel
-        String cardName = dbQueryBlankCard.getName();
-            // This gets if we need to update the tables
-        boolean updated = false;
-            // Get the current time
-        long time = System.currentTimeMillis();
-            // Try to connect to the database and create an SQL statement for it
-        try(LinkDatabaseConnection conn = connect(getDatabaseFile());
-            Statement stmt = conn.createStatement()){
-                // Execute the query and get if the query returns a ResultSet
-            boolean hasResults = stmt.execute(dbQueryField.getText());
-                // Get the time it took to execute the query
-            time = System.currentTimeMillis() - time;
-                // This gets the number of updated rows.
-            int updateCount = stmt.getUpdateCount();
-            if (hasResults){    // If the query returned a ResultSet
-                    // Create and display a table model from the results
-                dbQueryTable.setModel(LinkDatabaseConnection.getTableModelForResultSet(stmt.getResultSet()));
-                cardName = dbQueryScrollPane.getName();
-            }
-            else{
-                dbQueryUpdateLabel.setText(""+updateCount);
-                cardName = dbQueryUpdatePanel.getName();
-            }
-            updated = updateCount > 0;
-        }
-        catch (SQLException | UncheckedSQLException ex) {
-            int errorCode = -1;
-            if (ex instanceof SQLException){
-                errorCode = ((SQLException)ex).getErrorCode();
-            }
-            else if (ex instanceof UncheckedSQLException)
-                errorCode = ((UncheckedSQLException)ex).getErrorCode();
-            System.out.println("Error: "+errorCode + " "+ex);
-            JOptionPane.showMessageDialog(this, "Database Error: " + ex,
-                "Database Error", JOptionPane.ERROR_MESSAGE);
-            dbQueryErrorLabel.setText(""+ex);
-            dbQueryErrorCodeLabel.setText(""+errorCode);
-            cardName = dbQueryErrorPanel.getName();
-            time = 0;
-        }
-            // Set the label to display the time
-        dbQueryTimeLabel.setText(time + " ms");
-        System.gc();
-        setCard(dbQueryResultsPanel, cardName);
-        if (updated){   // Update the database view if there were changes
-            loader = new LoadDatabaseViewer(true);
-            loader.execute();
-        }
-    }//GEN-LAST:event_executeQueryActionPerformed
     
     private void setDBFileNameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBFileNameButtonActionPerformed
         config.setDatabaseFileName(dbFileNameField.getText());
@@ -3796,9 +3694,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             System.out.println("toProperties():");
             Properties dbProp = dbProperty.toProperties();
             dbProp.list(System.out);
-        }
-        catch (SQLException | UncheckedSQLException ex) {
-            System.out.println("Error: "+ex);
+        } catch (SQLException ex){
+            getLogger().log(Level.INFO, null, ex);
+        } catch (UncheckedSQLException ex){
+            getLogger().log(Level.INFO, null, ex);
+            getLogger().log(Level.INFO, "Cause", ex.getCause());
         }
     }//GEN-LAST:event_printDBButtonActionPerformed
 
@@ -3806,8 +3706,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try(LinkDatabaseConnection conn = connect(getDatabaseFile());
             Statement stmt = conn.createStatement()){
             conn.createTables(stmt);
-        }catch (SQLException | UncheckedSQLException ex) {
-            System.out.println("Error: "+ex);
+        } catch (SQLException ex){
+            getLogger().log(Level.WARNING,"Error creating database tables", ex);
+        } catch (UncheckedSQLException ex){
+            getLogger().log(Level.WARNING,"Error creating database tables", ex);
+            getLogger().log(Level.WARNING,"Error creating database tables cause", ex.getCause());
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -3818,7 +3721,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_foreignKeysToggleActionPerformed
 
     private void updateDBFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateDBFileButtonActionPerformed
-        File file = showOpenFileChooser(databaseUpdateFC);
+        File file = showOpenFileChooser(databaseUpdateFC, null);
         if (file != null){
             saver = new UpdateDatabase(file,updateDBFileCombo.getSelectedIndex());
             saver.execute();
@@ -3899,14 +3802,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         searchDialog.setVisible(true);
     }//GEN-LAST:event_searchMenuItemActionPerformed
     /**
-     * This resets the link text field to be blank, and then updates the 
-     * buttons.
-     */
-    private void resetLinkField(){
-        linkTextField.setText("");
-        updateButtons();
-    }
-    /**
      * This adds a link to the currently selected list.
      * @param evt The ActionEvent
      */
@@ -3919,7 +3814,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         getSelectedTabsPanel().getSelectedModel().add(linkTextField.getText().trim());
 
-        resetLinkField();
+        linkTextField.setText("");
         linkTextField.grabFocus();
     }//GEN-LAST:event_newLinkButtonActionPerformed
     /**
@@ -3959,6 +3854,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void manageLinksButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manageLinksButtonActionPerformed
+        getLogger().entering(this.getClass().getName(), 
+                "manageLinksButtonActionPerformed", evt);
             // If we can alter the currently selected list
         if (canActUponSelectedList()){ 
                 // Get the currently selected list
@@ -3981,6 +3878,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Set the list manipulator panel's size in the config
         config.setComponentSize(listManipulator);
         linkTextField.grabFocus();
+        getLogger().exiting(this.getClass().getName(), 
+                "manageLinksButtonActionPerformed");
     }//GEN-LAST:event_manageLinksButtonActionPerformed
     /**
      * This removes the currently selected link from the currently selected 
@@ -4011,7 +3910,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent
      */
     private void copyLinkButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyLinkButtonActionPerformed
-        copyText(getSelectedList().getSelectedValue());
+        LinkManagerUtilities.copyText(getSelectedList().getSelectedValue());
         linkTextField.grabFocus();
     }//GEN-LAST:event_copyLinkButtonActionPerformed
     /**
@@ -4021,8 +3920,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void openLinkButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openLinkButtonActionPerformed
         String link = getSelectedList().getSelectedValue();
         try {
-            openLink(link);
+            LinkManagerUtilities.openLink(link);
         } catch (URISyntaxException | IOException ex) {
+            if (ex instanceof MalformedURLException){
+                getLogger().log(Level.WARNING, 
+                        "Failed to open link (malformed URL {0})", link);
+            } else
+                getLogger().log(Level.WARNING, "Failed to open link", ex);
             beep();
             JOptionPane.showMessageDialog(this,
                     "Could not open \""+link+"\". Please check the URL and try "
@@ -4045,10 +3949,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButtonActionPerformed
+            // Ensure that the program's configuration is up-to-date
+        updateProgramConfig();
             // If the program is currently saving a file
         if (isSavingFiles()){
-                // Ensure that the program's configuration is up-to-date
-            updateProgramConfig();
             // TODO: The program should probably not be able close while a file is saving
                 // If the file saver is set to exit the program after it 
                 // finishes saving the file
@@ -4058,24 +3962,39 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
                 // If the file saver is being used to save the database
             else if (saver instanceof AbstractDatabaseSaver){
-                    // Make it so that once it finishes saving the database, it 
-                    // will close the program
-                ((AbstractDatabaseSaver)saver).setExitAfterSaving(true);
-                exitButton.setEnabled(false);
+                try{    // Make it so that once it finishes saving the database, 
+                        // it will close the program
+                    ((AbstractDatabaseSaver)saver).setExitAfterSaving(true);
+                    exitButton.setEnabled(false);
+                        // Thrown if the abstract database saver cannot exit 
+                        // program
+                } catch (UnsupportedOperationException ex){ 
+                    getLogger().log(Level.INFO, "Cannot exit program, saving in progress", ex);
+                    JOptionPane.showMessageDialog(this, 
+                            "Cannot exit program right now. Please wait and try again.", 
+                            "ERROR - Cannot Close Program", JOptionPane.ERROR_MESSAGE);
+                }
                 return;
             }
-        }   // If the program fully loaded initially and it is to save after the 
+        }
+        if (loader != null){
+            getLogger().log(Level.FINER, "Cancelling loading {0}", loader);
+            loader.cancel(true);
+        }
+            // If the program fully loaded initially and it is to save after the 
             // initial load
         if (fullyLoaded && ENABLE_INITIAL_LOAD_AND_SAVE){
-                // Ensure that the program's configuration is up-to-date
-            updateProgramConfig();
+            getLogger().finer("Exiting and saving program");
             exitButton.setEnabled(false);
                 // Save the database and close the program
             saver = new DatabaseSaver(true);
             saver.execute();
         }
-        else
+        else if (!(loader instanceof AbstractFileDownloader) || 
+                !((AbstractFileDownloader)loader).getExitIfCancelled()){
+            getLogger().finer("Exiting program normally");
             System.exit(0);
+        }
     }//GEN-LAST:event_exitButtonActionPerformed
 
     private void showHiddenListsToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showHiddenListsToggleActionPerformed
@@ -4093,6 +4012,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // the program is not currently saving files.
         if (AutosaveMenu.AUTOSAVE_COMMAND.equals(evt.getActionCommand()) && 
                 isEdited() && !isSavingFiles()){
+            getLogger().finer("Automatically saving database");
             saver = new DatabaseSaver();
             saver.execute();
         }
@@ -4108,6 +4028,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             case(AutosaveMenu.AUTOSAVE_PAUSED_PROPERTY_CHANGED):
             case(AutosaveMenu.AUTOSAVE_RUNNING_PROPERTY_CHANGED):
             case("enabled"):
+                getLogger().log(Level.FINER, "Autosave menu property changed "
+                        + "(Name: {0}, Old: {1}, New: {2})", 
+                        new Object[]{evt.getPropertyName(), evt.getOldValue(), 
+                            evt.getNewValue()});
                 if (isInDebug() && printAutosaveEventsToggle.isSelected()){
                     System.out.println("Autosave Menu Prop Changed: " + evt);
                 }
@@ -4191,50 +4115,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     type = i;
             }   // If the event source is found in the list tabs panel array (it 
             if (type >= 0)  // should be)
-                config.setCurrentTab(type, listsTabPanels[type]);
-                // If the program is in debug mode
-            else if (isInDebug())
-                System.out.println("Not found in list tabs panels: " +evt.getSource());
-        }
-    }//GEN-LAST:event_listsTabsPanelStateChanged
-    /**
-     * This processes a change to the selection in the currently selected list.
-     * @param evt The ListSelectionEvent.
-     */
-    private void listsTabsPanelValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listsTabsPanelValueChanged
-            // If the selection is not currently being adjusted
-        if (!evt.getValueIsAdjusting()){
-                // If the source of the change is the currently selected list
-            if (Objects.equals(getSelectedList(),evt.getSource())){
-                updateSelectedLink(); 
-            }   // If the program has fully loaded and the program isn't loading 
-                // the database
-            if (fullyLoaded && !isLoadingDatabase()){
-                    // This will get the listID of the list that the selection 
-                Integer listID;     // changed
-                    // This will get the newly selected value
-                String selValue;
-                    // If the source of the event is a LinksListPanel
-                if (evt.getSource() instanceof LinksListPanel){
-                        // Get the source as a panel
-                    LinksListPanel panel = (LinksListPanel)evt.getSource();
-                    listID = panel.getListID();
-                    selValue = panel.getSelectedValue();
-                    // If the source of the event is a LinksListModel
-                } else if (evt.getSource() instanceof LinksListModel){
-                        // Get the source as a model
-                    LinksListModel model = (LinksListModel)evt.getSource();
-                    listID = model.getListID();
-                    selValue = model.getSelectedValue();
-                } else
-                    return;
-                    // If the listID for this list is not null
-                if (listID != null)
-                        // Set the selected link for the list
-                    config.setSelectedLink(listID, selValue);
+                config.setSelectedTab(type, listsTabPanels[type]);
+            else{
+                getLogger().log(Level.WARNING, 
+                        "Source not found in list tabs panels: {0}", evt.getSource());
+                    // If the program is in debug mode
+                if (isInDebug())
+                    System.out.println("Source not found in list tabs panels: " +evt.getSource());
             }
         }
-    }//GEN-LAST:event_listsTabsPanelValueChanged
+    }//GEN-LAST:event_listsTabsPanelStateChanged
 
     private void clearSelTabItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearSelTabItemActionPerformed
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
@@ -4313,23 +4203,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void loadDatabase(int loadFlags){
         File file = getDatabaseFile();
             // If the local file should be checked for more up-to-date lists
-        if (getFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG)){
+        if (LinkManagerUtilities.getFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG)){
             try {   // Create a temporary file for the downloaded database
                 file = createTempFile();
                     // Make sure the file is deleted on exit
                 file.deleteOnExit();
             } catch (IOException ex) {
-                    // If the program is in debug mode
-                if (isInDebug())
-                    System.out.print("Temp File Error: " + ex);
+                getLogger().log(Level.WARNING, 
+                        "Failed to create temporary database file", ex);
             }
         }   // If this will sync the database to the cloud and the user is 
             // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            saver = new DbxDownloader(file,config.getDropboxDatabaseFileName(),loadFlags);
-            saver.execute();
+            loader = new TempDatabaseDownloader(file,
+                    config.getDatabaseFileSyncPath(getSyncMode()),getSyncMode(),
+                    loadFlags);
+            loader.execute();
         } else {
-            loader = new DatabaseLoader(setFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG,false));
+            loader = new DatabaseLoader(LinkManagerUtilities.setFlag(loadFlags,
+                    DATABASE_LOADER_CHECK_LOCAL_FLAG,false));
             loader.execute();
         }
     }
@@ -4369,7 +4261,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void exportListsItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportListsItemActionPerformed
             // Gets the file to save to
-        File file = showSaveFileChooser(exportFC);
+        File file = showSaveFileChooser(exportFC,null);
         if (file != null){  // If the user selected a file
             saver = new ExportDatabase(file);
             saver.execute();
@@ -4403,8 +4295,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             conn.getPrefixMap().removeUnusedRows();
                // Ensure that the database last modified time is updated
             conn.setDatabaseLastModified();
-        } catch (SQLException ex) {
-            System.out.println("Error: "+ex);
+        } catch (SQLException | UncheckedSQLException ex) {
+            getLogger().log(Level.WARNING, "Error removing unused data", ex);
+            String errMsg = "Database Error: " + ex;
+            if (ex instanceof UncheckedSQLException){
+                getLogger().log(Level.WARNING,"Error removing unused data cause", ex.getCause());
+                errMsg += "\nCause: " + ex.getCause();
+            }
+            JOptionPane.showMessageDialog(this, "Error removing unused data.\n"+errMsg,
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -4455,8 +4354,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
                // Ensure that the database last modified time is updated
             setDBLastModLabelText(conn.setDatabaseLastModified());
-        }catch (SQLException | IllegalArgumentException ex) {
-            System.out.println("Error: "+ex);
+        } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
+            getLogger().log(Level.WARNING,"Error applying prefix settings", ex);
+            String errMsg = "Database Error: " + ex;
+            if (ex instanceof UncheckedSQLException){
+                getLogger().log(Level.WARNING,"Error applying prefix settings cause", ex.getCause());
+                errMsg += "\nCause: " + ex.getCause();
+            }
+            JOptionPane.showMessageDialog(this, "Error applying prefix settings.\n"+errMsg,
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_prefixApplyButtonActionPerformed
     /**
@@ -4469,6 +4375,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             System.out.println("Auto-Hide Menu Action: " + evt);
         }   // If this is to automatically hide the hidden lists
         if (AutoHideMenu.AUTO_HIDE_COMMAND.equals(evt.getActionCommand())){
+            getLogger().log(Level.FINER, "Automatically hiding hidden lists (visible: {0})", 
+                    showHiddenListsToggle.isSelected());
             showHiddenListsToggle.setSelected(false);
             updateVisibleTabsPanel();
                 // Clear whether hidden lists are shown in the configuration
@@ -4486,6 +4394,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             case(AutoHideMenu.AUTO_HIDE_PAUSED_PROPERTY_CHANGED):
             case(AutoHideMenu.AUTO_HIDE_RUNNING_PROPERTY_CHANGED):
             case("enabled"):
+                getLogger().log(Level.FINER, "Auto-Hide menu property changed "
+                        + "(Name: {0}, Old: {1}, New: {2})", 
+                        new Object[]{evt.getPropertyName(), evt.getOldValue(), 
+                            evt.getNewValue()});
                 if (isInDebug() && printAutoHideEventsToggle.isSelected()){
                     System.out.println("Auto-Hide Menu Prop Changed: " + evt);
                 }
@@ -4517,8 +4429,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             setListEditSettings(conn,listID);
-        }catch (SQLException | IllegalArgumentException ex) {
-            System.out.println("Error: "+ex);
+        } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
+            String msg = "Error loading settings for list " + listID;
+            getLogger().log(Level.WARNING,msg, ex);
+            String errMsg = "Database Error: " + ex;
+            if (ex instanceof UncheckedSQLException){
+                getLogger().log(Level.WARNING,msg+" cause", ex.getCause());
+                errMsg += "\nCause: " + ex.getCause();
+            }
+            JOptionPane.showMessageDialog(this, msg+".\n"+errMsg,
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_dbListIDComboActionPerformed
 
@@ -4553,8 +4473,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
                    // Ensure that the database last modified time is updated
                 setDBLastModLabelText(conn.setDatabaseLastModified());
-            } catch (SQLException | IllegalArgumentException ex) {
-                System.out.println("Error: "+ex);
+            } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
+                String msg = "Error changing settings for list " + listID;
+                getLogger().log(Level.WARNING,msg, ex);
+                String errMsg = "Database Error: " + ex;
+                if (ex instanceof UncheckedSQLException){
+                    getLogger().log(Level.WARNING,msg+" cause", ex.getCause());
+                    errMsg += "\nCause: " + ex.getCause();
+                }
+                JOptionPane.showMessageDialog(this, msg+".\n"+errMsg,
+                        "Database Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }//GEN-LAST:event_dbListEditApplyButtonActionPerformed
@@ -4567,11 +4495,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         String prefixStr = dbUsedPrefixCombo.getSelectedItem().toString();
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             searchUsedPrefixes(conn,getSearchPrefix(prefixStr));
-        } catch (SQLException | IllegalArgumentException ex) {
-            System.out.println("Error: "+ex);
-            JOptionPane.showMessageDialog(this, "Could Not Search For Prefix "+
-                    prefixStr+".\nDatabase Error: " + ex,
-                "Database Error", JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
+            getLogger().log(Level.WARNING, "Error searching for prefix " + 
+                    prefixStr, ex);
+            String msg = "Error searching for prefix " + prefixStr;
+                getLogger().log(Level.WARNING,msg, ex);
+                String errMsg = "Database Error: " + ex;
+                if (ex instanceof UncheckedSQLException){
+                    getLogger().log(Level.WARNING,msg+" cause", ex.getCause());
+                    errMsg += "\nCause: " + ex.getCause();
+                }
+                JOptionPane.showMessageDialog(this, 
+                        "Could Not Search For Prefix \""+prefixStr+"\".\n"+errMsg,
+                        "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_dbUsedPrefixSearchButtonActionPerformed
 
@@ -4584,7 +4520,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         Object prefix = dbPrefixTable.getValueAt(selRow, 1);
         if (prefix != null)
-            copyText(prefix.toString());
+            LinkManagerUtilities.copyText(prefix.toString());
     }//GEN-LAST:event_prefixCopyButtonActionPerformed
 
     private void dbRemoveDuplDataButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbRemoveDuplDataButtonActionPerformed
@@ -4592,8 +4528,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             conn.getLinkMap().removeDuplicateRows();
                // Ensure that the database last modified time is updated
             conn.setDatabaseLastModified();
-        } catch (SQLException ex) {
-            System.out.println("Error: "+ex);
+        } catch (SQLException | UncheckedSQLException ex) {
+            getLogger().log(Level.WARNING,"Error removing duplicate data", ex);
+            String errMsg = "Database Error: " + ex;
+            if (ex instanceof UncheckedSQLException){
+                getLogger().log(Level.WARNING,"Error removing duplicate data cause", ex.getCause());
+                errMsg += "\nCause: " + ex.getCause();
+            }
+            JOptionPane.showMessageDialog(this, "Error removing duplicate data.\n"+errMsg,
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -4624,16 +4567,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbSearchPrefixCheckBoxActionPerformed
 
     private void dbSearchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbSearchButtonActionPerformed
-        String prefixStr = dbUsedPrefixCombo.getSelectedItem().toString();
+        String prefixStr = dbSearchPrefixCombo.getSelectedItem().toString();
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             Integer prefixID = (dbSearchPrefixCheckBox.isSelected()) ? 
                     getSearchPrefix(prefixStr) : null;
             searchListContents(conn,dbSearchField.getText(),prefixID);
-        } catch (SQLException | IllegalArgumentException ex) {
-            System.out.println("Error: "+ex);
-            JOptionPane.showMessageDialog(this, "Could Not Search For Prefix "+
-                    prefixStr+".\nDatabase Error: " + ex,
-                "Database Error", JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
+            String msg = "Error searching for prefix " + prefixStr;
+            getLogger().log(Level.WARNING,msg, ex);
+            String errMsg = "Database Error: " + ex;
+            if (ex instanceof UncheckedSQLException){
+                getLogger().log(Level.WARNING,msg+" cause", ex.getCause());
+                errMsg += "\nCause: " + ex.getCause();
+            }
+            JOptionPane.showMessageDialog(this, 
+                    "Could Not Search For Prefix \""+prefixStr+"\".\n"+errMsg,
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_dbSearchButtonActionPerformed
     
@@ -4656,7 +4605,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             System.out.println("New Dropbox Access Token: " + dbxUtils.getAccessToken());
             System.out.println("New Dropbox Expiration Time: " + dbxUtils.getTokenExpiresAtDate());
         } catch (DbxException ex){
-            System.out.println("Error: " + ex);
+            getLogger().log(Level.WARNING, "Failed to refresh Dropbox token", ex);
         }
     }//GEN-LAST:event_dropboxRefreshTestButtonActionPerformed
 
@@ -4678,7 +4627,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private void setDropboxDatabaseFileFields(String fileName){
-        dbxDbFileField.setText(formatDropboxPath(fileName));
+        dbxDbFileField.setText(DropboxUtilities.formatDropboxPath(fileName));
     }
     
     private void setDBCancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBCancelButtonActionPerformed
@@ -4708,7 +4657,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Add the database file name to the path
                 dbxFileName+=LINK_DATABASE_FILE;
                 // Format the Dropbox database file name
-            dbxFileName = formatDropboxPath(dbxFileName);
+            dbxFileName = DropboxUtilities.formatDropboxPath(dbxFileName);
                 // If the Dropbox database file name has changed
             if (!Objects.equals(dbxFileName, config.getDropboxDatabaseFileName())){
                     // Set the Dropbox database file name
@@ -4734,6 +4683,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try{
             newPath = newFile.toPath();
         } catch (InvalidPathException ex){
+            getLogger().log(Level.INFO,"Invalid path for database file", ex);
                 // If the new file name is not a valid path, do not allow it to 
                 // be used
             String message = null;      // The error message to print
@@ -4782,6 +4732,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         return;
                     }
                 } catch (IOException ex) {
+                    getLogger().log(Level.WARNING, 
+                            "Failed to check to see if the files are the same" , 
+                            ex);
                         // We could not check if the files are the same file. 
                         // Ask the user if we should continue
                     int option = JOptionPane.showConfirmDialog(this, 
@@ -4839,7 +4792,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_setDBResetButtonActionPerformed
     
     private void dbFileBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileBrowseButtonActionPerformed
-        File file = showSaveFileChooser(databaseFC);
+        File file = showSaveFileChooser(databaseFC,null);
         if (file != null){
             if (file.isDirectory()){
                 String fileName = dbFileField.getText();
@@ -4869,7 +4822,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     "Cannot Relativize File Name", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        File progFile = new File(getWorkingDirectory());
+        File progFile = new File(LinkManagerUtilities.getWorkingDirectory());
         File file = getDatabaseFile(fileName);
         Path progPath = progFile.toPath().normalize();
         Path filePath = file.toPath().normalize();
@@ -4946,8 +4899,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             
                 // Try to open the authorization web page in the user's browser
             try {
-                openLink(authorizeURL);
-            } catch (URISyntaxException | IOException ex) {}
+                LinkManagerUtilities.openLink(authorizeURL);
+            } catch (URISyntaxException | IOException ex) {
+                getLogger().log(Level.WARNING, 
+                        "Failed to open Dropbox authorization URL" , ex);
+            }
             
             if (dropboxSetupPanel.showDialog(setLocationDialog, authorizeURL) != 
                     DropboxSetupPanel.ACCEPT_OPTION){
@@ -4985,8 +4941,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Load the external account data
             loadExternalAccountData();
         } catch (DbxException ex){
-            if (isInDebug())
-                System.out.println("Error: " + ex);
+            getLogger().log(Level.WARNING, "Failed to login to Dropbox", ex);
             String message = "An error occurred while setting up Dropbox.";
             if (showDBErrorDetailsToggle.isSelected())
                 message += "\nError: " + ex;
@@ -4996,34 +4951,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbxLogInButtonActionPerformed
 
     private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
-        if (isLoggedInToDropbox()){
-            if (!getDatabaseFile().exists()){
-                saver = new DatabaseSaver(){
-                    @Override
-                    protected void uploadDatabase(){
-                        if (getExitAfterSaving())
-                            super.uploadDatabase();
-                    }
-                    @Override
-                    protected void done(){
-                        super.done();
-                        if (!getExitAfterSaving()){
-                            saver = new DbxUploader(getDatabaseFile(),config.getDropboxDatabaseFileName());
-                            saver.execute();
-                        }
-                    }
-                };
-            } else {
-                saver = new DbxUploader(getDatabaseFile(),config.getDropboxDatabaseFileName());
-            }
+        DatabaseSyncMode mode = getSyncMode();
+        if (mode != null){
+            SavingStage stage = SavingStage.SAVE_DATABASE;
+            if (getDatabaseFile().exists())
+                stage = SavingStage.UPLOAD_FILE;
+            saver = new DatabaseSaver(stage){
+                @Override
+                public void setExitAfterSaving(boolean value){
+                    throw new UnsupportedOperationException();
+                }
+                @Override
+                protected void exitProgram(){
+                    getLogger().warning("Database Uploader attempting to exit program");
+                }
+            };
             saver.execute();
         }
     }//GEN-LAST:event_uploadDBItemActionPerformed
 
     private void downloadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadDBItemActionPerformed
-        if (isLoggedInToDropbox()){
-            saver = new DbxDownloader(getDatabaseFile(),config.getDropboxDatabaseFileName());
-            saver.execute();
+        if (getSyncMode() != null){
+            loader = new DatabaseDownloader(true);
+            loader.execute();
         }
     }//GEN-LAST:event_downloadDBItemActionPerformed
 
@@ -5034,8 +4984,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void dbUpdateLastModButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbUpdateLastModButtonActionPerformed
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             setDBLastModLabelText(conn.setDatabaseLastModified());
-        }catch (SQLException | UncheckedSQLException ex) {
-            System.out.println("Error: "+ex);
+        } catch (SQLException ex){
+            getLogger().log(Level.WARNING,"Failed to update last modified time of database", ex);
+        } catch (UncheckedSQLException ex){
+            getLogger().log(Level.WARNING,"Failed to update last modified time of database", ex);
+            getLogger().log(Level.WARNING,"Failed to update last modified time of database cause", ex.getCause());
         }
     }//GEN-LAST:event_dbUpdateLastModButtonActionPerformed
 
@@ -5053,6 +5006,107 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Update the chunk size in the configuration
         config.setDropboxChunkSizeMultiplier(dbxChunkSizeModel.getMultiplier());
     }//GEN-LAST:event_dbxChunkSizeSpinnerStateChanged
+    /**
+     * This executes a query directly on the database.
+     * @param evt The ActionEvent.
+     */
+    private void dbQueryPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbQueryPanelActionPerformed
+            // This gets if we need to update the tables
+        boolean updated = false;
+            // Try to connect to the database and create an SQL statement for it
+        try(LinkDatabaseConnection conn = connect(getDatabaseFile());
+            Statement stmt = conn.createStatement()){
+                // Get the current time
+            long time = System.currentTimeMillis();
+                // Execute the query and get if the query returns a ResultSet
+            boolean hasResults = stmt.execute(dbQueryPanel.getQuery());
+                // Get the time it took to execute the query
+            dbQueryPanel.setExecutionTime(System.currentTimeMillis() - time);
+                // This gets the number of updated rows.
+            int updateCount = stmt.getUpdateCount();
+            if (hasResults)     // If the query returned a ResultSet
+                    // Create and display a table model from the results
+                dbQueryPanel.showResults(stmt.getResultSet());
+            else
+                dbQueryPanel.showUpdates(updateCount);
+            updated = updateCount > 0;
+        } catch (SQLException | UncheckedSQLException ex) {
+            dbQueryPanel.setExecutionTime(0);
+            dbQueryPanel.showError(ex);
+            getLogger().log(Level.WARNING,
+                    "Failed to run query (code: "+dbQueryPanel.getErrorCode()+")",
+                    ex);
+            String errMsg = "Database Error: " + ex;
+            if (ex instanceof UncheckedSQLException){
+                getLogger().log(Level.WARNING,
+                        "Failed to run query cause (code: "+dbQueryPanel.getErrorCode()+")",
+                        ex.getCause());
+                errMsg += "\nCause: " + ex.getCause();
+            }
+            JOptionPane.showMessageDialog(this, errMsg, "Database Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+        System.gc();
+        if (updated){   // Update the database view if there were changes
+            loader = new LoadDatabaseViewer(true);
+            loader.execute();
+        }
+    }//GEN-LAST:event_dbQueryPanelActionPerformed
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        loader = new TempDatabaseDownloader(getDatabaseFile(),
+                config.getDatabaseFileSyncPath(getSyncMode()),getSyncMode(),0);
+        loader.execute();
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+    
+    private void showHiddenFilesToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showHiddenFilesToggleActionPerformed
+        config.setHiddenFilesAreShown(showHiddenFilesToggle.isSelected());
+        setFilesAreHidden(showHiddenFilesToggle.isSelected());
+    }//GEN-LAST:event_showHiddenFilesToggleActionPerformed
+
+    private void aboutItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutItemActionPerformed
+            // Make the about dialog location relative to the program
+        aboutDialog.setLocationRelativeTo(this);
+            // Show the about dialog
+        aboutDialog.setVisible(true);
+    }//GEN-LAST:event_aboutItemActionPerformed
+
+    private void aboutPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutPanelActionPerformed
+        switch(evt.getActionCommand()){
+            case(JAboutPanel.CLOSE_SELECTED):
+                aboutDialog.setVisible(false);
+                break;
+            case(JAboutPanel.UPDATE_SELECTED):
+                updateWorker = new UpdateCheckWorker(false);
+                updateWorker.execute();
+        }
+    }//GEN-LAST:event_aboutPanelActionPerformed
+
+    private void checkUpdatesAtStartToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkUpdatesAtStartToggleActionPerformed
+        config.setCheckForUpdateAtStartup(checkUpdatesAtStartToggle.isSelected());
+    }//GEN-LAST:event_checkUpdatesAtStartToggleActionPerformed
+
+    private void updateContinueButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateContinueButtonActionPerformed
+        updateCheckDialog.setVisible(false);
+    }//GEN-LAST:event_updateContinueButtonActionPerformed
+
+    private void updateOpenButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateOpenButtonActionPerformed
+        // Get the update URL
+        String url = updateChecker.getUpdateUrl();
+        try {   // Try to open the update URL in the user's web browser
+            Desktop.getDesktop().browse(new URL(url).toURI());
+        } catch (URISyntaxException | IOException ex) {
+            getLogger().log(Level.WARNING,"Could not open update URL "+url,ex);
+        }
+    }//GEN-LAST:event_updateOpenButtonActionPerformed
+    
+    private void setFilesAreHidden(boolean value){
+        openFC.setFileHidingEnabled(!value);
+        saveFC.setFileHidingEnabled(!value);
+        configFC.setFileHidingEnabled(!value);
+        exportFC.setFileHidingEnabled(!value);
+        databaseFC.setFileHidingEnabled(!value);
+    }
     
     private CustomTableModel getListSearchTableModel(){
         CustomTableModel model = new CustomTableModel("ListID", "List Name", 
@@ -5117,7 +5171,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             dbxLoader.execute();
         }
         else {
-            setCard(setLocationPanel,setExternalCard);
+            LinkManagerUtilities.setCard(setLocationPanel,setExternalCard);
             updateExternalDBButtons();
         }
     }
@@ -5149,8 +5203,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return null;
             // If there are too many arguments
         if (argsList.size() > 1){
+                // Log that there are too many arguments that match
+            getLogger().log(Level.INFO, "Too many arguments for {0}, expected at most 1", name);
                 // Tell the user that there are too many arguments that match
-            System.out.println("Too many arguments for "+name+", expected at most 1.");
             JOptionPane.showMessageDialog(null, 
                     "Too many arguments provided for the "+name+".\n"+
                             "This program expects at most one.", 
@@ -5164,6 +5219,37 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param args the command line arguments
      */
     public static void main(String args[]) {
+            // Set the logger's level to the lowest level in order to log all
+        getLogger().setLevel(Level.FINEST);
+        try {   // Get the parent file for the log file
+            File file = new File(PROGRAM_LOG_PATTERN.replace("%h", 
+                    System.getProperty("user.home"))
+                    .replace('/', File.separatorChar)).getParentFile();
+                // If the parent of the log file doesn't exist
+            if (!file.exists()){
+                try{    // Try to create the directories for the log file
+                    Files.createDirectories(file.toPath());
+                } catch (IOException ex){
+                    getLogger().log(Level.WARNING, 
+                            "Failed to create directories for log file", ex);
+                }
+            }   // Add a file handler to log messages to a log file
+            getLogger().addHandler(new java.util.logging.FileHandler(
+                    PROGRAM_LOG_PATTERN,0,16));
+        } catch (IOException | SecurityException ex) {
+            getLogger().log(Level.SEVERE, "Failed to get log file", ex);
+        }   // Log the user's OS name
+        getLogger().log(Level.CONFIG, "OS: {0}, version: {1}, arch: {2}", new Object[]{
+                System.getProperty("os.name"),
+                System.getProperty("os.version"),
+                System.getProperty("os.arch")});
+            // Log the Java vendor name and url
+        getLogger().log(Level.CONFIG, "Java vendor: {0}, URL: {1}", new Object[]{
+                System.getProperty("java.vendor"),
+                System.getProperty("java.vendor.url")});
+            // Log the Java version
+        getLogger().log(Level.CONFIG, "Java version: {0}", 
+                System.getProperty("java.version"));
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -5178,11 +5264,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         } catch (ClassNotFoundException | InstantiationException | 
                 IllegalAccessException | UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(LinkManager.class.getName()).
-                    log(java.util.logging.Level.SEVERE, null, ex);
+            getLogger().log(Level.SEVERE, 
+                    "Failed to load Nimbus LnF.", ex);
         }
         //</editor-fold>
-
+            // If there is no look and feel set
+        if (UIManager.getLookAndFeel() == null)
+            getLogger().log(Level.CONFIG, "Look and Feel: null");
+        else    // Log the current Look and Feel
+            getLogger().log(Level.CONFIG, "Look and Feel: {0}",
+                    UIManager.getLookAndFeel().getName());
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
                 // This will get the program ID for the program
@@ -5196,8 +5287,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             } catch (IllegalStateException ex){
                 return;
             } catch (IllegalArgumentException ex){
+                    // Log the fact that the program ID is invalid
+                getLogger().log(Level.INFO, "Program ID is invalid, expected UUID", ex);
                     // Tell the user that the program ID is invalid
-                System.out.println("Program ID is invalid, expected UUID.");
                 JOptionPane.showMessageDialog(null, 
                         "The program ID is invalid.\n"+ 
                                 "The program ID should be a UUID.", 
@@ -5222,16 +5314,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         configFile = new File(value);
                             // Try to turn the file into a path to test if it's valid
                         configFile.toPath();
+                    } else {
+                            // Log the fact that the config file is invalid
+                        getLogger().log(Level.INFO, "Configuration file is invalid (empty path)");
                     }
                 }
             } catch (IllegalStateException ex){
                 return;
             } catch (InvalidPathException ex){
                 invalidFile = true;
+                     // Log the fact that the config file is invalid
+                getLogger().log(Level.INFO, "Configuration file is invalid", ex);
             }   // If the configuration file is invalid
             if (invalidFile){
-                    // Tell the user that the configuration file is invalid
-                System.out.println("Configuration file is invalid.");
                 JOptionPane.showMessageDialog(null, 
                         "The configuration file is invalid.", 
                         "ERROR - Invalid Configuration File",
@@ -5276,8 +5371,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbSearchField.setEnabled(enabled);
         dbSearchPrefixCheckBox.setEnabled(dbUsedPrefixCombo.isEnabled());
         dbUpdateLastModButton.setEnabled(enabled);
+        dbQueryPanel.setEnabled(enabled);
         updateDBSearchPrefixCombo();
-        updateExecuteQueryEnabled();
         updatePrefixButtons();
         updateListEditButtons();
         updateExternalDBButtons();
@@ -5288,7 +5383,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         doubleNewLinesToggle.setEnabled(enabled);
         linkOperationToggle.setEnabled(enabled);
         hiddenLinkOperationToggle.setEnabled(enabled&&linkOperationToggle.isSelected());
-        autosaveMenu.setEnabled(enabled);
+        autosaveMenu.setEnabled(enabled && !isSavingDatabase());
         autoHideMenu.setEnabled(enabled);
         manageListsItem.setEnabled(enabled);
         updateDatabaseItem.setEnabled(enabled);
@@ -5303,6 +5398,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         listTabsManipulator.setEnabled(enabled);
         addLinksPanel.setEnabled(enabled);
         copyOrMoveListSelector.setEnabled(enabled);
+        updateOpenButton.setEnabled(enabled);
+        aboutPanel.setEnabled(enabled);
         updateButtons();
         
         listSetOpItem.setEnabled(enabled);
@@ -5344,12 +5441,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private void updateListEditButtons(){
         dbListEditApplyButton.setEnabled(active && dbListIDCombo.isEnabled());
-    }
-    
-    private void updateExecuteQueryEnabled(){
-        executeQueryButton.setEnabled(isInputEnabled() && 
-                dbQueryField.getText() != null &&
-                !dbQueryField.getText().isBlank());
     }
     
     private void updatePrefixButtons(){
@@ -5441,6 +5532,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setCursor((isWaiting)?Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR):null);
     }
     /**
+     * 
+     * @param panel 
+     */
+    private void repaintIfSelected(LinksListPanel panel){
+        if (panel == getSelectedList())
+            panel.repaint();
+    }
+    /**
      * This returns whether the program is currently saving a file.
      * @return Whether the program is currently saving a file.
      */
@@ -5490,65 +5589,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // program name
         setTitle(((isEdited())?"*":"")+PROGRAM_NAME);
     }
-    
+    /**
+     * 
+     * @param fc
+     * @param title
+     * @return 
+     */
     private File showOpenFileChooser(JFileChooser fc, String title){
-        if (beepWhenDisabled())     // If input is disabled
-            return null;
-        int option;     // This is used to store which button the user pressed
-        File file = null;           // This gets the file to open
-        if (title != null)
-            fc.setDialogTitle(title);
-        do{
-            if (fc.getApproveButtonText() != null)
-                option = fc.showDialog(this, fc.getApproveButtonText());
-            else
-                option = fc.showOpenDialog(this);
-            fc.setPreferredSize(fc.getSize());
-                // Set the file chooser's size in the config if it's saved
-            config.setComponentSize(fc);
-            if (option == JFileChooser.APPROVE_OPTION){
-                file = fc.getSelectedFile();
-                if (!file.exists()){
-                    JOptionPane.showMessageDialog(this, 
-                        "\""+file.getName()+"\"\nFile not found.\nCheck the "
-                                + "file name and try again.", 
-                        "File Not Found", JOptionPane.WARNING_MESSAGE);
-                    file = null;
-                }
-            }
-            else
-                file = null;
-        }
-        while (option == JFileChooser.APPROVE_OPTION && file == null);
-        return file;
+        return LinkManagerUtilities.showOpenFileChooser(fc, this, config,title);
     }
-    
-    private File showOpenFileChooser(JFileChooser fc){
-        return showOpenFileChooser(fc,null);
-    }
-    
+    /**
+     * 
+     * @param fc
+     * @param title
+     * @return 
+     */
     private File showSaveFileChooser(JFileChooser fc, String title){
-        if (beepWhenDisabled())     // If input is disabled
-            return null;
-        if (title != null)
-            fc.setDialogTitle(title);
-        int option;     // This is used to store which button the user pressed
-        if (fc.getApproveButtonText() != null)
-            option = fc.showDialog(this, fc.getApproveButtonText());
-        else
-            option = fc.showSaveDialog(this);
-        fc.setPreferredSize(fc.getSize());
-            // Set the file chooser's size in the config if it's saved
-        config.setComponentSize(fc);
-            // If the user wants to save the file
-        if (option == JFileChooser.APPROVE_OPTION)
-            return fc.getSelectedFile();
-        else
-            return null;
-    }
-    
-    private File showSaveFileChooser(JFileChooser fc){
-        return showSaveFileChooser(fc,null);
+        return LinkManagerUtilities.showSaveFileChooser(fc, this, config,title);
     }
     /**
      * This is the model used for the spinner to set the chunk size for 
@@ -5574,6 +5631,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private FileWorker fileWorker = null;
     /**
+     * 
+     */
+    private UpdateCheckWorker updateWorker = null;
+    /**
      * This is used to perform changes to a LinksListPanel in the background.
      */
     private LinksListWorker linksWorker = null;
@@ -5582,9 +5643,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private DbxAccountLoader dbxLoader = null;
     /**
-     * This is a BiConsumer used to observe the loading and saving of lists.
+     * This is a progress observer used to observe the progress, particularly 
+     * when loading and saving lists.
      */
-    private BiConsumer<Integer,Integer> listContentsObserver;
+    private ProgressObserver progressObserver;
     /**
      * This is a map that maps the text components to their text edit commands.
      */
@@ -5603,9 +5665,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private Action pasteAndAddAction;
     /**
-     * This is an array containing all the list models for the lists.
+     * This is a set containing all the list models for the lists.
      */
-//    private ArrayList<LinksListModel> listModels = new ArrayList<>();
+    private Set<LinksListModel> listModels = new LinkedHashSet<>();
     /**
      * This is used to store and manage the configuration for this program.
      */
@@ -5635,7 +5697,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * the lists of links.
      */
     private LinksListTabsPanel[] listsTabPanels;
+    
+    private LinksListHandler listHandler;
+    /**
+     * This is the checker to use to check for updates for the program.
+     */
+    private UpdateChecker updateChecker = null;
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JDialog aboutDialog;
+    private javax.swing.JMenuItem aboutItem;
+    private components.JAboutPanel aboutPanel;
     private javax.swing.JCheckBoxMenuItem activeToggle;
     private manager.AddLinksFromListPanel addLinksPanel;
     private javax.swing.JButton addPrefixButton;
@@ -5645,15 +5716,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private manager.timermenu.AutoHideMenu autoHideMenu;
     private manager.timermenu.AutosaveMenu autosaveMenu;
     private javax.swing.JButton backupDBButton;
+    private javax.swing.JCheckBox checkUpdatesAtStartToggle;
     private javax.swing.JMenuItem clearListSelItem;
     private javax.swing.JMenuItem clearSelTabItem;
-    private javax.swing.JPopupMenu.Separator configExitSeparator;
     private javax.swing.JFileChooser configFC;
     private javax.swing.JScrollPane configScrollPane;
     private javax.swing.JTable configTable;
     private javax.swing.JButton copyLinkButton;
     private components.JListSelector<String> copyOrMoveListSelector;
     private manager.SelectedItemCountPanel copyOrMoveSelCountPanel;
+    private javax.swing.JLabel currentVersLabel;
+    private javax.swing.JLabel currentVersTextLabel;
     private javax.swing.JDialog databaseDialog;
     private javax.swing.JFileChooser databaseFC;
     private javax.swing.JFileChooser databaseUpdateFC;
@@ -5665,11 +5738,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JTextField dbFileField;
     private javax.swing.JTextField dbFileNameField;
     private javax.swing.JPanel dbFilePanel;
-    private javax.swing.JPopupMenu dbFilePopupMenu;
     private javax.swing.JButton dbFileRelativeButton;
     private javax.swing.JLabel dbFileSizeLabel;
     private javax.swing.JLabel dbLastModLabel;
-    private javax.swing.JLabel dbLastModTextLabel;
     private javax.swing.JPanel dbLinkSearchPanel;
     private javax.swing.JScrollPane dbLinkSearchScrollPane;
     private javax.swing.JTable dbLinkSearchTable;
@@ -5686,18 +5757,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JTable dbPrefixTable;
     private javax.swing.JPanel dbPrefixesPanel;
     private javax.swing.JPanel dbPropPanel;
-    private javax.swing.JLabel dbQueryBlankCard;
-    private javax.swing.JLabel dbQueryErrorCodeLabel;
-    private javax.swing.JLabel dbQueryErrorLabel;
-    private javax.swing.JPanel dbQueryErrorPanel;
-    private javax.swing.JTextField dbQueryField;
-    private javax.swing.JPanel dbQueryPanel;
-    private javax.swing.JPanel dbQueryResultsPanel;
-    private javax.swing.JScrollPane dbQueryScrollPane;
-    private javax.swing.JTable dbQueryTable;
-    private javax.swing.JLabel dbQueryTimeLabel;
-    private javax.swing.JLabel dbQueryUpdateLabel;
-    private javax.swing.JPanel dbQueryUpdatePanel;
+    private manager.database.DatabaseQueryTestPanel dbQueryPanel;
     private javax.swing.JButton dbRefreshButton;
     private javax.swing.JButton dbRemoveDuplDataButton;
     private javax.swing.JButton dbRemoveUnusedDataButton;
@@ -5706,10 +5766,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JTextField dbSearchField;
     private javax.swing.JCheckBox dbSearchPrefixCheckBox;
     private javax.swing.JComboBox<String> dbSearchPrefixCombo;
-    private javax.swing.JPopupMenu dbStructurePopupMenu;
     private javax.swing.JTabbedPane dbTabbedPane;
     private javax.swing.JPanel dbTablePanel;
     private javax.swing.JScrollPane dbTableScrollPane;
+    private javax.swing.JScrollPane dbTableStructScrollPane;
     private javax.swing.JTextArea dbTableStructText;
     private javax.swing.JTable dbTableTable;
     private javax.swing.JLabel dbUUIDLabel;
@@ -5727,7 +5787,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JSpinner dbxChunkSizeSpinner;
     private javax.swing.JPanel dbxDataPanel;
     private javax.swing.JTextField dbxDbFileField;
-    private javax.swing.JPopupMenu dbxDbFilePopupMenu;
     private javax.swing.JButton dbxLogInButton;
     private javax.swing.JButton dbxLogOutButton;
     private components.JThumbnailLabel dbxPfpLabel;
@@ -5739,33 +5798,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem downloadDBItem;
     private javax.swing.JMenuItem dropboxRefreshTestButton;
     private manager.dropbox.DropboxSetupPanel dropboxSetupPanel;
+    private javax.swing.JMenu dropboxTestMenu;
     private javax.swing.JButton editLinkButton;
-    private javax.swing.JPopupMenu editPopupMenu;
-    private javax.swing.JButton executeQueryButton;
     private javax.swing.JMenuItem exitButton;
     private javax.swing.JFileChooser exportFC;
     private javax.swing.JMenuItem exportListsItem;
     private javax.swing.JMenu fileMenu;
-    private javax.swing.Box.Filler filler1;
-    private javax.swing.Box.Filler filler2;
     private javax.swing.JCheckBox foreignKeysToggle;
     private javax.swing.JCheckBoxMenuItem hiddenLinkOperationToggle;
     private javax.swing.JMenuItem hideAllListsItem;
     private javax.swing.JMenu hideListsMenu;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JMenu jMenu2;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JPopupMenu.Separator jSeparator1;
-    private javax.swing.JPopupMenu.Separator jSeparator2;
-    private javax.swing.JPopupMenu.Separator jSeparator4;
+    private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JLabel latestVersLabel;
+    private javax.swing.JLabel latestVersTextLabel;
     private javax.swing.JLabel linkCountLabel;
     private javax.swing.JOptionPane linkEditPane;
     private javax.swing.JCheckBoxMenuItem linkOperationToggle;
@@ -5797,7 +5842,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton prefixApplyButton;
     private javax.swing.JButton prefixCopyButton;
     private javax.swing.JTextField prefixField;
-    private javax.swing.JPopupMenu prefixPopupMenu;
     private javax.swing.JTextField prefixSeparatorField;
     private javax.swing.JSpinner prefixThresholdSpinner;
     private javax.swing.JCheckBoxMenuItem printAutoHideEventsToggle;
@@ -5806,10 +5850,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem printDataItem;
     private javax.swing.JCheckBoxMenuItem printListPropChangeToggle;
     private javax.swing.JLabel programIDLabel;
-    private javax.swing.JLabel programIDTextLabel;
     private javax.swing.JProgressBar progressBar;
     private components.progress.JProgressDisplayMenu progressDisplay;
-    private javax.swing.JPopupMenu queryPopupMenu;
     private javax.swing.JMenuItem reloadListsItem;
     private javax.swing.JButton removeLinkButton;
     private javax.swing.JButton removePrefixButton;
@@ -5832,6 +5874,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JPanel setLocationPanel;
     private javax.swing.JMenuItem showAllListsItem;
     private javax.swing.JCheckBoxMenuItem showDBErrorDetailsToggle;
+    private javax.swing.JCheckBoxMenuItem showHiddenFilesToggle;
     private javax.swing.JCheckBoxMenuItem showHiddenListsToggle;
     private javax.swing.JCheckBoxMenuItem showIDsToggle;
     private javax.swing.JCheckBox showSchemaToggle;
@@ -5840,154 +5883,204 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private components.debug.SlowTestMenuItem slowTestToggle;
     private javax.swing.JCheckBoxMenuItem syncDBToggle;
     private javax.swing.JPanel tabsPanelDisplay;
+    private javax.swing.JDialog updateCheckDialog;
+    private javax.swing.JButton updateContinueButton;
     private javax.swing.JButton updateDBFileButton;
     private javax.swing.JComboBox<String> updateDBFileCombo;
     private javax.swing.JMenuItem updateDatabaseItem;
+    private javax.swing.JLabel updateIconLabel;
     private javax.swing.JMenuItem updateListsItem;
+    private javax.swing.JButton updateOpenButton;
+    private javax.swing.JPanel updatePanel;
+    private javax.swing.JLabel updateTextLabel;
     private javax.swing.JMenuItem uploadDBItem;
+    private javax.swing.JLabel userIDLabel;
     // End of variables declaration//GEN-END:variables
-    /**
-     * 
-     * @return 
-     */
-    protected boolean isIndeterminate(){
-        return progressBar.isIndeterminate();
-    }
-    /**
-     * 
-     * @param value 
-     */
-    protected void setIndeterminate(boolean value){
-        progressBar.setIndeterminate(value);
-    }
-    /**
-     * 
-     * @return 
-     */
-    protected int getProgressMinimum(){
-        return progressBar.getMinimum();
-    }
-    /**
-     * 
-     * @param minimum 
-     */
-    protected void setProgressMinimum(int minimum){
-        progressBar.setMinimum(minimum);
-    }
-    /**
-     * 
-     * @return 
-     */
-    protected int getProgressMaximum(){
-        return progressBar.getMaximum();
-    }
-    /**
-     * 
-     * @param maximum 
-     */
-    protected void setProgressMaximum(int maximum){
-        progressBar.setMaximum(maximum);
-    }
-    /**
-     * 
-     * @return 
-     */
-    protected int getProgressValue(){
-        return progressBar.getValue();
-    }
-    /**
-     * 
-     * @param value 
-     */
-    protected void setProgressValue(int value){
-        progressBar.setValue(value);
-    }
-    /**
-     * 
-     * @param offset 
-     */
-    protected void incrementProgressValue(int offset){
-        setProgressValue(getProgressValue()+offset);
-    }
     /**
      * 
      */
     protected void incrementProgressValue(){
-        incrementProgressValue(1);
+        progressBar.setValue(progressBar.getValue()+1);
     }
     /**
      * 
+     * @param model
+     * @return 
      */
-    protected void clearProgressValue(){
-        setProgressValue(0);
+    private boolean addModelToSet(LinksListModel model){
+        if (listModels.add(model)){
+            getLogger().log(Level.FINER, "Model [{0}: {1}] added to models", 
+                    new Object[]{model.getListID(), model.getListName()});
+            model.addListSelectionListener(listHandler);
+            model.addListDataListener(listHandler);
+            model.addPropertyChangeListener(listHandler);
+            return true;
+        }
+        return false;
     }
     /**
-     * This attempts to create a copy of the given file to act as a backup in 
-     * the event that something goes wrong with the original file. The file will 
-     * share the same name as the original with the exception that the {@link 
-     * #BACKUP_FILE_EXTENSION backup file extension} will be appended to the 
-     * file name. However, if a file already exists with the proposed name for 
-     * the backup file, then the {@link 
-     * FilesExtended#getNextAvailableFilePath(File) next available file path} 
-     * will be used instead. If the given file is null or does not exist, then 
-     * this does nothing and returns null.
-     * @param file The file to create a backup of.
-     * @return The backup file, or null if the original file is null or 
-     * non-existent.
-     * @throws IOException If an error occurs while creating the backup file.
+     * 
+     * @param model
+     * @return 
      */
-    private File createBackupCopy(File file) throws IOException{
-            // If the original file is null or does not exist
-        if (file == null || !file.exists())
-            return null;
-            // Get the file to use as the backup file
-        File target = new File(file.toString()+"."+BACKUP_FILE_EXTENSION);
-        try{    // Create a copy of the file
-            return Files.copy(file.toPath(), target.toPath(), 
-                    StandardCopyOption.COPY_ATTRIBUTES).toFile();
+    private boolean removeUnusedModel(LinksListModel model){
+        for (LinksListTabsPanel tabsPanel : listsTabPanels){
+            if (tabsPanel.getModels().contains(model))
+                return false;
         }
-        catch(FileAlreadyExistsException ex){
-                // Create a copy of the file using the next available file path
-            return Files.copy(file.toPath(), 
-                    FilesExtended.getNextAvailableFilePath(target).toPath(), 
-                    StandardCopyOption.COPY_ATTRIBUTES).toFile();
+        if (listModels.remove(model)){
+            getLogger().log(Level.FINER, "Model [{0}: {1}] removed from models", 
+                    new Object[]{model.getListID(), model.getListName()});
+            model.removeListSelectionListener(listHandler);
+            model.removeListDataListener(listHandler);
+            model.removePropertyChangeListener(listHandler);
+            return true;
         }
+        return false;
     }
-    /**
-     * This gets the String representing the URL from a shortcut file.
-     * @param lines A List of Strings extracted from the shortcut file.
-     * @return The URL, as a String, or null if not found.
-     */
-    private String getShortcutURL(List<String> lines){
-            // Starts from the shortcut flag and searches for the URL
-        for (int pos = lines.indexOf(SHORTCUT_HEADER);pos < lines.size();pos++){
-            String temp = lines.get(pos).trim();  // The string being checked
-                // If the current string starts with the URL flag
-            if (temp.startsWith(URL_FLAG)){
-                return temp.substring(URL_FLAG.length());
+    
+    private void replaceModel(LinksListPanel panel, LinksListModel model){
+        if (panel == null || model == null)
+            return;
+        LinksListModel oldModel = panel.getModel();
+        if (model.listEquals(oldModel))
+            return;
+        panel.setModel(model,true);
+        for (LinksListTabsPanel tabsPanel : listsTabPanels){
+            for (LinksListPanel currentPanel : tabsPanel){
+                if (Objects.equals(oldModel, currentPanel.getModel()))
+                    currentPanel.setModel(model);
             }
         }
-        return null;
+    }
+    
+    private void selectionHasChanged(LinksListModel model){
+            // If the program has not fully loaded or the program is currently 
+            // loading the database or the model is null
+        if (!fullyLoaded || isLoadingDatabase() || model == null)
+            return;
+            // This is the newly selected value
+        String selValue = model.getSelectedValue();
+        getLogger().log(Level.FINER, "Selection changed for list {0}. {1}: {2}", 
+                new Object[]{model.getListID(), model.getListName(), selValue});
+            // If the listID for this list is not null
+        if (model.getListID() != null)
+                // Set the selected link for the list
+            config.setSelectedLink(model.getListID(), selValue);
+    }
+    
+    private String toString(Collection<? extends LinksListModel> c){
+        if (c.isEmpty())
+            return "[]";
+        String str = "";
+        for (LinksListModel model : c){
+            str += ((model!=null)?(model.getListID()+": "+model.getListName()):"null")+",";
+        }
+        return "["+str.substring(0, str.length()-1)+"]";
     }
     /**
-     * This reads in the remaining lines from the given Scanner and stores them 
-     * into the given List of Strings.
-     * @param scanner The Scanner to read the lines from (cannot be null).
-     * @param list The List of Strings to store the lines in (cannot be null).
-     * @return The amount of lines that were read.
+     * 
+     * @return 
      */
-    private int readIntoList(Scanner scanner, List<String> list){
-        Objects.requireNonNull(list);
-        int count = 0;                      // The amount of lines that have been read
-        while (scanner.hasNextLine()){      // While the scanner has data in it
-            String temp = scanner.nextLine();   // Gets the next line
-            if (!temp.isBlank()){               // If the line is blank
-                list.add(temp.trim());
-                count++;
-            }
-            slowTestToggle.runSlowTest();
+    private Set<LinksListModel> getModelSet(){
+            // Get a set of models in the panel showing all the lists
+        Set<LinksListModel> models = new HashSet<>(allListsTabsPanel.getModels());
+            // Make sure this set has ALL the models, even those that are 
+            // somehow absent from the all lists panel
+        models.addAll(shownListsTabsPanel.getModels());
+        if (!models.equals(listModels)){
+            getLogger().log(Level.WARNING, "Discrepancy in model sets ({0} != {1})", 
+                    new Object[]{toString(listModels), toString(models)});
         }
-        return count;
+        return models;
+    }
+    /**
+     * 
+     * @return 
+     */
+    private Map<Integer, LinksListModel> getModelIDMap(){
+            // This will get a map of the models mapped to their listID. 
+            // Models that don't have a listID won't be in this map
+        Map<Integer, LinksListModel> modelsMap = new HashMap<>();
+            // Go through the models
+        for (LinksListModel model : getModelSet()){
+                // If the current model does not have a null listID
+            if (model.getListID() != null){
+                modelsMap.put(model.getListID(), model);
+            }
+        }
+        return modelsMap;
+    }
+    /**
+     * 
+     * @param title
+     * @param text 
+     */
+    protected void showSuccessPrompt(String title, String text){
+        JOptionPane.showMessageDialog(this, text, title, 
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+    /**
+     * 
+     * @param title
+     * @param text
+     * @param showCancel
+     * @return 
+     */
+    protected int showRetryPrompt(String title, String text, 
+            boolean showCancel){
+        return JOptionPane.showConfirmDialog(this, 
+                text+"\nWould you like to try again?",title,
+                (showCancel)?JOptionPane.YES_NO_CANCEL_OPTION:
+                        JOptionPane.YES_NO_OPTION,
+                JOptionPane.ERROR_MESSAGE);
+    }
+    /**
+     * 
+     * @param title
+     * @param text
+     * @param canRetry
+     * @param showCancel
+     * @return 
+     */
+    protected int showFailurePrompt(String title, String text,boolean canRetry, 
+            boolean showCancel){
+        if (canRetry){
+                // Show a dialog prompt asking the user if they would like to 
+                // try and save the file again and get their input. 
+            return showRetryPrompt(title,text,showCancel);
+        } else {
+            JOptionPane.showMessageDialog(this, text, title, 
+                    JOptionPane.ERROR_MESSAGE);
+            return JOptionPane.NO_OPTION;
+        }
+    }
+    /**
+     * 
+     * @param file
+     * @param path
+     * @param msgTemplate
+     * @param mode
+     * @param showError
+     * @param ex
+     * @return 
+     */
+    private String getSyncFailureMessage(File file, String path, 
+            DatabaseSyncMode mode, String msgTemplate, boolean showError, 
+            Exception ex){
+            // The message to return
+        String msg = String.format(msgTemplate, mode);
+        if (ex instanceof NetworkIOException){
+            msg += "\nCould not connect to "+mode+
+                    ". Please check your connection and try again.";
+        }   // If the program is either in debug mode or if details are to be 
+            // shown and there was an exception thrown
+        if ((isInDebug() || showError) && ex != null){
+            msg += "\nError: " + ex;
+            if (ex instanceof NetworkIOException)
+                msg += "\nCause: " + ex.getCause();
+        }
+        return msg;
     }
     /**
      * This attempts to write the List of Strings to the given file.
@@ -5996,56 +6089,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return If the file was successfully written.
      */
     private boolean writeToFile(File file, List<String> list){
-            // Try to create a PrintWriter to write to the file
-        try (PrintWriter writer = new PrintWriter(file)) {
-            setIndeterminate(false);
-                // Writes each line to the file
-            for (int pos = 0; pos < list.size(); pos++){
-                writer.println(list.get(pos));
-                    // If there is to be a blank line between each line
-                if (doubleNewLinesToggle.isSelected())
-                    writer.println();
-                incrementProgressValue();
-                slowTestToggle.runSlowTest();
-            }
-        } catch (FileNotFoundException ex) {
-            return false;
-        }
-        return true;
+        return LinkManagerUtilities.writeToFile(file, list, 
+                doubleNewLinesToggle.isSelected(), progressObserver);
     }
     /**
-     * This attempts to read the contents of the given file and store it in the 
-     * given properties map. This will first clear the given properties map and 
-     * then load the properties into the map.
-     * @param file The file to read from.
-     * @param prop The properties map to load into.
-     * @return Whether the configuration was successfully loaded.
-     * @throws IOException If an error occurs while reading the file.
+     * 
+     * @return 
      */
-    private boolean loadProperties(File file,Properties prop)throws IOException{
-            // If the file doesn't exist
-        if (!file.exists())
-            return false;
-            // Try to create a FileReader to read from the file
-        try(FileReader reader = new FileReader(file)){
-            prop.clear();
-            prop.load(reader);
+    private boolean saveConfigFile(File file) throws IOException{
+        getLogger().entering("LinkManager", "saveConfigFile", file);
+            // If the configuration properties is not empty or the file exists
+        if (!config.getProperties().isEmpty() || file.exists()){
+                // Save the configuration properties to file
+            boolean value = LinkManagerUtilities.saveProperties(file,config.getProperties(),
+                    GENERAL_CONFIG_HEADER);
+            getLogger().exiting("LinkManager", "saveConfigFile", value);
+            return value;
         }
-        return true;
-    }
-    /**
-     * This attempts to save the given properties map to the given file.
-     * @param file The file to write to.
-     * @param prop The properties map to save.
-     * @return If the file was successfully written.
-     * @throws IOException If an error occurs while writing to the file.
-     */
-    private boolean saveProperties(File file, Properties prop)throws IOException{
-            // Try to create a PrintWriter to write to the file
-        try (PrintWriter writer = new PrintWriter(file)) {
-                // Store the configuration
-            prop.store(writer, GENERAL_CONFIG_HEADER);
-        }
+        getLogger().exiting("LinkManager", "saveConfigFile", true);
         return true;
     }
     /**
@@ -6053,13 +6114,33 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private boolean saveConfigFile() throws IOException{
-            // Get the configuration file
-        File file = getConfigFile();
-            // If the configuration properties is not empty or the file exists
-        if (!config.getProperties().isEmpty() || file.exists())
-                // Save the configuration properties to file
-            return saveProperties(file,config.getProperties());
-        return true;
+        return saveConfigFile(getConfigFile());
+    }
+    /**
+     * 
+     * @return 
+     */
+    private Map<Integer,LinksListPanel> getPanelIDMap(){
+            // Map the list panels to their listIDs
+        Map<Integer,LinksListPanel> panels = new TreeMap<>();
+            // Go through the list panels in the selected tabs panel
+        for (LinksListPanel panel : getSelectedTabsPanel()){
+                // If the list panel's listID is not null
+            if (panel.getListID() != null)
+                panels.put(panel.getListID(), panel);
+        }   // Go through the tabs panel
+        for (LinksListTabsPanel tabsPanel : listsTabPanels){
+                // If the current tabs panel is the selected panel
+            if (tabsPanel == getSelectedTabsPanel())
+                continue;
+                // Go through the list panels in the current tabs panel
+            for (LinksListPanel panel : tabsPanel){
+                    // If the list panel's listID is not null
+                if (panel.getListID() != null)
+                    panels.putIfAbsent(panel.getListID(), panel);
+            }
+        }
+        return panels;
     }
     /**
      * This updates the values in the program's configuration that would update 
@@ -6067,27 +6148,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * cover all possible ways of the value being set.
      */
     private void updateProgramConfig(){
+        getLogger().entering(this.getClass().getName(), "updateProgramConfig");
             // If the program has fully loaded
         if (fullyLoaded){
+            getLogger().finer("Program is fully loaded");
                 // Map the list panels to their listIDs
-            Map<Integer,LinksListPanel> panels = new HashMap<>();
-                // Go through the list panels in the selected tabs panel
-            for (LinksListPanel panel : getSelectedTabsPanel()){
-                    // If the list panel's listID is not null
-                if (panel.getListID() != null)
-                    panels.put(panel.getListID(), panel);
-            }   // Go through the tabs panel
-            for (LinksListTabsPanel tabsPanel : listsTabPanels){
-                    // If the current tabs panel is the selected panel
-                if (tabsPanel == getSelectedTabsPanel())
-                    continue;
-                    // Go through the list panels in the current tabs panel
-                for (LinksListPanel panel : tabsPanel){
-                        // If the list panel's listID is not null
-                    if (panel.getListID() != null)
-                        panels.putIfAbsent(panel.getListID(), panel);
-                }
-            }   // Go through the list panels
+            Map<Integer,LinksListPanel> panels = getPanelIDMap();
+                // Go through the list panels
             for (LinksListPanel panel : panels.values()){
                     // Update the visible properties for the panel in the config
                 config.setVisibleSection(panel);
@@ -6096,11 +6163,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config.setSearchText(searchPanel.getSearchText());
             // Set the entered link text in the configuration
         config.setEnteredLinkText(linkTextField.getText());
+        getLogger().exiting(this.getClass().getName(), "updateProgramConfig");
     }
     /**
      * This loads the configuration for the program from the configuration map.
      */
     private void configureProgram(){
+        getLogger().entering(this.getClass().getName(), "configureProgram");
             // Get the progress display value from the config
         int temp = config.getProgressDisplaySetting(0);
             // If the progress display value is not zero
@@ -6160,11 +6229,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Set the Dropbox chunk size multiplier
         dbxChunkSizeModel.setMultiplier(config.getDropboxChunkSizeMultiplier(
                 dbxChunkSizeModel.getMultiplier()));
+        checkUpdatesAtStartToggle.setSelected(config.getCheckForUpdateAtStartup(
+                checkUpdatesAtStartToggle.isSelected()));
             // If the program has fully loaded
         if (fullyLoaded){
+            getLogger().finer("Program is fully loaded");
                 // Set the selection from the config
             setSelectedFromConfig();
         } else {    // Only load these settings when the program first starts up
+            getLogger().finer("Program is starting up");
                 // If the auto hide menu is set to automatically hide the hidden 
             if (autoHideMenu.getDurationIndex() != 0)   // lists
                     // Clear the hidden lists are chown value
@@ -6173,46 +6246,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             linkTextField.setText(config.getEnteredLinkText());
                 // Go through the components with sizes saved to config
             for (Component comp : config.getComponentNames().keySet()){
-                    // Get the size for the component from the config
-                Dimension dim = config.getComponentSize(comp);
-                    // Get the location for the component from the config
-                Point point = config.getComponentLocation(comp);
-                    // Get the bounds for the component from the config
-                Rectangle rect = config.getComponentBounds(comp);
-                    // If the size for the component is not null
-                if (dim != null){
-                        // Get the minimum size for the component
-                    Dimension min = comp.getMinimumSize();
-                        // Make sure the width and height are within range
-                    dim.width = Math.max(dim.width, min.width);
-                    dim.height = Math.max(dim.height, min.height);
-                        // If the current component is a window
-                    if (comp instanceof Window){
-                            // Set the size of the window
-                        comp.setSize(dim);
-                    } else {// Set the preferred size of the current component
-                        comp.setPreferredSize(dim);
-                    }
-                }   // If the location for the component is not null
-                if (point != null)
-                        // Set the location for the component
-                    comp.setLocation(point);
-                    // If the bounds for the component are not null
-                if (rect != null){
-                        // If the current component is this program
-                    if (comp == this){
-                            // If the component bounds are not set
-                        if (!config.isComponentBoundsSet(comp))
-                            continue;
-                    }   // Get the minimum size for the component
-                    Dimension min = comp.getMinimumSize();
-                        // Set the bounds for the component
-                    comp.setBounds(rect.x, rect.y, 
-                                // Make sure the width is within range
-                            Math.max(rect.width, min.width), 
-                                // Make sure the height is within range
-                            Math.max(rect.height, min.height));
-                }
+                    // Load the size for the component from the config
+                config.loadComponentSize(comp);
+                    // Load the location for the component from the config
+                config.loadComponentLocation(comp);
+                    // Load the bounds for the component from the config
+                config.loadComponentBounds(comp);
             }   // Remove the database location dialog's size from the config 
                 // since it uses the bounds now
                 // TODO: If and when this would affect the actual bounds 
@@ -6231,28 +6270,37 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }   // Set the show hidden lists property from the config
         showHiddenListsToggle.setSelected(config.getHiddenListsAreShown(
                 showHiddenListsToggle.isSelected()));
+        showHiddenFilesToggle.setSelected(config.getHiddenFilesAreShown());
+        setFilesAreHidden(showHiddenFilesToggle.isSelected());
             // Update the visible lists
         updateVisibleTabsPanel();
+        getLogger().exiting(this.getClass().getName(), "configureProgram");
     }
     /**
      * 
      */
     private void setSelectedFromConfig(){
+        getLogger().entering(this.getClass().getName(), "setSelectedFromConfig");
             // This maps listIDs to the selected link for that list
         Map<Integer,String> selMap = config.getSelectedLinkMap();
             // This maps the listIDs to whether the selected link is visible for 
             // that list
-        Map<Integer,Boolean> selVisMap = config.getSelectedLinkIsVisibleMap();
+        Map<Integer,Boolean> selVisMap = config.getSelectedLinkVisibleMap();
             // This maps the listIDs to the first visible index for that list
         Map<Integer,Integer> firstVisMap = config.getFirstVisibleIndexMap();
+            // This maps the listIDs to the last visible index for that list
+        Map<Integer,Integer> lastVisMap = config.getLastVisibleIndexMap();
             // This maps the tabs panel indexes to the listID of the selected 
             // list for that tabs panel
-        Map<Integer,Integer> selListIDMap = new HashMap<>(config.getCurrentTabListIDMap());
+        Map<Integer,Integer> selListIDMap = new HashMap<>(config.getSelectedListIDMap());
             // This maps the tabs panel indexes to the selected index of the 
             // tab for that tabs panel
-        Map<Integer,Integer> selListMap = config.getCurrentTabIndexMap();
+        Map<Integer,Integer> selListMap = config.getSelectedTabIndexMap();
+            // This maps the listIDs to the visible rectangle for that list
+        Map<Integer,Rectangle> visRectMap = config.getVisibleRectMap();
             // Go through the list tabs panels
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
+            getLogger().log(Level.FINER, "Loading tabs for {0}", tabsPanel.getName());
                 // Go through the list panels in the current list tabs panel
             for (LinksListPanel panel : tabsPanel){
                     // If the current list panel does not have a listID
@@ -6260,25 +6308,39 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     continue;
                     // Get the current list panel's listID
                 int listID = panel.getListID();
-                    // Get the first visible index for the list
-                Integer firstVisible = firstVisMap.get(listID);
-                    // If there is a first visible index for the list
-                if (firstVisible != null)
-                        // Ensure the first visible index is visible
-                    panel.getList().ensureIndexIsVisible(firstVisible);
+                getLogger().log(Level.FINER, "Loading selection for panel [{0}: {1}]", 
+                        new Object[]{listID,panel.getListName()});
                     // If the link selection map contains the listID for the list
                 if (selMap.containsKey(listID)){
                         // Get the selected link for the list
                     String selected = selMap.get(listID);
+                    getLogger().log(Level.FINER, "Selection: {0}", selected);
                         // If the list does not contain the selected link
-                    if (!panel.getModel().contains(selected))
+                    if (!panel.getModel().contains(selected)){
                             // No link will be selected for the list
                         selected = null;
-                        // Set the selected link for the list, scrolling to the 
+                        getLogger().finer("Selection not found in model");
+                    }   // Set the selected link for the list, scrolling to the 
                         // link if it is meant to be visible
                     panel.setSelectedValue(selected, 
                             selVisMap.getOrDefault(listID, false));
-                }
+                }   // Get the visible rectangle for the list
+                Rectangle rect = visRectMap.get(listID);
+                getLogger().log(Level.FINER, "Visible rectangle: {0}", rect);
+                    // If there is a visible rectangle for the list
+                if (rect != null)
+                        // Scroll the list to the visbile rectangle
+                    panel.getList().scrollRectToVisible(rect);
+                    // Get the first visible index for the list, defaulting to 
+                    // the last visible index if there isn't one
+                Integer visIndex = firstVisMap.getOrDefault(listID,
+                        lastVisMap.get(listID));
+                getLogger().log(Level.FINER, "First visible index: {0}", firstVisMap.get(listID));
+                getLogger().log(Level.FINER, "Last visible index{0}", lastVisMap.get(listID));
+                    // If there is a visible index for the list
+                if (visIndex != null)
+                        // Ensure the visible index is visible
+                    panel.getList().ensureIndexIsVisible(visIndex);
             }
         }   // Replace the selected listIDs with the indexes for those listIDs
         selListIDMap.replaceAll((Integer listType, Integer listID) -> {
@@ -6294,6 +6356,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         selListIDMap.values().removeIf((Integer t) -> t == null || t < 0);
             // Go through the tabs panel array
         for (int i = 0; i < listsTabPanels.length; i++){
+            getLogger().log(Level.FINER, "Setting selected list for [{0}: {1}]", 
+                    new Object[]{i, listsTabPanels[i].getName()});
                 // Get the index of the selected list, prioritizing the index 
                 // for the selected listID (since listIDs don't typically change 
                 // between instances of the program), then the index of the 
@@ -6303,21 +6367,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (index >= -1 && index<listsTabPanels[i].getTabCount()) // cleared
                 listsTabPanels[i].setSelectedIndex(index);
         }
-    }
-    /**
-     * 
-     * @param conn
-     * @param linkMap
-     * @param linkIDs
-     * @throws SQLException 
-     */
-    private void updatePrefixesInDatabase(LinkDatabaseConnection conn, 
-            LinkMap linkMap, Collection<Long> linkIDs) throws SQLException {
-            // Go through the linkIDs of the links to be updated
-        for (Long linkID : linkIDs){
-            conn.updateLinkData(linkID);
-            incrementProgressValue();
-        }
+        getLogger().exiting(this.getClass().getName(), "setSelectedFromConfig");
     }
     /**
      * 
@@ -6327,6 +6377,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void writeToDatabase(LinkDatabaseConnection conn, 
             Collection<LinksListModel> models) throws SQLException {
+        getLogger().entering(this.getClass().getName(), "writeToDatabase");
             // Get the current state of the connection's auto-commit
         boolean autoCommit = conn.getAutoCommit();
             // Turn off the connection's auto-commit to group the following 
@@ -6395,31 +6446,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             outdatedLinks.addAll(linkMap.getStartsWith(prefix).navigableKeySet());
         }
         
-        setProgressMaximum(linksSet.size()+outdatedLinks.size()+total);
-        setIndeterminate(false);
+        progressBar.setMaximum(linksSet.size()+outdatedLinks.size()+total);
+        progressBar.setIndeterminate(false);
             // Update the prefixes of the outdated links
-        updatePrefixesInDatabase(conn, linkMap, outdatedLinks);
+        conn.updateLinkPrefix(outdatedLinks, progressObserver);
         
-        setIndeterminate(true);
+        progressBar.setIndeterminate(true);
         conn.commit();          // Commit the changes to the database
         System.gc();            // Run the garbage collector
             // Add the new links to the database.
-        linkMap.addAll(linksSet, listContentsObserver);
-        setIndeterminate(false);
+        linkMap.addAll(linksSet, progressObserver);
+        progressBar.setIndeterminate(false);
             // This gets a cached copy of the inverse link map
         Map<String,Long> linkIDMap = new HashMap<>(conn.getLinkMap().inverse());
             // Go through the models to be saved
         for (LinksListModel model : models){
                 // If the model's contents were modified
             if (model.getContentsModified()){
-                writeListToDatabase(conn,model,linkIDMap);
+                conn.updateListContents(model, linkIDMap, progressObserver);
             }
         }
-        setIndeterminate(true);
+        progressBar.setIndeterminate(true);
             // Go through the tab panels
         for (int i = 0; i < listsTabPanels.length; i++){
                 // Update the list of the listIDs
-            writeTabsToDatabase(conn.getListIDs(i),listsTabPanels[i]);
+            conn.updateListIDList(i, listsTabPanels[i], progressObserver);
         }   // Remove any listIDs from the shown listIDs list that are hidden
         conn.getShownListIDs().removeIf((Integer t) -> {
                 // Get the model with the current listID
@@ -6434,68 +6485,423 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Remove any unused links
         linkMap.removeUnusedRows();
         conn.commit();       // Commit the changes to the database
+            // Add the program's user ID and program ID to the database.
+        Integer progID = conn.getProgramUUIDMap(config.getUserID()).addIfAbsent(config.getProgramID());
+        Map<Integer,LinksListPanel> panels = getPanelIDMap();
+        DatabaseLinksListSettings listSettings = conn.getListSettings(progID);
+        progressBar.setMaximum(panels.size()+2);
+        progressBar.setValue(0);
+        progressBar.setIndeterminate(false);
+            // Store the list ID of the selected list in the all lists panel
+        listSettings.setSelectedTab(LinkDatabaseConnection.LIST_OF_ALL_LISTS_TYPE,
+                allListsTabsPanel);
+        progressBar.setValue(1);
+            // Store the list ID of the selected list in the shown lists panel
+        listSettings.setSelectedTab(LinkDatabaseConnection.LIST_OF_SHOWN_LISTS_TYPE, 
+                shownListsTabsPanel);
+        progressBar.setValue(2);
+            // Go through the panels
+        for (LinksListPanel panel : panels.values()){
+            listSettings.setListSettings(panel, linkIDMap);
+            progressBar.setValue(progressBar.getValue()+1);
+        }
+        progressBar.setIndeterminate(true);
+        conn.commit();       // Commit the changes to the database
             // Restore the connection's auto-commit back to what it was set to 
         conn.setAutoCommit(autoCommit);     // before
+        getLogger().entering(this.getClass().getName(), "writeToDatabase");
     }
     /**
      * 
      * @param conn
-     * @param model
-     * @param linkIDMap
+     * @return
      * @throws SQLException 
      */
-    private void writeListToDatabase(LinkDatabaseConnection conn, 
-            LinksListModel model,Map<String,Long> linkIDMap) throws SQLException{
-            // Get the current state of the connection's auto-commit
-        boolean autoCommit = conn.getAutoCommit();
-            // Turn off the connection's auto-commit to group the following 
-            // database transactions to improve performance
-        conn.setAutoCommit(false);
-            // Update th contents of the list based off the contents of the model
-        conn.getListContents(model.getListID()).updateContents(model, 
-                listContentsObserver,linkIDMap);
-        conn.commit();          // Commit the changes to the database
-        model.clearEdited();    // Clear whether the list was edited
-        System.gc();            // Run the garbage collector
-            // Restore the connection's auto-commit back to what it was set to 
-        conn.setAutoCommit(autoCommit);     // before
+    private boolean saveDatabase(LinkDatabaseConnection conn) throws SQLException{
+        getLogger().entering(this.getClass().getName(), "saveDatabase");
+            // Remove the listIDs of any lists that have been removed
+        conn.getAllListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
+            // Remove the listIDs of any lists that have been removed
+        conn.getShownListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
+            // Remove the listIDs of any lists that have been hidden
+        conn.getShownListIDs().removeAll(shownListsTabsPanel.getRemovedListIDs());
+            // Remove any lists that have been removed
+        conn.getListNameMap().keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
+            // Remove the preference nodes for the removed lists
+        config.removeListSettings(allListsTabsPanel.getRemovedListIDs());
+            // Clear the sets of removed ListIDs
+        allListsTabsPanel.clearRemovedListIDs();
+        shownListsTabsPanel.clearRemovedListIDs();
+        conn.commit();       // Commit the changes to the database
+            // Write the models to the database
+        writeToDatabase(conn, getModelSet());
+        getLogger().exiting(this.getClass().getName(), "saveDatabase", true);
+        return true;
     }
     /**
      * 
-     * @param dbListIDs
-     * @param tabsPanel
+     * @param conn
+     * @param loadAll
+     * @return
      * @throws SQLException 
      */
-    private void writeTabsToDatabase(ListIDList dbListIDs, 
-            LinksListTabsPanel tabsPanel) throws SQLException {
-            // Get a copy of the list IDs in the list from the database
-        Set<Integer> missingIDs = new LinkedHashSet<>(dbListIDs);
-            // Remove null listIDs
-        missingIDs.remove(null);
-            // Remove any listIDs that are in the tabs panel
-        missingIDs.removeAll(tabsPanel.getListIDs());
-            // Remove any listIDs that have been removed
-        missingIDs.removeAll(tabsPanel.getRemovedListIDs());
-            // Clear the list in the database
-        dbListIDs.clear();
-            // Add all the listIDs that are in the tabs panel
-        dbListIDs.addAll(tabsPanel.getListIDs());
-            // Remove any that are null
-        dbListIDs.removeIf((Integer t) -> t == null);
-            // Add any that are missing from the tabs panel
-        dbListIDs.addAll(missingIDs);
+    private Map<LinksListTabsPanel, List<LinksListModel>> loadDatabase(LinkDatabaseConnection conn,
+            boolean loadAll) throws SQLException{
+        getLogger().entering(this.getClass().getName(), "loadDatabase", loadAll);
+            // Disable all the lists
+        setTabsPanelListsEnabled(false);
+            // This will get a map of the existing models mapped to their 
+            // listID. Models that don't have a listID won't be in this map
+        Map<Integer, LinksListModel> oldModelsMap = getModelIDMap();
+            // Get the map containing the list IDs and data
+        ListDataMap listDataMap = conn.getListDataMap();
+            // Get the map of list data that will be loaded. If we are 
+            // loading all the lists, then this will just be the list data 
+        NavigableMap<Integer, ListContents> loadData = listDataMap; // map
+            // This will get a map of list IDs and models to be used
+        HashMap<Integer, LinksListModel> models = new HashMap<>();
+            // This will get the total size of the lists that will be loaded
+        int total = 0;
+            // If we are loading all the lists
+        if (loadAll){
+                // Get the total size of all the lists in the database
+            total = listDataMap.totalSize();
+        } else {// Put the map of existing models into the map of models to 
+            models.putAll(oldModelsMap);    // be used
+                // Copy the list data map, since we don't want to edit the 
+            loadData = new TreeMap<>(listDataMap);  // actual database
+                // Remove any lists that do not need to be re-loaded
+                // Remove all the lists that have been removed
+            loadData.keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
+                // Remove all the lists that are outdated compared to the 
+                // existing models
+            loadData.values().removeIf((ListContents t) -> {
+                    // Get the model with the listID of the current list if 
+                    // there is one
+                LinksListModel model = models.get(t.getListID());
+                    // Return whether there is a model with that listID and 
+                    // the list in the database is outdated
+                return model != null && t.isOutdated(model);
+            });
+                // Go through the lists that will be loaded
+            for (ListContents temp : loadData.values()){
+                total += temp.size();
+            }
+        }   // Set the progress maximum to the amount of links that will be 
+        progressBar.setMaximum(total);  // loaded
+        progressBar.setIndeterminate(false);
+            // Go through the lists to be loaded
+        for (Map.Entry<Integer,ListContents> listData:loadData.entrySet()){
+                // Get the listID of the list being loaded
+            Integer listID = listData.getKey();
+                // Get a model version of the current list
+            LinksListModel model = listData.getValue().toModel(progressObserver);
+                // Get the old version of the model (the one that this model 
+                // is replacing), and copy the selection from the old model
+            model.setSelectionFrom(oldModelsMap.get(listID));
+                // Put the model in the map containing the loaded models
+            models.put(listID, model);
+        }
+        progressBar.setIndeterminate(true);
+            // This gets a map mapping the tabs panels to the list of 
+            // listIDs for the lists to be shown by the panels
+        Map<LinksListTabsPanel,List<Integer>> tabsListIDs = new HashMap<>();
+            // Get a copy of the list of listIDs for the all lists panel
+        List<Integer> allListIDs = new ArrayList<>(conn.getAllListIDs());
+            // Remove any null listIDs
+        allListIDs.removeIf((Integer t) -> t == null);
+            // Put the copy into the map, mapping it to the all lists panel
+        tabsListIDs.put(allListsTabsPanel, allListIDs);
+            // Get a copy of the list of shown listIDs
+        List<Integer> shownListIDs = new ArrayList<>(conn.getShownListIDs());
+            // Remove any null listIDs
+        shownListIDs.removeIf((Integer t) -> t == null);
+            // Put the copy into the map, mapping it to the shown lists 
+        tabsListIDs.put(shownListsTabsPanel, shownListIDs); // panel
+            // This is a set that will get the listIDs missing from the all 
+            // listIDs list
+        Set<Integer> missingListIDs = new LinkedHashSet<>(shownListIDs);
+            // Remove any listIDs that are already in the all listIDs list
+        missingListIDs.removeAll(allListIDs);
+            // Add any missing listIDs to the all listIDs list
+        allListIDs.addAll(missingListIDs);
+            // This is a map that maps the tabs panels to the list of models 
+            // that will be displayed by those tabs panels when we finish 
+            // loading.
+        Map<LinksListTabsPanel, List<LinksListModel>> tabsModels = new HashMap<>();
+            // Go through the panels and listIDs to get models for
+        for (Map.Entry<LinksListTabsPanel,List<Integer>> entry : tabsListIDs.entrySet()){
+                // A list to get the models to use for the current tabs panel
+            List<LinksListModel> modelList = new ArrayList<>();
+                // If we are not loading all the lists, only the outdated ones
+            if (!loadAll){
+                    // Remove all listIDs of lists that were removed by the 
+                    // program
+                entry.getValue().removeAll(allListsTabsPanel.getRemovedListIDs());
+                    // Remove all listIDs of lists that are already loaded, 
+                    // since we will be replacing them in-situ instead of 
+                    // re-adding them. This is to perserve the order of the 
+                    // existing lists, including those that have not been 
+                    // assigned a listID yet.
+                entry.getValue().removeAll(entry.getKey().getListIDs());
+                    // Add all the currently existing models from the tabs 
+                    // panel
+                modelList.addAll(entry.getKey().getModels());
+                    // Replace any outdated models with ones loaded from the 
+                    // database
+                modelList.replaceAll((LinksListModel t) -> {
+                    // If this model is somehow null or (more realistically) 
+                    // this model's listID is null (i.e. no listID assigned, 
+                    // typical of newly created lists)
+                    if (t == null || t.getListID() == null)
+                        return t;   // Do not replace this model
+                    // Check for any models loaded from the database with 
+                    // the same listID, and if there is one, replace the  
+                    // current model with the loaded model. If not, then use 
+                    // the current model, don't replace it.
+                    LinksListModel temp = models.getOrDefault(t.getListID(), t);
+                    // If the replacement model is the same as this model or 
+                    // if the replacement model is somehow null
+                    if (temp == t || temp == null)
+                        return t;   // Do not replace this model
+                    return temp;
+                });
+            }
+            // Go through the listIDs for the lists in the database that are 
+            // to be displayed on this tabs panel. If we were only loading 
+            // any outdated lists, this will only be going through lists 
+            // that were added to this tabs panel later and aren't currently 
+            // being displayed.
+            for (Integer listID : entry.getValue()){
+                // Append the loaded list's model to the models for this 
+                modelList.add(models.get(listID));  // panel
+            }
+            // Set the list of models for this tabs panel
+            tabsModels.put(entry.getKey(), modelList);
+        }   // If we are only reloading outdated lists
+        if (!loadAll){
+                // The shown lists tabs panel may be showing lists that have 
+                // since been hidden. Remove any lists that are now hidden
+            tabsModels.get(shownListsTabsPanel).removeIf((LinksListModel t) 
+                    -> t == null || t.isHidden());
+        }
+        getLogger().exiting(this.getClass().getName(), "loadDatabase");
+        return tabsModels;
     }
     /**
      * 
+     * @param file
      * @param path
+     * @return
+     * @throws DbxException
+     * @throws IOException 
+     */
+    private FileMetadata downloadFromDropbox(File file, String path) throws 
+            DbxException, IOException{
+        getLogger().entering(this.getClass().getName(), "downloadFromDropbox", 
+                new Object[]{file, path});
+            // Get a client to communicate with Dropbox, refreshing the Dropbox 
+            // credentials if necessary
+        DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
+            // Get the file namespace for Dropbox
+        DbxUserFilesRequests dbxFiles = client.files();
+            // This gets the size of the file to be downloaded
+        Long size = null;
+        try{    // Get the metadata for the file
+            Metadata metadata = dbxFiles.getMetadataBuilder(path).start();
+                // If the metadata is actually file metadata
+            if (metadata instanceof FileMetadata){
+                    // Get the size of the file
+                size = ((FileMetadata) metadata).getSize();
+            }
+        } catch (GetMetadataErrorException ex){
+            getLogger().log(Level.WARNING,"Failed to download from Dropbox",ex);
+                // If the error because the file doesn't exist
+            if (DropboxUtilities.fileNotFound(ex)){
+                getLogger().exiting(this.getClass().getName(), 
+                        "downloadFromDropbox", null);
+                return null;
+            }else 
+                throw ex;
+        }   // This is the progress listener to use to listen to how many bytes 
+            // have been downloaded so far.
+        ProgressListener listener = null;
+            // If the file size was loaded
+        if (size != null){
+                // Setup the progress bar and get the progress listener
+            listener = DropboxUtilities.setUpProgressListener(size, progressObserver);
+                // Set the progress bar to not be indeterminate
+            progressBar.setIndeterminate(false);
+        }   // Download the file from Dropbox
+        FileMetadata data = DropboxUtilities.download(file, path, dbxFiles, listener);
+        getLogger().exiting(this.getClass().getName(), "downloadFromDropbox", data);
+        return data;
+    }
+    /**
+     * 
+     * @param file
+     * @param path
+     * @return
+     * @throws DbxException
+     * @throws IOException 
+     */
+    private FileMetadata uploadToDropbox(File file, String path) throws 
+            DbxException, IOException{
+        getLogger().entering(this.getClass().getName(), "uploadToDropbox", 
+                new Object[]{file, path});
+            // Get a client to communicate with Dropbox, refreshing the Dropbox 
+            // credentials if necessary
+        DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
+            // Setup the progress bar and get the progress listener used to 
+            // update the progress bar to reflect the bytes that have been 
+            // uploaded so far.
+        ProgressListener listener = DropboxUtilities.setUpProgressListener(
+                file.length(), progressObserver);
+            // Set the progress bar to not be indeterminate
+        progressBar.setIndeterminate(false);
+            // Upload the file to Dropbox, using the set chunk size and 
+            // overwriting the file if it already exists
+        FileMetadata data = DropboxUtilities.upload(file, path, client.files(), 
+                dbxChunkSizeModel.getChunkSize(), true, listener);
+        getLogger().exiting(this.getClass().getName(), "uploadToDropbox", data);
+        return data;
+    }
+    /**
+     * 
+     * @param model
+     * @param list
      * @return 
      */
-    private String formatDropboxPath(String path){
-            // If the path does not start with a slash
-        if (!path.startsWith("/"))
-                // Add a slash to the start of the file name
-            return "/"+path;
-        return path.trim();
+    private LinksListModel addAllToCopy(LinksListModel model, Collection<String> list){
+            // Clone the model
+        LinksListModel newModel = new LinksListModel(model);
+        try{
+            if (!newModel.addAll(list))
+                return model;
+        } catch(Exception ex){
+            getLogger().log(Level.WARNING, 
+                    "Issue encountered while adding collection to model", ex);
+        }
+        return newModel;
+    }
+    /**
+     * 
+     * @param panel
+     * @param list
+     * @return 
+     */
+    private LinksListModel addAllToCopy(LinksListPanel panel, Collection<String> list){
+        return addAllToCopy(panel.getModel(),list);
+    }
+    
+    private class LinksListHandler implements ListDataListener, 
+            ListSelectionListener, ChangeListener, ContainerListener, 
+            PropertyChangeListener{
+        @Override
+        public void intervalAdded(ListDataEvent evt) {
+//            System.out.println("Added: " + evt);
+            if (isListSelected(evt.getSource()))
+                updateButtons();
+        }
+        @Override
+        public void intervalRemoved(ListDataEvent evt) {
+//            System.out.println("Removed: " + evt);
+            if (isListSelected(evt.getSource()))
+                updateButtons();
+        }
+        @Override
+        public void contentsChanged(ListDataEvent evt) {
+//            System.out.println("Changed: " + evt);
+            if (isListSelected(evt.getSource()))
+                updateButtons();
+        }
+        @Override
+        public void valueChanged(ListSelectionEvent evt) {
+                // If the selection is not currently being adjusted
+            if (!evt.getValueIsAdjusting()){
+                    // If the source of the change is the currently selected list
+                if (isListSelected(evt.getSource())){
+                    updateSelectedLink(); 
+                }   // If the source of the event is a LinksListPanel
+                if (evt.getSource() instanceof LinksListPanel){
+                    selectionHasChanged(((LinksListPanel)evt.getSource()).getModel());
+                    // If the source of the event is a LinksListModel
+                } else if (evt.getSource() instanceof LinksListModel){
+                    selectionHasChanged((LinksListModel)evt.getSource());
+                }
+            }
+        }
+        @Override
+        public void stateChanged(ChangeEvent evt) {
+//            System.out.println("Stage: " + evt);
+        }
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (LinksListPanel.MODEL_PROPERTY_CHANGED.equals(evt.getPropertyName())){
+                String childName = null;
+                if (evt.getSource() instanceof Component)
+                    childName = ((Component)evt.getSource()).getName();
+                getLogger().log(Level.FINER, "Model changed on list {0}", 
+                        (childName!=null)?childName:evt.getSource());
+                if (evt.getNewValue() instanceof LinksListModel){
+                    addModelToSet((LinksListModel)evt.getNewValue());
+                }
+                if (evt.getOldValue() instanceof LinksListModel){
+                    LinksListModel oldModel = (LinksListModel)evt.getOldValue();
+                    removeUnusedModel(oldModel);
+                }
+            } else if (evt.getSource() instanceof LinksListModel){
+                LinksListModel model = (LinksListModel)evt.getSource();
+                switch(evt.getPropertyName()){
+                    case (LinksListModel.LIST_ID_PROPERTY_CHANGED):
+                        getLogger().log(Level.FINER, "List ID for \"{2}\" changed {0} -> {1}", 
+                                new Object[]{evt.getOldValue(), evt.getNewValue(),
+                                model.getListName()});
+                        selectionHasChanged(model);
+                        break;
+                    case (LinksListModel.LIST_NAME_PROPERTY_CHANGED):
+                        getLogger().log(Level.FINER, "List Name for List {2} changed {0} -> {1}", 
+                                new Object[]{evt.getOldValue(), evt.getNewValue(),
+                                model.getListID()});
+                        break;
+                    case (LinksListModel.LIST_SIZE_LIMIT_PROPERTY_CHANGED):
+                    case (LinksListModel.LIST_ALLOWS_DUPLICATES_PROPERTY_CHANGED):
+                    case (LinksListModel.LIST_IS_HIDDEN_PROPERTY_CHANGED):
+                    case (LinksListModel.LIST_IS_READ_ONLY_PROPERTY_CHANGED):
+                        getLogger().log(Level.FINER, "Property changed for "
+                                + "list {0}. {1}: (Name: {2}, Old: {3}, "
+                                + "New: {4})", new Object[]{model.getListID(), 
+                                    model.getListName(), evt.getPropertyName(), 
+                                    evt.getOldValue(), evt.getNewValue()});
+                }
+            }
+        }
+        @Override
+        public void componentAdded(ContainerEvent evt) {
+            String childName = evt.getChild().getName();
+            if (childName == null)
+                childName = evt.getChild().toString();
+            getLogger().log(Level.FINER, "Component [{1}] Added To Tabs: {0}", 
+                    new Object[]{evt,childName});
+            if (evt.getChild() instanceof LinksListPanel){
+                LinksListPanel panel = (LinksListPanel) evt.getChild();
+                panel.addPropertyChangeListener(listHandler);
+                addModelToSet(panel.getModel());
+            }
+        }
+        @Override
+        public void componentRemoved(ContainerEvent evt) {
+            String childName = evt.getChild().getName();
+            if (childName == null)
+                childName = evt.getChild().toString();
+            getLogger().log(Level.FINER, "Component [{1}] Removed From Tabs: {0}", 
+                    new Object[]{evt,childName});
+            if (evt.getChild() instanceof LinksListPanel){
+                LinksListPanel panel = (LinksListPanel) evt.getChild();
+                panel.removePropertyChangeListener(listHandler);
+                removeUnusedModel(panel.getModel());
+            }
+        }
     }
     /**
      * This is a LinksListTabAction that saves the links from a list to a 
@@ -6575,8 +6981,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return;
                 // Set the dialog title
             addLinksPanel.setDialogTitle("Add To "+panel.getListName()+"...");
+//            addLinksPanel.
                 // Show the add links dialog and if the user selected the accept 
-            if (addLinksPanel.showDialog(LinkManager.this) == // option
+            if (addLinksPanel.showDialog(LinkManager.this,"") == // option
                     AddLinksFromListPanel.ACCEPT_OPTION){
                 linksWorker = new AddFromTextWorker(panel,addLinksPanel.getText());
                 linksWorker.execute();
@@ -6890,27 +7297,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @throws Exception If an error occurs.
          */
         protected abstract E backgroundAction() throws Exception;
-        /**
-         * 
-         */
-        protected void updateProgressString(){
-            progressDisplay.setString(getProgressString());
-        }
         @Override
         protected E doInBackground() throws Exception {
+            getLogger().entering(this.getClass().getName(), "doInBackground");
             useWaitCursor(true);
             setInputEnabled(false);
-            updateProgressString();
-            setIndeterminate(true);
+            progressDisplay.setString(getProgressString());
+            progressBar.setIndeterminate(true);
             progressBar.setStringPainted(true);
-            clearProgressValue();
-            return backgroundAction();
+            progressBar.setValue(0);
+            E value = backgroundAction();
+            getLogger().exiting(this.getClass().getName(), "doInBackground",value);
+            return value;
         }
         @Override
         protected void done(){
             System.gc();        // Run the garbage collector
-            clearProgressValue();
-            setIndeterminate(false);
+            progressBar.setValue(0);
+            progressBar.setIndeterminate(false);
             progressBar.setStringPainted(false);
             setInputEnabled(true);
             useWaitCursor(false);
@@ -6951,6 +7355,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private class ManipulateListWorker extends LinksListWorker<Void>{
         
         protected List<String> list;
+        /**
+         * A copy of the LinksListModel with the changes made.
+         */
+        protected LinksListModel model = null;
         
         ManipulateListWorker(LinksListPanel panel, List<String> list){
             super(panel);
@@ -6958,12 +7366,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected Void processLinks(LinksListPanel panel) {
-            panel.updateModelContents(list);
+            if (panel.isReadOnly())
+                return null;
+            getLogger().entering(this.getClass().getName(), "processLinks",panel);
+                // Clone the panel's model
+            model = new LinksListModel(panel.getModel());
+            try{
+                model.setContents(list);
+            } catch (Exception ex){
+                getLogger().log(Level.WARNING, "Error manipulating list", ex);
+            }
+            getLogger().exiting(this.getClass().getName(), "processLinks");
             return null;
         }
         @Override
         public String getProgressString() {
             return "Updating List";
+        }
+        @Override
+        protected void done(){
+            replaceModel(panel,model);
+            super.done();
         }
     }
     /**
@@ -7048,6 +7471,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected List<String> list;
         
         protected String text;
+        /**
+         * A copy of the LinksListModel with the changes made.
+         */
+        protected LinksListModel model = null;
 
         AddFromTextWorker(LinksListPanel panel, String text) {
             super(panel);
@@ -7058,20 +7485,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected Void processLinks(LinksListPanel panel) {
                 // Creates a Scanner that goes through the entered list
             try (Scanner scanner = new Scanner(text)) {
-                readIntoList(scanner,list);
+                list = LinkManagerUtilities.readIntoList(scanner,list);
             }
-            try{
-                panel.getModel().addAll(list);
-            } catch(Exception ex){
-                if (isInDebug()){   // If the program is in debug mode
-                    System.out.println("AddAll Error: " + ex);
-                }
-            }
+            model = addAllToCopy(panel,list);
             return null;
         }
         @Override
         public String getProgressString() {
             return "Adding Links";
+        }
+        @Override
+        protected void done(){
+            replaceModel(panel,model);
+            super.done();
         }
     }
     /**
@@ -7086,6 +7512,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          */
         private final LinksListPanel source;
+        /**
+         * A copy of the LinksListModel of the source with the changes made.
+         */
+        protected LinksListModel srcModel = null;
+        /**
+         * A copy of the LinksListModel of the target with the changes made.
+         */
+        protected LinksListModel model = null;
         /**
          * 
          */
@@ -7127,43 +7561,50 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected Void processLinks(LinksListPanel panel) {
-                // Get the model of the given list
-            LinksListModel model = panel.getModel();
+            getLogger().entering(this.getClass().getName(), "processLinks", panel);
+            getLogger().log(Level.FINER, "Source list: {0}", source);
+                // If this is moving links
+            if (move)
+                getLogger().finer("Moving links between lists");
+            else
+                getLogger().finer("Copying links between lists");
                 // If the given list is read only or full
-            if (panel.isReadOnly() || model.isFull())
+            if (panel.isReadOnly() || panel.getModel().isFull()){
+                if (panel.isReadOnly())
+                    getLogger().finer("Links list is read only.");
+                else
+                    getLogger().log(Level.FINER, "Links list is full (limit: {0},"
+                            + " size: {1}).", new Object[]{
+                                panel.getModel().getSizeLimit(), 
+                                panel.getModel().size()});
+                getLogger().exiting(this.getClass().getName(), "processLinks");
                 return null;
-                // If the source list is not null
+            }   // If the source list is not null
             if (source != null)
                 source.setEnabled(false);
                 // This gets a list of items that can and will be added to the 
-                // given list
-            List<String> added = model.getCompatibleList(list);
-            try{    // Try to add all the item this can add
-                model.addAll(added);
-            } catch(Exception ex){
-                    // If the program is in debug mode
-                if (isInDebug())
-                    System.out.println(ex);
-            }   // If this is moving links between lists, a source list has been 
+                // given panel's model
+            List<String> added = panel.getModel().getCompatibleList(list);
+            model = addAllToCopy(panel,added);
+                // If this is moving links between lists, a source list has been 
                 // provided, and that source list is not read only
             if (move && source != null && !source.isReadOnly()){
                 try{    // If the whole source list has been added to the target
                     if (added.size() == source.getModel().size())
                         source.getModel().clear();
-                    else{
-                        // Get a copy of the source's list
-                        ArrayList<String> temp = new ArrayList<>(source.getModel());
-                        // Remove all the links that were added.
-                        temp.removeAll(added);
-                        // Update the contents of the souce panel
-                        source.updateModelContents(temp);
+                    else{   // Copy the source model
+                        srcModel = new LinksListModel(source.getModel());
+                            // Remove all the links that were added.
+                        if (!srcModel.removeAll(added))
+                            srcModel = null;
                     }
                 } catch(Exception ex){
-                        // If the program is in debug mode
-                    if (isInDebug())
-                        System.out.println(ex);
+                    getLogger().log(Level.WARNING, 
+                            "Issue encountered while removing shared links from source",
+                            ex);
                 }
             }
+            getLogger().exiting(this.getClass().getName(), "processLinks");
             return null;
         }
         @Override
@@ -7173,9 +7614,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
+            replaceModel(panel,model);
                 // If a source list was given
-            if (source != null)
+            if (source != null){
+                if (move)
+                    replaceModel(source,srcModel);
                 source.setEnabled(true);
+            }
             super.done();
         }
     }
@@ -7187,6 +7632,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          */
         private final LinksListPanel source;
+        /**
+         * A copy of the LinksListModel with the changes made.
+         */
+        protected LinksListModel model = null;
         /**
          * 
          * @param source
@@ -7217,9 +7666,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return null;
                 // Disable the source list
             source.setEnabled(false);
+                // Clone the panel's model
+            model = new LinksListModel(panel.getModel());
                 // Remove all the links that the given panel has in common with 
                 // the source list
-            panel.getModel().removeAll(source.getModel());
+            if (!model.removeAll(source.getModel()))
+                    // There was no change, so set it back to null
+                model = null;
             return null;
         }
         @Override
@@ -7228,6 +7681,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
+            replaceModel(panel,model);
                 // Enable the source list
             source.setEnabled(true);
             super.done();
@@ -7253,6 +7707,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          */
         private final LinksListTabsPanel tabsPanel;
+        /**
+         * 
+         */
+        private Set<LinksListPanel> panels = null;
+        /**
+         * A list of the panels that were affected and the altered models for 
+         * those lists.
+         */
+        private Map<LinksListPanel,LinksListModel> models = new LinkedHashMap<>();
         /**
          * 
          * @param panel
@@ -7303,7 +7766,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Disable all the lists
             setTabsPanelListsEnabled(false);
                 // Get a set of all the panels to go through
-            Set<LinksListPanel> panels = new LinkedHashSet<>(tabsPanel.getLists());
+            panels = new LinkedHashSet<>(tabsPanel.getLists());
                 // Remove the given panel
             panels.remove(panel);
                 // Remove any panels that are null, have the same model as the 
@@ -7318,17 +7781,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // If this worker will be removing the given list from 
                         // the current list but the current list is read only
                     (isSource && t.isReadOnly()));
-            setProgressMaximum(panels.size());
-            setIndeterminate(false);
+                // Get the model for the panel
+            LinksListModel model = panel.getModel();
+                // If the current panel is to be removed from the other panels
+            if (!isSource)
+                    // Copy the model
+                model = new LinksListModel(model);
+            progressBar.setMaximum(panels.size());
+            progressBar.setIndeterminate(false);
+            boolean modified = false;
                 // Go through the panels 
             for (LinksListPanel current : panels){
                     // If the given panel is to be removed from the current panel
-                if (isSource)
-                    current.getModel().removeAll(panel.getModel());
-                else
-                    panel.getModel().removeAll(current.getModel());
+                if (isSource){
+                        // Copy the current panel's model
+                    LinksListModel temp = new LinksListModel(current.getModel());
+                    if (temp.removeAll(model))
+                        models.put(current, temp);
+                }
+                else{
+                    boolean temp = model.removeAll(current.getModel());
+                    modified |= temp;
+                }
                 incrementProgressValue();
             }
+            if (!isSource && modified)
+                models.put(panel, model);
             return null;
         }
         @Override
@@ -7337,6 +7815,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected void done(){
+            for (Map.Entry<LinksListPanel,LinksListModel> entry : models.entrySet()){
+                replaceModel(entry.getKey(),entry.getValue());
+            }
                 // Re-enable the lists
             setTabsPanelListsEnabled(true);
             super.done();
@@ -7404,6 +7885,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected abstract boolean processFile(File file);
         @Override
         protected Void backgroundAction() throws Exception {
+            getLogger().entering(this.getClass().getName(), "backgroundAction",file);
                 // Whether the user wants this to try processing the file again 
             boolean retry = false;  // if unsuccessful
             do{
@@ -7415,6 +7897,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     retry = showFailurePrompt(file);    // try again
             }   // While the file failed to be processed and the user wants to 
             while(!success && retry);   // try again
+            getLogger().exiting(this.getClass().getName(), "backgroundAction");
             return null;
         }
     }
@@ -7483,6 +7966,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             try{
                 return FilesExtended.rename(file, target);
             } catch(IOException ex){
+                getLogger().log(Level.WARNING, "Failed to rename file", ex);
                 exc = ex;
                 return false;
             }
@@ -7585,6 +8069,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void showSuccessPrompt(File file){}
         /**
+         * 
+         * @return 
+         */
+        protected boolean getFileExists(File file){
+            return file.exists();
+        }
+        /**
          * This is used to display a failure prompt to the user when the file 
          * fails to be loaded. 
          * @param file The file that failed to load.
@@ -7592,21 +8083,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         @Override
         protected boolean showFailurePrompt(File file){
-            if (!file.exists()){    // If the file doesn't exist
-                    // If this should show file not found prompts
-                if (showFileNotFound){
-                    JOptionPane.showMessageDialog(LinkManager.this, 
-                            getFileNotFoundMessage(file), getFailureTitle(file), 
-                            JOptionPane.ERROR_MESSAGE);
-                }
+                // Get if the file exists
+            boolean fileExists = getFileExists(file);
+                // If the file doesn't exist and this shouldn't show the file 
+                // not found prompt
+            if (!fileExists && !showFileNotFound)
                 return false;
-            }
-            else{   // Ask the user if they would like to try loading the file
-                return JOptionPane.showConfirmDialog(LinkManager.this, // again
-                        getFailureMessage(file)+"\nWould you like to try again?",
-                        getFailureTitle(file),JOptionPane.YES_NO_OPTION,
-                        JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
-            }
+            return LinkManager.this.showFailurePrompt(getFailureTitle(file), 
+                    (fileExists)?getFailureMessage(file):getFileNotFoundMessage(file), 
+                    fileExists, false) == JOptionPane.YES_OPTION;
         }
         /**
          * This returns the title for the dialog to display if the file fails to 
@@ -7641,6 +8126,474 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     /**
+     * 
+     */
+    private enum LoadingStage{
+        
+        UPDATE_CHECK,
+        
+        DOWNLOADING_FILE,
+        
+        LOADING_FILE;
+        
+    }
+    /**
+     * 
+     */
+    private abstract class AbstractFileDownloader extends FileLoader{
+        
+        protected LoadingStage stage;
+        
+        protected File downloadedFile;
+        
+        protected String filePath;
+        
+        protected DatabaseSyncMode syncMode;
+        /**
+         * Whether the file to download was found.
+         */
+        protected boolean fileFound = true;
+        /**
+         * The exception that was encountered when either downloading or loading 
+         * the file, if any.
+         */
+        protected Exception exc = null;
+        /**
+         * Whether file not found errors should be shown for downloading the 
+         * file.
+         */
+        protected boolean showFilePathNotFound = true;
+        /**
+         * Whether the success prompt should be shown.
+         */
+        protected boolean showSuccess = false;
+        
+        protected boolean loadSuccess = true;
+        
+        protected boolean exitIfCancelled = false;
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
+         */
+        AbstractFileDownloader(File file, String filePath, 
+                DatabaseSyncMode mode, LoadingStage stage, 
+                boolean showFileNotFound) {
+            super(file, showFileNotFound);
+            this.filePath = filePath;
+            syncMode = mode;
+            this.stage = Objects.requireNonNull(stage);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage 
+         */
+        AbstractFileDownloader(File file, String filePath, 
+                DatabaseSyncMode mode, LoadingStage stage) {
+            this(file,filePath,mode,stage,true);
+        }
+        /**
+         * 
+         * @param file
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
+         */
+        private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
+                LoadingStage stage, boolean showFileNotFound) {
+            this(file,config.getDatabaseFileSyncPath(mode),mode,stage,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param stage
+         * @param showFileNotFound 
+         */
+        AbstractFileDownloader(File file, LoadingStage stage, boolean showFileNotFound) {
+            this(file,getSyncMode(),stage,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param stage 
+         */
+        AbstractFileDownloader(File file, LoadingStage stage){
+            this(file,stage,true);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param showFileNotFound 
+         */
+        AbstractFileDownloader(File file, String filePath, DatabaseSyncMode mode, 
+                boolean showFileNotFound) {
+            this(file,filePath,mode,
+                    (filePath!=null&&mode!=null)?LoadingStage.DOWNLOADING_FILE:
+                            LoadingStage.LOADING_FILE,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode 
+         */
+        AbstractFileDownloader(File file, String filePath, DatabaseSyncMode mode){
+            this(file,filePath,mode,true);
+        }
+        /**
+         * 
+         * @param file
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
+         */
+        private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
+                boolean showFileNotFound) {
+            this(file,config.getDatabaseFileSyncPath(mode),mode,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param showFileNotFound 
+         */
+        AbstractFileDownloader(File file, boolean showFileNotFound) {
+            this(file,getSyncMode(),showFileNotFound);
+        }
+        /**
+         * 
+         * @param file 
+         */
+        AbstractFileDownloader(File file){
+            this(file,true);
+        }
+        /**
+         * This sets whether this shows a failure prompt when the file to 
+         * download is not found.
+         * @param showFileNotFound Whether the file not found failure prompt is 
+         * shown.
+         * @return This FileDownloader.
+         */
+        public AbstractFileDownloader setShowsFilePathNotFoundPrompt(boolean showFileNotFound){
+            this.showFilePathNotFound = showFileNotFound;
+            return this;
+        }
+        /**
+         * This returns whether this shows a failure prompt when the file to 
+         * download is not found.
+         * @return Whether the file not found failure prompt is shown.
+         */
+        public boolean getShowsFilePathNotFoundPrompt(){
+            return showFilePathNotFound;
+        }
+        /**
+         * 
+         * @param value 
+         */
+        public AbstractFileDownloader setShowsSuccessPrompt(boolean value){
+            this.showSuccess = value;
+            return this;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean getShowsSuccessPrompt(){
+            return showSuccess;
+        }
+        /**
+         * 
+         * @param value
+         * @return 
+         */
+        public AbstractFileDownloader setExitIfCancelled(boolean value){
+            this.exitIfCancelled = value;
+            return this;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean getExitIfCancelled(){
+            return exitIfCancelled;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public LoadingStage getStage(){
+            return stage;
+        }
+        /**
+         * 
+         * @param stage 
+         */
+        protected void setStage(LoadingStage stage){
+            this.stage = Objects.requireNonNull(stage);
+            progressDisplay.setString(getProgressString());
+        }
+        /**
+         * 
+         * @return 
+         */
+        public abstract String getLoadingProgressString();
+        /**
+         * 
+         * @return 
+         */
+        public String getDownloadingProgressString(){
+            return "Downloading File";
+        }
+        @Override
+        public String getProgressString(){
+            switch(stage){
+                case DOWNLOADING_FILE:
+                    return getDownloadingProgressString();
+                default:
+                    return getLoadingProgressString();
+            }
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected File getDownloadFile(File file){
+            return file;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @return The downloaded file, or null if this failed to download.
+         */
+        protected File downloadFile(File file, String path, DatabaseSyncMode mode){
+            getLogger().entering("AbstractFileDownloader", "downloadFile", 
+                    new Object[]{file,path,mode});
+                // Format the file path
+            path = LinkManagerUtilities.formatExternalFilePath(mode, path);
+            getLogger().log(Level.FINER, "Downloading file at path \"{0}\"",path);
+            exc = null;
+            fileFound = true;
+            ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(true);
+            try{    // Determine how to download the file
+                switch(mode){
+                    case DROPBOX:   // Try to download the file to Dropbox
+                        FileMetadata data = downloadFromDropbox(file,path);
+                        fileFound = data != null;
+                        File temp = (fileFound) ? file : null;
+                        getLogger().exiting("AbstractFileDownloader","downloadFile",temp);
+                        return temp;
+                }
+                getLogger().exiting("AbstractFileDownloader","downloadFile",file);
+                return file;
+            } catch (IOException | DbxException ex){
+                exc = ex;
+                getLogger().log(Level.WARNING, "Failed to download file",ex);
+                fileFound = !(ex instanceof FileNotFoundException);
+                if (ex instanceof NetworkIOException){
+                    getLogger().log(Level.WARNING, "Network Exception", ex.getCause());
+                }
+                getLogger().exiting("AbstractFileDownloader","downloadFile",null);
+                return null;
+            }
+        }
+        /**
+         * 
+         * @param file
+         * @param downloadedFile
+         * @return 
+         */
+        protected abstract boolean loadFile(File file, File downloadedFile);
+        @Override
+        protected boolean loadFile(File file){
+            getLogger().entering("AbstractFileDownloader", "loadFile", file);
+            if (LoadingStage.DOWNLOADING_FILE.equals(stage) && syncMode != null 
+                    && filePath != null){
+                int retryOption;
+                downloadedFile = getDownloadFile(file);
+                if (downloadedFile != null){
+                    File downloadFile = null;
+                    do{
+                        retryOption = JOptionPane.NO_OPTION;
+                        downloadFile = downloadFile(downloadedFile,filePath,syncMode);
+                        if (downloadFile == null){
+                            retryOption = showDownloadFailurePrompt(downloadedFile,
+                                    filePath,syncMode,exc);
+                        }
+                    }
+                    while(downloadFile == null && retryOption == JOptionPane.YES_OPTION);
+                    if (downloadFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
+                            retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
+                        loadSuccess = false;
+                        ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+                        getLogger().exiting("AbstractFileDownloader", "loadFile",true);
+                        return true;
+                    }
+                    downloadedFile = downloadFile;
+                    ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+                    progressBar.setValue(0);
+                    progressBar.setIndeterminate(true);
+                }
+                setStage(LoadingStage.LOADING_FILE);
+            }
+            
+            boolean value = loadFile(file,downloadedFile);
+            getLogger().exiting("AbstractFileDownloader", "loadFile",value);
+            return value;
+        }
+        @Override
+        protected Void backgroundAction() throws Exception {
+            super.backgroundAction();
+            success &= loadSuccess;
+            return null;
+        }
+        /**
+         * 
+         * @param ifSuccessful 
+         */
+        protected void deleteDownloadedFile(boolean ifSuccessful){
+            getLogger().entering("AbstractFileDownloader", 
+                    "deleteDownloadedFile", ifSuccessful);
+                // If the program successfully loaded the file or this is to 
+                // ignore if the file was loaded successfully
+            if (success || !ifSuccessful){
+                    // If there's a downloaded file, and the loaded file and 
+                    // downloaded file are not the same file (i.e. the 
+                    // downloaded file did not overwrite the loaded file)
+                if (downloadedFile != null && 
+                        !LinkManagerUtilities.isSameFile(file, downloadedFile)){
+                    /*
+                    TODO: Figure out how to resolve a glitch where the file 
+                    isn't being deleted if the process is cancelled during the 
+                    download.
+                    */
+                    if (isCancelled() && exitIfCancelled){
+                        getLogger().log(Level.FINER, "Deleting file \"{0}\"", downloadedFile);
+                        try{    
+                            Files.deleteIfExists(downloadedFile.toPath());
+                        } catch (IOException ex){
+                            getLogger().log(Level.WARNING, "Failed to delete file", ex);
+                            downloadedFile.deleteOnExit();
+                        }
+                    } else {
+                        getLogger().log(Level.FINER, "Deleting on exit \"{0}\"", downloadedFile);
+                        downloadedFile.deleteOnExit();
+                    }
+                }
+            }
+            getLogger().exiting("AbstractFileDownloader", 
+                    "deleteDownloadedFile");
+        }
+        /**
+         * 
+         * @param ex
+         * @return 
+         */
+        protected boolean getDownloadFailureMessageStatesError(Exception ex){
+            return showDBErrorDetailsToggle.isSelected();
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @param ex
+         * @return 
+         */
+        protected String getDownloadFailureMessage(File file, String path, 
+                DatabaseSyncMode mode, Exception ex){
+            return getSyncFailureMessage(file,path,mode,
+                    "The file failed to download from %s.",
+                    getDownloadFailureMessageStatesError(ex),ex);
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @param ex
+         * @return 
+         */
+        protected String getDownloadFileNotFoundMessage(File file, String path, 
+                DatabaseSyncMode mode, Exception ex){
+            return "The file was not found on "+mode+" at the path\n\""+path+"\"";
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected boolean canLoadIfDownloadFails(){
+            return true;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @param ex
+         * @return 
+         */
+        protected int showDownloadFailurePrompt(File file, String path, 
+                DatabaseSyncMode mode,Exception ex){
+            if (!fileFound && !showFilePathNotFound)
+                return JOptionPane.CANCEL_OPTION;
+            return LinkManager.this.showFailurePrompt("ERROR - File Failed To Download", 
+                (fileFound)?getDownloadFailureMessage(file,path,mode,ex):
+                        getDownloadFileNotFoundMessage(file,path,mode,ex), 
+                true, canLoadIfDownloadFails());
+        }
+        /**
+         * This returns the title for the dialog to display if the file is 
+         * successfully loaded.
+         * @param file The file that was successfully loaded.
+         * @return The title for the dialog to display if the file is 
+         * successfully loaded.
+         */
+        protected String getSuccessTitle(File file){
+            return "File Loaded Successfully";
+        }
+        /**
+         * This returns the message to display if the file is successfully 
+         * loaded.
+         * @param file The file that was successfully loaded.
+         * @return The message to display if the file is successfully loaded.
+         */
+        protected String getSuccessMessage(File file){
+            return "The file was successfully loaded.";
+        }
+        @Override
+        protected void showSuccessPrompt(File file){
+                // If the program is not to exit after saving the file
+            if (showSuccess)   
+                LinkManager.this.showSuccessPrompt(getSuccessTitle(file), 
+                        getSuccessMessage(file));
+        }
+        /**
+         * This is used to exit the program after this finishes saving the file.
+         */
+        protected void exitProgram(){
+                // Update the program configuration
+            updateProgramConfig();
+            getLogger().finer("Exiting program normally");
+            System.exit(0);         // Exit the program
+        }
+        @Override
+        protected void done(){
+            ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+            if (isCancelled() && exitIfCancelled)
+                exitProgram();
+            super.done();
+        }
+    }
+    /**
      * This is an abstract class that provides the framework for saving to a 
      * file.
      */
@@ -7662,7 +8615,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * This stores whether the file failed to save due to an error occurring 
          * while creating the backup file.
          */
-        private boolean backupFailed = false;
+        protected boolean backupFailed = false;
         /**
          * This constructs a FileSaver that will save data to the given file 
          * and, if {@code exit} is {@code true}, will exit the program after 
@@ -7747,10 +8700,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * the file.
          */
         protected void deleteBackupIfSuccessful(){
+            getLogger().entering("FileSaver", "deleteBackupIfSuccessful");
                 // If the file was successfully saved and there is a backup file
             if (success && backupFile != null){
-                backupFile.delete();
+                getLogger().log(Level.FINER, "Deleting file {0}", backupFile);
+                try{
+                    Files.deleteIfExists(backupFile.toPath());
+                } catch (IOException ex){
+                    getLogger().log(Level.WARNING, "Failed to delete file", ex);
+                    backupFile.delete();
+                }
             }
+            getLogger().exiting("FileSaver", "deleteBackupIfSuccessful");
         }
         /**
          * This returns whether this tried and failed to create a backup of the 
@@ -7759,6 +8720,41 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected boolean didBackupFail(){
             return backupFailed;
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected boolean createBackupFile(File file){
+            try {   // Try to create a backup of the file
+                backupFile = LinkManagerUtilities.createBackupCopy(file);
+                backupFailed = false;
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING,"Failed to create backup file",
+                        ex);
+                backupFailed = true;    // The backup failed
+                return false;
+            }
+            return true;
+        }
+        /**
+         * 
+         * @param file
+         * @param isDirectory
+         * @return 
+         */
+        protected boolean createDirectories(File file, boolean isDirectory){
+            if (!isDirectory){
+                File parent = file.getParentFile();
+                if (parent == null){
+                    file = file.getAbsoluteFile();
+                    parent = file.getParentFile();
+                }
+                file = parent;
+            }
+            getLogger().log(Level.FINER, "Creating directory \"{0}\"", file);
+            return FilesExtended.createDirectories(LinkManager.this, file);
         }
         /**
          * This attempts to save to the given file. This is called by {@link 
@@ -7780,18 +8776,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // on saving the file. (If the file is the directory, include it 
                 // as a directory to be created. Otherwise, create the parent 
                 // file of the file to be saved)
-            if (!FilesExtended.createDirectories(LinkManager.this, 
-                    (isFileTheDirectory())?file:file.getParentFile()))
+            if (!createDirectories(file,isFileTheDirectory()))
                 return false;
-                // If this is to create a backup of the file
-            if (willCreateBackup()){
-                try {   // Try to create a backup of the file
-                    backupFile = createBackupCopy(file);
-                    backupFailed = false;
-                } catch (IOException ex) {
-                    backupFailed = true;    // The backup failed
+                // If this is to create a backup of the file and the file exists
+            if (willCreateBackup() && file.exists()){
+                    // Try to create a backup of the file
+                if (!createBackupFile(file))
                     return false;
-                }
             }
             return saveFile(file);
         }
@@ -7853,9 +8844,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void showSuccessPrompt(File file){
                 // If the program is not to exit after saving the file
             if (!exitAfterSaving)   
-                JOptionPane.showMessageDialog(LinkManager.this, 
-                        getSuccessMessage(file), getSuccessTitle(file), 
-                        JOptionPane.INFORMATION_MESSAGE);
+                LinkManager.this.showSuccessPrompt(getSuccessTitle(file), 
+                        getSuccessMessage(file));
         }
         /**
          * This is used to display a failure and retry prompt to the user when 
@@ -7872,15 +8862,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     getFailureMessage(file);
                 // Show a dialog prompt asking the user if they would like to 
                 // try and save the file again and get their input. 
-            int option = JOptionPane.showConfirmDialog(LinkManager.this, 
-                    message+"\nWould you like to try again?",
-                    getFailureTitle(file),
-                        // If the program is to exit after saving the file, show 
-                        // a third "cancel" option to allow the user to cancel 
-                        // exiting the program
-                    (exitAfterSaving)?JOptionPane.YES_NO_CANCEL_OPTION:
-                            JOptionPane.YES_NO_OPTION,
-                    JOptionPane.ERROR_MESSAGE);
+                
+                // If the program is to exit after saving the file, show 
+                // a third "cancel" option to allow the user to cancel 
+                // exiting the program
+            int option = LinkManager.this.showFailurePrompt(getFailureTitle(file), 
+                    message, true, exitAfterSaving);
                 // If the program was going to exit after saving the file
             if (exitAfterSaving){   
                     // If the option selected was the cancel option or the user 
@@ -7895,12 +8882,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * This is used to exit the program after this finishes saving the file.
          */
         protected void exitProgram(){
+                // Update the program configuration
+            updateProgramConfig();
+            getLogger().finer("Exiting program normally");
             System.exit(0);         // Exit the program
         }
         @Override
         protected void done(){
             if (exitAfterSaving)    // If the program is to exit after saving
                 exitProgram();      // Exit the program
+            exitButton.setEnabled(!exitAfterSaving);
             saving = false;
             super.done();
         }
@@ -7947,7 +8938,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public void setProgressString(String text){
             progressStr = text;
             if (super.isSaving())   // If this is currently saving a file
-                updateProgressString();
+                progressDisplay.setString(getProgressString());
         }
         @Override
         protected boolean willCreateBackup(){
@@ -8001,6 +8992,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * The panel to add the loaded list's contents to (optional).
          */
         protected LinksListPanel panel;
+        /**
+         * A copy of the LinksListModel with the changes made.
+         */
+        protected LinksListModel model = null;
         
         ListLoader(File file, List<String> list, LinksListPanel panel){
             super(file);
@@ -8044,24 +9039,28 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // read from the file
             try(FileReader reader = new FileReader(file);
                     Scanner scanner = new Scanner(reader)){
-                readIntoList(scanner,list);
+                list = LinkManagerUtilities.readIntoList(scanner,list);
                     // If the file was a shortcut file and we're adding to a panel
                 if (panel != null && SHORTCUT_FILE_FILTER.accept(file)){
                         // Get the URL from the file
-                    String temp = getShortcutURL(list);
+                    String temp = LinkManagerUtilities.getShortcutURL(list);
                     list.clear();
                     if (temp != null)   // If a URL was found in the file
                         list.add(temp);
                 }   // If we're adding the results to a panel's model
                 if (panel != null)
-                    panel.getModel().addAll(list);
+                    model = addAllToCopy(panel,list);
                 return true;
             } catch (IOException ex) {
-                    // If we are in debug mode
-                if (isInDebug())
-                    System.out.println(ex);
+                getLogger().log(Level.WARNING,"Failed to load list into panel", 
+                        ex);
                 return false;
             }
+        }
+        @Override
+        protected void done(){
+            replaceModel(panel,model);
+            super.done();
         }
     }
     /**
@@ -8095,7 +9094,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean saveFile(File file) {
-            setProgressMaximum(list.size());
+            progressBar.setMaximum(list.size());
             return writeToFile(file,list);
         }
     }
@@ -8117,7 +9116,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             showHiddenListsToggle.setEnabled(false);
             try {   // Load the properties from the file and get if we are 
                     // successful
-                if (loadProperties(file, prop)){
+                if (LinkManagerUtilities.loadProperties(file, prop)){
                         // If the properties has a value for the database 
                         // location dialog's size
                     if (prop.containsKey(config.getComponentName(setLocationDialog)
@@ -8144,9 +9143,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     return true;
                 }
             } catch (IOException ex) {
-                    // If the program is in debug mode
-                if (isInDebug())
-                    System.out.println(ex);
+                getLogger().log(Level.WARNING, 
+                        "Failed to load configuration file", ex);
             }
             return false;
         }
@@ -8161,28 +9159,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private abstract class AbstractConfigSaver extends FileSaver{
+    private class ConfigSaver extends FileSaver{
         
-        AbstractConfigSaver(File file, boolean exit) {
-            super(file, exit);
-        }
-        
-        AbstractConfigSaver(File file){
+        ConfigSaver(File file){
             super(file);
         }
         
-        protected abstract boolean savePropertiesFile(File file) throws IOException;
-        @Override
-        protected boolean saveFile(File file) {
+        protected boolean savePropertiesFile(File file) throws IOException {
                 // Disable the hidden lists toggle
             showHiddenListsToggle.setEnabled(false);
+                // Get the settings for the program, as a Properties object
+            Properties prop = config.exportProperties();
+                // If the settings somehow failed to be exported
+            if (prop == null)
+                return false;
+            return LinkManagerUtilities.saveProperties(file,prop,GENERAL_CONFIG_HEADER);
+        }
+        @Override
+        protected boolean saveFile(File file) {
                 // Set the program to be indeterminate
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
                 // Update the program configuration
             updateProgramConfig();
             try {   // Try to save the properties to file
                 return savePropertiesFile(file);
             } catch (IOException ex) {
+                getLogger().log(Level.WARNING,"Failed to save configuration file", ex);
                 return false;
             }
         }
@@ -8198,37 +9200,126 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             showHiddenListsToggle.setEnabled(!exitAfterSaving);
         }
     }
-    
-    private class ConfigSaver extends AbstractConfigSaver{
-        
-        ConfigSaver(File file){
-            super(file);
-        }
-        @Override
-        protected boolean savePropertiesFile(File file) throws IOException {
-                // Get the settings for the program, as a Properties object
-            Properties prop = config.exportProperties();
-                // If the settings somehow failed to be exported
-            if (prop == null)
-                return false;
-            return saveProperties(file,prop);
-        }
-    }
     /**
      * 
      */
-    private class ProgramConfigSaver extends AbstractConfigSaver{
-
-        public ProgramConfigSaver(boolean exit) {
-            super(getConfigFile(), exit);
+    private class DatabaseDownloader extends AbstractFileDownloader{
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode 
+         */
+        DatabaseDownloader(File file, String filePath, DatabaseSyncMode mode, 
+                boolean showSuccess) {
+            super(file, filePath, mode, LoadingStage.DOWNLOADING_FILE);
+            this.showSuccess = showSuccess;
         }
-        
-        public ProgramConfigSaver(){
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode 
+         */
+        DatabaseDownloader(File file, String filePath, DatabaseSyncMode mode){
+            this(file,filePath,mode,false);
+        }
+        /**
+         * 
+         * @param file 
+         */
+        DatabaseDownloader(File file,boolean showSuccess){
+            super(file,LoadingStage.DOWNLOADING_FILE);
+            this.showSuccess = showSuccess;
+        }
+        /**
+         * 
+         * @param file 
+         */
+        DatabaseDownloader(File file){
+            this(file,false);
+        }
+        /**
+         * 
+         */
+        DatabaseDownloader(boolean showSuccess){
+            this(getDatabaseFile(),showSuccess);
+        }
+        /**
+         * 
+         */
+        DatabaseDownloader(){
             this(false);
         }
         @Override
-        protected boolean savePropertiesFile(File file) throws IOException {
-            return saveConfigFile();
+        public String getLoadingProgressString() {
+            return "Copying Database File";
+        }
+        @Override
+        public String getDownloadingProgressString(){
+            return "Downloading Database";
+        }
+        @Override
+        protected boolean canLoadIfDownloadFails(){
+            return false;
+        }
+        @Override
+        protected File getDownloadFile(File file){
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, 
+                        "."+DATABASE_FILE_EXTENSION);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temp download file",
+                        ex);
+            }
+            return file;
+        }
+        @Override
+        protected boolean loadFile(File file, File downloadedFile) {
+            getLogger().entering("DatabaseDownloader", "loadFile", 
+                    new Object[]{file,downloadedFile});
+            if (downloadedFile == null){
+                getLogger().warning("Database failed to download");
+                loadSuccess = false;
+                getLogger().exiting("DatabaseDownloader", "loadFile", true);
+                return true;
+            }
+            exc = null;
+            try {
+                Path path = Files.move(downloadedFile.toPath(), file.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING);
+                this.file = path.toFile();
+                getLogger().exiting("DatabaseDownloader", "loadFile", true);
+                return true;
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, 
+                        "Failed to overwrite database file with downloaded file",
+                        ex);
+                exc = ex;
+            }
+            getLogger().exiting("DatabaseDownloader", "loadFile", false);
+            return false;
+        }
+        @Override
+        protected String getFailureMessage(File file){
+            return getDownloadFailureMessage(file,filePath,syncMode,exc);
+        }
+        @Override
+        protected String getSuccessTitle(File file){
+            return "File Downloaded Successfully";
+        }
+        @Override
+        protected String getSuccessMessage(File file){
+            return "The database file was successfully downloaded.";
+        }
+        @Override
+        protected String getFailureTitle(File file){
+            return "ERROR - File Failed To Download";
+        }
+        @Override
+        protected void done(){
+            deleteDownloadedFile(false);
+            super.done();
         }
     }
     /**
@@ -8289,20 +9380,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 Statement stmt) throws SQLException;
         @Override
         protected boolean loadFile(File file){
+            getLogger().entering("AbstractDatabaseLoader", "loadFile", file);
             sqlExc = null;
-            if (!file.exists())     // If the file doesn't exist
+            if (!file.exists()){    // If the file doesn't exist
+                getLogger().exiting("AbstractDatabaseLoader", "loadFile", true);
                 return false;
+            }
+            boolean value = false;
                 // Connect to the database and create an SQL statement
             try(LinkDatabaseConnection conn = connect(file);
                     Statement stmt = conn.createStatement()){
-                return loadDatabase(conn,stmt); // Load from the database
+                value = loadDatabase(conn,stmt); // Load from the database
             } catch(SQLException ex){
+                getLogger().log(Level.WARNING, "Failed to load database", ex);
                 sqlExc = ex;
-                return false;
             } catch (UncheckedSQLException ex){
+                getLogger().log(Level.WARNING,"Failed to load database", ex);
                 sqlExc = ex.getCause();
-                return false;
+                getLogger().log(Level.WARNING,"Failure to load database cause", ex);
             }
+            getLogger().exiting("AbstractDatabaseLoader", "loadFile", value);
+            return value;
         }
         /**
          * This returns any SQLExceptions that were thrown while this was 
@@ -8315,11 +9413,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected String getFailureMessage(File file){
+            return getFailureMessage(file,sqlExc);
+        }
+        protected String getFailureMessage(File file, SQLException ex){
                 // The message to return
             String msg = "The database failed to load.";
-            if (sqlExc != null){    // If an SQLException was thrown
+            if (ex != null){    // If an SQLException was thrown
                     // Custom error messages for certain error codes
-                switch(sqlExc.getErrorCode()){
+                switch(ex.getErrorCode()){
                         // If the database failed to save because it was busy
                     case (Codes.SQLITE_BUSY):
                         msg = "Please wait, the database is currently busy.";
@@ -8333,8 +9434,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         msg = "The database failed to load due to being corrupted.";
                 }   // If the program is either in debug mode or if details are to be shown
                 if (isInDebug() || showDBErrorDetailsToggle.isSelected())    
-                    msg += "\nError: " + sqlExc + 
-                            "\nError Code: " + sqlExc.getErrorCode();
+                    msg += "\nError: " + ex + 
+                            "\nError Code: " + ex.getErrorCode();
             }
             return msg;
         }
@@ -8350,256 +9451,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     /**
-     * This is an abstract class that provides the framework for saving to a 
-     * database file.
-     */
-    private abstract class AbstractDatabaseSaver extends FileSaver{
-        /**
-         * The SQLException thrown while saving to the database if an error 
-         * occurred.
-         */
-        protected SQLException sqlExc = null;
-        /**
-         * Whether this is currently verifying the changes to the database.
-         */
-        private boolean verifying = false;
-        /**
-         * This constructs a AbstractDatabaseSaver that will save the data to 
-         * the database stored in the given file.
-         * @param file The database file to save the data to.
-         */
-        AbstractDatabaseSaver(File file) {
-            super(file);
-        }
-        /**
-         * This constructs a AbstractDatabaseSaver that will save the data to 
-         * the program's {@link #getDatabaseFile() database file}.
-         */
-        AbstractDatabaseSaver(){
-            this(getDatabaseFile());
-        }
-        /**
-         * This constructs a AbstractDatabaseSaver that will save the data to 
-         * the database stored in the given file and, if {@code exit} is {@code 
-         * true}, will exit the program afterwards.
-         * @param file The database file to save the data to.
-         * @param exit Whether the program will exit after saving the file.
-         */
-        AbstractDatabaseSaver(File file, boolean exit) {
-            super(file, exit);
-        }
-        /**
-         * This constructs a AbstractDatabaseSaver that will save the data to 
-         * the program's {@link #getDatabaseFile() database file} and, if {@code 
-         * exit} is {@code true}, will exit the program afterwards.
-         * @param exit Whether the program will exit after saving the file.
-         */
-        AbstractDatabaseSaver(boolean exit){
-            this(getDatabaseFile(), exit);
-        }
-        /**
-         * This attempts to save to the database using the given database 
-         * connection and provided reusable statement.
-         * @param conn The connection to the database.
-         * @param stmt An SQL statement that can be used to interact with the 
-         * database.
-         * @return Whether this successfully saved to the database.
-         * @throws SQLException If a database error occurs.
-         * @see #saveFile(File) 
-         */
-        protected abstract boolean saveDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException;
-        /**
-         * This returns whether the connection will be in auto-commit mode or 
-         * not. For more information, refer to {@link Connection#setAutoCommit}.
-         * @return Whether the database will be in auto-commit mode.
-         */
-        protected boolean getAutoCommit(){
-            return false;
-        }
-        /**
-         * This sets whether the program will exit after this finishes saving 
-         * the file.
-         * @param value Whether the program will exit once the file is saved.
-         */
-        public void setExitAfterSaving(boolean value){
-            exitAfterSaving = value;
-        }
-        /**
-         * 
-         * @param file
-         * @param conn
-         * @param stmt
-         * @return
-         * @throws SQLException 
-         */
-        protected boolean prepareDatabase(File file, LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException{
-            conn.createTables(stmt);
-            return conn.updateDatabaseDefinitions(stmt,LinkManager.this);
-        }
-        @Override
-        protected boolean willCreateBackup(){
-            return true;
-        }
-        /**
-         * 
-         * @return 
-         */
-        protected boolean isVerifyingDatabase(){
-            return verifying;
-        }
-        /**
-         * 
-         * @param value 
-         */
-        protected void setVerifyingDatabase(boolean value){
-            verifying = value;
-            updateProgressString();
-        }
-        /**
-         * 
-         * @return 
-         */
-        public abstract String getNormalProgressString();
-        /**
-         * 
-         * @return 
-         */
-        public String getVerifyingProgressString(){
-            return "Verifying Changes";
-        }
-        @Override
-        public String getProgressString(){
-                // If this is verifying the changes to the database
-            if (verifying)
-                return getVerifyingProgressString();
-            return getNormalProgressString();
-        }
-        @Override
-        protected boolean saveFile(File file){
-            sqlExc = null;
-                // Connect to the database and create an SQL statement
-            try(LinkDatabaseConnection conn = connect(file);
-                    Statement stmt = conn.createStatement()){
-                conn.setAutoCommit(getAutoCommit());
-                    // Try to prepare the database
-                boolean value = prepareDatabase(file,conn,stmt);
-                    // If the connection is not in auto-commit mode
-                if (!conn.getAutoCommit())
-                    conn.commit();       // Commit the changes to the database
-                if (!value) // If the database failed to be prepared
-                    return false;
-                    // Save to the database and get if we are successful
-                value = saveDatabase(conn,stmt);
-                   // Ensure that the database last modified time is updated
-                conn.setDatabaseLastModified();
-                    // If the connection is not in auto-commit mode
-                if (!conn.getAutoCommit()){
-                    setIndeterminate(true);
-                    conn.commit();       // Commit the changes to the database
-                }
-                return value;
-            } catch(SQLException ex){
-                sqlExc = ex;
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
-                return false;
-            } catch (UncheckedSQLException ex){
-                sqlExc = ex.getCause();
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
-                return false;
-            } catch(Exception ex){
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
-                return false;
-            }
-        }
-        @Override
-        protected String getSuccessMessage(File file){
-            return "The database was successfully saved.";
-        }
-        /**
-         * This returns any SQLExceptions that were thrown while this was 
-         * saving data to the database.
-         * @return The SQLException thrown while saving, or null if no 
-         * SQLException was thrown.
-         */
-        protected SQLException getSQLExceptionThrown(){
-            return sqlExc;
-        }
-        @Override
-        protected String getBackupFailedMessage(File file){
-            return "The database backup file failed to be created.";
-        }
-        @Override
-        protected String getFailureMessage(File file){
-                // The message to return
-            String msg = "The database failed to save.";
-            if (sqlExc != null){    // If an SQLException was thrown
-                    // Custom error messages for certain error codes
-                switch(sqlExc.getErrorCode()){
-                        // If the database failed to save because it was busy
-                    case (Codes.SQLITE_BUSY):
-                        msg = "Please wait, the database is currently busy.";
-                        break;
-                        // If the database is read only
-                    case(Codes.SQLITE_READONLY):
-                        msg = "The database could not be saved due to being read only.";
-                        break;
-                        // If the database is full
-                    case(Codes.SQLITE_FULL):
-                        msg = "The database could not be saved due to being full.";
-                        break;
-                        // If the database could not be opened
-                    case(Codes.SQLITE_CANTOPEN):
-                        msg = "The database could not be opened for saving.";
-                        break;
-                        // If the database is corrupted
-                    case(Codes.SQLITE_CORRUPT):
-                        msg = "The database failed to save due to being corrupted.";
-                }   // If the program is either in debug mode or if details are to be shown
-                if (isInDebug() || showDBErrorDetailsToggle.isSelected())    
-                    msg += "\nError: " + sqlExc + 
-                            "\nError Code: " + sqlExc.getErrorCode();
-            }
-            return msg;
-        }
-        /**
-         * 
-         */
-        protected void uploadDatabase(){
-            saver = new DbxUploader(file,config.getDropboxDatabaseFileName(),false,exitAfterSaving);
-            saver.execute();
-        }
-        @Override
-        protected void exitProgram(){
-            if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-                uploadDatabase();
-            } else {
-                saver = new ProgramConfigSaver(true);
-                saver.execute();
-            }
-        }
-        @Override
-        protected void done(){
-            if (success){   // If this was successful
-                allListsTabsPanel.clearEdited();
-                shownListsTabsPanel.clearEdited();
-            }   // Update the program configuration
-            updateProgramConfig();
-            super.done();
-                // If we are not exiting the program after saving the database
-            if (!exitAfterSaving){   
-                autosaveMenu.startAutosave();
-                if (success && syncDBToggle.isSelected() && isLoggedInToDropbox()){
-                    uploadDatabase();
-                }
-            }
-        }
-    }
-    /**
      * This loads the lists of links from the database.
      */
     private class DatabaseLoader extends AbstractDatabaseLoader{
@@ -8607,7 +9458,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * This is a map that maps the tabs panels to the list of models that 
          * will be displayed by those tabs panels when we finish loading.
          */
-        private HashMap<LinksListTabsPanel, List<LinksListModel>> tabsModels = 
+        private Map<LinksListTabsPanel, List<LinksListModel>> tabsModels = 
                 new HashMap<>();
         /**
          * This stores the flags for this DatabaseLoader, which indicate things 
@@ -8658,7 +9509,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return Whether all the lists will be loaded.
          */
         private boolean getLoadsAll(){
-            return getFlag(loadFlags,DATABASE_LOADER_LOAD_ALL_FLAG);
+            return LinkManagerUtilities.getFlag(loadFlags,DATABASE_LOADER_LOAD_ALL_FLAG);
         }
         @Override
         public String getProgressString(){
@@ -8676,156 +9527,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Get whether the database is outdated
             isDBOutdated = conn.isDatabaseOutdated();
                 // If the database is incompatible with this version of the 
-            if (!conn.isDatabaseCompatible())   // program
+            if (!conn.isDatabaseCompatible()){      // program
+                getLogger().log(Level.INFO, 
+                        "Database is incompatible with this program (version: {0})", 
+                        dbVersion);
                 return false;
+            }
             // TODO: This should be made to backup the database, just in case
                 // If the database was not successfully updated to the latest 
                 // version this program supports
-            if (!conn.updateDatabaseDefinitions(stmt,LinkManager.this))
+            if (!conn.updateDatabaseDefinitions(stmt,progressObserver)){
+                getLogger().log(Level.WARNING, 
+                        "Database could not be updated (version: {0})", 
+                        dbVersion);
                 return false;
-                // Get a set of models that currently already exist
-            Set<LinksListModel> oldModels = new HashSet<>(allListsTabsPanel.getModels());
-                // Make sure this set has ALL the models, even those that are 
-                // somehow absent from the all lists panel
-            oldModels.addAll(shownListsTabsPanel.getModels());
-                // This will get a map of the existing models mapped to their 
-                // listID. Models that don't have a listID won't be in this map
-            Map<Integer, LinksListModel> oldModelsMap = new HashMap<>();
-                // Go through the existing models
-            for (LinksListModel model : oldModels){
-                    // If the current model does not have a null listID
-                if (model.getListID() != null){
-                    oldModelsMap.put(model.getListID(), model);
-                }
-            }   // Get the map containing the list IDs and data
-            ListDataMap listDataMap = conn.getListDataMap();
-                // Get the map of list data that will be loaded. If we are 
-                // loading all the lists, then this will just be the list data 
-            NavigableMap<Integer, ListContents> loadData = listDataMap; // map
-                // This will get a map of list IDs and models to be used
-            HashMap<Integer, LinksListModel> models = new HashMap<>();
-                // This will get the total size of the lists that will be loaded
-            int total = 0;
-                // If we are loading all the lists
-            if (getLoadsAll()){
-                    // Get the total size of all the lists in the database
-                total = listDataMap.totalSize();
-            } else {// Put the map of existing models into the map of models to 
-                models.putAll(oldModelsMap);    // be used
-                    // Copy the list data map, since we don't want to edit the 
-                loadData = new TreeMap<>(listDataMap);  // actual database
-                    // Remove any lists that do not need to be re-loaded
-                    // Remove all the lists that have been removed
-                loadData.keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
-                    // Remove all the lists that are outdated compared to the 
-                    // existing models
-                loadData.values().removeIf((ListContents t) -> {
-                        // Get the model with the listID of the current list if 
-                        // there is one
-                    LinksListModel model = models.get(t.getListID());
-                        // Return whether there is a model with that listID and 
-                        // the list in the database is outdated
-                    return model != null && t.isOutdated(model);
-                });
-                    // Go through the lists that will be loaded
-                for (ListContents temp : loadData.values()){
-                    total += temp.size();
-                }
-            }   // Set the progress maximum to the amount of links that will be 
-            setProgressMaximum(total);  // loaded
-            setIndeterminate(false);
-                // Go through the lists to be loaded
-            for (Map.Entry<Integer,ListContents> listData:loadData.entrySet()){
-                    // Get the listID of the list being loaded
-                Integer listID = listData.getKey();
-                    // Get a model version of the current list
-                LinksListModel model = listData.getValue().toModel(listContentsObserver);
-                    // Get the old version of the model (the one that this model 
-                    // is replacing), and copy the selection from the old model
-                model.setSelectionFrom(oldModelsMap.get(listID));
-                    // Put the model in the map containing the loaded models
-                models.put(listID, model);
             }
-            setIndeterminate(true);
-                // This gets a map mapping the tabs panels to the list of 
-                // listIDs for the lists to be shown by the panels
-            Map<LinksListTabsPanel,List<Integer>> tabsListIDs = new HashMap<>();
-                // Get a copy of the list of listIDs for the all lists panel
-            List<Integer> allListIDs = new ArrayList<>(conn.getAllListIDs());
-                // Remove any null listIDs
-            allListIDs.removeIf((Integer t) -> t == null);
-                // Put the copy into the map, mapping it to the all lists panel
-            tabsListIDs.put(allListsTabsPanel, allListIDs);
-                // Get a copy of the list of shown listIDs
-            List<Integer> shownListIDs = new ArrayList<>(conn.getShownListIDs());
-                // Remove any null listIDs
-            shownListIDs.removeIf((Integer t) -> t == null);
-                // Put the copy into the map, mapping it to the shown lists 
-            tabsListIDs.put(shownListsTabsPanel, shownListIDs); // panel
-                // This is a set that will get the listIDs missing from the all 
-                // listIDs list
-            Set<Integer> missingListIDs = new LinkedHashSet<>(shownListIDs);
-                // Remove any listIDs that are already in the all listIDs list
-            missingListIDs.removeAll(allListIDs);
-                // Add any missing listIDs to the all listIDs list
-            allListIDs.addAll(missingListIDs);
-                // Go through the panels and listIDs to get models for
-            for (Map.Entry<LinksListTabsPanel,List<Integer>> entry : tabsListIDs.entrySet()){
-                    // A list to get the models to use for the current tabs panel
-                List<LinksListModel> modelList = new ArrayList<>();
-                    // If we are not loading all the lists, only the outdated ones
-                if (!getLoadsAll()){
-                        // Remove all listIDs of lists that were removed by the 
-                        // program
-                    entry.getValue().removeAll(allListsTabsPanel.getRemovedListIDs());
-                        // Remove all listIDs of lists that are already loaded, 
-                        // since we will be replacing them in-situ instead of 
-                        // re-adding them. This is to perserve the order of the 
-                        // existing lists, including those that have not been 
-                        // assigned a listID yet.
-                    entry.getValue().removeAll(entry.getKey().getListIDs());
-                        // Add all the currently existing models from the tabs 
-                        // panel
-                    modelList.addAll(entry.getKey().getModels());
-                        // Replace any outdated models with ones loaded from the 
-                        // database
-                    modelList.replaceAll((LinksListModel t) -> {
-                        // If this model is somehow null or (more realistically) 
-                        // this model's listID is null (i.e. no listID assigned, 
-                        // typical of newly created lists)
-                        if (t == null || t.getListID() == null)
-                            return t;   // Do not replace this model
-                        // Check for any models loaded from the database with 
-                        // the same listID, and if there is one, replace the  
-                        // current model with the loaded model. If not, then use 
-                        // the current model, don't replace it.
-                        LinksListModel temp = models.getOrDefault(t.getListID(), t);
-                        // If the replacement model is the same as this model or 
-                        // if the replacement model is somehow null
-                        if (temp == t || temp == null)
-                            return t;   // Do not replace this model
-                        return temp;
-                    });
-                }
-                // Go through the listIDs for the lists in the database that are 
-                // to be displayed on this tabs panel. If we were only loading 
-                // any outdated lists, this will only be going through lists 
-                // that were added to this tabs panel later and aren't currently 
-                // being displayed.
-                for (Integer listID : entry.getValue()){
-                    // Append the loaded list's model to the models for this 
-                    modelList.add(models.get(listID));  // panel
-                }
-                // Set the list of models for this tabs panel
-                tabsModels.put(entry.getKey(), modelList);
-            }   // If we are only reloading outdated lists
-            if (!getLoadsAll()){
-                    // The shown lists tabs panel may be showing lists that have 
-                    // since been hidden. Remove any lists that are now hidden
-                tabsModels.get(shownListsTabsPanel).removeIf((LinksListModel t) 
-                        -> t == null || t.isHidden());
-            }
-            
+            tabsModels = LinkManager.this.loadDatabase(conn, getLoadsAll());
             return true;
         }
         @Override
@@ -8867,8 +9584,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         tabsModels.entrySet()){
                         // Get the tabs panel
                     LinksListTabsPanel tabsPanel = entry.getKey();
-                        // Set the models for the tabs panel
-                    tabsPanel.setModels(entry.getValue());
+                    try{    // Set the models for the tabs panel
+                        tabsPanel.setModels(entry.getValue());
+                    } catch (NullPointerException ex){
+                        getLogger().log(Level.WARNING,"Null encountered while setting models",ex);
+                    }
                         // Go through the lists for the tabs panel
                     for (LinksListPanel panel : tabsPanel){
                             // Set the read only toggle for the current list to 
@@ -8909,93 +9629,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             fullyLoaded = fullyLoaded || getLoadsAll();
                 // Re-enable all the lists
             setTabsPanelListsEnabled(true);
+                // If all the lists were loaded and this successfully loaded the 
+                // lists
+            if (getLoadsAll() && success)
+                autosaveMenu.stopAutosave();
             super.done();
                 // If this should check the local file for any more up-to-date 
                 // lists and the file that was loaded is not the local file
-            if (getFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG) && 
+            if (LinkManagerUtilities.getFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG) && 
                     !file.equals(getDatabaseFile())){
-                loader = new DatabaseLoader(setFlag(loadFlags,
+                loader = new DatabaseLoader(LinkManagerUtilities.setFlag(loadFlags,
                         DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG, false));
                 loader.execute();
-                return;
             }
-            autosaveMenu.startAutosave();
-        }
-    }
-//    /**
-//     * This updates the database before loading the database
-//     */
-//    private class DatabaseLoadUpdater extends AbstractDatabaseSaver{
-//
-//        @Override
-//        protected boolean saveDatabase(LinkDatabaseConnection conn, 
-//                Statement stmt) throws SQLException {
-//                // This does nothing. Everything was handled in prepareDatabase
-//            return true;
-//        }
-//        @Override
-//        public String getNormalProgressString() {
-//            return "Updating Database";
-//        }
-//        @Override
-//        protected void done(){
-//            loader = new DatabaseLoader(true);
-//            loader.execute();
-//        }
-//    }
-    /**
-     * This saves the lists of links to the database.
-     */
-    private class DatabaseSaver extends AbstractDatabaseSaver{
-        
-        DatabaseSaver(boolean exit){
-            super(exit);
-        }
-        
-        DatabaseSaver(){
-            super();
-        }
-        @Override
-        public String getNormalProgressString(){
-            return "Saving Lists";
-        }
-        @Override
-        protected boolean saveDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException {
-                // Remove the listIDs of any lists that have been removed
-            conn.getAllListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
-                // Remove the listIDs of any lists that have been removed
-            conn.getShownListIDs().removeAll(allListsTabsPanel.getRemovedListIDs());
-                // Remove the listIDs of any lists that have been hidden
-            conn.getShownListIDs().removeAll(shownListsTabsPanel.getRemovedListIDs());
-                // Remove any lists that have been removed
-            conn.getListNameMap().keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
-                // Go through the removed list IDs
-            for (Integer listID : allListsTabsPanel.getRemovedListIDs()){
-                    // If the current listID is not null
-                if (listID != null)
-                        // Remove the list's preference node
-                    config.removeListPreferences(listID);
-            }   // Clear the sets of removed ListIDs
-            allListsTabsPanel.clearRemovedListIDs();
-            shownListsTabsPanel.clearRemovedListIDs();
-            conn.commit();       // Commit the changes to the database
-                // This is a set containing all the models in the program
-            Set<LinksListModel> models = new LinkedHashSet<>(allListsTabsPanel.getModels());
-                // Add any models that are in the shown lists panel that are 
-                // missing from the all lists panel
-            models.addAll(shownListsTabsPanel.getModels());
-                // Write the models to the database
-            writeToDatabase(conn, models);
-            
-            return true;
-        }
-        @Override
-        protected void showSuccessPrompt(File file){ }
-        @Override
-        protected void done(){
-            deleteBackupIfSuccessful();
-            super.done();
         }
     }
     /**
@@ -9103,9 +9749,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Make sure the prefix map contains the empty prefix
             prefixMap.getEmptyPrefixID();
             usedPrefixComboModel = new ArrayComboBoxModel<>();
-            clearProgressValue();
-            setProgressMaximum(prefixMap.size());
-            setIndeterminate(false);
+            progressBar.setValue(0);
+            progressBar.setMaximum(prefixMap.size());
+            progressBar.setIndeterminate(false);
                 // Go through the prefix map's entries
             for (Map.Entry<Integer,String> entry : prefixMap.entrySet()){
                     // Add a row to the prefix table model
@@ -9121,7 +9767,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 incrementProgressValue();
             }
             
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
                 // Search for the empty prefix
             searchUsedPrefixes(conn,prefixMap.getEmptyPrefixID());
             dbLinkSearchTable.setModel(getListSearchTableModel());
@@ -9132,7 +9778,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             addConfigRows("Database",dbProperty.toProperties(),
                     dbProperty.getDefaults().toProperties());
             
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
                 // Get the list data map from the database
             ListDataMap listDataMap = conn.getListDataMap();
             listTableModel = new CustomTableModel("ListID","List Name",
@@ -9152,10 +9798,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (listID != null)
                         // Configure the values shown by the list edit settings
                     setListEditSettings(conn,listID);
-            } catch (IllegalArgumentException ex){}
-            clearProgressValue();
-            setProgressMaximum(listDataMap.size());
-            setIndeterminate(false);
+            } catch (IllegalArgumentException ex){
+                getLogger().log(Level.WARNING, 
+                        "Failed to load list settings for list "+
+                                listIDComboModel.getSelectedItem(),ex);
+            }
+            progressBar.setValue(0);
+            progressBar.setMaximum(listDataMap.size());
+            progressBar.setIndeterminate(false);
                 // Go through the list contents objects
             for (ListContents list : listDataMap.values()){
                 listTableModel.addRow(new Object[]{
@@ -9172,7 +9822,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 incrementProgressValue();
             }
             
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
                 // Get the set of table names in the database
             Set<String> tableSet = conn.showTables();
                 // Get the set of views names in the database
@@ -9183,13 +9833,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             Map<String,String> structMap = new HashMap<>(conn.showStructures());
                 // Remove any structures that are null
             structMap.values().removeIf((String t) -> t == null);
-            clearProgressValue();
-            setProgressMaximum(structMap.size());
+            progressBar.setValue(0);
+            progressBar.setMaximum(structMap.size());
             tableTableModel = new CustomTableModel("Name", "Type", "Structure");
             tableTableModel.setColumnClass(0, String.class);
             tableTableModel.setColumnClass(1, String.class);
             tableTableModel.setColumnClass(2, String.class);
-            setIndeterminate(false);
+            progressBar.setIndeterminate(false);
                 // Load the structures for the tables
             loadStructure(tableSet,structMap,"Table");
                 // Load the structures for the views
@@ -9197,9 +9847,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Load the structures for the indexes
             loadStructure(indexSet,structMap,"Index");
             
-            setIndeterminate(true);
-            
-            
+            progressBar.setIndeterminate(true);
             
             try{
                 prefixThreshold = Integer.valueOf(dbProperty.getProperty(
@@ -9321,7 +9969,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private void addConfigRows(String source, Properties config, 
                 Properties defaultConfig, boolean setIfNotEqual){
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
                 // Create the config table model if not already created
             createConfigModel();
                 // Get the property names for the config
@@ -9330,9 +9978,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (defaultConfig != null)
                     // Add all the default property names too
                 propNames.addAll(defaultConfig.stringPropertyNames());
-            clearProgressValue();
-            setProgressMaximum(propNames.size());
-            setIndeterminate(false);
+            progressBar.setValue(0);
+            progressBar.setMaximum(propNames.size());
+            progressBar.setIndeterminate(false);
                 // Go through the program's property names
             for (String property : propNames){
                     // Get the set property value
@@ -9375,6 +10023,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param node
          */
         private void addConfigRows(String source, ConfigPreferences node){
+            getLogger().entering(this.getClass().getName(), "addConfigRows", 
+                    new Object[]{source,node});
                 // If the preference node is null
             if (node == null)
                 return;
@@ -9382,32 +10032,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (node.nodeExists(""))
                     addConfigRows(source,node.toProperties());
             } catch (BackingStoreException | IllegalStateException ex) {
-                    // If the program is in debug mode
-                if (isInDebug())
-                    System.out.println("Error: " + ex);
+                getLogger().log(Level.WARNING, "Failed to load settings from node",
+                        ex);
             }
-        }
-        /**
-         * 
-         * @param sourceTemplate
-         * @param prefix 
-         */
-        private void addNodeChildConfigRows(String sourceTemplate, String prefix){
-            try{    // Get the children of the local preference node, as a 
-                    // tree set
-                TreeSet<String> childNodes = new TreeSet<>(Arrays.asList(
-                        config.getPreferences().childrenNames()));
-                    // Remove anything that doesn't have the given prefix
-                childNodes.removeIf((String t) -> t == null || 
-                        !t.startsWith(prefix));
-                    // Go through the child nodes
-                for (String child : childNodes){
-                        // Add all the values in the child node
-                    addConfigRows(String.format(sourceTemplate, 
-                            child.substring(prefix.length())), 
-                            config.getPreferences().node(child));
-                }
-            } catch (BackingStoreException ex) {}
+            getLogger().exiting(this.getClass().getName(), "addConfigRows");
         }
         @Override
         protected boolean loadFile(File file){
@@ -9440,13 +10068,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             addConfigRows("Shared Preferences",config.getSharedPreferences());
                 // Add all the preferences for this program
             addConfigRows("Preferences",config.getPreferences());
-                // Add all the list type nodes
-            addNodeChildConfigRows("List Type %s Preferences",
-                    LIST_TYPE_PREFERENCE_NODE_NAME_PREFIX);
-                // Add all the list ID nodes
-            addNodeChildConfigRows("List ID %s Preferences",
-                    LIST_ID_PREFERENCE_NODE_NAME_PREFIX);
-                // Add all the Dropbox preferences for this program
+                // Go through the list type nodes
+            for (Integer type : config.getListTypes()){
+                    // Add all the preferences for this list type
+                addConfigRows("List Type "+type+" Preferences",
+                        config.getListTypePreferences(type));
+            }   // Go through the listID nodes
+            for (Integer id : config.getListIDs()){
+                    // Add all the preferences for this listID
+                addConfigRows("List ID "+id+" Preferences",
+                        config.getListPreferences(id));
+            }   // Add all the Dropbox preferences for this program
             addConfigRows("Dropbox Preferences",config.getDropboxPreferences());
             
             return null;
@@ -9504,18 +10136,666 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             updateListEditButtons();
             if (usedPrefixComboModel != null){
                 dbUsedPrefixCombo.setModel(usedPrefixComboModel);
-                dbSearchPrefixCombo.setModel(usedPrefixComboModel);
+                ArrayComboBoxModel<String> temp = new ArrayComboBoxModel<>(usedPrefixComboModel);
+                temp.setSelectedItem(usedPrefixComboModel.getSelectedItem());
+                dbSearchPrefixCombo.setModel(temp);
             }
             setTabEnabled(dbUsedPrefixesPanel,usedPrefixComboModel != null);
             linkCountLabel.setText(Objects.toString(linkCount,"N/A"));
             shownTotalSizeLabel.setText(Objects.toString(shownTotalSize,"N/A"));
             allTotalSizeLabel.setText(Objects.toString(allTotalSize,"N/A"));
             programIDLabel.setText(Objects.toString(config.getProgramID(), "N/A"));
+            userIDLabel.setText(Objects.toString(config.getUserID(), "N/A"));
             
             setTabEnabled(dbCreatePrefixScrollPane,createPrefixTestNode != null);
             if (createPrefixTestNode != null)
                 dbCreatePrefixTree.setModel(new DefaultTreeModel(createPrefixTestNode,true));
             
+            super.done();
+        }
+    }
+    
+    private enum SavingStage{
+        
+        SAVE_DATABASE,
+        
+        VERIFY_DATABASE,
+        
+        UPLOAD_FILE,
+        
+        SAVE_CONFIGURATION;
+    }
+    /**
+     * This is an abstract class that provides the framework for saving to a 
+     * database file.
+     */
+    private abstract class AbstractDatabaseSaver extends FileSaver{
+        /**
+         * This is the state in the process of working with the file.
+         */
+        protected SavingStage stage;
+        
+        protected String filePath;
+        
+        protected DatabaseSyncMode syncMode;
+        
+        protected File configFile;
+        
+        protected boolean saveSuccess = true;
+        /**
+         * Whether the success prompt should be shown.
+         */
+        protected boolean showSuccess = false;
+        /**
+         * Whether file not found errors should be shown.
+         */
+        protected boolean showFileNotFound = true;
+        
+        AbstractDatabaseSaver(File file, String filePath, 
+                DatabaseSyncMode mode, File configFile, SavingStage stage, 
+                boolean exit){
+            super(file,exit);
+            this.stage = Objects.requireNonNull(stage);
+            this.filePath = filePath;
+            this.syncMode = mode;
+            this.configFile = configFile;
+        }
+        
+        AbstractDatabaseSaver(File file, String filePath, 
+                DatabaseSyncMode mode, File configFile, SavingStage stage){
+            this(file,filePath,mode,configFile,stage,false);
+        }
+        
+        AbstractDatabaseSaver(File file, String filePath, 
+                DatabaseSyncMode mode, SavingStage stage, boolean exit){
+            this(file,filePath,mode,getConfigFile(),stage,exit);
+        }
+        
+        AbstractDatabaseSaver(File file, String filePath, 
+                DatabaseSyncMode mode, SavingStage stage){
+            this(file,filePath,mode,stage,false);
+        }
+        
+        private AbstractDatabaseSaver(File file, DatabaseSyncMode mode, 
+                SavingStage stage, boolean exit){
+            this(file,config.getDatabaseFileSyncPath(mode),mode,stage,exit);
+        }
+        
+        AbstractDatabaseSaver(File file, SavingStage stage, boolean exit){
+            this(file,getSyncMode(),stage,exit);
+        }
+        
+        AbstractDatabaseSaver(File file, SavingStage stage){
+            this(file,stage,false);
+        }
+        
+        AbstractDatabaseSaver(SavingStage stage, boolean exit){
+            this(getDatabaseFile(),stage,exit);
+        }
+        
+        AbstractDatabaseSaver(SavingStage stage){
+            this(stage,false);
+        }
+        /**
+         * This constructs a AbstractDatabaseSaver that will save the data to 
+         * the database stored in the given file and, if {@code exit} is {@code 
+         * true}, will exit the program afterwards.
+         * @param file The database file to save the data to.
+         * @param exit Whether the program will exit after saving the file.
+         */
+        AbstractDatabaseSaver(File file, boolean exit){
+            this(file,SavingStage.SAVE_DATABASE,exit);
+        }
+        /**
+         * This constructs a AbstractDatabaseSaver that will save the data to 
+         * the database stored in the given file.
+         * @param file The database file to save the data to.
+         */
+        AbstractDatabaseSaver(File file){
+            this(file,false);
+        }
+        /**
+         * This constructs a AbstractDatabaseSaver that will save the data to 
+         * the program's {@link #getDatabaseFile() database file} and, if {@code 
+         * exit} is {@code true}, will exit the program afterwards.
+         * @param exit Whether the program will exit after saving the file.
+         */
+        AbstractDatabaseSaver(boolean exit){
+            this(SavingStage.SAVE_DATABASE,exit);
+        }
+        /**
+         * This constructs a AbstractDatabaseSaver that will save the data to 
+         * the program's {@link #getDatabaseFile() database file}.
+         */
+        AbstractDatabaseSaver(){
+            this(false);
+        }
+        /**
+         * 
+         * @return 
+         */
+        public SavingStage getStage(){
+            return stage;
+        }
+        /**
+         * 
+         * @param stage 
+         */
+        protected void setStage(SavingStage stage){
+            this.stage = Objects.requireNonNull(stage);
+            progressDisplay.setString(getProgressString());
+        }
+        @Override
+        protected boolean willCreateBackup(){
+            return SavingStage.SAVE_DATABASE.equals(stage);
+        }
+        /**
+         * 
+         * @param value 
+         */
+        public AbstractDatabaseSaver setShowsSuccessfulUploadPrompt(boolean value){
+            this.showSuccess = value;
+            return this;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean getShowsSuccessfulUploadPrompt(){
+            return showSuccess;
+        }
+        /**
+         * This sets whether this shows a failure prompt when the file is not 
+         * found.
+         * @param showFileNotFound Whether the file not found failure prompt is 
+         * shown.
+         * @return This AbstractDatabaseFileSaver.
+         */
+        public AbstractDatabaseSaver setShowsFileNotFoundPrompt(boolean showFileNotFound){
+            this.showFileNotFound = showFileNotFound;
+            return this;
+        }
+        /**
+         * This returns whether this shows a failure prompt when the file is not 
+         * found.
+         * @return Whether the file not found failure prompt is shown.
+         */
+        public boolean getShowsFileNotFoundPrompt(){
+            return showFileNotFound;
+        }
+        /**
+         * This returns whether the connection will be in auto-commit mode or 
+         * not. For more information, refer to {@link Connection#setAutoCommit}.
+         * @return Whether the database will be in auto-commit mode.
+         */
+        protected boolean getAutoCommit(){
+            return false;
+        }
+        /**
+         * This sets whether the program will exit after this finishes saving 
+         * the file.
+         * @param value Whether the program will exit once the file is saved.
+         */
+        public void setExitAfterSaving(boolean value){
+            exitAfterSaving = value;
+        }
+        /**
+         * 
+         * @param file
+         * @param conn
+         * @param stmt
+         * @return
+         * @throws SQLException 
+         */
+        protected boolean prepareDatabase(File file, LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException{
+            conn.createTables(stmt);
+            return conn.updateDatabaseDefinitions(stmt,progressObserver);
+        }
+        /**
+         * 
+         * @return 
+         */
+        public abstract String getNormalProgressString();
+        /**
+         * 
+         * @return 
+         */
+        public String getVerifyingProgressString(){
+            return "Verifying Changes";
+        }
+        /**
+         * 
+         * @return 
+         */
+        public String getUploadingProgressString(){
+            return "Uploading Database";
+        }
+        @Override
+        public String getProgressString(){
+            switch(stage){
+                    // If this is verifying the changes to the database
+                case VERIFY_DATABASE:
+                    return getVerifyingProgressString();
+                case UPLOAD_FILE:
+                    return getUploadingProgressString();
+                case SAVE_CONFIGURATION:
+                    return "Saving Configuration";
+                default:
+                    return getNormalProgressString();
+            }
+        }
+        @Override
+        protected boolean createBackupFile(File file){
+            getLogger().entering(this.getClass().getName(), "createBackupFile", 
+                    file);
+            int retryOption = JOptionPane.NO_OPTION;
+            do {
+                try {   // Try to create a backup of the file
+                    backupFile = LinkManagerUtilities.createBackupCopy(file);
+                    backupFailed = false;
+                } catch (IOException ex) {
+                    getLogger().log(Level.WARNING,"Failed to create backup file",
+                            ex);
+                    backupFailed = true;    // The backup failed
+                    retryOption = showRetryPrompt("ERROR - Failed To Create Backup",
+                            "The database backup file failed to be created.",
+                            true);
+                }
+            } while (backupFailed && retryOption == JOptionPane.YES_OPTION);
+                // If the option selected was the cancel option or the user 
+                // closed the dialog without selecting anything
+            if (backupFailed && (retryOption == JOptionPane.CLOSED_OPTION || 
+                    retryOption == JOptionPane.CANCEL_OPTION)){
+                exitAfterSaving = false;
+                getLogger().exiting(this.getClass().getName(), "createBackupFile", false);
+                return false;
+            }
+            getLogger().exiting(this.getClass().getName(), "createBackupFile", true);
+            return true;
+        }
+        /**
+         * This attempts to save to the database using the given database 
+         * connection and provided reusable statement.
+         * @param conn The connection to the database.
+         * @param stmt An SQL statement that can be used to interact with the 
+         * database.
+         * @return Whether this successfully saved to the database.
+         * @throws SQLException If a database error occurs.
+         * @see #saveFile(File) 
+         */
+        protected abstract boolean saveDatabase(LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException;
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected boolean saveDatabase(File file){
+            getLogger().entering("AbstractDatabaseSaver", "saveDatabase", file);
+            boolean retry;
+            do{
+                boolean value = false;
+                SQLException exc = null;
+                progressBar.setValue(0);
+                progressBar.setIndeterminate(true);
+                    // Connect to the database and create an SQL statement
+                try(LinkDatabaseConnection conn = connect(file);
+                        Statement stmt = conn.createStatement()){
+                    conn.setAutoCommit(getAutoCommit());
+                        // Try to prepare the database
+                    value = prepareDatabase(file,conn,stmt);
+                        // If the connection is not in auto-commit mode
+                    if (!conn.getAutoCommit())
+                        conn.commit();       // Commit the changes to the database
+                        // If the database was successfully prepared
+                    if (value){
+                            // Save to the database and get if we are successful
+                        value = saveDatabase(conn,stmt);
+                           // Ensure that the database last modified time is updated
+                        conn.setDatabaseLastModified();
+                            // If the connection is not in auto-commit mode
+                        if (!conn.getAutoCommit()){
+                            progressBar.setIndeterminate(true);
+                            conn.commit();       // Commit the changes to the database
+                        }
+                    } else {
+                        getLogger().log(Level.WARNING,"Failed to prepare database");
+                    }
+                } catch(SQLException ex){
+                    getLogger().log(Level.WARNING, "Failed to save database", ex);
+                    exc = ex;
+                } catch (UncheckedSQLException ex){
+                    getLogger().log(Level.WARNING, "Failed to save database", ex);
+                    exc = ex.getCause();
+                    getLogger().log(Level.WARNING,"Failure to save database cause", ex);
+                } catch(Exception ex){
+                    getLogger().log(Level.WARNING, "Failed to save database", ex);
+                }
+                if (value){
+                    getLogger().exiting("AbstractDatabaseSaver", "saveDatabase", true);
+                    return true;
+                }
+                retry = showFailurePrompt("ERROR - Failed To Save Database",
+                        getFailureMessage(file, exc),true);
+            }   // While the file failed to be processed and the user wants to 
+            while(retry);   // try again
+            getLogger().exiting("AbstractDatabaseSaver", "saveDatabase", false);
+            return false;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @return 
+         */
+        protected boolean uploadFile(File file, String path, 
+                DatabaseSyncMode mode){
+            getLogger().entering("AbstractDatabaseSaver", "uploadFile", 
+                    new Object[]{file,path,mode});
+                // Whether the user wants this to try processing the file again 
+            boolean retry;  // if unsuccessful
+                // Format the file path
+            path = LinkManagerUtilities.formatExternalFilePath(mode, path);
+            getLogger().log(Level.FINER, "Uploading file at path \"{0}\"",path);
+            ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(true);
+            do{     // The exception that was thrown, if any
+                Exception exc = null;
+                    // Set the progress to be zero
+                progressBar.setValue(0);
+                    // Set the program to be indeterminate
+                progressBar.setIndeterminate(true); 
+                try{    // Determine how to upload the file
+                    switch(mode){
+                        case DROPBOX:   // Try to upload the file to Dropbox
+                            uploadToDropbox(file,path);
+                    }
+                    getLogger().exiting("AbstractDatabaseSaver", 
+                            "uploadDatabase", true);
+                    return true;
+                } catch (IOException | DbxException ex){
+                    getLogger().log(Level.WARNING, "Failed to upload file",ex);
+                    exc = ex;
+                    if (ex instanceof FileNotFoundException){
+                        if (showFileNotFound)
+                            showFailurePrompt("ERROR - File Failed To Upload",
+                                    "The file failed to upload to "+mode+"."+
+                                            "\nError: File does not exist.",
+                                    false);
+                        getLogger().exiting("AbstractDatabaseSaver", 
+                                "uploadDatabase", false);
+                        return false;
+                    } else if (ex instanceof NetworkIOException){
+                        getLogger().log(Level.WARNING, "Network Exception", ex.getCause());
+                    }
+                }
+                retry = showFailurePrompt("ERROR - File Failed To Upload",
+                        getSyncFailureMessage(file,path,mode,
+                                "The file failed to upload to %s.",
+                                showDBErrorDetailsToggle.isSelected(),exc),
+                        true);
+            }   // While the file failed to be processed and the user wants to 
+            while(retry);   // try again
+            getLogger().exiting("AbstractDatabaseSaver", "uploadDatabase", 
+                    false);
+            return false;
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected boolean saveConfig(File file){
+            getLogger().entering("AbstractDatabaseSaver", "saveConfig", file);
+                // Whether the user wants this to try processing the file again 
+            boolean retry;  // if unsuccessful
+                // Set the program to be indeterminate
+            progressBar.setIndeterminate(true); 
+            do{     // Try to create the directories for the file
+                if (createDirectories(file,false)){
+                    try {    // Try to save the properties to file
+                        if (saveConfigFile(file)){
+                            getLogger().exiting("AbstractDatabaseSaver", 
+                                    "saveConfig", true);
+                            return true;
+                        }
+                    } catch (IOException ex) {
+                        getLogger().log(Level.WARNING,
+                                "Failed to save configuration file", ex);
+                    }
+                }
+                retry = showFailurePrompt("ERROR - Configuration Failed To Save",
+                        "The configuration for the program failed to save to file.",
+                        true);
+            }   // While the file failed to be processed and the user wants to 
+            while(retry);   // try again
+            getLogger().exiting("AbstractDatabaseSaver", "saveConfig", false);
+            return false;
+        }
+        @Override
+        protected boolean saveFile(File file){
+            getLogger().entering("AbstractDatabaseSaver", "saveFile", file);
+            
+            if (SavingStage.SAVE_DATABASE.equals(stage)){
+                saveSuccess = saveDatabase(file);
+                    // Set the program to be indeterminate
+                progressBar.setIndeterminate(true);
+                if (saveSuccess && syncDBToggle.isSelected())
+                    setStage(SavingStage.UPLOAD_FILE);
+            }
+            
+            if (saveSuccess && SavingStage.UPLOAD_FILE.equals(stage) && 
+                    syncMode != null && filePath != null){
+                progressDisplay.setString(getProgressString());
+                saveSuccess = uploadFile(file,filePath,syncMode);
+                if (saveSuccess && showSuccess){
+                    LinkManager.this.showSuccessPrompt(
+                            "File Uploaded Successfully",
+                            "The file was successfully uploaded.");
+                }   // Set the program to be indeterminate
+                progressBar.setIndeterminate(true); 
+                ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+            }
+            
+            if (exitAfterSaving)
+                setStage(SavingStage.SAVE_CONFIGURATION);
+            
+            if (SavingStage.SAVE_CONFIGURATION.equals(stage) && configFile != null){
+                // Save the configuration to file
+                progressDisplay.setString(getProgressString());
+                saveSuccess = saveConfig(configFile);
+            }
+            
+            getLogger().exiting("AbstractDatabaseSaver", "saveFile", true);
+            return true;
+        }
+        @Override
+        protected Void backgroundAction() throws Exception {
+            super.backgroundAction();
+            success &= saveSuccess;
+            return null;
+        }
+        @Override
+        protected String getSuccessMessage(File file){
+            return "The database was successfully saved.";
+        }
+        @Override
+        protected String getBackupFailedMessage(File file){
+            return "The database backup file failed to be created.";
+        }
+        
+        protected String getFailureMessage(File file, SQLException ex){
+                // The message to return
+            String msg = getFailureMessage(file);
+            if (ex != null){    // If an SQLException was thrown
+                    // Custom error messages for certain error codes
+                switch(ex.getErrorCode()){
+                        // If the database failed to save because it was busy
+                    case (Codes.SQLITE_BUSY):
+                        msg = "Please wait, the database is currently busy.";
+                        break;
+                        // If the database is read only
+                    case(Codes.SQLITE_READONLY):
+                        msg = "The database could not be saved due to being read only.";
+                        break;
+                        // If the database is full
+                    case(Codes.SQLITE_FULL):
+                        msg = "The database could not be saved due to being full.";
+                        break;
+                        // If the database could not be opened
+                    case(Codes.SQLITE_CANTOPEN):
+                        msg = "The database could not be opened for saving.";
+                        break;
+                        // If the database is corrupted
+                    case(Codes.SQLITE_CORRUPT):
+                        msg = "The database failed to save due to being corrupted.";
+                }   // If the program is either in debug mode or if details are to be shown
+                if (isInDebug() || showDBErrorDetailsToggle.isSelected())    
+                    msg += "\nError: " + ex + 
+                            "\nError Code: " + ex.getErrorCode();
+            }
+            return msg;
+        }
+        @Override
+        protected String getFailureMessage(File file){
+            return "The database failed to save.";
+        }
+        @Override
+        protected String getFailureTitle(File file){
+            return "ERROR - Database Failed To Save";
+        }
+        /**
+         * 
+         * @param title
+         * @param text
+         * @param canRetry
+         * @return 
+         */
+        protected boolean showFailurePrompt(String title, String text, 
+                boolean canRetry){
+                // Show a dialog prompt asking the user if they would like to 
+                // try and save the file again and get their input. 
+
+                // If the program is to exit after saving the file, show 
+                // a third "cancel" option to allow the user to cancel 
+                // exiting the program
+            int option = LinkManager.this.showFailurePrompt(title, text, 
+                    canRetry, exitAfterSaving);
+                // If the program was going to exit after saving the file
+            if (exitAfterSaving){   
+                    // If the option selected was the cancel option or the user 
+                    // closed the dialog without selecting anything, then don't 
+                    // exit the program
+                exitAfterSaving = option != JOptionPane.CLOSED_OPTION && 
+                        option != JOptionPane.CANCEL_OPTION;
+            }   // Return whether the user selected yes
+            return option == JOptionPane.YES_OPTION;    
+        }
+        @Override
+        protected void done(){
+            ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+            if (success){   // If this was successful
+                allListsTabsPanel.clearEdited();
+                shownListsTabsPanel.clearEdited();
+                    // Stop the autosave
+                autosaveMenu.stopAutosave();
+            }   // Update the program configuration
+            updateProgramConfig();
+            super.done();
+        }
+    }
+    /**
+     * This saves the lists of links to the database.
+     */
+    private class DatabaseSaver extends AbstractDatabaseSaver{
+        
+        DatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
+                File configFile, SavingStage stage, boolean exit){
+            super(file,filePath,mode,configFile,stage,exit);
+        }
+        
+        DatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
+                File configFile, SavingStage stage){
+            super(file,filePath,mode,configFile,stage);
+        }
+        
+        DatabaseSaver(File file, String filePath, 
+                DatabaseSyncMode mode, SavingStage stage, boolean exit){
+            super(file,filePath,mode,stage,exit);
+        }
+        
+        DatabaseSaver(File file, String filePath, 
+                DatabaseSyncMode mode, SavingStage stage){
+            super(file,filePath,mode,stage);
+        }
+        
+        DatabaseSaver(File file, SavingStage stage, boolean exit){
+            super(file,stage,exit);
+        }
+        
+        DatabaseSaver(File file, SavingStage stage){
+            super(file,stage);
+        }
+        
+        DatabaseSaver(SavingStage stage, boolean exit){
+            super(stage,exit);
+        }
+        
+        DatabaseSaver(SavingStage stage){
+            super(stage);
+        }
+        
+        DatabaseSaver(File file, boolean exit){
+            super(file,exit);
+        }
+        
+        DatabaseSaver(File file){
+            super(file);
+        }
+        
+        DatabaseSaver(boolean exit){
+            super(exit);
+        }
+        
+        DatabaseSaver(){
+            super();
+        }
+        @Override
+        public String getNormalProgressString() {
+            return "Saving Lists";
+        }
+        /**
+         * 
+         * @param value 
+         */
+        @Override
+        public DatabaseSaver setShowsSuccessfulUploadPrompt(boolean value){
+            super.setShowsSuccessfulUploadPrompt(value);
+            return this;
+        }
+        /**
+         * This sets whether this shows a failure prompt when the file is not 
+         * found.
+         * @param showFileNotFound Whether the file not found failure prompt is 
+         * shown.
+         * @return This DatabaseFileSaver.
+         */
+        @Override
+        public DatabaseSaver setShowsFileNotFoundPrompt(boolean showFileNotFound){
+            super.setShowsFileNotFoundPrompt(showFileNotFound);
+            return this;
+        }
+        @Override
+        protected void showSuccessPrompt(File file){ }
+        @Override
+        protected boolean saveDatabase(LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException {
+            return LinkManager.this.saveDatabase(conn);
+        }
+        @Override
+        protected void done(){
+            deleteBackupIfSuccessful();
             super.done();
         }
     }
@@ -9526,6 +10806,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         public String getNormalProgressString(){
             return "Resetting IDs";
+        }
+        /**
+         * 
+         * @param value 
+         */
+        @Override
+        public ResetDatabaseIDs setShowsSuccessfulUploadPrompt(boolean value){
+            super.setShowsSuccessfulUploadPrompt(value);
+            return this;
+        }
+        /**
+         * This sets whether this shows a failure prompt when the file is not 
+         * found.
+         * @param showFileNotFound Whether the file not found failure prompt is 
+         * shown.
+         * @return This ResetDatabaseIDs.
+         */
+        @Override
+        public ResetDatabaseIDs setShowsFileNotFoundPrompt(boolean showFileNotFound){
+            super.setShowsFileNotFoundPrompt(showFileNotFound);
+            return this;
         }
         @Override
         protected boolean saveDatabase(LinkDatabaseConnection conn, Statement stmt) 
@@ -9557,19 +10858,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             conn.commit();          // Commit the changes to the database
             System.gc();            // Run the garbage collector
                 // This is a set containing all the models in the program
-            Set<LinksListModel> models = new LinkedHashSet<>(allListsTabsPanel.getModels());
-                // Add any models that are in the shown lists panel that are 
-                // missing from the all lists panel
-            models.addAll(shownListsTabsPanel.getModels());
+            Set<LinksListModel> models = getModelSet();
+                // Go through the models
+            for (LinksListModel model : models)
+                    // Set the model's list ID to null
+                model.setListID(null);
                 // Write the models to the database
             writeToDatabase(conn, models);
             
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
             conn.commit();          // Commit the changes to the database
             System.gc();            // Run the garbage collector
             
                 // Verify the database to ensure all the data has been written
-            setVerifyingDatabase(true);
+            setStage(SavingStage.VERIFY_DATABASE);
                 // This is a set containing all the links in the models
             Set<String> linkSet1 = new LinkedHashSet<>();
                 // This is a set containing all the links in the database
@@ -9586,9 +10888,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 modelMap.put(model.getListID(), model);
             }
             
-            clearProgressValue();
-            setProgressMaximum(listDataMap.size()+4);
-            setIndeterminate(false);
+            progressBar.setValue(0);
+            progressBar.setMaximum(listDataMap.size()+4);
+            progressBar.setIndeterminate(false);
                 // Check to make sure the database contains all the links in the 
             if (!linkSet2.containsAll(linkSet1))    // program
                 return false;
@@ -9633,6 +10935,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public String getNormalProgressString(){
             return "Updating Prefixes";
         }
+        /**
+         * 
+         * @param value 
+         */
+        @Override
+        public LinkPrefixUpdater setShowsSuccessfulUploadPrompt(boolean value){
+            super.setShowsSuccessfulUploadPrompt(value);
+            return this;
+        }
+        /**
+         * This sets whether this shows a failure prompt when the file is not 
+         * found.
+         * @param showFileNotFound Whether the file not found failure prompt is 
+         * shown.
+         * @return This LinkPrefixUpdater.
+         */
+        @Override
+        public LinkPrefixUpdater setShowsFileNotFoundPrompt(boolean showFileNotFound){
+            super.setShowsFileNotFoundPrompt(showFileNotFound);
+            return this;
+        }
         @Override
         protected boolean saveDatabase(LinkDatabaseConnection conn, Statement stmt) 
                 throws SQLException {
@@ -9648,17 +10971,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // prefixes have been updated
             Map<Long,String> storedLinks = new LinkedHashMap<>(links);
             
-            setProgressMaximum(links.size());
-            setIndeterminate(false);
+            progressBar.setMaximum(links.size());
+            progressBar.setIndeterminate(false);
                 // Update the prefixes for the links in the database
-            updatePrefixesInDatabase(conn, links, links.navigableKeySet());
+            conn.updateLinkPrefix(links.navigableKeySet(),progressObserver);
             conn.commit();       // Commit the changes to the database
             
-            setIndeterminate(true);
+            progressBar.setIndeterminate(true);
             
                 // Check to make sure everything is effectively the same, just 
                 // updated
-            setVerifyingDatabase(true);
+            setStage(SavingStage.VERIFY_DATABASE);
             return storedLinks.equals(links);
         }
         @Override
@@ -9676,12 +10999,33 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         private int mode;
         
         UpdateDatabase(File file, int updateType){
-            super(file);
+            super(file,null,null,SavingStage.SAVE_DATABASE);
             this.mode = updateType;
         }
         @Override
         public String getNormalProgressString(){
             return "Updating Database";
+        }
+        /**
+         * 
+         * @param value 
+         */
+        @Override
+        public UpdateDatabase setShowsSuccessfulUploadPrompt(boolean value){
+            super.setShowsSuccessfulUploadPrompt(value);
+            return this;
+        }
+        /**
+         * This sets whether this shows a failure prompt when the file is not 
+         * found.
+         * @param showFileNotFound Whether the file not found failure prompt is 
+         * shown.
+         * @return This UpdateDatabase.
+         */
+        @Override
+        public UpdateDatabase setShowsFileNotFoundPrompt(boolean showFileNotFound){
+            super.setShowsFileNotFoundPrompt(showFileNotFound);
+            return this;
         }
         @Override
         protected boolean prepareDatabase(File file, LinkDatabaseConnection conn, 
@@ -9691,40 +11035,50 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected boolean saveDatabase(LinkDatabaseConnection conn, 
                 Statement stmt) throws SQLException {
+            getLogger().entering("UpdateDatabase", "saveDatabase", mode);
             boolean updateSuccess = true;
             if (mode != 0)
                 conn.setForeignKeysEnabled(false, stmt);
             switch(mode){
                 case(0):
-                    updateSuccess = conn.updateDatabaseDefinitions(stmt, LinkManager.this);
+                    updateSuccess = conn.updateDatabaseDefinitions(stmt, progressObserver);
                     break;
                 case(1):
-                    updateSuccess = conn.updateAddConfigTable(stmt, LinkManager.this);
+                    updateSuccess = conn.updateAddConfigTable(stmt, progressObserver);
                     break;
                 case(2):
-                    updateSuccess = conn.updateToVersion1_0_0(stmt, LinkManager.this);
+                    updateSuccess = conn.updateToVersion1_0_0(stmt, progressObserver);
                     break;
                 case(3):
-                    updateSuccess = conn.updateAddListSizeLimitColumn(stmt, LinkManager.this);
+                    updateSuccess = conn.updateAddListSizeLimitColumn(stmt, progressObserver);
                     break;
                 case(4):
-                    updateSuccess = conn.updateToVersion0_5_0(stmt, LinkManager.this);
+                    updateSuccess = conn.updateToVersion0_5_0(stmt, progressObserver);
                     break;
                 case(5):
-                    updateSuccess = conn.updateAddPrefixTable(stmt, LinkManager.this);
+                    updateSuccess = conn.updateAddPrefixTable(stmt, progressObserver);
                     break;
                 case(6):
-                    updateSuccess = conn.updateAddListFlagsColumn(stmt, LinkManager.this);
+                    updateSuccess = conn.updateAddListFlagsColumn(stmt, progressObserver);
                     break;
                 case(7):
-                    updateSuccess = conn.updateRenameInitialColumns(stmt, LinkManager.this);
+                    updateSuccess = conn.updateRenameInitialColumns(stmt, progressObserver);
                     break;
                 case(8):
-                    updateSuccess = conn.updateRenameLinkColumns(stmt, LinkManager.this);
+                    updateSuccess = conn.updateRenameLinkColumns(stmt, progressObserver);
             }
             if (mode != 0)
                 conn.setForeignKeysEnabled(true, stmt);
+            getLogger().exiting("UpdateDatabase", "saveDatabase", updateSuccess);
             return updateSuccess;
+        }
+        @Override
+        public void setExitAfterSaving(boolean value){
+            throw new UnsupportedOperationException();
+        }
+        @Override
+        protected void exitProgram(){
+            getLogger().warning("UpdateDatabase attempting to exit program");
         }
     }
     
@@ -9753,9 +11107,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected boolean saveFile(File file) {
             int max = 0;
-            for (LinksListPanel panel : allListsTabsPanel)
-                max += panel.getModel().size();
-            setProgressMaximum(max);
+            Set<LinksListModel> models = getModelSet();
+            for (LinksListModel model : models)
+                max += model.size();
+            progressBar.setMaximum(max);
             /* Copied path checking code from FileRearranger
             try{
                 path = newFile.toPath();
@@ -9766,10 +11121,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (exc.getReason().startsWith("Illegal char") && 
                         exc.getIndex() >= 0 && exc.getIndex() < newFileName.length()){
             */
-            for (LinksListPanel panel : allListsTabsPanel){
+            for (LinksListModel model : models){
                     // TODO: Check for whether any for the list names are invalid
 //                File listFile = null;
-//                String fileName = panel.getListName()+".txt";
+//                String fileName = model.getListName()+".txt";
 //                do{
 //                    listFile = new File(file,fileName);
 //                    try{
@@ -9780,7 +11135,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 //                }
 //                while (listFile == null);
                 
-                if (!writeToFile(new File(file,panel.getListName()+".txt"),panel.getModel()))
+                if (!writeToFile(new File(file,model.getListName()+".txt"),model))
                     return false;
             }
             return true;
@@ -9818,26 +11173,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean saveFile(File file) {
+            getLogger().entering(this.getClass().getName(), "saveFile",file);
             try{
                 Path path = file.toPath();
                 switch(mode){
                     case(0):
+                        getLogger().exiting(this.getClass().getName(), "saveFile",true);
                         return true;
                     case(1):
                         Files.copy(source.toPath(), path, 
                                 StandardCopyOption.COPY_ATTRIBUTES, 
                                 StandardCopyOption.REPLACE_EXISTING);
+                        getLogger().exiting(this.getClass().getName(), "saveFile",true);
                         return true;
                     case(2):
                         Files.move(source.toPath(), path, 
                                 StandardCopyOption.REPLACE_EXISTING);
+                        getLogger().exiting(this.getClass().getName(), "saveFile",true);
                         return true;
-                    default:
-                        return false;
                 }
             } catch(InvalidPathException | IOException ex){ 
+                getLogger().log(Level.WARNING, 
+                        "Failed to handle changing database file (mode: "+mode+")",
+                        ex);
                 exc = ex;
             }
+            getLogger().exiting(this.getClass().getName(), "saveFile",false);
             return false;
         }
         @Override
@@ -9879,670 +11240,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             super.done();
             setLocationDialog.setVisible(false);
-        }
-    }
-    /**
-     * 
-     */
-    private abstract class FilePathSaver extends FileSaver{
-        /**
-         * The path for the file to be downloaded.
-         */
-        protected String filePath;
-        /**
-         * This gets any IOExceptions that get thrown while downloading the 
-         * file.
-         */
-        protected IOException ioEx = null;
-        /**
-         * Whether the file was found.
-         */
-        protected boolean fileFound = true;
-        /**
-         * Whether file not found errors should be shown.
-         */
-        protected boolean showFileNotFound = true;
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param exit 
-         */
-        public FilePathSaver(File file, String path, boolean exit) {
-            super(file, exit);
-            filePath = Objects.requireNonNull(path);
-        }
-        /**
-         * 
-         * @param file
-         * @param path 
-         */
-        public FilePathSaver(File file, String path){
-            this(file,path,false);
-        }
-        /**
-         * 
-         * @return 
-         */
-        public String getFilePath(){
-            return filePath;
-        }
-        /**
-         * 
-         * @return 
-         */
-        public boolean getFileNotFound(){
-            return !fileFound;
-        }
-        /**
-         * This returns whether this shows a failure prompt when the file is not 
-         * found.
-         * @return Whether the file not found failure prompt is shown.
-         */
-        public boolean getShowsFileNotFoundPrompt(){
-            return showFileNotFound;
-        }
-        /**
-         * This sets whether this shows a failure prompt when the file is not 
-         * found.
-         * @param showFileNotFound Whether the file not found failure prompt is 
-         * shown.
-         * @return This FilePathSaver.
-         */
-        public FilePathSaver setShowsFileNotFoundPrompt(boolean showFileNotFound){
-            this.showFileNotFound = showFileNotFound;
-            return this;
-        }
-        /**
-         * This returns whether this will show the success prompt if the file 
-         * was successfully saved.
-         * @param file The file that was successfully saved.
-         * @param path The path of the file that was successfully saved.
-         * @return Whether the success prompt will be shown.
-         */
-        protected boolean getShowSuccessPrompt(File file, String path){
-            return true;
-        }
-        /**
-         * This returns the title for the dialog to display if the file is 
-         * successfully downloaded.
-         * @param file The file that was successfully downloaded to.
-         * @param path The path of the file that was successfully downloaded.
-         * @return The title for the dialog to display if the file is 
-         * successfully downloaded.
-         */
-        protected String getSuccessTitle(File file, String path){
-            return super.getSuccessTitle(file);
-        }
-        @Override
-        protected String getSuccessTitle(File file){
-            return getSuccessTitle(file,filePath);
-        }
-        /**
-         * This returns the message to display if the file is successfully 
-         * downloaded.
-         * @param file The file that was successfully downloaded to.
-         * @param path The path of the file that was successfully downloaded.
-         * @return The message to display if the file is successfully 
-         * downloaded.
-         */
-        protected String getSuccessMessage(File file, String path){
-            return super.getSuccessMessage(file);
-        }
-        @Override
-        protected String getSuccessMessage(File file){
-            return getSuccessMessage(file,filePath);
-        }
-        /**
-         * This returns the title for the dialog to display if the file fails to 
-         * download.
-         * @param file The file that failed to be downloaded to.
-         * @param path The path of the file that failed to download.
-         * @return The title for the dialog to display if the file fails to
-         * download.
-         */
-        protected String getFailureTitle(File file, String path){
-            return super.getFailureTitle(file);
-        }
-        @Override
-        protected String getFailureTitle(File file){
-            return getFailureTitle(file,filePath);
-        }
-        /**
-         * This returns the message to display if the backup of the file failed 
-         * to be created.
-         * @param file The file that failed to be backed up.
-         * @param path The path of the file that failed to be backed up.
-         * @return The message to display if a backup of the file failed to be 
-         * created.
-         */
-        protected String getBackupFailedMessage(File file, String path){
-            return super.getBackupFailedMessage(file);
-        }
-        /**
-         * This returns the message to display if the backup of the file failed 
-         * to be created.
-         * @param file The file that failed to be backed up.
-         * @return The message to display if a backup of the file failed to be 
-         * created.
-         */
-        @Override
-        protected String getBackupFailedMessage(File file){
-            return getBackupFailedMessage(file,filePath);
-        }
-        /**
-         * This returns the message to display if the file fails to download.
-         * @param file The file that failed to be downloaded to.
-         * @param path The path of the file that failed to download.
-         * @return The message to display if the file fails to download.
-         */
-        protected String getFailureMessage(File file, String path){
-            return super.getFailureMessage(file);
-        }
-        /**
-         * This returns the message to display for any exceptions that were 
-         * thrown while attempting to download the file.
-         * @param file The file that failed to be downloaded to.
-         * @param path The path of the file that failed to download.
-         * @return The message to display for any exceptions that occurred, or 
-         * null.
-         */
-        protected String getExceptionMessage(File file, String path){
-                // If an IOException occurred, say so. Otherwise, return null.
-            return (ioEx == null) ? null : ioEx.toString();
-        }
-        /**
-         * This returns the message to display if the file was not found.
-         * @param file The file that failed to be downloaded to.
-         * @param path The path for the file that was not found.
-         * @return The message to display if the file was not found.
-         */
-        protected String getFileNotFoundMessage(File file, String path){
-            return "The file does not exist.";
-        }
-        /**
-         * This returns the message to display if the file fails to be 
-         * downloaded.
-         * @return The message to display if the file fails to download.
-         */
-        @Override
-        protected String getFailureMessage(File file){
-                // The message to return
-            String msg = getFailureMessage(file,filePath);
-                // If the program is either in debug mode or if details are to 
-                // be shown
-            if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
-                String errorMsg = getExceptionMessage(file,filePath);
-                if (errorMsg != null)
-                    msg += "\nError: " + errorMsg;
-            }
-            return msg;
-        }
-        @Override
-        protected void showSuccessPrompt(File file){
-            if (getShowSuccessPrompt(file,filePath))
-                super.showSuccessPrompt(file);
-        }
-        @Override
-        protected boolean showFailurePrompt(File file){
-            if (getFileNotFound()){
-                    // If this should show file not found prompts
-                if (showFileNotFound){
-                    JOptionPane.showMessageDialog(LinkManager.this, 
-                            getFileNotFoundMessage(file,filePath), 
-                            getFailureTitle(file,filePath), 
-                            JOptionPane.ERROR_MESSAGE);
-                }
-                return false;
-            }
-            return super.showFailurePrompt(file);
-        }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @return
-         * @throws IOException 
-         */
-        protected abstract boolean saveFile(File file, String path) throws IOException;
-        @Override
-        protected boolean saveFile(File file) {
-                // Reset the exception to null
-            ioEx = null;
-                // Set the progress to be zero
-            setProgressValue(0);
-                // Set the progress to be indeterminate
-            setIndeterminate(true);
-            try{    // Try to download the file from the path
-                return saveFile(file,filePath);
-            } catch (IOException ex){
-                ioEx = ex;
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
-            }
-            return false;
-        }
-        @Override
-        protected void done(){
-            super.done();
-                // Update the program configuration
-            updateProgramConfig();
-        }
-    }
-    /**
-     * 
-     */
-    private abstract class FileDownloader extends FilePathSaver{
-        /**
-         * The flags to use for loading the lists. If this is null, then the 
-         * database will not be loaded after this.
-         */
-        protected Integer loadFlags = null;
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param loadFlags
-         * @param exit 
-         */
-        FileDownloader(File file, String path, Integer loadFlags, boolean exit){
-            super(file,path,exit);
-            this.loadFlags = loadFlags;
-        }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param loadFlags 
-         */
-        FileDownloader(File file, String path, Integer loadFlags){
-            this(file,path,loadFlags,false);
-        }
-        /**
-         * 
-         * @param file
-         * @param path 
-         */
-        FileDownloader(File file, String path){
-            this(file,path,null);
-        }
-        /**
-         * 
-         * @return 
-         */
-        public boolean willLoadDatabase(){
-            return loadFlags != null;
-        }
-        /**
-         * 
-         * @return 
-         */
-        public int getDatabaseLoaderFlags(){
-                // If the database loader flags are not null
-            if (loadFlags != null)
-                return loadFlags;
-            return 0;
-        }
-        @Override
-        public String getProgressString() {
-            return "Downloading File";
-        }
-        @Override
-        protected boolean getShowSuccessPrompt(File file, String path){
-            return !willLoadDatabase();
-        }
-        @Override
-        protected String getSuccessTitle(File file, String path){
-            return "File Downloaded Successfully";
-        }
-        @Override
-        protected String getSuccessMessage(File file, String path){
-            return "The file was successfully downloaded.";
-        }
-        @Override
-        protected String getFailureTitle(File file, String path){
-            return "ERROR - File Failed To Download";
-        }
-        @Override
-        protected String getFailureMessage(File file, String path){
-            return "The file failed to download.";
-        }
-        @Override
-        protected String getFileNotFoundMessage(File file, String path){
-            return "The file was not found at the path\n\""+path+"\"";
-        }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @return
-         * @throws IOException 
-         */
-        protected abstract boolean downloadFile(File file, String path) 
-                throws IOException;
-        @Override
-        protected boolean saveFile(File file, String path) throws IOException{
-            return downloadFile(file,path);
-        }
-        /**
-         * 
-         * @param loadAll 
-         */
-        protected void loadDatabase(int loadFlags){
-            loader = new DatabaseLoader(file,loadFlags);
-            loader.execute();
-        }
-        @Override
-        protected void done(){
-            super.done();
-            if (willLoadDatabase()){
-                loadDatabase(getDatabaseLoaderFlags());
-            }
-        }
-    }
-    /**
-     * 
-     */
-    private abstract class FileUploader extends FilePathSaver{
-        /**
-         * Whether the success prompt should be shown.
-         */
-        protected boolean showSuccess;
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param showSuccess
-         * @param exit 
-         */
-        FileUploader(File file, String path, boolean showSuccess, boolean exit){
-            super(file, path, exit);
-            this.showSuccess = showSuccess;
-        }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @param showSuccess 
-         */
-        FileUploader(File file, String path, boolean showSuccess){
-            this(file,path,showSuccess,false);
-        }
-        /**
-         * 
-         * @param file
-         * @param path 
-         */
-        FileUploader(File file, String path){
-            this(file,path,true);
-        }
-        /**
-         * This sets whether the program will exit after this finishes saving 
-         * the file.
-         * @param value Whether the program will exit once the file is saved.
-         * @return This FileUploader.
-         */
-        public FileUploader setExitAfterSaving(boolean value){
-            exitAfterSaving = value;
-            return this;
-        }
-        @Override
-        public String getProgressString(){
-            return "Uploading File";
-        }
-        /**
-         * 
-         * @return 
-         */
-        public boolean getShowSuccessPrompt(){
-            return showSuccess;
-        }
-        /**
-         * 
-         * @param value
-         * @return This FileUploader.
-         */
-        public FileUploader setShowSuccessPrompt(boolean value){
-            showSuccess = value;
-            return this;
-        }
-        @Override
-        protected boolean getShowSuccessPrompt(File file, String path){
-            return showSuccess && !exitAfterSaving;
-        }
-        @Override
-        protected String getSuccessTitle(File file, String path){
-            return "File Uploaded Successfully";
-        }
-        @Override
-        protected String getSuccessMessage(File file, String path){
-            return "The file was successfully uploaded.";
-        }
-        @Override
-        protected String getFailureTitle(File file, String path){
-            return "ERROR - File Failed To Upload";
-        }
-        @Override
-        protected String getFailureMessage(File file, String path){
-            return "The file failed to upload.";
-        }
-        /**
-         * 
-         * @param file
-         * @param path
-         * @return
-         * @throws IOException 
-         */
-        protected abstract boolean uploadFile(File file, String path) 
-                throws IOException;
-        @Override
-        protected boolean saveFile(File file, String path) throws IOException{
-            return uploadFile(file,path);
-        }
-        @Override
-        protected boolean processFile(File file){
-                // If the file does not exist
-            if (!file.exists()){
-                fileFound = false;
-                return false;
-            }
-            return super.processFile(file);
-        }
-        @Override
-        protected void exitProgram(){
-            saver = new ProgramConfigSaver(true);
-            saver.execute();
-        }
-    }
-    /**
-     * 
-     * @param fileSize
-     * @return 
-     */
-    private ProgressListener createProgressListener(long fileSize){
-            // Set the progress to be zero
-        setProgressValue(0);
-            // Get the value needed to divide the file length to get it back 
-            // into the range of integers
-        int divider = 1;
-            // While the divided file length is larger than the integer maximum
-        while (Math.ceil(fileSize / ((double)divider)) > Integer.MAX_VALUE)
-            divider++;
-            // Create a copy of divisor to get around it needing to be 
-            // effectively final, since it's not going to change after this.
-        double div = divider;
-            // Set the progress maximum to the file length divided by the 
-            // divisor
-        setProgressMaximum((int)Math.ceil(fileSize / div));
-            // Create and return a progress listener that will update the 
-            // progress bar to reflect the bytes that have been written so far
-        return (long bytesWritten) -> {
-                // Update the progress with the amount of bytes written
-            setProgressValue((int)Math.ceil(bytesWritten / div));
-        };
-    }
-    /**
-     * 
-     */
-    private class DbxDownloader extends FileDownloader{
-        /**
-         * This gets any Dropbox exceptions that get thrown while downloading 
-         * the file.
-         */
-        private DbxException dbxEx = null;
-        /**
-         * 
-         * @param file
-         * @param dbxPath
-         * @param loadFlags 
-         */
-        DbxDownloader(File file,String dbxPath,Integer loadFlags){
-            super(file,formatDropboxPath(dbxPath),loadFlags);
-        }
-        /**
-         * 
-         * @param file 
-         * @param dbxPath
-         */
-        DbxDownloader(File file,String dbxPath){
-            super(file,formatDropboxPath(dbxPath));
-        }
-        @Override
-        protected String getFileNotFoundMessage(File file, String path){
-            return "The file was not found on Dropbox.";
-        }
-        @Override
-        protected String getExceptionMessage(File file, String path){
-                // If a dropbox exception occurred
-            if (dbxEx != null)
-                return dbxEx.toString();
-            return super.getExceptionMessage(file, path);
-        }
-        @Override
-        protected boolean downloadFile(File file,String path) throws IOException{
-                // Reset the dropbox exception to null
-            dbxEx = null;
-            try{    // Create the Dropbox client
-                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
-                    // Get the Dropbox credentials
-                DbxCredential cred = dbxUtils.getCredentials();
-                    // Get a client to communicate with Dropbox
-                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
-                    // Refresh the Dropbox credentials if necessary
-                dbxUtils.refreshCredentials(client, cred);
-                    // Get the file namespace for Dropbox
-                DbxUserFilesRequests dbxFiles = client.files();
-                    // This gets the size of the file to be downloaded
-                Long size = null;
-                try{    // Get the metadata for the file
-                    Metadata metadata = dbxFiles.getMetadataBuilder(path).start();
-                        // If the metadata is actually file metadata
-                    if (metadata instanceof FileMetadata){
-                            // Get the size of the file
-                        size = ((FileMetadata) metadata).getSize();
-                    }
-                } catch (GetMetadataErrorException ex){
-                        // If the error because the file doesn't exist
-                    if (DropboxUtilities.fileNotFound(ex)){
-                        fileFound = false;
-                    } else {
-                        dbxEx = ex;
-                        if (isInDebug())    // If the program is in debug mode
-                            System.out.println(ex);
-                    }
-                    return false;
-                }   // This is the progress listener to use to listen to how 
-                    // many bytes have been downloaded so far.
-                ProgressListener listener = null;
-                    // If the file size was loaded
-                if (size != null){
-                        // Setup the progress bar and get the progress listener
-                    listener = createProgressListener(size);
-                        // Set the progress bar to not be indeterminate
-                    setIndeterminate(false);
-                }   // Download the file from Dropbox
-                DropboxUtilities.download(file, path, dbxFiles, listener);
-                return true;
-            } catch(DbxException ex){
-                dbxEx = ex;
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
-            }
-            return false;
-        }
-    }
-    /**
-     * 
-     */
-    private class DbxUploader extends FileUploader{
-        /**
-         * This gets any Dropbox exceptions that get thrown while uploading the 
-         * file.
-         */
-        private DbxException dbxEx = null;
-        /**
-         * 
-         * @param file
-         * @param dbxPath
-         * @param showSuccess
-         * @param exit 
-         */
-        DbxUploader(File file,String dbxPath,boolean showSuccess,boolean exit) {
-            super(file,formatDropboxPath(dbxPath),showSuccess,exit);
-        }
-        /**
-         * 
-         * @param file
-         * @param dbxPath
-         * @param showSuccess 
-         */
-        DbxUploader(File file, String dbxPath, boolean showSuccess){
-            super(file,formatDropboxPath(dbxPath),showSuccess);
-        }
-        /**
-         * 
-         * @param dbxPath
-         * @param file 
-         */
-        DbxUploader(File file,String dbxPath){
-            super(file,formatDropboxPath(dbxPath));
-        }
-        @Override
-        protected String getExceptionMessage(File file, String path){
-                // If a dropbox exception occurred
-            if (dbxEx != null)
-                return dbxEx.toString();
-            return super.getExceptionMessage(file, path);
-        }
-        @Override
-        protected boolean uploadFile(File file, String path) throws IOException {
-                // Reset the dropbox exception to null
-            dbxEx = null;
-            try{    // Create the Dropbox client
-                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
-                    // Get the Dropbox credentials
-                DbxCredential cred = dbxUtils.getCredentials();
-                    // Get a client to communicate with Dropbox
-                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
-                    // Refresh the Dropbox credentials if necessary
-                dbxUtils.refreshCredentials(client, cred);
-                    // Setup the progress bar and get the progress listener used 
-                    // to update the progress bar to reflect the bytes that have 
-                    // been loaded so far.
-                ProgressListener listener = createProgressListener(file.length());
-                    // Set the progress bar to not be indeterminate
-                setIndeterminate(false);
-                    // Upload the file to Dropbox, using the set chunk size and 
-                    // overwriting the file if it already exists
-                DropboxUtilities.upload(file, path, client.files(), 
-                        dbxChunkSizeModel.getChunkSize(), true, listener);
-                return true;
-            } catch(DbxException ex){
-                dbxEx = ex;
-                if (isInDebug())    // If the program is in debug mode
-                    System.out.println(ex);
-            }
-            return false;
         }
     }
     /**
@@ -10620,16 +11317,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return 
          */
         protected boolean loadDropboxAccount(){
+            getLogger().entering(this.getClass().getName(), "loadDropboxAccount");
                 // Reset the exceptions
             dbxEx = null;
-            try{    // Create the Dropbox client
-                DbxRequestConfig dbxConfig = dbxUtils.createRequest();
-                    // Get the Dropbox credentials
-                DbxCredential cred = dbxUtils.getCredentials();
-                    // Get a client to communicate with Dropbox
-                DbxClientV2 client = new DbxClientV2(dbxConfig,cred);
-                    // Refresh the Dropbox credentials if necessary
-                dbxUtils.refreshCredentials(client, cred);
+            try{    // Get a client to communicate with Dropbox, refreshing the 
+                    // Dropbox credentials if necessary
+                DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
                     // Get the request for the user
                 DbxUserUsersRequests users = client.users();
                     // Get the account details for the user
@@ -10644,12 +11337,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 used = spaceUsage.getUsed();
                     // Get the amount of space allocated to the user
                 allocated = DropboxUtilities.getAllocatedSpace(spaceUsage);
+                getLogger().exiting(this.getClass().getName(), "loadDropboxAccount",true);
                 return true;
             } catch (InvalidAccessTokenException ex){
+                getLogger().log(Level.INFO, "Dropbox account token has expired", 
+                        ex);
                 validAccount = false;
             } catch(DbxException ex){
+                getLogger().log(Level.INFO,"Failed to load Dropbox account",ex);
                 dbxEx = ex;
             }
+            getLogger().exiting(this.getClass().getName(), "loadDropboxAccount",false);
             return false;
         }
         @Override
@@ -10676,13 +11374,397 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 long free = allocated - used;
                 dbxSpaceFreeLabel.setText(String.format("%s (%,d Bytes)", 
                         byteFormatter.format(free),free));
-                setCard(setLocationPanel,setDropboxCard);
+                LinkManagerUtilities.setCard(setLocationPanel,setDropboxCard);
             } else if (!validAccount){
                 dbxUtils.clearCredentials();
             } else {
-                setCard(setLocationPanel,setExternalCard);
+                LinkManagerUtilities.setCard(setLocationPanel,setExternalCard);
             }
             super.done();
+        }
+    }
+  
+    private class TempDatabaseDownloader extends DatabaseDownloader{
+        /**
+         * The flags to use for loading the lists. If this is null, then the 
+         * database will not be loaded after this.
+         */
+        protected Integer loadFlags = null;
+        
+        TempDatabaseDownloader(File file, String filePath, DatabaseSyncMode mode, 
+                Integer loadFlags){
+            super(file,filePath,mode);
+            this.loadFlags = loadFlags;
+            exitIfCancelled = !fullyLoaded;
+        }
+        
+        TempDatabaseDownloader(File file, String filePath, DatabaseSyncMode mode){
+            this(file,filePath,mode,null);
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean willLoadDatabase(){
+            return loadFlags != null;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public int getDatabaseLoaderFlags(){
+                // If the database loader flags are not null
+            if (loadFlags != null)
+                return loadFlags;
+            return 0;
+        }
+        /**
+         * 
+         * @param loadAll 
+         */
+        protected void loadDatabase(int loadFlags){
+            loader = new DatabaseLoader(file,loadFlags);
+            loader.execute();
+        }
+        @Override
+        protected void done(){
+            super.done();
+            if (willLoadDatabase()){
+                loadDatabase(getDatabaseLoaderFlags());
+            }
+        }
+    }
+    
+    /**
+     * This is an abstract class that provides the framework for loading from a 
+     * database file.
+     */
+    private abstract class AbstractDatabaseFileLoader extends AbstractFileDownloader{
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
+         */
+        AbstractDatabaseFileLoader(File file, String filePath, 
+                DatabaseSyncMode mode, LoadingStage stage, 
+                boolean showFileNotFound) {
+            super(file, filePath, mode, stage, showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage 
+         */
+        AbstractDatabaseFileLoader(File file, String filePath, 
+                DatabaseSyncMode mode, LoadingStage stage) {
+            super(file,filePath,mode,stage);
+        }
+        /**
+         * 
+         * @param file
+         * @param stage
+         * @param showFileNotFound 
+         */
+        AbstractDatabaseFileLoader(File file, LoadingStage stage, boolean showFileNotFound){
+            super(file,stage,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param stage 
+         */
+        AbstractDatabaseFileLoader(File file, LoadingStage stage){
+            super(file,stage);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param showFileNotFound 
+         */
+        AbstractDatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
+                boolean showFileNotFound) {
+            super(file,filePath,mode,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode 
+         */
+        AbstractDatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode){
+            super(file,filePath,mode);
+        }
+        /**
+         * This constructs a AbstractDatabaseLoader that will load the data from 
+         * the database stored in the given file.
+         * @param file The database file to load the data from.
+         * @param showFileNotFound Whether a file not found error should result 
+         * in a popup being shown to the user.
+         */
+        AbstractDatabaseFileLoader(File file, boolean showFileNotFound) {
+            super(file, showFileNotFound);
+        }
+        /**
+         * This constructs a AbstractDatabaseLoader that will load the data from 
+         * the database stored in the given file.
+         * @param file The database file to load the data from.
+         */
+        AbstractDatabaseFileLoader(File file) {
+            super(file);
+        }
+        /**
+         * This constructs a AbstractDatabaseLoader that will load the data from 
+         * the program's {@link #getDatabaseFile() database file}.
+         * @param showFileNotFound Whether a file not found error should result 
+         * in a popup being shown to the user.
+         */
+        AbstractDatabaseFileLoader(boolean showFileNotFound){
+            this(getDatabaseFile(), showFileNotFound);
+        }
+        /**
+         * This constructs a AbstractDatabaseLoader that will load the data from 
+         * the program's {@link #getDatabaseFile() database file}.
+         */
+        AbstractDatabaseFileLoader(){
+            this(true);
+        }
+        @Override
+        protected boolean loadFile(File file, File downloadedFile) {
+            getLogger().entering("AbstractDatabaseLoader", "loadFile", new Object[]{file,downloadedFile});
+            if (!file.exists()){    // If the file doesn't exist
+                getLogger().exiting("AbstractDatabaseLoader", "loadFile", false);
+                return false;
+            }
+            boolean retry;
+            do{
+                SQLException sqlExc = null;
+                try{
+                    loadSuccess = loadDatabase(file);
+                } catch(SQLException ex){
+                    getLogger().log(Level.WARNING, "Failed to load database", ex);
+                    sqlExc = ex;
+                } catch (UncheckedSQLException ex){
+                    getLogger().log(Level.WARNING,"Failed to load database", ex);
+                    sqlExc = ex.getCause();
+                    getLogger().log(Level.WARNING,"Failure to load database cause", ex);
+                } catch(Exception ex){
+                    getLogger().log(Level.WARNING, "Failed to load database", ex);
+                }
+                if (loadSuccess){
+                    getLogger().exiting("AbstractDatabaseLoader", "loadFile", true);
+                    return true;
+                }
+                retry = LinkManager.this.showFailurePrompt(getFailureTitle(file), 
+                        getFailureMessage(file,sqlExc), true, false) == JOptionPane.YES_OPTION;
+            } while (!loadSuccess && retry);
+            getLogger().exiting("AbstractDatabaseLoader", "loadFile", true);
+            return true;
+        }
+        /**
+         * This attempts to load from the database using the given database 
+         * connection and provided reusable statement.
+         * @param conn The connection to the database.
+         * @param stmt An SQL statement that can be used to interact with the 
+         * database.
+         * @return Whether this successfully loaded from the database.
+         * @throws SQLException If a database error occurs.
+         * @see #loadFile(File) 
+         */
+        protected abstract boolean loadDatabase(LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException;
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected boolean loadDatabase(File file) throws Exception, SQLException{
+            getLogger().entering("AbstractDatabaseLoader", "loadDatabase", file);
+            if (!file.exists()){    // If the file doesn't exist
+                getLogger().exiting("AbstractDatabaseLoader", "loadDatabase", false);
+                return false;
+            }
+            boolean value;
+                // Connect to the database and create an SQL statement
+            try(LinkDatabaseConnection conn = connect(file);
+                    Statement stmt = conn.createStatement()){
+                value = loadDatabase(conn,stmt); // Load from the database
+            }
+            getLogger().exiting("AbstractDatabaseLoader", "loadDatabase", value);
+            return value;
+        }
+        @Override
+        protected String getFailureTitle(File file){
+            return "ERROR - Database Failed To Load";
+        }
+        @Override
+        protected String getFailureMessage(File file){
+            return "The database failed to load.";
+        }
+        /**
+         * 
+         * @param file
+         * @param ex
+         * @param defaultMsg
+         * @return 
+         */
+        protected String getFailureMessage(File file, SQLException ex, String defaultMsg){
+                // The message to return
+            String msg = defaultMsg;
+            if (ex != null){    // If an SQLException was thrown
+                    // Custom error messages for certain error codes
+                switch(ex.getErrorCode()){
+                        // If the database failed to save because it was busy
+                    case (Codes.SQLITE_BUSY):
+                        msg = "Please wait, the database is currently busy.";
+                        break;
+                        // If the database could not be opened
+                    case(Codes.SQLITE_CANTOPEN):
+                        msg = "The database could not be opened.";
+                        break;
+                        // If the database is corrupted
+                    case(Codes.SQLITE_CORRUPT):
+                        msg = "The database failed to load due to being corrupted.";
+                }   // If the program is either in debug mode or if details are to be shown
+                if (isInDebug() || showDBErrorDetailsToggle.isSelected())    
+                    msg += "\nError: " + ex + 
+                            "\nError Code: " + ex.getErrorCode();
+            }
+            return msg;
+        }
+        /**
+         * 
+         * @param file
+         * @param ex
+         * @return 
+         */
+        protected String getFailureMessage(File file, SQLException ex){
+            return getFailureMessage(file,ex,getFailureMessage(file));
+        }
+        @Override
+        protected String getFileNotFoundMessage(File file){
+            return "The database file does not exist.";
+        }
+    }
+    /**
+     * This loads the lists of links from the database.
+     */
+    private class DatabaseFileLoader extends AbstractDatabaseFileLoader{
+
+        @Override
+        protected boolean loadDatabase(LinkDatabaseConnection conn, Statement stmt) throws SQLException {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public String getLoadingProgressString() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+        
+    }
+    /**
+     * 
+     */
+    private class UpdateCheckWorker extends LinkManagerWorker<Boolean>{
+        /**
+         * This gets whether there is an update available for the program.
+         */
+        private boolean updateAvailable = false;
+        
+        private boolean success = false;
+        /**
+         * Whether this is being called at the start of the program.
+         */
+        private boolean isAtStart;
+        /**
+         * 
+         * @param isAtStart 
+         */
+        UpdateCheckWorker(boolean isAtStart){
+            this.isAtStart = isAtStart;
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected Component getParentComponent(){
+            return (isAtStart)?LinkManager.this:aboutDialog;
+        }
+        @Override
+        public String getProgressString() {
+            return "Checking For Updates";
+        }
+        @Override
+        protected Boolean backgroundAction() throws Exception {
+            getLogger().entering(this.getClass().getName(), "backgroundAction");
+                // Whether this should retry to check for an update
+            boolean retry = false;
+            do{
+                useWaitCursor(true);
+                try{    // Check for an update
+                    updateChecker.check();
+                    success = true;
+                } catch (Exception ex){
+                    getLogger().log(Level.WARNING, 
+                            "An error occurred while checking the latest version",
+                            ex);
+                    useWaitCursor(false);
+                        // Ask the user if they would like to try checking for 
+                        // updates again
+                    retry = JOptionPane.showConfirmDialog(getParentComponent(),
+                        "Failed to check for updates.\nWould you like to try again?",
+                        "Update Checker Failed",JOptionPane.YES_NO_OPTION,
+                        JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
+                }
+            }   // While this has not checked for an update and the user wants 
+                // to try again
+            while (!success && retry);
+                // Get whether there is an update available
+            updateAvailable = updateChecker.isUpdateAvailable();
+            getLogger().exiting(this.getClass().getName(), "backgroundAction", 
+                    updateAvailable);
+            return updateAvailable;
+        }
+        @Override
+        protected void done(){
+                // If this was successful at checking for an update
+            if (success){
+                    // If there's an update available, then set the text for the 
+                    // latest version label to be the latest version for the 
+                    // program. Otherwise, just state the current version
+                latestVersLabel.setText((updateAvailable) ? 
+                        updateChecker.getLatestVersion() : 
+                        updateChecker.getCurrentVersion());
+            }
+            super.done();
+                // If this was successful at checking for an update
+            if (success){
+                    // If there is an update available for the program
+                if (updateAvailable){
+                        // Log the update
+                    updateChecker.logUpdateMessage(getLogger());
+                        // Set the update check dialog's location relative to 
+                        // this if at startup and relative to the about dialog 
+                        // if the check was initialized from there.
+                    updateCheckDialog.setLocationRelativeTo(getParentComponent());
+                    updateCheckDialog.setVisible(true);
+                } else if (!isAtStart){
+                    JOptionPane.showMessageDialog(aboutDialog, 
+                            "This program is already up to date,",
+                            updateCheckDialog.getTitle(), 
+                            JOptionPane.INFORMATION_MESSAGE, 
+                            updateIconLabel.getIcon());
+                }
+            }
+            if (isAtStart && ENABLE_INITIAL_LOAD_AND_SAVE){
+                loadDatabase(DATABASE_LOADER_LOAD_ALL_FLAG);// | DATABASE_LOADER_CHECK_LOCAL_FLAG);
+            }
         }
     }
 }

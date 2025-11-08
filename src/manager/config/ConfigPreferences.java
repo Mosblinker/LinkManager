@@ -4,6 +4,8 @@
  */
 package manager.config;
 
+import config.ConfigUtilities;
+import static config.ConfigUtilities.*;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -11,7 +13,6 @@ import java.io.*;
 import java.util.*;
 import java.util.prefs.*;
 import javax.swing.event.EventListenerList;
-import static manager.config.ConfigUtilities.*;
 
 /**
  *
@@ -631,6 +632,34 @@ public class ConfigPreferences extends Preferences{
      * 
      * @param key
      * @param value 
+     */
+    public void putUUID(String key, UUID value){
+            // If the value is null
+        if (value == null)
+                // Remove the value for the key, resetting it to default
+            remove(key);
+        else
+            put(key,value.toString());
+    }
+    /**
+     * 
+     * @param key
+     * @param def
+     * @return 
+     */
+    public UUID getUUID(String key, UUID def){
+        String value = get(key,null);
+        if (value != null && !value.isEmpty()){
+            try{
+                return UUID.fromString(value);
+            } catch (IllegalArgumentException ex){ }
+        }
+        return def;
+    }
+    /**
+     * 
+     * @param key
+     * @param value 
      * @throws IllegalStateException If this node (or an ancestor) has been 
      * removed with the {@link #removeNode() removeNode()} method.
      * @throws NullPointerException If the given key is null.
@@ -684,6 +713,9 @@ public class ConfigPreferences extends Preferences{
             // If the value is a rectangle
         else if (value instanceof Rectangle)
             putRectangle(key, (Rectangle)value);
+            // If the value is a UUID
+        else if (value instanceof UUID)
+            putUUID(key, (UUID)value);
         else    // Get the value as a string and set it
             put(key, value.toString());
     }

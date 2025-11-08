@@ -63,6 +63,8 @@ public class LinksListModelTester extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         list = new javax.swing.JList<>();
         jPanel2 = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        list1 = new javax.swing.JList<>();
         linkField = new javax.swing.JTextField();
         addButton = new javax.swing.JButton();
         editButton = new javax.swing.JButton();
@@ -111,6 +113,7 @@ public class LinksListModelTester extends javax.swing.JFrame {
         modLimitToggle = new javax.swing.JCheckBoxMenuItem();
         addAllFileItem = new javax.swing.JMenuItem();
         addFileItem = new javax.swing.JMenuItem();
+        createCopyItem = new javax.swing.JMenuItem();
 
         listManipulator.setResetButtonIsShown(false);
         listManipulator.setSideAccessory(jPanel1);
@@ -155,6 +158,15 @@ public class LinksListModelTester extends javax.swing.JFrame {
         );
 
         tabbedPane.addTab("tab3", null, jPanel2, "Hello There");
+
+        list1.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                list1ValueChanged(evt);
+            }
+        });
+        jScrollPane2.setViewportView(list1);
+
+        tabbedPane.addTab("Model", jScrollPane2);
 
         linkField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -440,6 +452,14 @@ public class LinksListModelTester extends javax.swing.JFrame {
             }
         });
         jMenu3.add(addFileItem);
+
+        createCopyItem.setText("Create Copy");
+        createCopyItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                createCopyItemActionPerformed(evt);
+            }
+        });
+        jMenu3.add(createCopyItem);
 
         jMenuBar1.add(jMenu3);
 
@@ -753,6 +773,17 @@ public class LinksListModelTester extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         Collections.shuffle(listManipulator.getModelList());
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void createCopyItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createCopyItemActionPerformed
+        LinksListModel copy = new LinksListModel(model);
+        list1.setModel(copy);
+        list1.setSelectionModel(copy);
+        System.out.println(model.isEdited() + " " + copy.isEdited());
+    }//GEN-LAST:event_createCopyItemActionPerformed
+
+    private void list1ValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_list1ValueChanged
+        // TODO add your handling code here:
+    }//GEN-LAST:event_list1ValueChanged
     
     private void findActionPerformed(Position.Bias dir){
         int sel = Math.max(list.getSelectedIndex(), 0);
@@ -809,6 +840,7 @@ public class LinksListModelTester extends javax.swing.JFrame {
     private javax.swing.JCheckBoxMenuItem changeListenerToggle;
     private javax.swing.JButton clearEditedButton;
     private javax.swing.JButton clearNameButton;
+    private javax.swing.JMenuItem createCopyItem;
     private javax.swing.JSpinner createdSpinner;
     private javax.swing.JButton editButton;
     private javax.swing.JCheckBox editedToggle;
@@ -833,9 +865,11 @@ public class LinksListModelTester extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSpinner lastModSpinner;
     private javax.swing.JTextField linkField;
     private javax.swing.JList<String> list;
+    private javax.swing.JList<String> list1;
     private javax.swing.JCheckBoxMenuItem listDataListenerToggle;
     private javax.swing.JSpinner listIDSpinner;
     private components.JListManipulator<String> listManipulator;

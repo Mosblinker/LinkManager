@@ -111,6 +111,9 @@ public class AutosaveMenu extends JMenu{
      */
     public static final String AUTOSAVE_RUNNING_PROPERTY_CHANGED = 
             "AutosaveRunningPropertyChanged";
+    
+    public static final String AUTOSAVE_FREQUENCY_TEXT_PROPERTY_CHANGED = 
+            "AutosaveFreqTextPropertyChanged";
     /**
      * The index for the default autosave frequency.
      */
@@ -280,12 +283,24 @@ public class AutosaveMenu extends JMenu{
                     stopPauseTimer();
             case(AUTOSAVE_RUNNING_PROPERTY_CHANGED):
                 firePropertyChange(evt.getPropertyName(),evt.getOldValue(),evt.getNewValue());
+                break;
+            case("text"):
+                firePropertyChange(AUTOSAVE_FREQUENCY_TEXT_PROPERTY_CHANGED,
+                        evt.getOldValue(),evt.getNewValue());
         }
     }
     
     protected void updateAutosavePauseItems(){
         resumeAutosaveItem.setEnabled(isPaused() && getFrequencyIndex() > 0);
         pauseAutosaveMenu.setEnabled(!isPaused() && getFrequencyIndex() > 0);
+    }
+    
+    public String getAutosaveFrequencyText(){
+        return autosaveTimerMenu.getText();
+    }
+    
+    public void setAutosaveFrequencyText(String text){
+        autosaveTimerMenu.setText(text);
     }
     
     public int getFrequencyIndex(){
@@ -372,10 +387,6 @@ public class AutosaveMenu extends JMenu{
         @Override
         protected String getDurationTextPrefix(){
             return "Every ";
-        }
-        @Override
-        protected boolean isRepeating(){
-            return true;
         }
         @Override
         protected String getTimerCommand() {
