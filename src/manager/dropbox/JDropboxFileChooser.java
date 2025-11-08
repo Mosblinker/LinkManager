@@ -132,6 +132,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         treePanel = new javax.swing.JPanel();
         treeScrollPanel = new javax.swing.JScrollPane();
         dropboxFileTree = new javax.swing.JTree();
+        fileNameLabel = new javax.swing.JLabel();
+        fileNameField = new javax.swing.JTextField();
 
         controlButtonPanel.setLayout(new java.awt.GridLayout(1, 0, 6, 0));
         controlButtonPanel.add(acceptButton);
@@ -144,6 +146,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         treePanel.add(treeScrollPanel, java.awt.BorderLayout.CENTER);
 
+        fileNameLabel.setLabelFor(fileNameField);
+        fileNameLabel.setText("File Name:");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -154,15 +159,23 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(0, 304, Short.MAX_VALUE)
                         .addComponent(controlButtonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(treePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(treePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(fileNameLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(fileNameField)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(treePanel, javax.swing.GroupLayout.DEFAULT_SIZE, 292, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(treePanel, javax.swing.GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(fileNameLabel)
+                    .addComponent(fileNameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(controlButtonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -175,6 +188,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JTree dropboxFileTree;
+    private javax.swing.JTextField fileNameField;
+    private javax.swing.JLabel fileNameLabel;
     private javax.swing.JPanel treePanel;
     private javax.swing.JScrollPane treeScrollPanel;
     private javax.swing.ButtonGroup viewButtonGroup;
