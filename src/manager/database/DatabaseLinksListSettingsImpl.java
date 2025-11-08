@@ -29,6 +29,11 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
      */
     private static final String INSERT_VALUE_TEMPLATE = 
             "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)";
+    /**
+     * This is the template for selecting a value from the tables.
+     */
+    private static final String SELECT_VALUE_TEMPLATE = 
+            "SELECT %s FROM %s WHERE %s = ? AND %s = ?";
     
     /**
      * The connection to the database.
@@ -191,6 +196,28 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
         pstmt.setInt(3, key);
         return pstmt;
     }
+    /**
+     * 
+     * @param tableName
+     * @param keyColumnName
+     * @param valueColumnName
+     * @param key
+     * @return
+     * @throws SQLException 
+     */
+    protected PreparedStatement createGetStatement(String tableName, 
+            String keyColumnName, String valueColumnName, int key) 
+            throws SQLException{
+        PreparedStatement pstmt = conn.prepareStatement(String.format(
+                SELECT_VALUE_TEMPLATE,
+                    valueColumnName,
+                    tableName,
+                    PROGRAM_ID_COLUMN_NAME,
+                    keyColumnName));
+        pstmt.setInt(1, programID);
+        pstmt.setInt(2, key);
+        return pstmt;
+    }
     @Override
     public void setSelectedLinkID(int listID, Long value) {
         LinkManager.getLogger().entering(this.getClass().getName(), 
@@ -212,14 +239,8 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     }
     @Override
     public Long getSelectedLinkID(int listID) {
-        try(PreparedStatement pstmt = conn.prepareStatement(String.format(
-                "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
-                    LINK_ID_COLUMN_NAME,
-                    LIST_SETTINGS_TABLE_NAME,
-                    PROGRAM_ID_COLUMN_NAME,
-                    LIST_ID_COLUMN_NAME))){
-            pstmt.setInt(1, programID);
-            pstmt.setInt(2, listID);
+        try(PreparedStatement pstmt = createGetStatement(LIST_SETTINGS_TABLE_NAME,
+                LIST_ID_COLUMN_NAME,LINK_ID_COLUMN_NAME,listID)){
                 // Get the results of the query
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()){
@@ -246,14 +267,8 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     }
     @Override
     public Boolean isSelectedLinkVisible(int listID) {
-        try(PreparedStatement pstmt = conn.prepareStatement(String.format(
-                "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
-                    SELECTION_IS_VISIBLE_COLUMN_NAME,
-                    LIST_SETTINGS_TABLE_NAME,
-                    PROGRAM_ID_COLUMN_NAME,
-                    LIST_ID_COLUMN_NAME))){
-            pstmt.setInt(1, programID);
-            pstmt.setInt(2, listID);
+        try(PreparedStatement pstmt = createGetStatement(LIST_SETTINGS_TABLE_NAME,
+                LIST_ID_COLUMN_NAME,SELECTION_IS_VISIBLE_COLUMN_NAME,listID)){
                 // Get the results of the query
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()){
@@ -284,14 +299,8 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
         }
     }
     private Integer getSelectionInteger(int listID, String columnName){
-        try(PreparedStatement pstmt = conn.prepareStatement(String.format(
-                "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
-                    columnName,
-                    LIST_SETTINGS_TABLE_NAME,
-                    PROGRAM_ID_COLUMN_NAME,
-                    LIST_ID_COLUMN_NAME))){
-            pstmt.setInt(1, programID);
-            pstmt.setInt(2, listID);
+        try(PreparedStatement pstmt = createGetStatement(LIST_SETTINGS_TABLE_NAME,
+                LIST_ID_COLUMN_NAME,columnName,listID)){
                 // Get the results of the query
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()){
@@ -514,14 +523,8 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     }
     @Override
     public Integer getSelectedListID(int listType) {
-        try(PreparedStatement pstmt = conn.prepareStatement(String.format(
-                "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
-                LIST_ID_COLUMN_NAME,
-                LIST_TYPE_SETTINGS_TABLE_NAME,
-                PROGRAM_ID_COLUMN_NAME,
-                LIST_TYPE_COLUMN_NAME))){
-            pstmt.setInt(1, programID);
-            pstmt.setInt(2, listType);
+        try(PreparedStatement pstmt = createGetStatement(LIST_TYPE_SETTINGS_TABLE_NAME,
+                LIST_TYPE_COLUMN_NAME,LIST_ID_COLUMN_NAME,listType)){
                 // Get the results of the query
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()){
