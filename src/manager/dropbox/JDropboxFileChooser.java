@@ -4,11 +4,12 @@
  */
 package manager.dropbox;
 
-import com.dropbox.core.DbxException;
-import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.*;
+import com.dropbox.core.v2.*;
 import components.AbstractConfirmDialogPanel;
 import java.awt.Component;
 import java.util.logging.Level;
+import javax.swing.tree.*;
 import manager.LinkManager;
 
 /**
@@ -106,7 +107,13 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * @throws com.dropbox.core.DbxException 
      */
     protected void loadFiles(DbxClientV2 client) throws DbxException{
-        
+        LinkManager.getLogger().entering("JDropboxFileChooser", "loadFiles",
+                client);
+        DefaultMutableTreeNode node = DropboxUtilities.listFolderTree(client);
+        node.setUserObject("/");
+        DefaultTreeModel model = new DefaultTreeModel(node,true);
+        dropboxFileTree.setModel(model);
+        LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
     }
     /**
      * This method is called from within the constructor to initialize the form.
