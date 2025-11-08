@@ -33,6 +33,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     protected String getDefaultCancelButtonToolTipText() {
         return "Abort Dropbox file chooser dialog";
     }
+    @Override
+    protected String getDefaultAcceptButtonText(){
+        return "Save";
+    }
     /**
      * 
      * @return 
