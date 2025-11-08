@@ -29,7 +29,7 @@ import utils.SwingExtendedUtilities;
  * as Strings.
  * @author Milo Steier
  */
-public class LinkManagerConfig extends AbstractLinksListSettings{
+public class LinkManagerConfig implements LinksListSettings{
     /**
      * This is the configuration key for the progress display setting.
      */
@@ -322,6 +322,31 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
      * null and is initialized when first used.
      */
     private Map<Integer, Integer> currTabIndexMap = null;
+    /**
+     * This is a map view of the selected links for the lists. This is initially 
+     * null and is initialized when first used.
+     */
+    private Map<Integer, String> selLinkMap = null;
+    /**
+     * This is a map view of whether the selected links are visible for the 
+     * lists. This is initially null and is initialized when first used.
+     */
+    private Map<Integer, Boolean> selLinkVisMap = null;
+    /**
+     * This is a map view of the first visible indexes in the lists. This is 
+     * initially null and is initialized when first used.
+     */
+    private Map<Integer, Integer> firstVisIndexMap = null;
+    /**
+     * This is a map view of the last visible indexes in the lists. This is 
+     * initially null and is initialized when first used.
+     */
+    private Map<Integer, Integer> lastVisIndexMap = null;
+    /**
+     * This is a map view of the visible rectangles for the lists. This is 
+     * initially null and is initialized when first used.
+     */
+    private Map<Integer, Rectangle> visRectMap = null;
     /**
      * This is the preference node that stores the settings and tokens for 
      * Dropbox.
@@ -2051,6 +2076,26 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
         return getListPreferences(listID).get(SELECTED_LINK_FOR_LIST_KEY, null);
     }
     @Override
+    public Map<Integer,String> getSelectedLinkMap(){
+        if (selLinkMap == null){
+            selLinkMap = new ListConfigDataMapImpl<>(){
+                @Override
+                protected String getValue(int key) {
+                    return getSelectedLink(key);
+                }
+                @Override
+                protected void putValue(int key, String value) {
+                    setSelectedLink(key,value);
+                }
+                @Override
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
+                }
+            };
+        }
+        return selLinkMap;
+    }
+    @Override
     public void setSelectedLinkVisible(int listID, Boolean value){
         getListPreferences(listID).putObject(
                 SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, value);
@@ -2064,6 +2109,26 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
         return null;
     }
     @Override
+    public Map<Integer,Boolean> getSelectedLinkVisibleMap(){
+        if (selLinkVisMap == null){
+            selLinkVisMap = new ListConfigDataMapImpl<>(){
+                @Override
+                protected Boolean getValue(int key) {
+                    return isSelectedLinkVisible(key);
+                }
+                @Override
+                protected void putValue(int key, Boolean value) {
+                    setSelectedLinkVisible(key,value);
+                }
+                @Override
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
+                }
+            };
+        }
+        return selLinkVisMap;
+    }
+    @Override
     public void setFirstVisibleIndex(int listID, Integer value){
         getListPreferences(listID).putObject(FIRST_VISIBLE_INDEX_FOR_LIST_KEY,
                 value);
@@ -2072,6 +2137,26 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
     public Integer getFirstVisibleIndex(int listID){
         return getIntegerPreference(getListPreferences(listID), 
                 FIRST_VISIBLE_INDEX_FOR_LIST_KEY);
+    }
+    @Override
+    public Map<Integer, Integer> getFirstVisibleIndexMap(){
+        if (firstVisIndexMap == null){
+            firstVisIndexMap = new ListConfigDataMapImpl<>(){
+                @Override
+                protected Integer getValue(int key) {
+                    return getFirstVisibleIndex(key);
+                }
+                @Override
+                protected void putValue(int key, Integer value) {
+                    setFirstVisibleIndex(key,value);
+                }
+                @Override
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
+                }
+            };
+        }
+        return firstVisIndexMap;
     }
     @Override
     public void setLastVisibleIndex(int listID, Integer value){
@@ -2084,6 +2169,26 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
                 LAST_VISIBLE_INDEX_FOR_LIST_KEY);
     }
     @Override
+    public Map<Integer, Integer> getLastVisibleIndexMap(){
+        if (lastVisIndexMap == null){
+            lastVisIndexMap = new ListConfigDataMapImpl<>(){
+                @Override
+                protected Integer getValue(int key) {
+                    return getLastVisibleIndex(key);
+                }
+                @Override
+                protected void putValue(int key, Integer value) {
+                    setLastVisibleIndex(key,value);
+                }
+                @Override
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
+                }
+            };
+        }
+        return lastVisIndexMap;
+    }
+    @Override
     public void setVisibleRect(int listID, Rectangle value){
         getListPreferences(listID).putObject(VISIBLE_RECTANGLE_FOR_LIST_KEY, 
                 value);
@@ -2092,6 +2197,26 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
     public Rectangle getVisibleRect(int listID, Rectangle defaultValue){
         return getListPreferences(listID).getRectangle(
                 VISIBLE_RECTANGLE_FOR_LIST_KEY, defaultValue);
+    }
+    @Override
+    public Map<Integer, Rectangle> getVisibleRectMap(){
+        if (visRectMap == null){
+            visRectMap = new ListConfigDataMapImpl<>(){
+                @Override
+                protected Rectangle getValue(int key) {
+                    return getVisibleRect(key);
+                }
+                @Override
+                protected void putValue(int key, Rectangle value) {
+                    setVisibleRect(key,value);
+                }
+                @Override
+                protected ListConfigNodeParent getNodes() {
+                    return listIDNodes;
+                }
+            };
+        }
+        return visRectMap;
     }
     @Override
     public boolean removeListSettings(int listID){
