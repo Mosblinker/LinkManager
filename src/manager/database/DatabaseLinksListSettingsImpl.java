@@ -66,6 +66,36 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
      */
     private Map<Integer, Long> selLinkIDMap = null;
     /**
+     * This is a map view of the selected links for the lists. This is initially 
+     * null and is initialized when first used.
+     */
+    private Map<Integer, String> selLinkMap = null;
+    /**
+     * This is a map view of whether the selected links are visible for the 
+     * lists. This is initially null and is initialized when first used.
+     */
+    private Map<Integer, Boolean> selLinkVisMap = null;
+    /**
+     * This is a map view of the first visible indexes in the lists. This is 
+     * initially null and is initialized when first used.
+     */
+    private Map<Integer, Integer> firstVisIndexMap = null;
+    /**
+     * This is a map view of the last visible indexes in the lists. This is 
+     * initially null and is initialized when first used.
+     */
+    private Map<Integer, Integer> lastVisIndexMap = null;
+    /**
+     * This is a map view of the visible rectangles for the lists. This is 
+     * initially null and is initialized when first used.
+     */
+    private Map<Integer, Rectangle> visRectMap = null;
+    /**
+     * This is a map view of the current tab listIDs. This is initially null 
+     * and is initialized when first used.
+     */
+    private Map<Integer, Integer> currTabIDMap = null;
+    /**
      * 
      * @param conn
      * @param programID The connection to the database (cannot be null).
@@ -216,6 +246,88 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
         return null;
     }
     @Override
+    public Map<Integer, Long> getSelectedLinkIDMap() {
+        if (selLinkIDMap == null){
+            selLinkIDMap = new ListConfigDataQueryMap<>(){
+                @Override
+                protected String getTableName() {
+                    return LIST_SETTINGS_TABLE_NAME;
+                }
+                @Override
+                protected String getKeyColumnName() {
+                    return LIST_ID_COLUMN_NAME;
+                }
+                @Override
+                protected String getValueColumnName() {
+                    return LINK_ID_COLUMN_NAME;
+                }
+                @Override
+                protected Long getValue(ResultSet rs) throws SQLException {
+                    return rs.getLong(getValueColumnName());
+                }
+                @Override
+                protected void setValue(PreparedStatement pstmt, 
+                        int parameterIndex, Long value) throws SQLException {
+                    setParameter(pstmt,parameterIndex,value);
+                }
+            };
+        }
+        return selLinkIDMap;
+    }
+    @Override
+    public Map<Integer, String> getSelectedLinkMap() {
+        if (selLinkMap == null){
+            selLinkMap = new ListConfigDataQueryMap<>(){
+                @Override
+                protected String getTableName() {
+                    return LIST_SETTINGS_TABLE_NAME;
+                }
+                @Override
+                protected String getKeyColumnName() {
+                    return LIST_ID_COLUMN_NAME;
+                }
+                @Override
+                protected String getValueColumnName() {
+                    return LINK_ID_COLUMN_NAME;
+                }
+                @Override
+                protected String getValue(ResultSet rs) throws SQLException {
+                    return conn.getLinkMap().get(rs.getLong(getValueColumnName()));
+                }
+                @Override
+                protected void setValue(PreparedStatement pstmt, 
+                        int parameterIndex, String value) throws SQLException {
+                    Long linkID = null;
+                    if (value != null)
+                        linkID = conn.getLinkMap().inverse().get(value);
+                    setParameter(pstmt,parameterIndex,linkID);
+                }
+                @Override
+                protected Set<Entry<Integer, String>> entryCacheSet() throws SQLException {
+                    Set<Entry<Integer, String>> cache = new LinkedHashSet<>();
+                    Map<Long,String> linkMap = new HashMap<>(conn.getLinkMap());
+                    try(PreparedStatement pstmt = conn.prepareStatement(String.format(
+                            "SELECT %s, %s FROM %s WHERE %s = ? AND %s IS NOT NULL", 
+                                getKeyColumnName(),
+                                getValueColumnName(),
+                                getTableName(),
+                                PROGRAM_ID_COLUMN_NAME,
+                                getValueColumnName()))){
+                            // Get the results of the query
+                        ResultSet rs = pstmt.executeQuery();
+                        while (rs.next()){
+                            cache.add(new AbstractMap.SimpleImmutableEntry<>(
+                                    rs.getInt(getKeyColumnName()),
+                                    linkMap.get(rs.getLong(getValueColumnName()))));
+                        }
+                    }
+                    return cache;
+                } 
+            };
+        }
+        return selLinkMap;
+    }
+    @Override
     public void setSelectedLinkVisible(int listID, Boolean value) {
         if (!getListIDs().contains(listID) && value == null)
             return;
@@ -243,13 +355,42 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
         }
         return null;
     }
+    @Override
+    public Map<Integer, Boolean> getSelectedLinkVisibleMap() {
+        if (selLinkVisMap == null){
+            selLinkVisMap = new ListConfigDataQueryMap<>(){
+                @Override
+                protected String getTableName() {
+                    return LIST_SETTINGS_TABLE_NAME;
+                }
+                @Override
+                protected String getKeyColumnName() {
+                    return LIST_ID_COLUMN_NAME;
+                }
+                @Override
+                protected String getValueColumnName() {
+                    return SELECTION_IS_VISIBLE_COLUMN_NAME;
+                }
+                @Override
+                protected Boolean getValue(ResultSet rs) throws SQLException {
+                    return rs.getBoolean(getValueColumnName());
+                }
+                @Override
+                protected void setValue(PreparedStatement pstmt, 
+                        int parameterIndex, Boolean value) throws SQLException {
+                    setParameter(pstmt,parameterIndex,value);
+                }
+            };
+        }
+        return selLinkVisMap;
+    }
     /**
      * 
      * @param listID
      * @param value
      * @param columnName
      */
-    private void setSelectionInteger(int listID, Integer value, String columnName) {
+    private void setSetttingInteger(int listID, Integer value, String columnName) {
         if (!getListIDs().contains(listID) && value == null)
             return;
         try(PreparedStatement pstmt = createSetStatement(LIST_SETTINGS_TABLE_NAME,
@@ -260,7 +401,13 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
             throw new UncheckedSQLException(ex);
         }
     }
-    private Integer getSelectionInteger(int listID, String columnName){
+    /**
+     * 
+     * @param listID
+     * @param columnName
+     * @return 
+     */
+    private Integer getSettingInteger(int listID, String columnName){
         try(PreparedStatement pstmt = createGetStatement(LIST_SETTINGS_TABLE_NAME,
                 LIST_ID_COLUMN_NAME,columnName,listID)){
                 // Get the results of the query
@@ -277,19 +424,59 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     }
     @Override
     public void setFirstVisibleIndex(int listID, Integer value) {
-        setSelectionInteger(listID,value,FIRST_VISIBLE_INDEX_COLUMN_NAME);
+        setSetttingInteger(listID,value,FIRST_VISIBLE_INDEX_COLUMN_NAME);
     }
     @Override
     public Integer getFirstVisibleIndex(int listID) {
-        return getSelectionInteger(listID,FIRST_VISIBLE_INDEX_COLUMN_NAME);
+        return getSettingInteger(listID,FIRST_VISIBLE_INDEX_COLUMN_NAME);
+    }
+    @Override
+    public Map<Integer, Integer> getFirstVisibleIndexMap() {
+        if (firstVisIndexMap == null){
+            firstVisIndexMap = new ListConfigIntegerQueryMap(){
+                @Override
+                protected String getTableName() {
+                    return LIST_SETTINGS_TABLE_NAME;
+                }
+                @Override
+                protected String getKeyColumnName() {
+                    return LIST_ID_COLUMN_NAME;
+                }
+                @Override
+                protected String getValueColumnName() {
+                    return FIRST_VISIBLE_INDEX_COLUMN_NAME;
+                }
+            };
+        }
+        return firstVisIndexMap;
     }
     @Override
     public void setLastVisibleIndex(int listID, Integer value) {
-        setSelectionInteger(listID,value,LAST_VISIBLE_INDEX_COLUMN_NAME);
+        setSetttingInteger(listID,value,LAST_VISIBLE_INDEX_COLUMN_NAME);
     }
     @Override
     public Integer getLastVisibleIndex(int listID) {
-        return getSelectionInteger(listID,LAST_VISIBLE_INDEX_COLUMN_NAME);
+        return getSettingInteger(listID,LAST_VISIBLE_INDEX_COLUMN_NAME);
+    }
+    @Override
+    public Map<Integer, Integer> getLastVisibleIndexMap() {
+        if (lastVisIndexMap == null){
+            lastVisIndexMap = new ListConfigIntegerQueryMap(){
+                @Override
+                protected String getTableName() {
+                    return LIST_SETTINGS_TABLE_NAME;
+                }
+                @Override
+                protected String getKeyColumnName() {
+                    return LIST_ID_COLUMN_NAME;
+                }
+                @Override
+                protected String getValueColumnName() {
+                    return LAST_VISIBLE_INDEX_COLUMN_NAME;
+                }
+            };
+        }
+        return lastVisIndexMap;
     }
     @Override
     public void setVisibleRect(int listID, Rectangle value) {
@@ -316,14 +503,43 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
                 // Get the results of the query
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()){
-                byte[] bytes = rs.getBytes(VISIBLE_RECTANGLE_COLUMN_NAME);
-                if (!rs.wasNull())
-                    return ConfigUtilities.rectangleFromByteArray(bytes);
+                return ConfigUtilities.rectangleFromByteArray(
+                        rs.getBytes(VISIBLE_RECTANGLE_COLUMN_NAME));
             }
         } catch (SQLException ex){
             throw new UncheckedSQLException(ex);
         }
         return null;
+    }
+    @Override
+    public Map<Integer, Rectangle> getVisibleRectMap() {
+        if (visRectMap == null){
+            visRectMap = new ListConfigDataQueryMap<>(){
+                @Override
+                protected String getTableName() {
+                    return LIST_SETTINGS_TABLE_NAME;
+                }
+                @Override
+                protected String getKeyColumnName() {
+                    return LIST_ID_COLUMN_NAME;
+                }
+                @Override
+                protected String getValueColumnName() {
+                    return VISIBLE_RECTANGLE_COLUMN_NAME;
+                }
+                @Override
+                protected Rectangle getValue(ResultSet rs) throws SQLException {
+                    return ConfigUtilities.rectangleFromByteArray(
+                            rs.getBytes(getValueColumnName()));
+                }
+                @Override
+                protected void setValue(PreparedStatement pstmt, 
+                        int parameterIndex, Rectangle value) throws SQLException {
+                    setParameter(pstmt,parameterIndex,value);
+                }
+            };
+        }
+        return visRectMap;
     }
     @Override
     public void setVisibleSection(int listID, Boolean isVisible, 
@@ -462,6 +678,26 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
         return null;
     }
     @Override
+    public Map<Integer, Integer> getSelectedListIDMap() {
+        if (currTabIDMap == null){
+            currTabIDMap = new ListConfigIntegerQueryMap(){
+                @Override
+                protected String getTableName() {
+                    return LIST_TYPE_SETTINGS_TABLE_NAME;
+                }
+                @Override
+                protected String getKeyColumnName() {
+                    return LIST_TYPE_COLUMN_NAME;
+                }
+                @Override
+                protected String getValueColumnName() {
+                    return LIST_ID_COLUMN_NAME;
+                }
+            };
+        }
+        return currTabIDMap;
+    }
+    @Override
     public boolean removeSelectedTab(int listType) {
         return getListTypes().remove(listType);
     }
@@ -469,25 +705,153 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     public void clearSelectedTabs() {
         getListTypes().clear();
     }
-    @Override
-    public Map<Integer, Long> getSelectedLinkIDMap() {
-        if (selLinkIDMap == null){
-            selLinkIDMap = new ListConfigDataMap<>(){
-                @Override
-                protected Long getValue(int key) {
-                    return getSelectedLinkID(key);
-                }
-                @Override
-                protected void putValue(int key, Long value) {
-                    setSelectedLinkID(key,value);
-                }
-                @Override
-                protected Set<Integer> getKeys() {
-                    return removeUnusedKeys(getListIDs());
-                }
-            };
+    /**
+     * 
+     * @param <V> 
+     */
+    private abstract class ListConfigDataQueryMap<V> extends AbstractQueryMap<Integer,V>{
+        /**
+         * 
+         */
+        ListConfigDataQueryMap() {
+            super(conn);
         }
-        return selLinkIDMap;
+        /**
+         * 
+         * @return 
+         */
+        protected abstract String getTableName();
+        /**
+         * 
+         * @return 
+         */
+        protected abstract String getKeyColumnName();
+        /**
+         * 
+         * @return 
+         */
+        protected abstract String getValueColumnName();
+        /**
+         * 
+         * @param rs
+         * @return
+         * @throws SQLException 
+         */
+        protected abstract V getValue(ResultSet rs) throws SQLException;
+        /**
+         * 
+         * @param pstmt
+         * @param parameterIndex
+         * @param value
+         * @throws SQLException 
+         */
+        protected abstract void setValue(PreparedStatement pstmt,
+                int parameterIndex, V value) throws SQLException;
+
+        @Override
+        protected boolean containsKeySQL(Object key) throws SQLException {
+            if (!(key instanceof Integer))
+                return false;
+            try(PreparedStatement pstmt = conn.prepareStatement(String.format(
+                    TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ? AND %s IS NOT NULL", 
+                        PROGRAM_ID_COLUMN_NAME,
+                        getTableName(),
+                        PROGRAM_ID_COLUMN_NAME,
+                        getKeyColumnName(),
+                        getValueColumnName()))){
+                pstmt.setInt(1, programID);
+                pstmt.setInt(2, (Integer)key);
+                return containsCountResult(pstmt.executeQuery());
+            }
+        }
+        @Override
+        protected V removeSQL(Object key) throws SQLException {
+            V value = getSQL(key);
+            if (value != null && key instanceof Integer){
+                try(PreparedStatement pstmt = createSetStatement(getTableName(),
+                        getKeyColumnName(),getValueColumnName(),(Integer)key)){
+                    setValue(pstmt,1,null);
+                    pstmt.executeUpdate();
+                }
+            }
+            return value;
+        }
+        @Override
+        protected V getSQL(Object key) throws SQLException {
+            if (key instanceof Integer){
+                try(PreparedStatement pstmt = createGetStatement(getTableName(),
+                        getKeyColumnName(),getValueColumnName(),(Integer)key)){
+                        // Get the results of the query
+                    ResultSet rs = pstmt.executeQuery();
+                    if (rs.next())
+                        return getValue(rs);
+                }
+            }
+            return null;
+        }
+        @Override
+        protected V putSQL(Integer key, V value) throws SQLException {
+            Objects.requireNonNull(key);
+            Objects.requireNonNull(value);
+            V old = getSQL(key);
+            try(PreparedStatement pstmt = createSetStatement(getTableName(),
+                    getKeyColumnName(),getValueColumnName(),key)){
+                setValue(pstmt,1,value);
+                pstmt.executeUpdate();
+            }
+            return old;
+        }
+        @Override
+        protected Set<Entry<Integer, V>> entryCacheSet() throws SQLException {
+            Set<Entry<Integer, V>> cache = new LinkedHashSet<>();
+            try(PreparedStatement pstmt = conn.prepareStatement(String.format(
+                    "SELECT %s, %s FROM %s WHERE %s = ? AND %s IS NOT NULL", 
+                        getKeyColumnName(),
+                        getValueColumnName(),
+                        getTableName(),
+                        PROGRAM_ID_COLUMN_NAME,
+                        getValueColumnName()))){
+                    // Get the results of the query
+                ResultSet rs = pstmt.executeQuery();
+                while (rs.next()){
+                    cache.add(new AbstractMap.SimpleImmutableEntry<>(
+                            rs.getInt(getKeyColumnName()),
+                            getValue(rs)));
+                }
+            }
+            return cache;
+        }
+        @Override
+        protected int sizeSQL() throws SQLException {
+            try(PreparedStatement pstmt = conn.prepareStatement(String.format(
+                    TABLE_SIZE_QUERY_TEMPLATE+" WHERE %s = ? AND %s IS NOT NULL",
+                        "DISTINCT "+getKeyColumnName(),
+                        getTableName(),
+                        PROGRAM_ID_COLUMN_NAME,
+                        getValueColumnName()))){
+                pstmt.setInt(1, programID);
+                    // Query the database
+                ResultSet rs = pstmt.executeQuery();
+                    // If there are any results from the query
+                if (rs.next())
+                    return rs.getInt(COUNT_COLUMN_NAME);
+            }
+            return 0;
+        }
+    }
+    /**
+     * 
+     */
+    private abstract class ListConfigIntegerQueryMap extends ListConfigDataQueryMap<Integer>{
+        @Override
+        protected Integer getValue(ResultSet rs) throws SQLException {
+            return rs.getInt(getValueColumnName());
+        }
+        @Override
+        protected void setValue(PreparedStatement pstmt, int parameterIndex, 
+                Integer value) throws SQLException {
+            setParameter(pstmt,parameterIndex,value);
+        }
     }
     /**
      * 
