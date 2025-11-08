@@ -5457,27 +5457,6 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
-     * @param <V> The type of mapped values.
-     */
-    private abstract class AbstractDatabaseTypeIDMap<V> extends 
-            AbstractNavigableTypeIDMap<V>{
-        /**
-         * 
-         * @param typeIDSet 
-         */
-        AbstractDatabaseTypeIDMap(NavigableSet<Integer> typeIDSet){
-            super(typeIDSet);
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public LinkDatabaseConnection getConnection() throws SQLException {
-            return LinkDatabaseConnection.this;
-        }
-    }
-    /**
-     * 
      */
     private abstract class SchemaViewSet extends AbstractQuerySet<String>{
         /**
@@ -6421,14 +6400,15 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    private class ListDataMapImpl extends AbstractDatabaseTypeIDMap<ListContents> 
+    private class ListDataMapImpl extends AbstractNavigableTypeIDMap<ListContents> 
             implements ListDataMap{
         /**
          * 
          * @throws SQLException 
          */
         ListDataMapImpl() throws SQLException {
-            super(LinkDatabaseConnection.this.getListNameMap().navigableKeySet());
+            super(LinkDatabaseConnection.this,
+                    LinkDatabaseConnection.this.getListNameMap().navigableKeySet());
         }
         /**
          * {@inheritDoc }

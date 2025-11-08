@@ -25,17 +25,26 @@ abstract class AbstractNavigableTypeIDMap <V> extends
      */
     protected final NavigableSet<Integer> typeIDSet;
     /**
+     * The connection to the database.
+     */
+    private final LinkDatabaseConnection conn;
+    /**
      * 
      * @param typeIDSet 
+     * @param conn The connection to the database (cannot be null).
      */
-    protected AbstractNavigableTypeIDMap(NavigableSet<Integer> typeIDSet){
+    protected AbstractNavigableTypeIDMap(LinkDatabaseConnection conn, 
+            NavigableSet<Integer> typeIDSet){
+        this.conn = Objects.requireNonNull(conn);
         this.typeIDSet = typeIDSet;
     }
     /**
      * {@inheritDoc }
      */
     @Override
-    public abstract LinkDatabaseConnection getConnection() throws SQLException;
+    public LinkDatabaseConnection getConnection() throws SQLException{
+        return conn;
+    }
     /**
      * {@inheritDoc }
      */
