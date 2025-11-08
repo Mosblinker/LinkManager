@@ -244,7 +244,11 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }//GEN-LAST:event_newFolderActionPerformed
 
     private void refreshItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshItemActionPerformed
-        // TODO add your handling code here:
+        try{
+            loadFiles(getDropboxClient());
+        } catch (DbxException ex){
+            LinkManager.getLogger().log(Level.WARNING, "Failed to load files from Dropbox", ex);
+        }
     }//GEN-LAST:event_refreshItemActionPerformed
 
     /**
