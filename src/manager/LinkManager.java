@@ -5162,9 +5162,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             
             
             dropboxFC.showDialog(this,client);
-        } catch (DbxException ex) {
+        } catch (DbxException | UncheckedDbxException ex) {
             getLogger().log(Level.WARNING, null, ex);
-        }
+        } 
     }//GEN-LAST:event_dbxBrowseButtonActionPerformed
     
     private void setFilesAreHidden(boolean value){
