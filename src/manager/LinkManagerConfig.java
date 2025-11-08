@@ -447,23 +447,11 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
     }
     /**
      * 
-     * @return 
-     */
-    @Override
-    public Set<Integer> getListTypes(){
-        return Collections.unmodifiableSet(listTypeNodes.getKeys());
-    }
-    /**
-     * 
      * @param listID The list ID
      * @return 
      */
     public ConfigPreferences getListPreferences(int listID){
         return listIDNodes.getNode(listID);
-    }
-    @Override
-    public Set<Integer> getListIDs(){
-        return Collections.unmodifiableSet(listIDNodes.getKeys());
     }
     /**
      * This returns the SQLite configuration for the database used by 
@@ -2107,6 +2095,22 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
     @Override
     public boolean removeListSettings(int listID){
         return listIDNodes.removeNode(listID);
+    }
+    @Override
+    protected Set<Integer> getListIDSet(){
+        return listIDNodes.getKeys();
+    }
+    @Override
+    protected int getListIDSize(){
+        return getListIDSet().size();
+    }
+    @Override
+    protected Set<Integer> getListTypeSet(){
+        return listTypeNodes.getKeys();
+    }
+    @Override
+    protected int getListTypeSize(){
+        return getListTypeSet().size();
     }
     /**
      * This returns the user ID set for this configuration.

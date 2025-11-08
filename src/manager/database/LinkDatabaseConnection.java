@@ -7866,23 +7866,97 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
-        @Override
-        public Set<Integer> getListIDs(){
-            Set<Integer> listIDs = new TreeSet<>();
-            try(PreparedStatement pstmt = prepareStatement(String.format("SELECT DISTINCT %s FROM %s WHERE %s = ?",
-                    LIST_ID_COLUMN_NAME,
-                    LIST_SETTINGS_TABLE_NAME,
-                    PROGRAM_ID_COLUMN_NAME))){
+        /**
+         * 
+         * @return 
+         */
+        private Set<Integer> getKeySet(String columnName, String tableName){
+            Set<Integer> keys = new TreeSet<>();
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    "SELECT DISTINCT %s FROM %s WHERE %s = ?",
+                        columnName,
+                        tableName,
+                        PROGRAM_ID_COLUMN_NAME))){
                 pstmt.setInt(1, programID);
                     // Get the results of the query
                 ResultSet rs = pstmt.executeQuery();
                 while (rs.next()){
-                    listIDs.add(rs.getInt(LIST_ID_COLUMN_NAME));
+                    keys.add(rs.getInt(LIST_ID_COLUMN_NAME));
                 }
             } catch (SQLException ex){
                 throw new UncheckedSQLException(ex);
             }
-            return Collections.unmodifiableSet(listIDs);
+            return keys;
+        }
+        /**
+         * 
+         * @param columnName
+         * @param tableName
+         * @return 
+         */
+        private int getKeyCount(String columnName, String tableName){
+                // Prepare a statement to count the unique instances of the list 
+                // types in the list of lists table
+            try(PreparedStatement pstmt = prepareStatement(
+                    String.format(TABLE_SIZE_QUERY_TEMPLATE+" WHERE %s = ?", 
+                            "DISTINCT "+columnName,
+                            tableName,
+                            PROGRAM_ID_COLUMN_NAME))){
+                pstmt.setInt(1, programID);
+                    // Query the database
+                ResultSet rs = pstmt.executeQuery();
+                    // If there are any results from the query
+                if (rs.next())
+                    return rs.getInt(COUNT_COLUMN_NAME);
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+            return 0;
+        }
+        /**
+         * 
+         * @param key
+         * @param columnName
+         * @param tableName
+         * @return 
+         */
+        private boolean containsKey(int key, String columnName, String tableName){
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                        TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
+                            PROGRAM_ID_COLUMN_NAME,
+                            tableName,
+                            PROGRAM_ID_COLUMN_NAME,
+                            columnName))){
+                pstmt.setInt(1, programID);
+                pstmt.setInt(2, key);
+                return containsCountResult(pstmt.executeQuery());
+            } catch (SQLException ex){
+                throw new UncheckedSQLException(ex);
+            }
+        }
+        @Override
+        protected Set<Integer> getListIDSet(){
+            return getKeySet(LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
+        }
+        @Override
+        protected int getListIDSize(){
+            return getKeyCount(LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
+        }
+        @Override
+        protected boolean containsListID(int listID){
+            return containsKey(listID,LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
+        }
+        @Override
+        protected  Set<Integer> getListTypeSet(){
+            return getKeySet(LIST_TYPE_COLUMN_NAME,LIST_TYPE_SETTINGS_TABLE_NAME);
+        }
+        @Override
+        protected int getListTypeSize(){
+            return getKeyCount(LIST_TYPE_COLUMN_NAME,LIST_TYPE_SETTINGS_TABLE_NAME);
+        }
+        @Override
+        protected boolean containsListType(int listType){
+            return containsKey(listType,LIST_TYPE_COLUMN_NAME,LIST_TYPE_SETTINGS_TABLE_NAME);
         }
         @Override
         public void clearListSettings(){
@@ -7948,24 +8022,6 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
             return null;
-        }
-        @Override
-        public Set<Integer> getListTypes() {
-            Set<Integer> listTypes = new TreeSet<>();
-            try(PreparedStatement pstmt = prepareStatement(String.format("SELECT DISTINCT %s FROM %s WHERE %s = ?",
-                    LIST_TYPE_COLUMN_NAME,
-                    LIST_TYPE_SETTINGS_TABLE_NAME,
-                    PROGRAM_ID_COLUMN_NAME))){
-                pstmt.setInt(1, programID);
-                    // Get the results of the query
-                ResultSet rs = pstmt.executeQuery();
-                while (rs.next()){
-                    listTypes.add(rs.getInt(LIST_TYPE_COLUMN_NAME));
-                }
-            } catch (SQLException ex){
-                throw new UncheckedSQLException(ex);
-            }
-            return Collections.unmodifiableSet(listTypes);
         }
         @Override
         public boolean removeSelectedTab(int listType) {
