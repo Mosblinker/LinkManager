@@ -1539,7 +1539,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         // Foreign key constraint for the program ID
                     FOREIGN_KEY_TEMPLATE+", "+ 
                         // Foreign key constraint for the list ID
-                    FOREIGN_KEY_TEMPLATE+", "+
+                    "FOREIGN KEY (%s) REFERENCES %s(%s) ON DELETE SET NULL, "+
                         // Unique constraint for program ID and list type
                     "UNIQUE (%s, %s));",
             LIST_TYPE_SETTINGS_TABLE_NAME,
@@ -1628,7 +1628,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         // Foreign key constraint for the list ID
                     FOREIGN_KEY_TEMPLATE+", "+
                         // Foreign key constraint for the link ID
-                    FOREIGN_KEY_TEMPLATE+", "+
+                    "FOREIGN KEY (%s) REFERENCES %s(%s) ON DELETE SET NULL, "+
                         // Unique constraint for program ID and list ID
                     "UNIQUE (%s, %s));",
             LIST_SETTINGS_TABLE_NAME,
@@ -1783,7 +1783,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     
     public static final int DATABASE_MAJOR_VERSION = 4;
     
-    public static final int DATABASE_MINOR_VERSION = 0;
+    public static final int DATABASE_MINOR_VERSION = 1;
     
     public static final int DATABASE_PATCH_VERSION = 0;
     
@@ -3615,6 +3615,104 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         return true;
     }
     /**
+     * This updates the database to version 4.1.0. Version 4.1.0 updates 
+     * definitions of the two list settings tables to make it so that they don't 
+     * delete settings upon deletion of their foreign key constraints.
+     * @param stmt
+     * @param l
+     * @return
+     * @throws SQLException 
+     */
+    protected boolean updateToVersion4_1_0(Statement stmt, ProgressObserver l) 
+            throws SQLException{
+        Map<Integer,Map<Integer,Integer>> selLists = new TreeMap<>();
+        Map<Integer,Map<Integer,Long>> selLinkIDs = new TreeMap<>();
+        Map<Integer,Map<Integer,Boolean>> selVis = new TreeMap<>();
+        Map<Integer,Map<Integer,Integer>> firstVis = new TreeMap<>();
+        Map<Integer,Map<Integer,Integer>> lastVis = new TreeMap<>();
+        Map<Integer,Map<Integer,Rectangle>> visRect = new TreeMap<>();
+        Map<Integer,Set<Integer>> listIDs = new TreeMap<>();
+        if (showTables().contains(LIST_TYPE_SETTINGS_TABLE_NAME)){
+            ResultSet rs = stmt.executeQuery(String.format("SELECT %s, %s, %s FROM %s", 
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_TYPE_COLUMN_NAME,
+                    LIST_ID_COLUMN_NAME,
+                    LIST_TYPE_SETTINGS_TABLE_NAME));
+            while (rs.next()){
+                int id = rs.getInt(PROGRAM_ID_COLUMN_NAME);
+                if (!selLists.containsKey(id))
+                    selLists.put(id, new TreeMap<>());
+                Integer value = rs.getInt(LIST_ID_COLUMN_NAME);
+                if (rs.wasNull())
+                    value = null;
+                selLists.get(id).put(rs.getInt(LIST_TYPE_COLUMN_NAME), value);
+            }
+        }
+        if (showTables().contains(LIST_SETTINGS_TABLE_NAME)){
+            ResultSet rs = stmt.executeQuery(String.format("SELECT %s, %s, %s, %s, %s, %s FROM %s", 
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_ID_COLUMN_NAME,
+                    LINK_ID_COLUMN_NAME,
+                    SELECTION_IS_VISIBLE_COLUMN_NAME,
+                    FIRST_VISIBLE_INDEX_COLUMN_NAME,
+                    LAST_VISIBLE_INDEX_COLUMN_NAME,
+                    VISIBLE_RECTANGLE_COLUMN_NAME,
+                    LIST_SETTINGS_TABLE_NAME));
+            while (rs.next()){
+                int progID = rs.getInt(PROGRAM_ID_COLUMN_NAME);
+                int listID = rs.getInt(LIST_ID_COLUMN_NAME);
+                if (!listIDs.containsKey(progID)){
+                    listIDs.put(progID, new TreeSet<>());
+                    selLinkIDs.put(progID, new TreeMap<>());
+                    selVis.put(progID, new TreeMap<>());
+                    firstVis.put(progID, new TreeMap<>());
+                    lastVis.put(progID, new TreeMap<>());
+                    visRect.put(progID, new TreeMap<>());
+                }
+                listIDs.get(progID).add(listID);
+                Long linkID = rs.getLong(LINK_ID_COLUMN_NAME);
+                if (rs.wasNull())
+                    linkID = null;
+                selLinkIDs.get(progID).put(listID, linkID);
+                Boolean vis = rs.getBoolean(SELECTION_IS_VISIBLE_COLUMN_NAME);
+                if (rs.wasNull())
+                    vis = null;
+                selVis.get(progID).put(listID, vis);
+                Integer index = rs.getInt(FIRST_VISIBLE_INDEX_COLUMN_NAME);
+                if (rs.wasNull())
+                    index = null;
+                firstVis.get(progID).put(listID, index);
+                index = rs.getInt(LAST_VISIBLE_INDEX_COLUMN_NAME);
+                if (rs.wasNull())
+                    index = null;
+                lastVis.get(progID).put(listID, index);
+                visRect.get(progID).put(index, 
+                        ConfigUtilities.rectangleFromByteArray(
+                                rs.getBytes(VISIBLE_RECTANGLE_COLUMN_NAME)));
+            }
+        }
+        deleteTable(LIST_TYPE_SETTINGS_TABLE_NAME,stmt);
+        deleteTable(LIST_SETTINGS_TABLE_NAME,stmt);
+        createTables(stmt); // Create the new tables
+        commit();       // Commit the changes to the database
+        for (Map.Entry<Integer, Map<Integer,Integer>> entry : selLists.entrySet()){
+            getListSettings(entry.getKey()).getSelectedListIDMap().putAll(entry.getValue());
+        }
+        commit();       // Commit the changes to the database
+        for (Map.Entry<Integer,Set<Integer>> entry : listIDs.entrySet()){
+            DatabaseLinksListSettings settings = getListSettings(entry.getKey());
+            for (Integer listID : entry.getValue()){
+                settings.setListSettings(listID, 
+                        selLinkIDs.get(entry.getKey()).get(listID), 
+                        selVis.get(entry.getKey()).get(listID), 
+                        firstVis.get(entry.getKey()).get(listID), 
+                        lastVis.get(entry.getKey()).get(listID), 
+                        visRect.get(entry.getKey()).get(listID));
+            }
+        }
+        return true;
+    }
+    /**
      * 
      * @param stmt
      * @param l
@@ -3752,7 +3850,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 LinkManager.getLogger().finer("Updating to version 3.3.0");
                 setDatabaseUUIDIfAbsent();
             case("3.3.0"):      // If version 3.3.0
+                LinkManager.getLogger().finer("Updating to version 3.4.0");
             case("3.4.0"):      // If version 3.4.0
+                LinkManager.getLogger().finer("Updating to version 4.0.0");
                     // Delete the old indexes
                 deleteIndex("listTypeSelectionIndex",stmt);
                 deleteIndex("listSelectionIndex",stmt);
@@ -3768,8 +3868,14 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         // Rename the old table
                     renameTable("listSelection",LIST_SETTINGS_TABLE_NAME,stmt);
                 }
-                createTables(stmt); // Create the new tables
-//            case("4.0.0"):      // If version 4.0.0
+            case("4.0.0"):      // If version 4.0.0
+                LinkManager.getLogger().finer("Updating to version 4.1.0");
+                    // Update the database to version 4.1.0
+                updateSuccess = updateToVersion4_1_0(stmt,l);
+                    // If the update was not successful
+                if (!updateSuccess)
+                    break;
+//            case("4.1.0"):      // If version 4.1.0
         }
             // If foreign keys are supported
         if (foreignKeys != null)
