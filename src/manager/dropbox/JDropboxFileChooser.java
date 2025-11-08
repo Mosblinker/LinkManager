@@ -150,6 +150,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         viewButtonGroup = new javax.swing.ButtonGroup();
         filePopupMenu = new javax.swing.JPopupMenu();
+        refreshItem = new javax.swing.JMenuItem();
         newFolderItem = new javax.swing.JMenuItem();
         controlButtonPanel = new javax.swing.JPanel();
         javax.swing.JButton acceptButton = getAcceptButton();
@@ -160,6 +161,14 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileNameLabel = new javax.swing.JLabel();
         fileNameField = new javax.swing.JTextField();
         newFolderButton = new javax.swing.JButton();
+
+        refreshItem.setText("Refresh");
+        refreshItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                refreshItemActionPerformed(evt);
+            }
+        });
+        filePopupMenu.add(refreshItem);
 
         newFolderItem.setText("New Folder");
         newFolderItem.addActionListener(new java.awt.event.ActionListener() {
@@ -234,6 +243,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_newFolderActionPerformed
 
+    private void refreshItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshItemActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_refreshItemActionPerformed
+
     /**
      * This is the Dropbox client being used currently.
      */
@@ -246,6 +259,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JPopupMenu filePopupMenu;
     private javax.swing.JButton newFolderButton;
     private javax.swing.JMenuItem newFolderItem;
+    private javax.swing.JMenuItem refreshItem;
     private javax.swing.JPanel treePanel;
     private javax.swing.JScrollPane treeScrollPanel;
     private javax.swing.ButtonGroup viewButtonGroup;
