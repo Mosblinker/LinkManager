@@ -1992,7 +1992,7 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
      */
     public Map<Integer, Integer> getSelectedTabIndexMap(){
         if (currTabIndexMap == null){
-            currTabIndexMap = new ListConfigDataMap<>(){
+            currTabIndexMap = new ListConfigDataMapImpl<>(){
                 @Override
                 protected Integer getValue(int key) {
                          // If the node contains the current tab index key
@@ -2005,8 +2005,8 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
                     setSelectedTabIndex(key,value);
                 }
                 @Override
-                protected Set<Integer> getKeys() {
-                    return removeUnusedKeys(listTypeNodes.getKeys());
+                protected ListConfigNodeParent getNodes() {
+                    return listTypeNodes;
                 }
             };
         }
@@ -2351,6 +2351,21 @@ public class LinkManagerConfig extends AbstractLinksListSettings{
         public void clearCredentials(){
             super.clearCredentials();
             clearDropboxToken();
+        }
+    }
+    /**
+     * 
+     * @param <V> 
+     */
+    private abstract class ListConfigDataMapImpl<V> extends ListConfigDataMap<V>{
+        /**
+         * 
+         * @return 
+         */
+        protected abstract ListConfigNodeParent getNodes();
+        @Override
+        protected Set<Integer> getKeys(){
+            return removeUnusedKeys(getNodes().getKeys());
         }
     }
     /**
