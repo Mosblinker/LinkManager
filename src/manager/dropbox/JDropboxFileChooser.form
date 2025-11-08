@@ -126,6 +126,9 @@
       <Properties>
         <Property name="toolTipText" type="java.lang.String" value="Create New Folder"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newFolderActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

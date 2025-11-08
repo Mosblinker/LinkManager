@@ -174,6 +174,11 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileNameLabel.setText("File Name:");
 
         newFolderButton.setToolTipText("Create New Folder");
+        newFolderButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                newFolderActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -210,6 +215,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void newFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newFolderActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_newFolderActionPerformed
 
     /**
      * This is the Dropbox client being used currently.
