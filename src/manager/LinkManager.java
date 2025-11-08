@@ -1405,6 +1405,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxPrintButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
+        dbxListFilesTestButton = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
 
         openFC.addActionListener(new java.awt.event.ActionListener() {
@@ -3243,6 +3244,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         dropboxTestMenu.add(dropboxRefreshTestButton);
+
+        dbxListFilesTestButton.setText("List Files");
+        dbxListFilesTestButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbxListFilesTestButtonActionPerformed(evt);
+            }
+        });
+        dropboxTestMenu.add(dbxListFilesTestButton);
 
         debugMenu.add(dropboxTestMenu);
 
@@ -5099,6 +5108,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.WARNING,"Could not open update URL "+url,ex);
         }
     }//GEN-LAST:event_updateOpenButtonActionPerformed
+
+    private void dbxListFilesTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxListFilesTestButtonActionPerformed
+        try {
+                // Get a client to communicate with Dropbox, refreshing the 
+                // Dropbox credentials if necessary
+            DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
+            
+                // Get the files and folder metadata from the Dropbox root directory
+            ListFolderResult results = client.files().listFolder("");
+            for (Metadata metadata : results.getEntries()){
+                System.out.println(metadata);
+            }
+            while (results.getHasMore()){
+                results = client.files().listFolderContinue(results.getCursor());
+                for (Metadata metadata : results.getEntries()){
+                    System.out.println(metadata);
+                }
+            }
+            
+        } catch (DbxException ex) {
+            getLogger().log(Level.WARNING, "Failed to list files", ex);
+        }
+    }//GEN-LAST:event_dbxListFilesTestButtonActionPerformed
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
@@ -5787,6 +5819,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JSpinner dbxChunkSizeSpinner;
     private javax.swing.JPanel dbxDataPanel;
     private javax.swing.JTextField dbxDbFileField;
+    private javax.swing.JMenuItem dbxListFilesTestButton;
     private javax.swing.JButton dbxLogInButton;
     private javax.swing.JButton dbxLogOutButton;
     private components.JThumbnailLabel dbxPfpLabel;
