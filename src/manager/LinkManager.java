@@ -1201,6 +1201,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         javax.swing.JLabel jLabel7 = new javax.swing.JLabel();
         dbxChunkSizeSpinner = new javax.swing.JSpinner();
         javax.swing.JLabel jLabel11 = new javax.swing.JLabel();
+        dbxBrowseButton = new javax.swing.JButton();
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
@@ -1589,6 +1590,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         jLabel11.setText("MiB");
 
+        dbxBrowseButton.setText("Browse");
+        dbxBrowseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbxBrowseButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout setDropboxCardLayout = new javax.swing.GroupLayout(setDropboxCard);
         setDropboxCard.setLayout(setDropboxCardLayout);
         setDropboxCardLayout.setHorizontalGroup(
@@ -1600,7 +1608,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     .addGroup(setDropboxCardLayout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbxDbFileField, javax.swing.GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE))
+                        .addComponent(dbxDbFileField, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(dbxBrowseButton))
                     .addGroup(setDropboxCardLayout.createSequentialGroup()
                         .addComponent(jLabel7)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1618,7 +1628,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(dbxDbFileField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(dbxDbFileField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(dbxBrowseButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
@@ -5143,6 +5154,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.WARNING, "Failed to list files", ex);
         }
     }//GEN-LAST:event_dbxListFilesTestButtonActionPerformed
+
+    private void dbxBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxBrowseButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_dbxBrowseButtonActionPerformed
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
@@ -5466,7 +5481,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         dbxLogInButton.setEnabled(setDBLocationItem.isEnabled() && dbxUtils != null);
         dbxLogOutButton.setEnabled(setDBLocationItem.isEnabled());
-        dbxDbFileField.setEditable(dbFileField.isEditable() && dbxUtils != null);
+        dbxBrowseButton.setEnabled(dbxLogInButton.isEnabled());
+        dbxDbFileField.setEditable(dbxBrowseButton.isEnabled());
         dbxChunkSizeSpinner.setEnabled(dbxLogInButton.isEnabled());
         
         updateDBLocationButtons();
@@ -5828,6 +5844,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem dbViewItem;
     private manager.database.DatabaseTableViewer dbViewer;
     private javax.swing.JLabel dbxAccountLabel;
+    private javax.swing.JButton dbxBrowseButton;
     private javax.swing.JSpinner dbxChunkSizeSpinner;
     private javax.swing.JPanel dbxDataPanel;
     private javax.swing.JTextField dbxDbFileField;
