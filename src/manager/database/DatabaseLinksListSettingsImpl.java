@@ -34,7 +34,16 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
      */
     private static final String SELECT_VALUE_TEMPLATE = 
             "SELECT %s FROM %s WHERE %s = ? AND %s = ?";
-    
+    /**
+     * This is the template for deleting a key from the tables.
+     */
+    private static final String DELETE_KEY_TEMPLATE = 
+            "DELETE FROM %s WHERE %s = ? AND %s = ?";
+    /**
+     * This is the template for deleting all the keys from the table.
+     */
+    private static final String CLEAR_KEYS_TEMPLATE = 
+            "DELETE FROM %s WHERE %s = ?";
     /**
      * The connection to the database.
      */
@@ -43,6 +52,14 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
      * 
      */
     private final int programID;
+    /**
+     * 
+     */
+    private Set<Integer> listIDs = null;
+    /**
+     * 
+     */
+    private Set<Integer> listTypes = null;
     /**
      * This is initially 
      * null and is initialized when first used.
@@ -72,7 +89,8 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
      * 
      * @return 
      */
-    private Set<Integer> getKeySet(String columnName, String tableName){
+    private Set<Integer> getKeySetSQL(String columnName, String tableName) 
+            throws SQLException{
         Set<Integer> keys = new TreeSet<>();
         try(PreparedStatement pstmt = conn.prepareStatement(String.format(
                 "SELECT DISTINCT %s FROM %s WHERE %s = ?",
@@ -85,10 +103,19 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
             while (rs.next()){
                 keys.add(rs.getInt(columnName));
             }
+        }
+        return keys;
+    }
+    /**
+     * 
+     * @return 
+     */
+    private Set<Integer> getKeySet(String columnName, String tableName){
+        try{
+            return getKeySetSQL(columnName,tableName);
         } catch (SQLException ex){
             throw new UncheckedSQLException(ex);
         }
-        return keys;
     }
     /**
      * 
@@ -96,24 +123,29 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
      * @param tableName
      * @return 
      */
-    private int getKeyCount(String columnName, String tableName){
+    private int getKeyCountSQL(String columnName, String tableName)throws SQLException{
             // Prepare a statement to count the unique instances of the list 
             // types in the list of lists table
-        try(PreparedStatement pstmt = conn.prepareStatement(
-                String.format(TABLE_SIZE_QUERY_TEMPLATE+" WHERE %s = ?", 
-                        "DISTINCT "+columnName,
-                        tableName,
-                        PROGRAM_ID_COLUMN_NAME))){
+        try(PreparedStatement pstmt = conn.prepareStatement(String.format(
+                TABLE_SIZE_QUERY_TEMPLATE+" WHERE %s = ?", 
+                    "DISTINCT "+columnName,
+                    tableName,
+                    PROGRAM_ID_COLUMN_NAME))){
             pstmt.setInt(1, programID);
                 // Query the database
             ResultSet rs = pstmt.executeQuery();
                 // If there are any results from the query
             if (rs.next())
                 return rs.getInt(COUNT_COLUMN_NAME);
+        }
+        return 0;
+    }
+    private int getKeyCount(String columnName, String tableName){
+        try{
+            return getKeyCountSQL(columnName,tableName);
         } catch (SQLException ex){
             throw new UncheckedSQLException(ex);
         }
-        return 0;
     }
     /**
      * 
@@ -125,11 +157,11 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     private boolean containsKeySQL(int key, String columnName, String tableName) 
             throws SQLException{
         try(PreparedStatement pstmt = conn.prepareStatement(String.format(
-                    TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
-                        PROGRAM_ID_COLUMN_NAME,
-                        tableName,
-                        PROGRAM_ID_COLUMN_NAME,
-                        columnName))){
+                TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
+                    PROGRAM_ID_COLUMN_NAME,
+                    tableName,
+                    PROGRAM_ID_COLUMN_NAME,
+                    columnName))){
             pstmt.setInt(1, programID);
             pstmt.setInt(2, key);
             return containsCountResult(pstmt.executeQuery());
@@ -150,6 +182,36 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
         }
     }
     @Override
+    public Set<Integer> getListIDs(){
+        if (listIDs == null)
+            listIDs = new KeyQuerySet(){
+                @Override
+                protected String getColumnName() {
+                    return LIST_ID_COLUMN_NAME;
+                }
+                @Override
+                protected String getTableName() {
+                    return LIST_SETTINGS_TABLE_NAME;
+                }
+            };
+        return listIDs;
+    }
+    @Override
+    public Set<Integer> getListTypes(){
+        if (listTypes == null)
+            listTypes = new KeyQuerySet(){
+                @Override
+                protected String getColumnName() {
+                    return LIST_TYPE_COLUMN_NAME;
+                }
+                @Override
+                protected String getTableName() {
+                    return LIST_TYPE_SETTINGS_TABLE_NAME;
+                }
+            };
+        return listTypes;
+    }
+    @Override
     protected Set<Integer> getListIDSet(){
         return getKeySet(LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
     }
@@ -162,7 +224,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
         return containsKey(listID,LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
     }
     @Override
-    protected  Set<Integer> getListTypeSet(){
+    protected Set<Integer> getListTypeSet(){
         return getKeySet(LIST_TYPE_COLUMN_NAME,LIST_TYPE_SETTINGS_TABLE_NAME);
     }
     @Override
@@ -449,53 +511,15 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     }
     @Override
     public boolean removeListSettings(int listID) {
-            // Prepare a statement to remove the entry with the given program ID 
-            // and listID
-        try (PreparedStatement pstmt = conn.prepareStatement(String.format(
-                "DELETE FROM %s WHERE %s = ? AND %s = ?", 
-                        LIST_SETTINGS_TABLE_NAME,
-                        PROGRAM_ID_COLUMN_NAME,
-                        LIST_ID_COLUMN_NAME))) {
-                // Set the program ID to remove for
-            pstmt.setInt(1, programID);
-            pstmt.setInt(2, listID);
-                // Update the database
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException ex){
-            throw new UncheckedSQLException(ex);
-        }
+        return getListIDs().remove(listID);
     }
     @Override
     public boolean removeListSettings(Collection<Integer> listIDs) {
-        try{    // Get the current state of the auto-commit
-            boolean autoCommit = conn.getAutoCommit();
-                // Turn off the auto-commit in order to group the following 
-                // database transactions to improve performance
-            conn.setAutoCommit(false);
-            boolean modified = DatabaseLinksListSettings.super.removeListSettings(listIDs);
-                // Commit the changes to the database
-            conn.commit();
-                // Restore the auto-commit back to what it was set to before
-            conn.setAutoCommit(autoCommit);
-            return modified;
-        } catch (SQLException ex){
-            throw new UncheckedSQLException(ex);
-        }
+        return getListIDs().removeAll(listIDs);
     }
     @Override
     public void clearListSettings(){
-            // Prepare a statement to remove the entries with the given program ID 
-        try (PreparedStatement pstmt = conn.prepareStatement(String.format(
-                "DELETE FROM %s WHERE %s = ?", 
-                        LIST_SETTINGS_TABLE_NAME,
-                        PROGRAM_ID_COLUMN_NAME))) {
-                // Set the program ID to remove for
-            pstmt.setInt(1, programID);
-                // Update the database
-            pstmt.executeUpdate();
-        } catch (SQLException ex){
-            throw new UncheckedSQLException(ex);
-        }
+        getListIDs().clear();
     }
     @Override
     public void setSelectedListID(int listType, Integer listID) {
@@ -539,36 +563,11 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     }
     @Override
     public boolean removeSelectedTab(int listType) {
-            // Prepare a statement to remove the entry with the given program ID 
-            // and list type
-        try (PreparedStatement pstmt = conn.prepareStatement(String.format(
-                "DELETE FROM %s WHERE %s = ? AND %s = ?", 
-                        LIST_TYPE_SETTINGS_TABLE_NAME,
-                        PROGRAM_ID_COLUMN_NAME,
-                        LIST_TYPE_COLUMN_NAME))) {
-                // Set the program ID to remove for
-            pstmt.setInt(1, programID);
-            pstmt.setInt(2, listType);
-                // Update the database
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException ex){
-            throw new UncheckedSQLException(ex);
-        }
+        return getListTypes().remove(listType);
     }
     @Override
     public void clearSelectedTabs() {
-            // Prepare a statement to remove the entries with the given program ID 
-        try (PreparedStatement pstmt = conn.prepareStatement(String.format(
-                "DELETE FROM %s WHERE %s = ?", 
-                        LIST_TYPE_SETTINGS_TABLE_NAME,
-                        PROGRAM_ID_COLUMN_NAME))) {
-                // Set the program ID to remove for
-            pstmt.setInt(1, programID);
-                // Update the database
-            pstmt.executeUpdate();
-        } catch (SQLException ex){
-            throw new UncheckedSQLException(ex);
-        }
+        getListTypes().clear();
     }
     @Override
     public Map<Integer, Long> getSelectedLinkIDMap() {
@@ -589,5 +588,72 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
             };
         }
         return selLinkIDMap;
+    }
+    /**
+     * 
+     */
+    private abstract class KeyQuerySet extends AbstractQuerySet<Integer>{
+        /**
+         * 
+         */
+        KeyQuerySet() {
+            super(conn);
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected abstract String getColumnName();
+        /**
+         * 
+         * @return 
+         */
+        protected abstract String getTableName();
+        @Override
+        protected boolean containsSQL(Object o) throws SQLException {
+            if (!(o instanceof Integer))
+                return false;
+            return containsKeySQL((Integer)o,getColumnName(),getTableName());
+        }
+        @Override
+        protected boolean removeSQL(Object o) throws SQLException {
+            if (o instanceof Integer){
+                    // Prepare a statement to remove the entry with the given 
+                    // program ID and key
+                try (PreparedStatement pstmt = conn.prepareStatement(String.format(
+                        DELETE_KEY_TEMPLATE, 
+                            getTableName(),
+                            PROGRAM_ID_COLUMN_NAME,
+                            getColumnName()))) {
+                        // Set the program ID to remove for
+                    pstmt.setInt(1, programID);
+                    pstmt.setInt(2, (Integer)o);
+                        // Update the database
+                    return pstmt.executeUpdate() > 0;
+                }
+            }
+            return false;
+        }
+        @Override
+        protected Set<Integer> valueCacheSet() throws SQLException {
+            return getKeySetSQL(getColumnName(),getTableName());
+        }
+        @Override
+        protected int sizeSQL() throws SQLException {
+            return getKeyCountSQL(getColumnName(),getTableName());
+        }
+        @Override
+        protected void clearSQL() throws SQLException {
+                // Prepare a statement to remove the entries with the given program ID 
+            try (PreparedStatement pstmt = conn.prepareStatement(String.format(
+                    CLEAR_KEYS_TEMPLATE, 
+                        getTableName(),
+                        PROGRAM_ID_COLUMN_NAME))) {
+                    // Set the program ID to remove for
+                pstmt.setInt(1, programID);
+                    // Update the database
+                pstmt.executeUpdate();
+            }
+        }
     }
 }
