@@ -20,6 +20,17 @@ import sql.UncheckedSQLException;
 class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings 
         implements DatabaseLinksListSettings{
     /**
+     * This is the template for updating a value in the tables.
+     */
+    private static final String UPDATE_VALUE_TEMPLATE = 
+            "UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?";
+    /**
+     * This is the template for inserting a value into the tables.
+     */
+    private static final String INSERT_VALUE_TEMPLATE = 
+            "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)";
+    
+    /**
      * The connection to the database.
      */
     private final LinkDatabaseConnection conn;
@@ -52,26 +63,147 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     public int getProgramID() {
         return programID;
     }
+    /**
+     * 
+     * @return 
+     */
+    private Set<Integer> getKeySet(String columnName, String tableName){
+        Set<Integer> keys = new TreeSet<>();
+        try(PreparedStatement pstmt = conn.prepareStatement(String.format(
+                "SELECT DISTINCT %s FROM %s WHERE %s = ?",
+                    columnName,
+                    tableName,
+                    PROGRAM_ID_COLUMN_NAME))){
+            pstmt.setInt(1, programID);
+                // Get the results of the query
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()){
+                keys.add(rs.getInt(columnName));
+            }
+        } catch (SQLException ex){
+            throw new UncheckedSQLException(ex);
+        }
+        return keys;
+    }
+    /**
+     * 
+     * @param columnName
+     * @param tableName
+     * @return 
+     */
+    private int getKeyCount(String columnName, String tableName){
+            // Prepare a statement to count the unique instances of the list 
+            // types in the list of lists table
+        try(PreparedStatement pstmt = conn.prepareStatement(
+                String.format(TABLE_SIZE_QUERY_TEMPLATE+" WHERE %s = ?", 
+                        "DISTINCT "+columnName,
+                        tableName,
+                        PROGRAM_ID_COLUMN_NAME))){
+            pstmt.setInt(1, programID);
+                // Query the database
+            ResultSet rs = pstmt.executeQuery();
+                // If there are any results from the query
+            if (rs.next())
+                return rs.getInt(COUNT_COLUMN_NAME);
+        } catch (SQLException ex){
+            throw new UncheckedSQLException(ex);
+        }
+        return 0;
+    }
+    /**
+     * 
+     * @param key
+     * @param columnName
+     * @param tableName
+     * @return 
+     */
+    private boolean containsKeySQL(int key, String columnName, String tableName) 
+            throws SQLException{
+        try(PreparedStatement pstmt = conn.prepareStatement(String.format(
+                    TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
+                        PROGRAM_ID_COLUMN_NAME,
+                        tableName,
+                        PROGRAM_ID_COLUMN_NAME,
+                        columnName))){
+            pstmt.setInt(1, programID);
+            pstmt.setInt(2, key);
+            return containsCountResult(pstmt.executeQuery());
+        }
+    }
+    /**
+     * 
+     * @param key
+     * @param columnName
+     * @param tableName
+     * @return 
+     */
+    private boolean containsKey(int key, String columnName, String tableName){
+        try{
+            return containsKeySQL(key,columnName,tableName);
+        } catch (SQLException ex){
+            throw new UncheckedSQLException(ex);
+        }
+    }
+    @Override
+    protected Set<Integer> getListIDSet(){
+        return getKeySet(LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
+    }
+    @Override
+    protected int getListIDSize(){
+        return getKeyCount(LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
+    }
+    @Override
+    protected boolean containsListID(int listID){
+        return containsKey(listID,LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
+    }
+    @Override
+    protected  Set<Integer> getListTypeSet(){
+        return getKeySet(LIST_TYPE_COLUMN_NAME,LIST_TYPE_SETTINGS_TABLE_NAME);
+    }
+    @Override
+    protected int getListTypeSize(){
+        return getKeyCount(LIST_TYPE_COLUMN_NAME,LIST_TYPE_SETTINGS_TABLE_NAME);
+    }
+    @Override
+    protected boolean containsListType(int listType){
+        return containsKey(listType,LIST_TYPE_COLUMN_NAME,LIST_TYPE_SETTINGS_TABLE_NAME);
+    }
+    /**
+     * 
+     * @param tableName
+     * @param keyColumnName
+     * @param valueColumnName
+     * @param key
+     * @return
+     * @throws SQLException 
+     */
+    protected PreparedStatement getSetStatement(String tableName, 
+            String keyColumnName, String valueColumnName, int key) 
+            throws SQLException{
+        PreparedStatement pstmt = conn.prepareStatement(String.format(
+                (containsKeySQL(key,tableName,keyColumnName))?
+                        UPDATE_VALUE_TEMPLATE:INSERT_VALUE_TEMPLATE,
+                    tableName,
+                    valueColumnName,
+                    PROGRAM_ID_COLUMN_NAME,
+                    keyColumnName));
+        pstmt.setInt(2, programID);
+        pstmt.setInt(3, key);
+        return pstmt;
+    }
     @Override
     public void setSelectedLinkID(int listID, Long value) {
         LinkManager.getLogger().entering(this.getClass().getName(), 
                 "setSelectedLinkID",new Object[]{listID,value,getProgramID()});
-        try{
-            boolean contains = conn.selectionTableContains(programID,listID);
-            if (contains || value != null){
-                try(PreparedStatement pstmt = conn.prepareStatement(String.format(
-                        (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
-                                "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
-                            LIST_SETTINGS_TABLE_NAME,
-                            LINK_ID_COLUMN_NAME,
-                            PROGRAM_ID_COLUMN_NAME,
-                            LIST_ID_COLUMN_NAME))){
-                    setParameter(pstmt,1,value);
-                    pstmt.setInt(2, programID);
-                    pstmt.setInt(3, listID);
-                    pstmt.executeUpdate();
-                }
-            }
+        if (!containsListID(listID) && value == null){
+            LinkManager.getLogger().exiting(this.getClass().getName(), 
+                    "setSelectedLinkID");
+            return;
+        }
+        try(PreparedStatement pstmt = getSetStatement(LIST_SETTINGS_TABLE_NAME,
+                LIST_ID_COLUMN_NAME,LINK_ID_COLUMN_NAME,listID)){
+            setParameter(pstmt,1,value);
+            pstmt.executeUpdate();
         } catch (SQLException ex){
             throw new UncheckedSQLException(ex);
         }
@@ -102,22 +234,12 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     }
     @Override
     public void setSelectedLinkVisible(int listID, Boolean value) {
-        try{
-            boolean contains = conn.selectionTableContains(programID,listID);
-            if (contains || value != null){
-                try(PreparedStatement pstmt = conn.prepareStatement(String.format(
-                        (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
-                                "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
-                            LIST_SETTINGS_TABLE_NAME,
-                            SELECTION_IS_VISIBLE_COLUMN_NAME,
-                            PROGRAM_ID_COLUMN_NAME,
-                            LIST_ID_COLUMN_NAME))){
-                    setParameter(pstmt,1,value);
-                    pstmt.setInt(2, programID);
-                    pstmt.setInt(3, listID);
-                    pstmt.executeUpdate();
-                }
-            }
+        if (!containsListID(listID) && value == null)
+            return;
+        try(PreparedStatement pstmt = getSetStatement(LIST_SETTINGS_TABLE_NAME,
+                LIST_ID_COLUMN_NAME,SELECTION_IS_VISIBLE_COLUMN_NAME,listID)){
+            setParameter(pstmt,1,value);
+            pstmt.executeUpdate();
         } catch (SQLException ex){
             throw new UncheckedSQLException(ex);
         }
@@ -151,22 +273,12 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
      * @param columnName
      */
     private void setSelectionInteger(int listID, Integer value, String columnName) {
-        try{
-            boolean contains = conn.selectionTableContains(programID,listID);
-            if (contains || value != null){
-                try(PreparedStatement pstmt = conn.prepareStatement(String.format(
-                        (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
-                                "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
-                            LIST_SETTINGS_TABLE_NAME,
-                            columnName,
-                            PROGRAM_ID_COLUMN_NAME,
-                            LIST_ID_COLUMN_NAME))){
-                    setParameter(pstmt,1,value);
-                    pstmt.setInt(2, programID);
-                    pstmt.setInt(3, listID);
-                    pstmt.executeUpdate();
-                }
-            }
+        if (!containsListID(listID) && value == null)
+            return;
+        try(PreparedStatement pstmt = getSetStatement(LIST_SETTINGS_TABLE_NAME,
+                LIST_ID_COLUMN_NAME,columnName,listID)){
+            setParameter(pstmt,1,value);
+            pstmt.executeUpdate();
         } catch (SQLException ex){
             throw new UncheckedSQLException(ex);
         }
@@ -210,22 +322,12 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     }
     @Override
     public void setVisibleRect(int listID, Rectangle value) {
-        try{
-            boolean contains = conn.selectionTableContains(programID,listID);
-            if (contains || value != null){
-                try(PreparedStatement pstmt = conn.prepareStatement(String.format(
-                        (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
-                                "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
-                            LIST_SETTINGS_TABLE_NAME,
-                            VISIBLE_RECTANGLE_COLUMN_NAME,
-                            PROGRAM_ID_COLUMN_NAME,
-                            LIST_ID_COLUMN_NAME))){
-                    setParameter(pstmt,1,value);
-                    pstmt.setInt(2, programID);
-                    pstmt.setInt(3, listID);
-                    pstmt.executeUpdate();
-                }
-            }
+        if (!containsListID(listID) && value == null)
+            return;
+        try(PreparedStatement pstmt = getSetStatement(LIST_SETTINGS_TABLE_NAME,
+                LIST_ID_COLUMN_NAME,VISIBLE_RECTANGLE_COLUMN_NAME,listID)){
+            setParameter(pstmt,1,value);
+            pstmt.executeUpdate();
         } catch (SQLException ex){
             throw new UncheckedSQLException(ex);
         }
@@ -265,7 +367,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
         if (lastIndex < 0)
             lastIndex = null;
         try{
-            boolean contains = conn.selectionTableContains(programID,listID);
+            boolean contains = containsListID(listID);
             if (contains || isVisible != null || firstIndex != null || 
                     lastIndex != null || visibleRect != null){
                 try(PreparedStatement pstmt = conn.prepareStatement(String.format((contains)?
@@ -306,7 +408,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
         if (lastIndex < 0)
             lastIndex = null;
         try{
-            boolean contains = conn.selectionTableContains(programID,listID);
+            boolean contains = containsListID(listID);
             if (contains || linkID != null || isVisible != null || 
                     firstIndex != null || lastIndex != null || visibleRect != null){
                 try(PreparedStatement pstmt = conn.prepareStatement(String.format((contains)?
@@ -371,98 +473,6 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
             throw new UncheckedSQLException(ex);
         }
     }
-    /**
-     * 
-     * @return 
-     */
-    private Set<Integer> getKeySet(String columnName, String tableName){
-        Set<Integer> keys = new TreeSet<>();
-        try(PreparedStatement pstmt = conn.prepareStatement(String.format(
-                "SELECT DISTINCT %s FROM %s WHERE %s = ?",
-                    columnName,
-                    tableName,
-                    PROGRAM_ID_COLUMN_NAME))){
-            pstmt.setInt(1, programID);
-                // Get the results of the query
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()){
-                keys.add(rs.getInt(columnName));
-            }
-        } catch (SQLException ex){
-            throw new UncheckedSQLException(ex);
-        }
-        return keys;
-    }
-    /**
-     * 
-     * @param columnName
-     * @param tableName
-     * @return 
-     */
-    private int getKeyCount(String columnName, String tableName){
-            // Prepare a statement to count the unique instances of the list 
-            // types in the list of lists table
-        try(PreparedStatement pstmt = conn.prepareStatement(
-                String.format(TABLE_SIZE_QUERY_TEMPLATE+" WHERE %s = ?", 
-                        "DISTINCT "+columnName,
-                        tableName,
-                        PROGRAM_ID_COLUMN_NAME))){
-            pstmt.setInt(1, programID);
-                // Query the database
-            ResultSet rs = pstmt.executeQuery();
-                // If there are any results from the query
-            if (rs.next())
-                return rs.getInt(COUNT_COLUMN_NAME);
-        } catch (SQLException ex){
-            throw new UncheckedSQLException(ex);
-        }
-        return 0;
-    }
-    /**
-     * 
-     * @param key
-     * @param columnName
-     * @param tableName
-     * @return 
-     */
-    private boolean containsKey(int key, String columnName, String tableName){
-        try(PreparedStatement pstmt = conn.prepareStatement(String.format(
-                    TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
-                        PROGRAM_ID_COLUMN_NAME,
-                        tableName,
-                        PROGRAM_ID_COLUMN_NAME,
-                        columnName))){
-            pstmt.setInt(1, programID);
-            pstmt.setInt(2, key);
-            return containsCountResult(pstmt.executeQuery());
-        } catch (SQLException ex){
-            throw new UncheckedSQLException(ex);
-        }
-    }
-    @Override
-    protected Set<Integer> getListIDSet(){
-        return getKeySet(LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
-    }
-    @Override
-    protected int getListIDSize(){
-        return getKeyCount(LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
-    }
-    @Override
-    protected boolean containsListID(int listID){
-        return containsKey(listID,LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
-    }
-    @Override
-    protected  Set<Integer> getListTypeSet(){
-        return getKeySet(LIST_TYPE_COLUMN_NAME,LIST_TYPE_SETTINGS_TABLE_NAME);
-    }
-    @Override
-    protected int getListTypeSize(){
-        return getKeyCount(LIST_TYPE_COLUMN_NAME,LIST_TYPE_SETTINGS_TABLE_NAME);
-    }
-    @Override
-    protected boolean containsListType(int listType){
-        return containsKey(listType,LIST_TYPE_COLUMN_NAME,LIST_TYPE_SETTINGS_TABLE_NAME);
-    }
     @Override
     public void clearListSettings(){
             // Prepare a statement to remove the entries with the given program ID 
@@ -492,17 +502,9 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
                     pstmt.executeUpdate();
                 }
             } else{
-                try(PreparedStatement pstmt = conn.prepareStatement(String.format(
-                        (conn.listSelectionTableContains(programID, listType))?
-                                "UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
-                                "INSERT INTO %s(%s, %s, %s) VALUES (?,?,?)",
-                            LIST_TYPE_SETTINGS_TABLE_NAME,
-                            LIST_ID_COLUMN_NAME,
-                            PROGRAM_ID_COLUMN_NAME,
-                            LIST_TYPE_COLUMN_NAME))){
-                    pstmt.setInt(1, listID);
-                    pstmt.setInt(2, programID);
-                    pstmt.setInt(3, listType);
+                try(PreparedStatement pstmt = getSetStatement(LIST_TYPE_SETTINGS_TABLE_NAME,
+                        LIST_TYPE_COLUMN_NAME,LIST_ID_COLUMN_NAME,listType)){
+                    setParameter(pstmt,1,listID);
                     pstmt.executeUpdate();
                 }
             }
