@@ -138,6 +138,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         treePanel.setLayout(new java.awt.BorderLayout());
 
+        dropboxFileTree.setShowsRootHandles(false);
         treeScrollPanel.setViewportView(dropboxFileTree);
 
         treePanel.add(treeScrollPanel, java.awt.BorderLayout.CENTER);

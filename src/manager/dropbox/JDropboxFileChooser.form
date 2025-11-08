@@ -87,6 +87,11 @@
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
             <Component class="javax.swing.JTree" name="dropboxFileTree">
+              <Properties>
+                <Property name="showsRootHandles" type="boolean" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="false" type="code"/>
+                </Property>
+              </Properties>
             </Component>
           </SubComponents>
         </Container>
