@@ -5122,8 +5122,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_updateOpenButtonActionPerformed
 
     private void dbxListFilesTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxListFilesTestButtonActionPerformed
-        try {
-                // Get a client to communicate with Dropbox, refreshing the 
+        try {   // Get a client to communicate with Dropbox, refreshing the 
                 // Dropbox credentials if necessary
             DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
             
@@ -5157,7 +5156,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbxListFilesTestButtonActionPerformed
 
     private void dbxBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxBrowseButtonActionPerformed
-        // TODO add your handling code here:
+        try{    // Get a client to communicate with Dropbox, refreshing the 
+                // Dropbox credentials if necessary
+            DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
+            
+            
+            dropboxFC.showDialog(this,client);
+        } catch (DbxException ex) {
+            getLogger().log(Level.WARNING, null, ex);
+        }
     }//GEN-LAST:event_dbxBrowseButtonActionPerformed
     
     private void setFilesAreHidden(boolean value){
