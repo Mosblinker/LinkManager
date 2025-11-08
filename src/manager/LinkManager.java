@@ -5114,23 +5114,48 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Get a client to communicate with Dropbox, refreshing the 
                 // Dropbox credentials if necessary
             DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
-            
                 // Get the files and folder metadata from the Dropbox root directory
-            ListFolderResult results = client.files().listFolder("");
-            for (Metadata metadata : results.getEntries()){
-                System.out.println(metadata);
-            }
-            while (results.getHasMore()){
-                results = client.files().listFolderContinue(results.getCursor());
-                for (Metadata metadata : results.getEntries()){
-                    System.out.println(metadata);
-                }
-            }
-            
+            listDropboxFiles(client,null,0);
         } catch (DbxException ex) {
             getLogger().log(Level.WARNING, "Failed to list files", ex);
         }
     }//GEN-LAST:event_dbxListFilesTestButtonActionPerformed
+    
+    private void listDropboxFile(DbxClientV2 client, Metadata metadata, int level) throws DbxException{
+        if (metadata == null)
+            return;
+        String type = "";
+        String details = "";
+        if (metadata instanceof FileMetadata){
+            type = "file";
+            FileMetadata file = (FileMetadata) metadata;
+            details = String.format("(%d bytes, %s, %s)", file.getSize(),file.getClientModified(),file.getServerModified());
+        }
+        else if (metadata instanceof FolderMetadata){
+            type = "folder";
+        }
+        else if (metadata instanceof DeletedMetadata)
+            return;
+        System.out.print("    ".repeat(level));
+        System.out.printf("%6s %s %s%n",type,metadata.getPathDisplay(),details);
+        if (metadata instanceof FolderMetadata){
+            listDropboxFiles(client,metadata.getPathLower(),level+1);
+        }
+    }
+    
+    private void listDropboxFiles(DbxClientV2 client, String folder, int level) throws DbxException{
+            //  Get the files and folder metadata from the Dropbox directory
+        ListFolderResult results = client.files().listFolder((folder!=null)?folder:"");
+        for (Metadata metadata : results.getEntries()){
+            listDropboxFile(client,metadata,level);
+        }
+        while (results.getHasMore()){
+            results = client.files().listFolderContinue(results.getCursor());
+            for (Metadata metadata : results.getEntries()){
+                listDropboxFile(client,metadata,level);
+            }
+        }
+    }
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
