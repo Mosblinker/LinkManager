@@ -87,68 +87,6 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     }
     /**
      * 
-     * @return 
-     */
-    private Set<Integer> getKeySetSQL(String columnName, String tableName) 
-            throws SQLException{
-        Set<Integer> keys = new TreeSet<>();
-        try(PreparedStatement pstmt = conn.prepareStatement(String.format(
-                "SELECT DISTINCT %s FROM %s WHERE %s = ?",
-                    columnName,
-                    tableName,
-                    PROGRAM_ID_COLUMN_NAME))){
-            pstmt.setInt(1, programID);
-                // Get the results of the query
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()){
-                keys.add(rs.getInt(columnName));
-            }
-        }
-        return keys;
-    }
-    /**
-     * 
-     * @return 
-     */
-    private Set<Integer> getKeySet(String columnName, String tableName){
-        try{
-            return getKeySetSQL(columnName,tableName);
-        } catch (SQLException ex){
-            throw new UncheckedSQLException(ex);
-        }
-    }
-    /**
-     * 
-     * @param columnName
-     * @param tableName
-     * @return 
-     */
-    private int getKeyCountSQL(String columnName, String tableName)throws SQLException{
-            // Prepare a statement to count the unique instances of the list 
-            // types in the list of lists table
-        try(PreparedStatement pstmt = conn.prepareStatement(String.format(
-                TABLE_SIZE_QUERY_TEMPLATE+" WHERE %s = ?", 
-                    "DISTINCT "+columnName,
-                    tableName,
-                    PROGRAM_ID_COLUMN_NAME))){
-            pstmt.setInt(1, programID);
-                // Query the database
-            ResultSet rs = pstmt.executeQuery();
-                // If there are any results from the query
-            if (rs.next())
-                return rs.getInt(COUNT_COLUMN_NAME);
-        }
-        return 0;
-    }
-    private int getKeyCount(String columnName, String tableName){
-        try{
-            return getKeyCountSQL(columnName,tableName);
-        } catch (SQLException ex){
-            throw new UncheckedSQLException(ex);
-        }
-    }
-    /**
-     * 
      * @param key
      * @param columnName
      * @param tableName
@@ -165,20 +103,6 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
             pstmt.setInt(1, programID);
             pstmt.setInt(2, key);
             return containsCountResult(pstmt.executeQuery());
-        }
-    }
-    /**
-     * 
-     * @param key
-     * @param columnName
-     * @param tableName
-     * @return 
-     */
-    private boolean containsKey(int key, String columnName, String tableName){
-        try{
-            return containsKeySQL(key,columnName,tableName);
-        } catch (SQLException ex){
-            throw new UncheckedSQLException(ex);
         }
     }
     @Override
@@ -210,14 +134,6 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
                 }
             };
         return listTypes;
-    }
-    
-    protected boolean containsListID(int listID){
-        return containsKey(listID,LIST_ID_COLUMN_NAME,LIST_SETTINGS_TABLE_NAME);
-    }
-    
-    protected boolean containsListType(int listType){
-        return containsKey(listType,LIST_TYPE_COLUMN_NAME,LIST_TYPE_SETTINGS_TABLE_NAME);
     }
     /**
      * 
@@ -268,7 +184,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     public void setSelectedLinkID(int listID, Long value) {
         LinkManager.getLogger().entering(this.getClass().getName(), 
                 "setSelectedLinkID",new Object[]{listID,value,getProgramID()});
-        if (!containsListID(listID) && value == null){
+        if (!getListIDs().contains(listID) && value == null){
             LinkManager.getLogger().exiting(this.getClass().getName(), 
                     "setSelectedLinkID");
             return;
@@ -301,7 +217,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     }
     @Override
     public void setSelectedLinkVisible(int listID, Boolean value) {
-        if (!containsListID(listID) && value == null)
+        if (!getListIDs().contains(listID) && value == null)
             return;
         try(PreparedStatement pstmt = createSetStatement(LIST_SETTINGS_TABLE_NAME,
                 LIST_ID_COLUMN_NAME,SELECTION_IS_VISIBLE_COLUMN_NAME,listID)){
@@ -334,7 +250,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
      * @param columnName
      */
     private void setSelectionInteger(int listID, Integer value, String columnName) {
-        if (!containsListID(listID) && value == null)
+        if (!getListIDs().contains(listID) && value == null)
             return;
         try(PreparedStatement pstmt = createSetStatement(LIST_SETTINGS_TABLE_NAME,
                 LIST_ID_COLUMN_NAME,columnName,listID)){
@@ -377,7 +293,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
     }
     @Override
     public void setVisibleRect(int listID, Rectangle value) {
-        if (!containsListID(listID) && value == null)
+        if (!getListIDs().contains(listID) && value == null)
             return;
         try(PreparedStatement pstmt = createSetStatement(LIST_SETTINGS_TABLE_NAME,
                 LIST_ID_COLUMN_NAME,VISIBLE_RECTANGLE_COLUMN_NAME,listID)){
@@ -422,7 +338,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
         if (lastIndex < 0)
             lastIndex = null;
         try{
-            boolean contains = containsListID(listID);
+            boolean contains = getListIDs().contains(listID);
             if (contains || isVisible != null || firstIndex != null || 
                     lastIndex != null || visibleRect != null){
                 try(PreparedStatement pstmt = conn.prepareStatement(String.format((contains)?
@@ -463,7 +379,7 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
         if (lastIndex < 0)
             lastIndex = null;
         try{
-            boolean contains = containsListID(listID);
+            boolean contains = getListIDs().contains(listID);
             if (contains || linkID != null || isVisible != null || 
                     firstIndex != null || lastIndex != null || visibleRect != null){
                 try(PreparedStatement pstmt = conn.prepareStatement(String.format((contains)?
@@ -620,11 +536,38 @@ class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings
         }
         @Override
         protected Set<Integer> valueCacheSet() throws SQLException {
-            return getKeySetSQL(getColumnName(),getTableName());
+            Set<Integer> keys = new TreeSet<>();
+            try(PreparedStatement pstmt = conn.prepareStatement(String.format(
+                    "SELECT DISTINCT %s FROM %s WHERE %s = ?",
+                        getColumnName(),
+                        getTableName(),
+                        PROGRAM_ID_COLUMN_NAME))){
+                pstmt.setInt(1, programID);
+                    // Get the results of the query
+                ResultSet rs = pstmt.executeQuery();
+                while (rs.next()){
+                    keys.add(rs.getInt(getColumnName()));
+                }
+            }
+            return keys;
         }
         @Override
         protected int sizeSQL() throws SQLException {
-            return getKeyCountSQL(getColumnName(),getTableName());
+                // Prepare a statement to count the unique instances of the key 
+                // in the table
+            try(PreparedStatement pstmt = conn.prepareStatement(String.format(
+                    TABLE_SIZE_QUERY_TEMPLATE+" WHERE %s = ?", 
+                        "DISTINCT "+getColumnName(),
+                        getTableName(),
+                        PROGRAM_ID_COLUMN_NAME))){
+                pstmt.setInt(1, programID);
+                    // Query the database
+                ResultSet rs = pstmt.executeQuery();
+                    // If there are any results from the query
+                if (rs.next())
+                    return rs.getInt(COUNT_COLUMN_NAME);
+            }
+            return 0;
         }
         @Override
         protected void clearSQL() throws SQLException {
