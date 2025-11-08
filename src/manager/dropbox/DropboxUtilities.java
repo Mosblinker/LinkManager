@@ -576,6 +576,8 @@ public class DropboxUtilities {
         DefaultMutableTreeNode node = new DefaultMutableTreeNode(metadata);
         if (metadata instanceof FolderMetadata)
             traverseFolderTree(client,metadata.getPathLower(),includeDeleted,node);
+        else 
+            node.setAllowsChildren(false);
         LinkManager.getLogger().exiting("DropboxUtilities", 
                 "listFolderTree", node);
         return node;
