@@ -3686,7 +3686,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 if (rs.wasNull())
                     index = null;
                 lastVis.get(progID).put(listID, index);
-                visRect.get(progID).put(index, 
+                visRect.get(progID).put(listID, 
                         ConfigUtilities.rectangleFromByteArray(
                                 rs.getBytes(VISIBLE_RECTANGLE_COLUMN_NAME)));
             }
