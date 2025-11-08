@@ -7592,10 +7592,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         public Long getSelectedLinkID(int listID) {
             try(PreparedStatement pstmt = prepareStatement(String.format(
                     "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
-                    LINK_ID_COLUMN_NAME,
-                    LIST_SETTINGS_TABLE_NAME,
-                    PROGRAM_ID_COLUMN_NAME,
-                    LIST_ID_COLUMN_NAME))){
+                        LINK_ID_COLUMN_NAME,
+                        LIST_SETTINGS_TABLE_NAME,
+                        PROGRAM_ID_COLUMN_NAME,
+                        LIST_ID_COLUMN_NAME))){
                 pstmt.setInt(1, programID);
                 pstmt.setInt(2, listID);
                     // Get the results of the query
@@ -7636,10 +7636,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         public Boolean isSelectedLinkVisible(int listID) {
             try(PreparedStatement pstmt = prepareStatement(String.format(
                     "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
-                    SELECTION_IS_VISIBLE_COLUMN_NAME,
-                    LIST_SETTINGS_TABLE_NAME,
-                    PROGRAM_ID_COLUMN_NAME,
-                    LIST_ID_COLUMN_NAME))){
+                        SELECTION_IS_VISIBLE_COLUMN_NAME,
+                        LIST_SETTINGS_TABLE_NAME,
+                        PROGRAM_ID_COLUMN_NAME,
+                        LIST_ID_COLUMN_NAME))){
                 pstmt.setInt(1, programID);
                 pstmt.setInt(2, listID);
                     // Get the results of the query
@@ -7684,10 +7684,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         private Integer getSelectionInteger(int listID, String columnName){
             try(PreparedStatement pstmt = prepareStatement(String.format(
                     "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
-                    columnName,
-                    LIST_SETTINGS_TABLE_NAME,
-                    PROGRAM_ID_COLUMN_NAME,
-                    LIST_ID_COLUMN_NAME))){
+                        columnName,
+                        LIST_SETTINGS_TABLE_NAME,
+                        PROGRAM_ID_COLUMN_NAME,
+                        LIST_ID_COLUMN_NAME))){
                 pstmt.setInt(1, programID);
                 pstmt.setInt(2, listID);
                     // Get the results of the query
@@ -7744,10 +7744,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         public Rectangle getVisibleRect(int listID, Rectangle defaultValue) {
             try(PreparedStatement pstmt = prepareStatement(String.format(
                     "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
-                    VISIBLE_RECTANGLE_COLUMN_NAME,
-                    LIST_SETTINGS_TABLE_NAME,
-                    PROGRAM_ID_COLUMN_NAME,
-                    LIST_ID_COLUMN_NAME))){
+                        VISIBLE_RECTANGLE_COLUMN_NAME,
+                        LIST_SETTINGS_TABLE_NAME,
+                        PROGRAM_ID_COLUMN_NAME,
+                        LIST_ID_COLUMN_NAME))){
                 pstmt.setInt(1, programID);
                 pstmt.setInt(2, listID);
                     // Get the results of the query
