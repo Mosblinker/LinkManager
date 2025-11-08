@@ -149,6 +149,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private void initComponents() {
 
         viewButtonGroup = new javax.swing.ButtonGroup();
+        filePopupMenu = new javax.swing.JPopupMenu();
         controlButtonPanel = new javax.swing.JPanel();
         javax.swing.JButton acceptButton = getAcceptButton();
         javax.swing.JButton cancelButton = getCancelButton();
@@ -163,8 +164,12 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         controlButtonPanel.add(acceptButton);
         controlButtonPanel.add(cancelButton);
 
+        treePanel.setComponentPopupMenu(filePopupMenu);
         treePanel.setLayout(new java.awt.BorderLayout());
 
+        treeScrollPanel.setInheritsPopupMenu(true);
+
+        dropboxFileTree.setInheritsPopupMenu(true);
         dropboxFileTree.setShowsRootHandles(false);
         treeScrollPanel.setViewportView(dropboxFileTree);
 
@@ -229,6 +234,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JTree dropboxFileTree;
     private javax.swing.JTextField fileNameField;
     private javax.swing.JLabel fileNameLabel;
+    private javax.swing.JPopupMenu filePopupMenu;
     private javax.swing.JButton newFolderButton;
     private javax.swing.JPanel treePanel;
     private javax.swing.JScrollPane treeScrollPanel;
