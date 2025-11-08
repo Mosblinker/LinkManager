@@ -28,6 +28,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         UIDefaults uiDefaults = UIManager.getLookAndFeelDefaults();
         setButtonIcon(newFolderButton,uiDefaults,"FileChooser.newFolderIcon",
                 "New Folder");
+        fileTreeModel = new DefaultTreeModel(null,true);
+        dropboxFileTree.setModel(fileTreeModel);
     }
     /**
      * 
@@ -134,8 +136,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         LinkManager.getLogger().entering("JDropboxFileChooser", "loadFiles",
                 client);
         DefaultMutableTreeNode node = DropboxUtilities.listFolderTree(client);
-        DefaultTreeModel model = new DefaultTreeModel(node,true);
-        dropboxFileTree.setModel(model);
+        fileTreeModel.setRoot(node);
         LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
     }
     /**
@@ -254,6 +255,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * This is the Dropbox client being used currently.
      */
     private DbxClientV2 dbxClient = null;
+    /**
+     * 
+     */
+    private DefaultTreeModel fileTreeModel;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JTree dropboxFileTree;
