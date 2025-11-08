@@ -7881,7 +7881,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                     // Get the results of the query
                 ResultSet rs = pstmt.executeQuery();
                 while (rs.next()){
-                    keys.add(rs.getInt(LIST_ID_COLUMN_NAME));
+                    keys.add(rs.getInt(columnName));
                 }
             } catch (SQLException ex){
                 throw new UncheckedSQLException(ex);
