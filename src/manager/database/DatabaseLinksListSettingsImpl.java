@@ -17,8 +17,7 @@ import sql.UncheckedSQLException;
  *
  * @author Mosblinker
  */
-class DatabaseLinksListSettingsImpl extends AbstractLinksListSettings 
-        implements DatabaseLinksListSettings{
+class DatabaseLinksListSettingsImpl implements DatabaseLinksListSettings{
     /**
      * This is the template for updating a value in the tables.
      */
