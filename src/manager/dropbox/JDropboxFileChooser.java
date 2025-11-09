@@ -26,7 +26,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     public JDropboxFileChooser() {
         initComponents();
-        dropboxFileTree.setCellRenderer(new MetadataTreeCellRenderer());
+        MetadataTreeCellRenderer treeCellRenderer = new MetadataTreeCellRenderer();
+        dropboxFileTree.setCellRenderer(treeCellRenderer);
+        treeCellEditor = new MetadataNameTreeCellEditor(dropboxFileTree,treeCellRenderer);
+        dropboxFileTree.setCellEditor(treeCellEditor);
         UIDefaults uiDefaults = UIManager.getLookAndFeelDefaults();
         setButtonIcon(newFolderButton,uiDefaults,"FileChooser.newFolderIcon",
                 "New Folder");
@@ -75,6 +78,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     public void setDropboxClient(DbxClientV2 client){
         dbxClient = client;
+        treeCellEditor.setDropboxClient(client);
     }
     
     
@@ -264,6 +268,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private DefaultTreeModel fileTreeModel;
+    /**
+     * 
+     */
+    private MetadataNameTreeCellEditor treeCellEditor;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JTree dropboxFileTree;
