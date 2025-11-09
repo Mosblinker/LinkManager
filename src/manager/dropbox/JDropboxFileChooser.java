@@ -22,6 +22,11 @@ import manager.LinkManager;
  * @author Mosblinker
  */
 public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
+    /**
+     * 
+     */
+    public static final String SELECTED_PATH_PROPERTY_CHANGED = 
+            "SelectedPathPropertyChanged";
 
     /**
      * Creates new form JDropboxFileChooser
@@ -111,6 +116,25 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }
     /**
      * 
+     * @param newPath 
+     * @return  
+     */
+    protected boolean updateSelectedPath(String newPath){
+        if (Objects.equals(selectedPath, newPath))
+            return false;
+        String old = selectedPath;
+        selectedPath = newPath;
+        firePropertyChange(SELECTED_PATH_PROPERTY_CHANGED,old,newPath);
+        return true;
+    }
+    /**
+     * 
+     */
+    protected void updateSelectedPath(){
+        updateSelectedPath(getSelectedPathFromTree());
+    }
+    /**
+     * 
      * @return 
      */
     public String getSelectedPath(){
@@ -121,7 +145,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * @param path 
      */
     public void setSelectedPath(String path){
-        selectedPath = path;
+        if (updateSelectedPath(path)){
+        }
     }
     /**
      * 
@@ -190,12 +215,12 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }
     @Override
     public void accept(){
-        setSelectedPath(getSelectedPathFromTree());
+        updateSelectedPath();
         super.accept();
     }
     @Override
     public void cancel(){
-        setSelectedPath(getSelectedPathFromTree());
+        updateSelectedPath();
         super.cancel();
     }
     
