@@ -27,18 +27,18 @@ public class MetadataTreeCellRenderer extends DefaultTreeCellRenderer {
             boolean sel, boolean expanded, boolean leaf, int row, 
             boolean hasFocus) {
         boolean isRoot = false;
+        String path = null;
         if (value instanceof DefaultMutableTreeNode){
             value = ((DefaultMutableTreeNode)value).getUserObject();
-            if (value instanceof DbxRootMetadata){
+            if (value instanceof Metadata){
                 String name = ((Metadata)value).getName();
-                if (!name.isBlank())
-                    value = name;
-                else
-                    value = "Dropbox";
-                isRoot = true;
-            }
-            else if (value instanceof Metadata){
-                value = ((Metadata)value).getName();
+                path = ((Metadata)value).getPathLower();
+                if (value instanceof DbxRootMetadata){
+                    if (name.isBlank())
+                        name = "Dropbox";
+                    isRoot = true;
+                }
+                value = name;
             }
         }
         Component comp = super.getTreeCellRendererComponent(tree, value, sel, 
@@ -47,7 +47,7 @@ public class MetadataTreeCellRenderer extends DefaultTreeCellRenderer {
             setIcon(DROPBOX_ICON);
             setDisabledIcon(DISABLED_DROPBOX_ICON);
         }
-        
+        setToolTipText(path);
         return comp;
     }
 }
