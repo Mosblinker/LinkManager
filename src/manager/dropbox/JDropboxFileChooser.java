@@ -208,6 +208,11 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         dropboxFileTree.setEditable(true);
         dropboxFileTree.setInheritsPopupMenu(true);
         dropboxFileTree.setRootVisible(false);
+        dropboxFileTree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
+            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+                dropboxFileTreeValueChanged(evt);
+            }
+        });
         treeScrollPanel.setViewportView(dropboxFileTree);
 
         treePanel.add(treeScrollPanel, java.awt.BorderLayout.CENTER);
@@ -346,6 +351,16 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         }
     }//GEN-LAST:event_refreshItemActionPerformed
 
+    private void dropboxFileTreeValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_dropboxFileTreeValueChanged
+        DefaultMutableTreeNode selected = getSelectedNode();
+        if (selected != null){
+            if (selected.getUserObject() instanceof FileMetadata)
+                fileNameField.setText(((FileMetadata)selected.getUserObject()).getName());
+        }
+    }//GEN-LAST:event_dropboxFileTreeValueChanged
+    
+    
+//    private String 
     /**
      * This is the Dropbox client being used currently.
      */

@@ -139,6 +139,9 @@
                 <Property name="inheritsPopupMenu" type="boolean" value="true"/>
                 <Property name="rootVisible" type="boolean" value="false"/>
               </Properties>
+              <Events>
+                <EventHandler event="valueChanged" listener="javax.swing.event.TreeSelectionListener" parameters="javax.swing.event.TreeSelectionEvent" handler="dropboxFileTreeValueChanged"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>
