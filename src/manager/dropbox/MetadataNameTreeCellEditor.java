@@ -8,6 +8,8 @@ import com.dropbox.core.DbxException;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import java.awt.Component;
+import java.awt.event.MouseEvent;
+import java.util.EventObject;
 import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.tree.*;
@@ -27,6 +29,29 @@ public class MetadataNameTreeCellEditor extends DefaultTreeCellEditor{
     
     public MetadataNameTreeCellEditor(JTree tree, DefaultTreeCellRenderer renderer) {
         super(tree, renderer);
+    }
+    /**
+     * 
+     * @param event
+     * @return 
+     */
+    @Override
+    public boolean isCellEditable(EventObject event){
+        if (event != null) {
+            if (event.getSource() instanceof JTree) {
+                JTree tree = (JTree)event.getSource();
+                if (event instanceof MouseEvent) {
+                    TreePath path = tree.getPathForLocation(
+                            ((MouseEvent)event).getX(),((MouseEvent)event).getY());
+                    if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode){
+                        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+                        if (node.getUserObject() instanceof DbxRootMetadata)
+                            return false;
+                    }
+                }
+            }
+        }
+        return super.isCellEditable(event);
     }
     @Override
     public Component getTreeCellEditorComponent(JTree tree, Object value, 
