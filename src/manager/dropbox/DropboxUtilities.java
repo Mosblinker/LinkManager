@@ -46,6 +46,24 @@ public class DropboxUtilities {
      */
     public static final int CHUNKED_UPLOAD_MAX_ATTEMPTS = 10;
     /**
+     * 
+     */
+    private static final MetadataComparator METADATA_COMPARATOR = new MetadataComparator();
+    /**
+     * 
+     */
+    protected static final Comparator<DefaultMutableTreeNode> METADATA_TREE_NODE_COMPARATOR = 
+            (DefaultMutableTreeNode o1, DefaultMutableTreeNode o2) -> {
+        if (Objects.equals(o1, o2) || Objects.equals(o1.getUserObject(), o2.getUserObject()))
+            return 0;
+        else if (!(o2.getUserObject() instanceof Metadata))
+            return -1;
+        else if (!(o1.getUserObject() instanceof Metadata))
+            return 1;
+        return METADATA_COMPARATOR.compare((Metadata)o1.getUserObject(),
+                (Metadata)o2.getUserObject());
+    };
+    /**
      * This class cannot be constructed.
      */
     private DropboxUtilities() {}
@@ -664,13 +682,14 @@ public class DropboxUtilities {
                 new Object[]{client,path,includeDeleted,root});
             //  Get the files and folder metadata from the Dropbox directory
         ListFolderResult results = client.files().listFolder((path!=null)?path:"");
+        List<DefaultMutableTreeNode> nodes = new ArrayList<>();
         for (Metadata metadata : results.getEntries()){
             if (metadata == null)
                 continue;
             DefaultMutableTreeNode node = listFolderTree(client,metadata,
                     includeDeleted);
             if (node != null)
-                root.add(node);
+                nodes.add(node);
         }
         while (results.getHasMore()){
             results = client.files().listFolderContinue(results.getCursor());
@@ -680,9 +699,12 @@ public class DropboxUtilities {
                 DefaultMutableTreeNode node = listFolderTree(client,metadata,
                         includeDeleted);
                 if (node != null)
-                    root.add(node);
+                    nodes.add(node);
             }
         }
+        nodes.sort(METADATA_TREE_NODE_COMPARATOR);
+        for (DefaultMutableTreeNode node : nodes)
+            root.add(node);
         LinkManager.getLogger().exiting("DropboxUtilities", "traverseFolderTree");
     }
     /**
