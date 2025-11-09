@@ -6336,7 +6336,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 Integer visIndex = firstVisMap.getOrDefault(listID,
                         lastVisMap.get(listID));
                 getLogger().log(Level.FINER, "First visible index: {0}", firstVisMap.get(listID));
-                getLogger().log(Level.FINER, "Last visible index{0}", lastVisMap.get(listID));
+                getLogger().log(Level.FINER, "Last visible index: {0}", lastVisMap.get(listID));
                     // If there is a visible index for the list
                 if (visIndex != null)
                         // Ensure the visible index is visible
