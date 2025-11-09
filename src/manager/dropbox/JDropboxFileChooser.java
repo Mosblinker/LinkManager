@@ -188,6 +188,16 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileTreeModel.setRoot(node);
         LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
     }
+    @Override
+    public void accept(){
+        setSelectedPath(getSelectedPathFromTree());
+        super.accept();
+    }
+    @Override
+    public void cancel(){
+        setSelectedPath(getSelectedPathFromTree());
+        super.cancel();
+    }
     
     protected DefaultMutableTreeNode getSelectedNode(){
         TreePath selection = dropboxFileTree.getSelectionPath();
