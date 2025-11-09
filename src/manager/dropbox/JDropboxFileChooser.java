@@ -85,6 +85,32 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }
     /**
      * 
+     * @return 
+     */
+    protected String getNewSelectedPath(){
+        String name = fileNameField.getText();
+        DefaultMutableTreeNode node = getSelectedNode();
+        if (node == null && (name == null || name.isBlank()))
+            return null;
+        if (node == null || !(node.getUserObject() instanceof Metadata))
+            return "/"+name;
+        while (node != null && 
+                !(node.getUserObject() instanceof DbxRootMetadata) && 
+                !(node.getUserObject() instanceof FolderMetadata)){
+            TreeNode parent = node.getParent();
+            while (!(parent instanceof DefaultMutableTreeNode) && parent != null)
+                parent = parent.getParent();
+            node = (DefaultMutableTreeNode)parent;
+        }
+        if (node == null || node.getUserObject() == null)
+            return "/"+name;
+        Metadata metadata = (Metadata)node.getUserObject();
+        if (!(node.getUserObject() instanceof DbxRootMetadata))
+            name = "/"+name;
+        return metadata.getPathLower()+name;
+    }
+    /**
+     * 
      * @param panel
      * @param client
      * @return 
