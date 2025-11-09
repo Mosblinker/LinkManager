@@ -8,6 +8,7 @@ import icons.Icon2D;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.Path2D;
 
 /**
@@ -74,6 +75,12 @@ public class DropboxIcon implements Icon2D{
         g.scale(getIconWidth()/INTERNAL_RENDERING_SIZE, getIconHeight()/INTERNAL_RENDERING_SIZE);
         g.translate(0, INTERNAL_RENDERING_Y_OFFSET);
         g.setColor(color);
+            // Enable antialiasing
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                RenderingHints.VALUE_ANTIALIAS_ON);
+            // Prioritize rendering quality over speed
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, 
+                RenderingHints.VALUE_RENDER_QUALITY);
         if (path == null){
             path = new Path2D.Double();
             
