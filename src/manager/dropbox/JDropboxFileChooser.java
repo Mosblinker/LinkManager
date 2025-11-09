@@ -6,12 +6,14 @@ package manager.dropbox;
 
 import com.dropbox.core.*;
 import com.dropbox.core.v2.*;
+import com.dropbox.core.v2.files.*;
 import components.AbstractConfirmDialogPanel;
 import java.awt.Component;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.logging.Level;
 import javax.swing.*;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
+import javax.swing.event.*;
 import javax.swing.tree.*;
 import manager.LinkManager;
 
@@ -80,8 +82,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         dbxClient = client;
         treeCellEditor.setDropboxClient(client);
     }
-    
-    
     /**
      * 
      * @param panel
@@ -254,7 +254,50 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
     private void refreshItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshItemActionPerformed
         try{
+            TreePath selectedPath = dropboxFileTree.getSelectionPath();
+            DefaultMutableTreeNode selected = null;
+            if (selectedPath.getLastPathComponent() instanceof DefaultMutableTreeNode){
+                selected = (DefaultMutableTreeNode)selectedPath.getLastPathComponent();
+            }
             loadFiles(getDropboxClient());
+            if (selected != null){
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode)fileTreeModel.getRoot();
+                Object[] objPath = selected.getUserObjectPath();
+                for (int i = 1; i < objPath.length && node != null; i++){
+                    Iterator<TreeNode> nodes = node.children().asIterator();
+                    String selID = null;
+                    String selPath = null;
+                    if (objPath[i] instanceof FileMetadata)
+                        selID = ((FileMetadata)objPath[i]).getId();
+                    else if (objPath[i] instanceof FolderMetadata)
+                        selID = ((FolderMetadata)objPath[i]).getId();
+                    if (objPath[i] instanceof Metadata)
+                        selPath = ((Metadata)objPath[i]).getPathLower();
+                    DefaultMutableTreeNode nextNode = null;
+                    while(nodes.hasNext() && nextNode == null){
+                        TreeNode temp = nodes.next();
+                        if (temp instanceof DefaultMutableTreeNode){
+                            DefaultMutableTreeNode currNode = (DefaultMutableTreeNode)temp;
+                            Object o = currNode.getUserObject();
+                            if (o instanceof Metadata){
+                                String oID = null;
+                                if (o instanceof FileMetadata)
+                                    oID = ((FileMetadata)o).getId();
+                                else if (o instanceof FolderMetadata)
+                                    oID = ((FolderMetadata)o).getId();
+                                if (Objects.equals(oID, selID) || 
+                                        Objects.equals(selPath, ((Metadata) o).getPathLower()))
+                                    nextNode = currNode;
+                            } else if (Objects.equals(o, objPath[i]))
+                                nextNode = currNode;
+                        }
+                    }
+                    node = nextNode;
+                }
+                if (node != null){
+                    dropboxFileTree.setSelectionPath(new TreePath(node.getPath()));
+                }
+            }
         } catch (DbxException ex){
             LinkManager.getLogger().log(Level.WARNING, "Failed to load files from Dropbox", ex);
         }
