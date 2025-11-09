@@ -73,6 +73,8 @@ public class MetadataNameTreeCellEditor extends DefaultTreeCellEditor{
                 getDropboxClient() == null)
             return value;
         if (value != null && !value.toString().isBlank()){
+            if (value.toString().equals(lastMetadata.getName()))
+                return lastMetadata;
             try{
                 return DropboxUtilities.rename(getDropboxClient(), lastMetadata, value.toString());
             } catch (RelocationErrorException ex){
