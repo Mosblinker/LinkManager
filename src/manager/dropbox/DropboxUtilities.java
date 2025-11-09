@@ -685,4 +685,46 @@ public class DropboxUtilities {
         }
         LinkManager.getLogger().exiting("DropboxUtilities", "traverseFolderTree");
     }
+    /**
+     * 
+     * @param client
+     * @param metadata
+     * @param toPath
+     * @return
+     * @throws DbxException 
+     */
+    public static Metadata move(DbxClientV2 client, Metadata metadata, 
+            String toPath) throws DbxException{
+        Objects.requireNonNull(metadata);
+        Objects.requireNonNull(toPath);
+        String fromPath;
+        if (metadata instanceof FileMetadata)
+            fromPath = ((FileMetadata)metadata).getId();
+        else if (metadata instanceof FolderMetadata)
+            fromPath = ((FolderMetadata)metadata).getId();
+        else
+            fromPath = metadata.getPathLower();
+        RelocationResult result = client.files().moveV2Builder(fromPath, toPath).start();
+        return result.getMetadata();
+    }
+    /**
+     * 
+     * @param client
+     * @param metadata
+     * @param newName
+     * @return
+     * @throws DbxException 
+     */
+    public static Metadata rename(DbxClientV2 client, Metadata metadata, 
+            String newName) throws DbxException{
+        String toPath = metadata.getPathDisplay();
+        if (toPath == null)
+            toPath = metadata.getPathLower();
+        if (toPath != null)
+            toPath = toPath.substring(0, toPath.length()-metadata.getName().length());
+        else
+            toPath = "/";
+        toPath += newName;
+        return move(client,metadata,toPath);
+    }
 }
