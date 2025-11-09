@@ -137,7 +137,7 @@
               <Properties>
                 <Property name="editable" type="boolean" value="true"/>
                 <Property name="inheritsPopupMenu" type="boolean" value="true"/>
-                <Property name="rootVisible" type="boolean" value="false"/>
+                <Property name="showsRootHandles" type="boolean" value="true"/>
               </Properties>
               <Events>
                 <EventHandler event="valueChanged" listener="javax.swing.event.TreeSelectionListener" parameters="javax.swing.event.TreeSelectionEvent" handler="dropboxFileTreeValueChanged"/>
