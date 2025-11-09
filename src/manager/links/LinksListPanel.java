@@ -170,10 +170,13 @@ public class LinksListPanel extends JPanel implements Comparable<LinksListPanel>
         updateActionNames();
         fireStateChanged();
         if (keepSelection){
+            LinkManager.getLogger().log(Level.FINER, "Maintaining selected value {0}", selected);
             if (model.contains(selected))
                 list.setSelectedValue(selected, shouldScroll);
-            else
+            else{
                 list.clearSelection();
+                LinkManager.getLogger().finer("Selected value not found in model");
+            }
         }
         LinkManager.getLogger().exiting(this.getClass().getName(), 
                 "setModel");
