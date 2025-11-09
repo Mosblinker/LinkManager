@@ -55,34 +55,32 @@ public class MetadataNameTreeCellEditor extends DefaultTreeCellEditor{
     public void setDropboxClient(DbxClientV2 client){
         dbxClient = client;
     }
+    /**
+     * 
+     * @param name
+     */
+    protected void giveErrorFeedback(String name){
+        UIManager.getLookAndFeel().provideErrorFeedback(tree);
+        JOptionPane.showMessageDialog(tree, "Cannot rename "+name+
+                ": A file with the name you specified already exists. "
+                        + "Specify a different file name.", 
+                "Error Renaming File of Folder", JOptionPane.ERROR_MESSAGE);
+    }
     @Override
     public Object getCellEditorValue(){
         Object value = super.getCellEditorValue();
         if (lastMetadata == null || lastMetadata instanceof DeletedMetadata || 
-                getDropboxClient() == null || value == null)
+                getDropboxClient() == null)
             return value;
-        String fromPath;
-        if (lastMetadata instanceof FileMetadata)
-            fromPath = ((FileMetadata)lastMetadata).getId();
-        else if (lastMetadata instanceof FolderMetadata)
-            fromPath = ((FolderMetadata)lastMetadata).getId();
-        else
-            fromPath = lastMetadata.getPathLower();
-        String toPath = lastMetadata.getPathDisplay();
-        if (toPath == null)
-            toPath = lastMetadata.getPathLower();
-        if (toPath != null)
-            toPath = toPath.substring(0, toPath.length()-lastMetadata.getName().length());
-        else
-            toPath = "/";
-        toPath += value.toString();
-        try{
-            RelocationResult result = getDropboxClient().files().moveV2Builder(
-                    fromPath, toPath).start();
-            return result.getMetadata();
-        } catch (DbxException ex){
-            LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);
-            return lastMetadata;
+        if (value != null && !value.toString().isBlank()){
+            try{
+                return DropboxUtilities.rename(getDropboxClient(), lastMetadata, value.toString());
+            } catch (RelocationErrorException ex){
+            } catch (DbxException ex){
+                LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);
+            }
         }
+        giveErrorFeedback(lastMetadata.getName());
+        return lastMetadata;
     }
 }
