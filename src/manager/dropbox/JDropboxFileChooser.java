@@ -87,7 +87,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      * @return 
      */
-    protected String getNewSelectedPath(){
+    protected String getSelectedPathFromTree(){
         String name = fileNameField.getText();
         DefaultMutableTreeNode node = getSelectedNode();
         if (node == null && (name == null || name.isBlank()))
