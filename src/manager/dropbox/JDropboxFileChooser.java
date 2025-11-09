@@ -147,6 +147,16 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileTreeModel.setRoot(node);
         LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
     }
+    
+    protected DefaultMutableTreeNode getSelectedNode(){
+        TreePath selection = dropboxFileTree.getSelectionPath();
+        if (selection == null)
+            return null;
+        if (selection.getLastPathComponent() instanceof DefaultMutableTreeNode){
+            return (DefaultMutableTreeNode)selection.getLastPathComponent();
+        }
+        return null;
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -249,16 +259,49 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void newFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newFolderActionPerformed
-        // TODO add your handling code here:
+        try{
+            DefaultMutableTreeNode root = getSelectedNode();
+            String path = "";
+            while (root != null && !root.getAllowsChildren()){
+                TreeNode parent = root.getParent();
+                if (parent instanceof DefaultMutableTreeNode)
+                    root = (DefaultMutableTreeNode) parent;
+            }
+            if (root == null)
+                root = (DefaultMutableTreeNode)fileTreeModel.getRoot();
+            else if (root.getUserObject() instanceof FolderMetadata){
+                path = ((Metadata)root.getUserObject()).getPathLower();
+            }
+            CreateFolderResult result = getDropboxClient().files().createFolderV2(path+"/New Folder", true);
+            Metadata metadata = result.getMetadata();
+            DefaultMutableTreeNode node = new DefaultMutableTreeNode(metadata,true);
+            boolean added = false;
+            for (int i = 0; i < root.getChildCount() && !added; i++){
+                TreeNode temp = root.getChildAt(i);
+                if (temp instanceof DefaultMutableTreeNode){
+                    DefaultMutableTreeNode tempNode = (DefaultMutableTreeNode)temp;
+                    if (DropboxUtilities.METADATA_TREE_NODE_COMPARATOR.compare(tempNode, node) >= 0){
+                        root.insert(node, i);
+                        fileTreeModel.nodesWereInserted(root, new int[]{i});
+                        added = true;
+                    }
+                }
+            }
+            if (!added){
+                root.add(node);
+                fileTreeModel.nodesWereInserted(root, new int[]{root.getChildCount()-1});
+            }
+            TreePath nodePath = new TreePath(node.getPath());
+            dropboxFileTree.setSelectionPath(nodePath);
+            dropboxFileTree.startEditingAtPath(nodePath);
+        } catch (DbxException ex){
+            LinkManager.getLogger().log(Level.WARNING, "Failed to create folder in Dropbox", ex);
+        }
     }//GEN-LAST:event_newFolderActionPerformed
 
     private void refreshItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshItemActionPerformed
         try{
-            TreePath selectedPath = dropboxFileTree.getSelectionPath();
-            DefaultMutableTreeNode selected = null;
-            if (selectedPath.getLastPathComponent() instanceof DefaultMutableTreeNode){
-                selected = (DefaultMutableTreeNode)selectedPath.getLastPathComponent();
-            }
+            DefaultMutableTreeNode selected = getSelectedNode();
             loadFiles(getDropboxClient());
             if (selected != null){
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode)fileTreeModel.getRoot();
