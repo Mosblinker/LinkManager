@@ -16,9 +16,9 @@ import java.awt.geom.Path2D;
  */
 public class DropboxIcon implements Icon2D{
     
-    private static final double INTERNAL_RENDERING_WIDTH = 64;
+    private static final double INTERNAL_RENDERING_SIZE = 40.5971;//41;
     
-    private static final double INTERNAL_RENDERING_HEIGHT = 64;
+    private static final double INTERNAL_RENDERING_Y_OFFSET = (INTERNAL_RENDERING_SIZE-34)/2.0;
     
     private Path2D path = null;
     
@@ -49,7 +49,7 @@ public class DropboxIcon implements Icon2D{
     }
     
     public DropboxIcon(Color color){
-        this(64,color);
+        this(48,color);
     }
     
     public DropboxIcon(){
@@ -69,41 +69,42 @@ public class DropboxIcon implements Icon2D{
     @Override
     public void paintIcon2D(Component c, Graphics2D g, int x, int y) {
         g.translate(x, y);
-        g.scale(getIconWidth()/INTERNAL_RENDERING_WIDTH, getIconHeight()/INTERNAL_RENDERING_HEIGHT);
+        g.scale(getIconWidth()/INTERNAL_RENDERING_SIZE, getIconHeight()/INTERNAL_RENDERING_SIZE);
+        g.translate(0, INTERNAL_RENDERING_Y_OFFSET);
         g.setColor(color);
         if (path == null){
             path = new Path2D.Double();
             
-            path.moveTo(21.851, 15);
-            path.lineTo(11.7021, 21.375);
-            path.lineTo(21.851, 27.75);
-            path.lineTo(32.0015, 21.375);
-            path.lineTo(42.1503, 27.75);
-            path.lineTo(52.2992, 21.375);
-            path.lineTo(42.1503, 15);
-            path.lineTo(32.0015, 21.375);
-            path.lineTo(21.851, 15);
+            path.moveTo(10.1489, 0);
+            path.lineTo(0, 6.375);
+            path.lineTo(10.1489, 12.75);
+            path.lineTo(20.2994, 6.375);
+            path.lineTo(30.4482, 12.75);
+            path.lineTo(40.5971, 6.375);
+            path.lineTo(30.4482, 0);
+            path.lineTo(20.2994, 6.375);
+            path.lineTo(10.1489, 0);
             path.closePath();
             
-            path.moveTo(21.851, 40.5001);
-            path.lineTo(11.7021, 34.1251);
-            path.lineTo(21.851, 27.75);
-            path.lineTo(32.0015, 34.1251);
-            path.lineTo(21.851, 40.5001);
+            path.moveTo(10.1489, 25.5001);
+            path.lineTo(0, 19.1251);
+            path.lineTo(10.1489, 12.75);
+            path.lineTo(20.2994, 19.1251);
+            path.lineTo(10.1489, 25.5001);
             path.closePath();
             
-            path.moveTo(32.0015, 34.1251);
-            path.lineTo(42.1503, 27.75);
-            path.lineTo(52.2992, 34.1251);
-            path.lineTo(42.1503, 40.5001);
-            path.lineTo(32.0015, 34.1251);
+            path.moveTo(20.2994, 19.1251);
+            path.lineTo(30.4482, 12.75);
+            path.lineTo(40.5971, 19.1251);
+            path.lineTo(30.4482, 25.5001);
+            path.lineTo(20.2994, 19.1251);
             path.closePath();
             
-            path.moveTo(32.0015, 49);
-            path.lineTo(21.851, 42.625);
-            path.lineTo(32.0015, 36.25);
-            path.lineTo(42.1503, 42.625);
-            path.lineTo(32.0015, 49);
+            path.moveTo(20.2994, 34);
+            path.lineTo(10.1489, 27.625);
+            path.lineTo(20.2994, 21.25);
+            path.lineTo(30.4482, 27.625);
+            path.lineTo(20.2994, 34);
             path.closePath();
         }
         
