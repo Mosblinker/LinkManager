@@ -375,7 +375,30 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private class Handler implements TreeModelListener{
         @Override
         public void treeNodesChanged(TreeModelEvent evt) {
-            
+            TreePath parentPath = evt.getTreePath();
+            if (parentPath == null || !(parentPath.getLastPathComponent() instanceof DefaultMutableTreeNode))
+                return;
+            DefaultMutableTreeNode parent = (DefaultMutableTreeNode)parentPath.getLastPathComponent();
+            boolean swapped = false;
+            for (int i = 0; i < parent.getChildCount()-1; i++){
+                if (!(parent.getChildAt(i) instanceof DefaultMutableTreeNode))
+                    continue;
+                DefaultMutableTreeNode node1 = (DefaultMutableTreeNode)parent.getChildAt(i);
+                for (int j = i+1; j < parent.getChildCount(); j++){
+                    if (!(parent.getChildAt(j) instanceof DefaultMutableTreeNode))
+                        continue;
+                    DefaultMutableTreeNode node2 = (DefaultMutableTreeNode)parent.getChildAt(j);
+                    if (DropboxUtilities.METADATA_TREE_NODE_COMPARATOR.compare(node1, node2) >= 0){
+                        parent.remove(node1);
+                        parent.remove(node2);
+                        parent.insert(node2, i);
+                        parent.insert(node1, j);
+                        swapped = true;
+                    }
+                }
+            }
+            if (swapped)
+                fileTreeModel.reload(parent);
         }
         @Override
         public void treeNodesInserted(TreeModelEvent evt) {
