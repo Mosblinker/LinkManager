@@ -22,17 +22,16 @@ public class MetadataComparator implements Comparator<Metadata>{
             return -1;
         else if (o2 == null)
             return 1;
-        else if (o1 instanceof FolderMetadata && !(o2 instanceof FolderMetadata))
-            return -1;
-        else if (o2 instanceof FolderMetadata && !(o1 instanceof FolderMetadata))
-            return 1;
-        else if (o1 instanceof FileMetadata && !(o2 instanceof FileMetadata))
-            return -1;
-        else if (o2 instanceof FileMetadata && !(o1 instanceof FileMetadata))
-            return 1;
-        else if (o1 instanceof DeletedMetadata && !(o2 instanceof DeletedMetadata))
-            return 1;
-        else if (o2 instanceof DeletedMetadata && !(o1 instanceof DeletedMetadata))
+        int comparison = compareClass(o1,o2,DbxRootMetadata.class);
+        if (comparison == 0)
+            comparison = compareClass(o1,o2,FolderMetadata.class);
+        if (comparison == 0)
+            comparison = compareClass(o1,o2,FileMetadata.class);
+        if (comparison == 0)
+            comparison = compareClass(o2,o1,DeletedMetadata.class);
+        if (comparison != 0)
+            return comparison;
+        if (o1 instanceof DbxRootMetadata && !(o2 instanceof DbxRootMetadata))
             return -1;
         String o1Path = o1.getPathLower();
         String o2Path = o2.getPathLower();
@@ -49,5 +48,18 @@ public class MetadataComparator implements Comparator<Metadata>{
         else
             return o1Path.compareTo(o2Path);
     }
-    
+    /**
+     * 
+     * @param o1
+     * @param o2
+     * @param classType
+     * @return 
+     */
+    private int compareClass(Metadata o1, Metadata o2, Class<? extends Metadata> classType){
+        if (classType.isInstance(o1) && !classType.isInstance(o2))
+            return -1;
+        else if (classType.isInstance(o2) && !classType.isInstance(o1))
+            return 1;
+        return 0;
+    }
 }
