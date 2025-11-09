@@ -20,6 +20,8 @@ public class DropboxIcon implements Icon2D{
     
     private static final double INTERNAL_RENDERING_Y_OFFSET = (INTERNAL_RENDERING_SIZE-34)/2.0;
     
+    public static final Color DROPBOX_COLOR = new Color
+    
     private Path2D path = null;
     
     private int width, height;
