@@ -19,9 +19,18 @@ public class MetadataTreeCellRenderer extends DefaultTreeCellRenderer {
     public Component getTreeCellRendererComponent(JTree tree, Object value,
             boolean sel, boolean expanded, boolean leaf, int row, 
             boolean hasFocus) {
+        boolean isRoot = false;
         if (value instanceof DefaultMutableTreeNode){
             value = ((DefaultMutableTreeNode)value).getUserObject();
-            if (value instanceof Metadata){
+            if (value instanceof DbxRootMetadata){
+                String name = ((Metadata)value).getName();
+                if (!name.isBlank())
+                    value = name;
+                else
+                    value = "Dropbox";
+                isRoot = true;
+            }
+            else if (value instanceof Metadata){
                 value = ((Metadata)value).getName();
             }
         }
