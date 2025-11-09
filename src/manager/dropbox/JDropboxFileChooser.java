@@ -485,6 +485,40 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 fileNameField.setText(((FileMetadata)selected.getUserObject()).getName());
         }
     }//GEN-LAST:event_dropboxFileTreeValueChanged
+    /**
+     * 
+     * @param name
+     */
+    protected void giveErrorFeedback(String name){
+        UIManager.getLookAndFeel().provideErrorFeedback(dropboxFileTree);
+        JOptionPane.showMessageDialog(dropboxFileTree, "Cannot rename "+name+
+                ": A file with the name you specified already exists. "
+                        + "Specify a different file name.", 
+                "Error Renaming File of Folder", JOptionPane.ERROR_MESSAGE);
+    }
+    /**
+     * 
+     * @param renamedMetadata
+     * @return 
+     */
+    protected Metadata renameFile(MetadataNameTreeCellEditor.RenamedMetadata renamedMetadata){
+        if (renamedMetadata.getNewName() == null || renamedMetadata.getNewName().isBlank()){
+            giveErrorFeedback(renamedMetadata.getMetadata().getName());
+            return renamedMetadata.getMetadata();
+        }
+        if (renamedMetadata.getNewName().equals(renamedMetadata.getMetadata().getName()))
+            return renamedMetadata.getMetadata();
+        try{
+            return DropboxUtilities.rename(getDropboxClient(), 
+                    renamedMetadata.getMetadata(), 
+                    renamedMetadata.getNewName());
+        } catch (RelocationErrorException ex){
+        } catch (DbxException ex){
+            LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);
+        }
+        giveErrorFeedback(renamedMetadata.getMetadata().getName());
+        return renamedMetadata.getMetadata();
+    }
     
     /**
      * 
@@ -519,6 +553,20 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private class Handler implements TreeModelListener{
         @Override
         public void treeNodesChanged(TreeModelEvent evt) {
+            boolean renamedNode = false;
+            for (Object child : evt.getChildren()){
+                if (child instanceof DefaultMutableTreeNode){
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)child;
+                    if (node.getUserObject() instanceof MetadataNameTreeCellEditor.RenamedMetadata){
+                        node.setUserObject(renameFile(
+                                (MetadataNameTreeCellEditor.RenamedMetadata)node.getUserObject()));
+                        fileTreeModel.nodeChanged(node);
+                        renamedNode = true;
+                    }
+                }
+            }
+            if (renamedNode)
+                return;
             TreePath parentPath = evt.getTreePath();
             if (parentPath == null || !(parentPath.getLastPathComponent() instanceof DefaultMutableTreeNode))
                 return;
