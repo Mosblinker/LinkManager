@@ -39,6 +39,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileTreeModel = new DefaultTreeModel(null,true);
         fileTreeModel.addTreeModelListener(handler);
         dropboxFileTree.setModel(fileTreeModel);
+        ToolTipManager.sharedInstance().registerComponent(dropboxFileTree);
     }
     /**
      * 
