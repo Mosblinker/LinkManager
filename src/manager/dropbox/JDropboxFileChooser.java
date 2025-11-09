@@ -129,6 +129,54 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }
     /**
      * 
+     * @param path 
+     */
+    protected void updateSelectedTreePath(String path){
+        if (path == null)
+            dropboxFileTree.clearSelection();
+        else{
+            if (!(fileTreeModel.getRoot() instanceof DefaultMutableTreeNode)){
+                dropboxFileTree.clearSelection();
+                return;
+            }
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode)fileTreeModel.getRoot();
+            String[] paths = path.split("/");
+            String currPath = "";
+            for (int i = 1; i < paths.length; i++){
+                String nextPath = currPath+"/"+paths[i].toLowerCase();
+                Iterator<TreeNode> itr = node.children().asIterator();
+                DefaultMutableTreeNode nextNode = null;
+                while(itr.hasNext() && nextNode == null){
+                    TreeNode temp = itr.next();
+                    if (temp instanceof DefaultMutableTreeNode){
+                        DefaultMutableTreeNode currNode = (DefaultMutableTreeNode)temp;
+                        if (currNode.getUserObject() instanceof Metadata){
+                            Metadata metadata = (Metadata)currNode.getUserObject();
+                            if (nextPath.equals(metadata.getPathLower()))
+                                nextNode = currNode;
+                        }
+                    }
+                }
+                if (nextNode != null){
+                    node = nextNode;
+                    currPath = nextPath;
+                } else {
+                    break;
+                }
+            }
+            TreePath selPath = new TreePath(node.getPath());
+            dropboxFileTree.setSelectionPath(selPath);
+            dropboxFileTree.expandPath(selPath);
+            if (currPath.length()+1 < path.length()){
+                fileNameField.setText(path.substring(currPath.length()+1));
+            } else if (node.getUserObject() instanceof FileMetadata){
+                fileNameField.setText(((Metadata)node.getUserObject()).getName());
+            } else
+                fileNameField.setText("");
+        }
+    }
+    /**
+     * 
      */
     protected void updateSelectedPath(){
         updateSelectedPath(getSelectedPathFromTree());
@@ -146,6 +194,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     public void setSelectedPath(String path){
         if (updateSelectedPath(path)){
+            updateSelectedTreePath(path);
         }
     }
     /**
@@ -194,7 +243,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         if (getDropboxClient() == null)
             throw new IllegalStateException("No Dropbox client set");
         try{
+            String selectedPath = getSelectedPath();
             loadFiles(getDropboxClient());
+            updateSelectedTreePath(selectedPath);
         } catch (DbxException ex){
             LinkManager.getLogger().log(Level.WARNING, "Failed to load files from Dropbox", ex);
             throw new UncheckedDbxException(ex);
