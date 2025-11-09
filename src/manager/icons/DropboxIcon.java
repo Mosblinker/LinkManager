@@ -20,7 +20,7 @@ public class DropboxIcon implements Icon2D{
     
     private static final double INTERNAL_RENDERING_Y_OFFSET = (INTERNAL_RENDERING_SIZE-34)/2.0;
     
-    public static final Color DROPBOX_COLOR = new Color
+    public static final Color DROPBOX_COLOR = new Color(0x0061FE);
     
     private Path2D path = null;
     
@@ -39,7 +39,7 @@ public class DropboxIcon implements Icon2D{
     }
     
     public DropboxIcon(int width, int height){
-        this(width,height,Color.BLACK);
+        this(width,height,DROPBOX_COLOR);
     }
     
     public DropboxIcon(int size, Color color){
@@ -47,7 +47,7 @@ public class DropboxIcon implements Icon2D{
     }
     
     public DropboxIcon(int size){
-        this(size,Color.BLACK);
+        this(size,DROPBOX_COLOR);
     }
     
     public DropboxIcon(Color color){
@@ -55,7 +55,7 @@ public class DropboxIcon implements Icon2D{
     }
     
     public DropboxIcon(){
-        this(Color.BLACK);
+        this(DROPBOX_COLOR);
     }
     
     public Color getColor(){
