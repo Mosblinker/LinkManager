@@ -143,7 +143,9 @@ public class LinksListPanel extends JPanel implements Comparable<LinksListPanel>
         model.addChangeListener(handler);
         model.addPropertyChangeListener(handler);
         model.addListDataListener(handler);
+        LinkManager.getLogger().finer("Setting list model");
         list.setModel(model);
+        LinkManager.getLogger().finer("Setting list selection model");
         list.setSelectionModel(model);
         firePropertyChange(MODEL_PROPERTY_CHANGED,old,model);
         fireContentsChanged(0,(old!=null)?Math.max(old.size()-1,model.size()-1):
