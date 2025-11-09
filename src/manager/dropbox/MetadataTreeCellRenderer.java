@@ -5,15 +5,22 @@
 package manager.dropbox;
 
 import com.dropbox.core.v2.files.*;
+import java.awt.Color;
 import java.awt.Component;
+import javax.swing.Icon;
 import javax.swing.JTree;
 import javax.swing.tree.*;
+import manager.icons.DropboxIcon;
 
 /**
  *
  * @author Mosblinker
  */
 public class MetadataTreeCellRenderer extends DefaultTreeCellRenderer {
+    
+    private static final Icon DROPBOX_ICON = new DropboxIcon(16);
+    
+    private static final Icon DISABLED_DROPBOX_ICON = new DropboxIcon(16,Color.GRAY);
     
     @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value,
@@ -34,7 +41,13 @@ public class MetadataTreeCellRenderer extends DefaultTreeCellRenderer {
                 value = ((Metadata)value).getName();
             }
         }
-        return super.getTreeCellRendererComponent(tree, value, sel, expanded, 
-                leaf, row, hasFocus);
+        Component comp = super.getTreeCellRendererComponent(tree, value, sel, 
+                expanded, leaf, row, hasFocus);
+        if (isRoot){
+            setIcon(DROPBOX_ICON);
+            setDisabledIcon(DISABLED_DROPBOX_ICON);
+        }
+        
+        return comp;
     }
 }
