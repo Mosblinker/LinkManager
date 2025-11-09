@@ -111,6 +111,20 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }
     /**
      * 
+     * @return 
+     */
+    public String getSelectedPath(){
+        return selectedPath;
+    }
+    /**
+     * 
+     * @param path 
+     */
+    public void setSelectedPath(String path){
+        selectedPath = path;
+    }
+    /**
+     * 
      * @param panel
      * @param client
      * @return 
@@ -171,7 +185,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         LinkManager.getLogger().entering("JDropboxFileChooser", "loadFiles",
                 client);
         DefaultMutableTreeNode node = DropboxUtilities.listFolderTree(client);
-        node.setUserObject("Dropbox");
         fileTreeModel.setRoot(node);
         LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
     }
@@ -387,8 +400,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         }
     }//GEN-LAST:event_dropboxFileTreeValueChanged
     
-    
-//    private String 
+    /**
+     * 
+     */
+    private String selectedPath = null;
     /**
      * This is the Dropbox client being used currently.
      */
