@@ -45,6 +45,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileTreeModel.addTreeModelListener(handler);
         dropboxFileTree.setModel(fileTreeModel);
         ToolTipManager.sharedInstance().registerComponent(dropboxFileTree);
+        fileNameField.getDocument().addDocumentListener(handler);
     }
     /**
      * 
@@ -559,7 +560,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JScrollPane treeScrollPanel;
     // End of variables declaration//GEN-END:variables
 
-    private class Handler implements TreeModelListener{
+    private class Handler implements TreeModelListener, DocumentListener{
         @Override
         public void treeNodesChanged(TreeModelEvent evt) {
             boolean renamedNode = false;
@@ -611,6 +612,18 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         }
         @Override
         public void treeStructureChanged(TreeModelEvent evt) {
+            
+        }
+        @Override
+        public void insertUpdate(DocumentEvent evt) {
+            
+        }
+        @Override
+        public void removeUpdate(DocumentEvent evt) {
+            
+        }
+        @Override
+        public void changedUpdate(DocumentEvent evt) {
             
         }
     }
