@@ -163,8 +163,8 @@
           <ComponentRef name="viewButtonGroup"/>
         </Property>
         <Property name="selected" type="boolean" value="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="List"/>
-        <Property name="actionCommand" type="java.lang.String" value="listView"/>
+        <Property name="toolTipText" type="java.lang.String" value="Tree"/>
+        <Property name="actionCommand" type="java.lang.String" value="treeView"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fileViewToggleActionPerformed"/>
