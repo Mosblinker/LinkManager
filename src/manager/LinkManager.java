@@ -5945,13 +5945,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         LinksListModel oldModel = panel.getModel();
         if (model.listEquals(oldModel))
             return;
-        panel.setModel(model,true);
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
             for (LinksListPanel currentPanel : tabsPanel){
-                if (Objects.equals(oldModel, currentPanel.getModel()))
+                if (Objects.equals(oldModel, currentPanel.getModel()) && 
+                        !panel.equals(currentPanel))
                     currentPanel.setModel(model);
             }
         }
+        panel.setModel(model,true);
     }
     
     private void selectionHasChanged(LinksListModel model){
