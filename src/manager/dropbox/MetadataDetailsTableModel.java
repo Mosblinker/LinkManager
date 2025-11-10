@@ -114,6 +114,12 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
                         return getFileType((FileMetadata)metadata);
                     } else 
                         return null;
+                case(3):
+                    if (metadata instanceof FileMetadata)
+                        return ((FileMetadata)metadata).getClientModified();
+                case(4):
+                    if (metadata instanceof FileMetadata)
+                        return ((FileMetadata)metadata).getServerModified();
             }
         }
         return null;
