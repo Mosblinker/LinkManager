@@ -314,6 +314,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         listViewToggle = new javax.swing.JToggleButton();
         fileViewPanel = new javax.swing.JPanel();
         listPanel = new javax.swing.JPanel();
+        listScrollPane = new javax.swing.JScrollPane();
+        dropboxFileList = new javax.swing.JList<>();
         treePanel = new javax.swing.JPanel();
         treeScrollPanel = new javax.swing.JScrollPane();
         dropboxFileTree = new javax.swing.JTree();
@@ -378,17 +380,21 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileViewPanel.setLayout(new java.awt.CardLayout());
 
         listPanel.setInheritsPopupMenu(true);
+        listPanel.setLayout(new java.awt.BorderLayout());
 
-        javax.swing.GroupLayout listPanelLayout = new javax.swing.GroupLayout(listPanel);
-        listPanel.setLayout(listPanelLayout);
-        listPanelLayout.setHorizontalGroup(
-            listPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 373, Short.MAX_VALUE)
-        );
-        listPanelLayout.setVerticalGroup(
-            listPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 322, Short.MAX_VALUE)
-        );
+        listScrollPane.setInheritsPopupMenu(true);
+
+        dropboxFileList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        dropboxFileList.setInheritsPopupMenu(true);
+        dropboxFileList.setLayoutOrientation(javax.swing.JList.VERTICAL_WRAP);
+        dropboxFileList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                dropboxFileListValueChanged(evt);
+            }
+        });
+        listScrollPane.setViewportView(dropboxFileList);
+
+        listPanel.add(listScrollPane, java.awt.BorderLayout.CENTER);
 
         fileViewPanel.add(listPanel, "listView");
 
@@ -561,6 +567,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         System.out.println(evt.getActionCommand());
         LinkManagerUtilities.setCard(fileViewPanel, evt.getActionCommand());
     }//GEN-LAST:event_fileViewToggleActionPerformed
+
+    private void dropboxFileListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_dropboxFileListValueChanged
+        // TODO add your handling code here:
+    }//GEN-LAST:event_dropboxFileListValueChanged
     /**
      * 
      * @param name
@@ -653,12 +663,14 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JToggleButton detailsViewToggle;
+    private javax.swing.JList<String> dropboxFileList;
     private javax.swing.JTree dropboxFileTree;
     private javax.swing.JTextField fileNameField;
     private javax.swing.JLabel fileNameLabel;
     private javax.swing.JPopupMenu filePopupMenu;
     private javax.swing.JPanel fileViewPanel;
     private javax.swing.JPanel listPanel;
+    private javax.swing.JScrollPane listScrollPane;
     private javax.swing.JToggleButton listViewToggle;
     private javax.swing.JButton newFolderButton;
     private javax.swing.JMenuItem newFolderItem;
