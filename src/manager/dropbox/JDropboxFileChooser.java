@@ -346,6 +346,13 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileNameLabel.setLabelFor(fileNameField);
         fileNameLabel.setText("File Name:");
 
+        fileNameField.setActionCommand(ACCEPT_SELECTED);
+        fileNameField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fileNameFieldActionPerformed(evt);
+            }
+        });
+
         newFolderButton.setToolTipText("Create New Folder");
         newFolderButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -432,6 +439,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
     private void refreshItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshItemActionPerformed
         try{
+            
             DefaultMutableTreeNode selected = getSelectedNode();
             loadFiles(getDropboxClient());
             if (selected != null){
@@ -484,6 +492,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 fileNameField.setText(((FileMetadata)selected.getUserObject()).getName());
         }
     }//GEN-LAST:event_dropboxFileTreeValueChanged
+
+    private void fileNameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileNameFieldActionPerformed
+        accept(evt);
+    }//GEN-LAST:event_fileNameFieldActionPerformed
     /**
      * 
      * @param name
