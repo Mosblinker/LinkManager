@@ -328,6 +328,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         detailsFileTable = new javax.swing.JTable();
         homeFolderButton = new javax.swing.JButton();
         upFolderButton = new javax.swing.JButton();
+        lookInLabel = new javax.swing.JLabel();
+        lookInComboBox = new javax.swing.JComboBox<>();
 
         refreshItem.setText("Refresh");
         refreshItem.addActionListener(new java.awt.event.ActionListener() {
@@ -454,6 +456,15 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             }
         });
 
+        lookInLabel.setLabelFor(lookInComboBox);
+        lookInLabel.setText("Look In:");
+
+        lookInComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                lookInComboBoxActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -461,25 +472,28 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(fileViewPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 373, Short.MAX_VALUE)
+                    .addComponent(fileViewPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 558, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(fileNameLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(fileNameField))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(controlButtonPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(upFolderButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(homeFolderButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(newFolderButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(listViewToggle)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(detailsViewToggle)))))
+                        .addComponent(controlButtonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(lookInLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lookInComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(upFolderButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(homeFolderButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(newFolderButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(listViewToggle)
+                        .addGap(0, 0, 0)
+                        .addComponent(detailsViewToggle)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -491,9 +505,12 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                     .addComponent(detailsViewToggle)
                     .addComponent(listViewToggle)
                     .addComponent(homeFolderButton)
-                    .addComponent(upFolderButton))
-                .addGap(16, 16, 16)
-                .addComponent(fileViewPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 343, Short.MAX_VALUE)
+                    .addComponent(upFolderButton)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(lookInLabel)
+                        .addComponent(lookInComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(fileViewPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 338, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(fileNameLabel)
@@ -622,6 +639,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private void upFolderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_upFolderButtonActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_upFolderButtonActionPerformed
+
+    private void lookInComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lookInComboBoxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_lookInComboBoxActionPerformed
     /**
      * 
      * @param name
@@ -727,6 +748,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JPanel listPanel;
     private javax.swing.JScrollPane listScrollPane;
     private javax.swing.JToggleButton listViewToggle;
+    private javax.swing.JComboBox<String> lookInComboBox;
+    private javax.swing.JLabel lookInLabel;
     private javax.swing.JButton newFolderButton;
     private javax.swing.JMenuItem newFolderItem;
     private javax.swing.JMenuItem refreshItem;
