@@ -34,7 +34,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     public JDropboxFileChooser() {
         initComponents();
-        MetadataTreeCellRenderer treeCellRenderer = new MetadataTreeCellRenderer();
+        MetadataNameTreeCellRenderer treeCellRenderer = new MetadataNameTreeCellRenderer();
         dropboxFileTree.setCellRenderer(treeCellRenderer);
         treeCellEditor = new MetadataNameTreeCellEditor(dropboxFileTree,treeCellRenderer);
         dropboxFileTree.setCellEditor(treeCellEditor);

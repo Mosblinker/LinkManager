@@ -16,7 +16,7 @@ import manager.icons.DropboxIcon;
  *
  * @author Mosblinker
  */
-public class MetadataTreeCellRenderer extends DefaultTreeCellRenderer {
+public class MetadataNameTreeCellRenderer extends DefaultTreeCellRenderer {
     
     private static final Icon DROPBOX_ICON = new DropboxIcon(16);
     
