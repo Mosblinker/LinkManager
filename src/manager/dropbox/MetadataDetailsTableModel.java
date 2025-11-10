@@ -8,6 +8,7 @@ import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
@@ -47,6 +48,19 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
     private List<Metadata> listView = new RowList();
     
     private DbxClientV2 dbxClient = null;
+    
+    public MetadataDetailsTableModel(){
+        
+    }
+    
+    public MetadataDetailsTableModel(Collection<? extends Metadata> data){
+        this();
+        this.data.addAll(data);
+    }
+    
+    public MetadataDetailsTableModel(Metadata[] data){
+        this(Arrays.asList(data));
+    }
     /**
      * 
      * @return 
