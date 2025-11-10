@@ -82,7 +82,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This is the version of the program.
      */
-    public static final String PROGRAM_VERSION = "0.4.2";
+    public static final String PROGRAM_VERSION = "0.4.3";
     /**
      * The name of the author and main developer.
      */
@@ -6016,13 +6016,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         LinksListModel oldModel = panel.getModel();
         if (model.listEquals(oldModel))
             return;
-        panel.setModel(model,true);
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
             for (LinksListPanel currentPanel : tabsPanel){
-                if (Objects.equals(oldModel, currentPanel.getModel()))
+                if (Objects.equals(oldModel, currentPanel.getModel()) && 
+                        !panel.equals(currentPanel))
                     currentPanel.setModel(model);
             }
         }
+        panel.setModel(model,true);
     }
     
     private void selectionHasChanged(LinksListModel model){
