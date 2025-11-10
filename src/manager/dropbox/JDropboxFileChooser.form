@@ -154,7 +154,7 @@
         <Property name="toolTipText" type="java.lang.String" value="Tree"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="detailsViewToggleActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fileViewToggleActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JToggleButton" name="listViewToggle">
@@ -165,7 +165,7 @@
         <Property name="toolTipText" type="java.lang.String" value="List"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="listViewToggleActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fileViewToggleActionPerformed"/>
       </Events>
     </Component>
     <Container class="javax.swing.JPanel" name="fileViewPanel">

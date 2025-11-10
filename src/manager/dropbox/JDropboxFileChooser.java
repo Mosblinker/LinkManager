@@ -359,7 +359,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         detailsViewToggle.setToolTipText("Tree");
         detailsViewToggle.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                detailsViewToggleActionPerformed(evt);
+                fileViewToggleActionPerformed(evt);
             }
         });
 
@@ -367,7 +367,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         listViewToggle.setToolTipText("List");
         listViewToggle.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                listViewToggleActionPerformed(evt);
+                fileViewToggleActionPerformed(evt);
             }
         });
 
@@ -554,13 +554,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             accept(evt);
     }//GEN-LAST:event_fileNameFieldActionPerformed
 
-    private void listViewToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_listViewToggleActionPerformed
+    private void fileViewToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileViewToggleActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_listViewToggleActionPerformed
-
-    private void detailsViewToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_detailsViewToggleActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_detailsViewToggleActionPerformed
+    }//GEN-LAST:event_fileViewToggleActionPerformed
     /**
      * 
      * @param name
