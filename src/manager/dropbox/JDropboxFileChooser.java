@@ -45,6 +45,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 "List");
         setButtonIcon(detailsViewToggle,uiDefaults,"FileChooser.detailsViewIcon",
                 "Details");
+        setButtonIcon(homeFolderButton,uiDefaults,"FileChooser.homeFolderIcon",
+                "Home");
+        setButtonIcon(upFolderButton,uiDefaults,"FileChooser.upFolderIcon",
+                "Up One Level");
         Handler handler = new Handler();
         fileTreeModel = new DefaultTreeModel(null,true);
         fileTreeModel.addTreeModelListener(handler);
@@ -322,6 +326,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         detailsView = new javax.swing.JPanel();
         detailsScrollPane = new javax.swing.JScrollPane();
         detailsFileTable = new javax.swing.JTable();
+        homeFolderButton = new javax.swing.JButton();
+        upFolderButton = new javax.swing.JButton();
 
         refreshItem.setText("Refresh");
         refreshItem.addActionListener(new java.awt.event.ActionListener() {
@@ -433,6 +439,21 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         fileViewPanel.add(detailsView, "detailsView");
 
+        homeFolderButton.setToolTipText("Home");
+        homeFolderButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                homeFolderButtonActionPerformed(evt);
+            }
+        });
+
+        upFolderButton.setToolTipText("Up One Level");
+        upFolderButton.setEnabled(false);
+        upFolderButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                upFolderButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -450,6 +471,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(controlButtonPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(upFolderButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(homeFolderButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(newFolderButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(listViewToggle)
@@ -464,9 +489,11 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(newFolderButton)
                     .addComponent(detailsViewToggle)
-                    .addComponent(listViewToggle))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(fileViewPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 322, Short.MAX_VALUE)
+                    .addComponent(listViewToggle)
+                    .addComponent(homeFolderButton)
+                    .addComponent(upFolderButton))
+                .addGap(16, 16, 16)
+                .addComponent(fileViewPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 343, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(fileNameLabel)
@@ -587,6 +614,14 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private void dropboxFileListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_dropboxFileListValueChanged
         // TODO add your handling code here:
     }//GEN-LAST:event_dropboxFileListValueChanged
+
+    private void homeFolderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeFolderButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_homeFolderButtonActionPerformed
+
+    private void upFolderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_upFolderButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_upFolderButtonActionPerformed
     /**
      * 
      * @param name
@@ -688,6 +723,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JLabel fileNameLabel;
     private javax.swing.JPopupMenu filePopupMenu;
     private javax.swing.JPanel fileViewPanel;
+    private javax.swing.JButton homeFolderButton;
     private javax.swing.JPanel listPanel;
     private javax.swing.JScrollPane listScrollPane;
     private javax.swing.JToggleButton listViewToggle;
@@ -696,6 +732,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JMenuItem refreshItem;
     private javax.swing.JPanel treePanel;
     private javax.swing.JScrollPane treeScrollPanel;
+    private javax.swing.JButton upFolderButton;
     private javax.swing.ButtonGroup viewButtonGroup;
     // End of variables declaration//GEN-END:variables
 

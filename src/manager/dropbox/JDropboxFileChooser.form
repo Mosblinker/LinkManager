@@ -58,6 +58,10 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="controlButtonPanel" alignment="1" min="-2" max="-2" attributes="0"/>
                           <Group type="102" alignment="1" attributes="0">
+                              <Component id="upFolderButton" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="homeFolderButton" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
                               <Component id="newFolderButton" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="listViewToggle" min="-2" max="-2" attributes="0"/>
@@ -79,9 +83,11 @@
                   <Component id="newFolderButton" min="-2" max="-2" attributes="0"/>
                   <Component id="detailsViewToggle" min="-2" max="-2" attributes="0"/>
                   <Component id="listViewToggle" min="-2" max="-2" attributes="0"/>
+                  <Component id="homeFolderButton" min="-2" max="-2" attributes="0"/>
+                  <Component id="upFolderButton" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace max="-2" attributes="0"/>
-              <Component id="fileViewPanel" pref="322" max="32767" attributes="0"/>
+              <EmptySpace min="-2" pref="16" max="-2" attributes="0"/>
+              <Component id="fileViewPanel" pref="343" max="32767" attributes="0"/>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="fileNameLabel" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -303,5 +309,22 @@
         </Container>
       </SubComponents>
     </Container>
+    <Component class="javax.swing.JButton" name="homeFolderButton">
+      <Properties>
+        <Property name="toolTipText" type="java.lang.String" value="Home"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="homeFolderButtonActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="upFolderButton">
+      <Properties>
+        <Property name="toolTipText" type="java.lang.String" value="Up One Level"/>
+        <Property name="enabled" type="boolean" value="false"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="upFolderButtonActionPerformed"/>
+      </Events>
+    </Component>
   </SubComponents>
 </Form>
