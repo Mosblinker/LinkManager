@@ -295,6 +295,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        viewButtonGroup = new javax.swing.ButtonGroup();
         filePopupMenu = new javax.swing.JPopupMenu();
         refreshItem = new javax.swing.JMenuItem();
         newFolderItem = new javax.swing.JMenuItem();
@@ -599,6 +600,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JMenuItem refreshItem;
     private javax.swing.JPanel treePanel;
     private javax.swing.JScrollPane treeScrollPanel;
+    private javax.swing.ButtonGroup viewButtonGroup;
     // End of variables declaration//GEN-END:variables
 
     private class Handler implements TreeModelListener, DocumentListener{
