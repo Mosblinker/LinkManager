@@ -371,9 +371,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             }
         });
 
+        fileViewPanel.setComponentPopupMenu(filePopupMenu);
         fileViewPanel.setLayout(new java.awt.CardLayout());
 
-        treePanel.setComponentPopupMenu(filePopupMenu);
+        treePanel.setInheritsPopupMenu(true);
         treePanel.setLayout(new java.awt.BorderLayout());
 
         treeScrollPanel.setInheritsPopupMenu(true);
@@ -391,6 +392,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         treePanel.add(treeScrollPanel, java.awt.BorderLayout.CENTER);
 
         fileViewPanel.add(treePanel, "card3");
+
+        listPanel.setInheritsPopupMenu(true);
 
         javax.swing.GroupLayout listPanelLayout = new javax.swing.GroupLayout(listPanel);
         listPanel.setLayout(listPanelLayout);
