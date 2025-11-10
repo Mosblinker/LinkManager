@@ -262,6 +262,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     protected void loadFiles(DbxClientV2 client) throws DbxException{
         LinkManager.getLogger().entering("JDropboxFileChooser", "loadFiles",
                 client);
+        
         DefaultMutableTreeNode node = DropboxUtilities.listFolderTree(client);
         fileTreeModel.setRoot(node);
         LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
@@ -420,7 +421,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 TreeNode temp = root.getChildAt(i);
                 if (temp instanceof DefaultMutableTreeNode){
                     DefaultMutableTreeNode tempNode = (DefaultMutableTreeNode)temp;
-                    if (DropboxUtilities.METADATA_TREE_NODE_COMPARATOR.compare(tempNode, node) >= 0){
+                    if (compareNodes(tempNode, node) >= 0){
                         root.insert(node, i);
                         fileTreeModel.nodesWereInserted(root, new int[]{i});
                         added = true;
@@ -565,6 +566,15 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }
     /**
      * 
+     * @param node1
+     * @param node2
+     * @return 
+     */
+    protected int compareNodes(DefaultMutableTreeNode node1, DefaultMutableTreeNode node2){
+        return DropboxUtilities.METADATA_TREE_NODE_COMPARATOR.compare(node1,node2);
+    }
+    /**
+     * 
      */
     private String selectedPath = null;
     /**
@@ -622,7 +632,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                     if (!(parent.getChildAt(j) instanceof DefaultMutableTreeNode))
                         continue;
                     DefaultMutableTreeNode node2 = (DefaultMutableTreeNode)parent.getChildAt(j);
-                    if (DropboxUtilities.METADATA_TREE_NODE_COMPARATOR.compare(node1, node2) >= 0){
+                    if (compareNodes(node1, node2) >= 0){
                         parent.remove(node1);
                         parent.remove(node2);
                         parent.insert(node2, i);
