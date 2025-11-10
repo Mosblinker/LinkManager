@@ -262,7 +262,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     protected void loadFiles(DbxClientV2 client) throws DbxException{
         LinkManager.getLogger().entering("JDropboxFileChooser", "loadFiles",
                 client);
-        
         DefaultMutableTreeNode node = DropboxUtilities.listFolderTree(client);
         fileTreeModel.setRoot(node);
         LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
