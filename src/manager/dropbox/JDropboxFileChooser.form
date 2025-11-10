@@ -47,7 +47,7 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="fileViewPanel" max="32767" attributes="0"/>
+                  <Component id="fileViewPanel" pref="373" max="32767" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="fileNameLabel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
@@ -81,7 +81,7 @@
                   <Component id="listViewToggle" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="fileViewPanel" max="32767" attributes="0"/>
+              <Component id="fileViewPanel" pref="322" max="32767" attributes="0"/>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="fileNameLabel" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -179,6 +179,47 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignCardLayout"/>
       <SubComponents>
+        <Container class="javax.swing.JPanel" name="treePanel">
+          <Properties>
+            <Property name="inheritsPopupMenu" type="boolean" value="true"/>
+          </Properties>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignCardLayout" value="org.netbeans.modules.form.compat2.layouts.DesignCardLayout$CardConstraintsDescription">
+              <CardConstraints cardName="treeView"/>
+            </Constraint>
+          </Constraints>
+
+          <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
+          <SubComponents>
+            <Container class="javax.swing.JScrollPane" name="treeScrollPanel">
+              <Properties>
+                <Property name="inheritsPopupMenu" type="boolean" value="true"/>
+              </Properties>
+              <AuxValues>
+                <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
+              </AuxValues>
+              <Constraints>
+                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription">
+                  <BorderConstraints direction="Center"/>
+                </Constraint>
+              </Constraints>
+
+              <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+              <SubComponents>
+                <Component class="javax.swing.JTree" name="dropboxFileTree">
+                  <Properties>
+                    <Property name="editable" type="boolean" value="true"/>
+                    <Property name="inheritsPopupMenu" type="boolean" value="true"/>
+                    <Property name="showsRootHandles" type="boolean" value="true"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="valueChanged" listener="javax.swing.event.TreeSelectionListener" parameters="javax.swing.event.TreeSelectionEvent" handler="dropboxFileTreeValueChanged"/>
+                  </Events>
+                </Component>
+              </SubComponents>
+            </Container>
+          </SubComponents>
+        </Container>
         <Container class="javax.swing.JPanel" name="listPanel">
           <Properties>
             <Property name="inheritsPopupMenu" type="boolean" value="true"/>
@@ -223,19 +264,19 @@
             </Container>
           </SubComponents>
         </Container>
-        <Container class="javax.swing.JPanel" name="treePanel">
+        <Container class="javax.swing.JPanel" name="detailsView">
           <Properties>
             <Property name="inheritsPopupMenu" type="boolean" value="true"/>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignCardLayout" value="org.netbeans.modules.form.compat2.layouts.DesignCardLayout$CardConstraintsDescription">
-              <CardConstraints cardName="treeView"/>
+              <CardConstraints cardName="detailsView"/>
             </Constraint>
           </Constraints>
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
           <SubComponents>
-            <Container class="javax.swing.JScrollPane" name="treeScrollPanel">
+            <Container class="javax.swing.JScrollPane" name="detailsScrollPane">
               <Properties>
                 <Property name="inheritsPopupMenu" type="boolean" value="true"/>
               </Properties>
@@ -250,15 +291,11 @@
 
               <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
               <SubComponents>
-                <Component class="javax.swing.JTree" name="dropboxFileTree">
+                <Component class="javax.swing.JTable" name="detailsFileTable">
                   <Properties>
-                    <Property name="editable" type="boolean" value="true"/>
+                    <Property name="autoCreateRowSorter" type="boolean" value="true"/>
                     <Property name="inheritsPopupMenu" type="boolean" value="true"/>
-                    <Property name="showsRootHandles" type="boolean" value="true"/>
                   </Properties>
-                  <Events>
-                    <EventHandler event="valueChanged" listener="javax.swing.event.TreeSelectionListener" parameters="javax.swing.event.TreeSelectionEvent" handler="dropboxFileTreeValueChanged"/>
-                  </Events>
                 </Component>
               </SubComponents>
             </Container>
