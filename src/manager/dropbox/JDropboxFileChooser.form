@@ -81,7 +81,7 @@
                   <Component id="listViewToggle" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="fileViewPanel" min="-2" pref="253" max="-2" attributes="0"/>
+              <Component id="fileViewPanel" max="32767" attributes="0"/>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="fileNameLabel" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -236,7 +236,7 @@
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="253" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="322" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
           </Layout>

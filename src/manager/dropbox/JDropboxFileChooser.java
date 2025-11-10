@@ -16,6 +16,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 import manager.LinkManager;
+import manager.LinkManagerUtilities;
 
 /**
  *
@@ -403,7 +404,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         );
         listPanelLayout.setVerticalGroup(
             listPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 253, Short.MAX_VALUE)
+            .addGap(0, 322, Short.MAX_VALUE)
         );
 
         fileViewPanel.add(listPanel, "listView");
@@ -441,7 +442,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                     .addComponent(detailsViewToggle)
                     .addComponent(listViewToggle))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(fileViewPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 253, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(fileViewPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(fileNameLabel)
