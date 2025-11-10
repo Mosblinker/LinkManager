@@ -87,6 +87,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     public void setDropboxClient(DbxClientV2 client){
         dbxClient = client;
+        updateAcceptEnabled();
+        updateComponentsEnabled();
     }
     /**
      * 
@@ -494,7 +496,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }//GEN-LAST:event_dropboxFileTreeValueChanged
 
     private void fileNameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileNameFieldActionPerformed
-        accept(evt);
+        if (isAcceptEnabled())
+            accept(evt);
     }//GEN-LAST:event_fileNameFieldActionPerformed
     /**
      * 
@@ -530,7 +533,36 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         giveErrorFeedback(renamedMetadata.getMetadata().getName());
         return renamedMetadata.getMetadata();
     }
-    
+    @Override
+    public void setEnabled(boolean enabled){
+        super.setEnabled(enabled);
+        updateComponentsEnabled();
+    }
+    /**
+     * 
+     */
+    protected void updateComponentsEnabled(){
+        try{
+            boolean enabled = isEnabled() && getDropboxClient() != null;
+            dropboxFileTree.setEnabled(enabled);
+            newFolderButton.setEnabled(enabled);
+            newFolderItem.setEnabled(newFolderButton.isEnabled());
+            refreshItem.setEnabled(enabled);
+        } catch (NullPointerException ex){
+            LinkManager.getLogger().log(Level.WARNING, 
+                    "Null encountered while setting enable value", ex);
+        }
+    }
+    @Override
+    protected boolean isAcceptEnabled(){
+        return super.isAcceptEnabled() && getDropboxClient() != null;
+    }
+    @Override
+    protected void updateAcceptEnabled(){
+        super.updateAcceptEnabled();
+        if (fileNameField != null)
+            fileNameField.setEnabled(isAcceptEnabled());
+    }
     /**
      * 
      */
