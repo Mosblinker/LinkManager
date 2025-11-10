@@ -5139,13 +5139,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         metadata = (Metadata) node.getUserObject();
                     else
                         continue;
-                    System.out.print("    ".repeat(node.getLevel()-1));
+                    System.out.print("    ".repeat(node.getLevel()));
                     if (metadata != null)
                         System.out.print(metadata.getName());
                     if (metadata instanceof FileMetadata){
                         FileMetadata file = (FileMetadata) metadata;
-                        System.out.printf(" (%d bytes, %s, %s)", file.getSize(),
+                        ExportInfo exportInfo = file.getExportInfo();
+                        System.out.printf(" (%d bytes, %s, %s", file.getSize(),
                                 file.getClientModified(), file.getServerModified());
+                        if (exportInfo != null)
+                            System.out.printf(", %s, %s",
+                                    exportInfo.getExportAs(),exportInfo.getExportOptions());
+                        System.out.print(")");
                     }
                     System.out.println();
                 }
