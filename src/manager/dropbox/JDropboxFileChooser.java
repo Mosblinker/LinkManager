@@ -358,6 +358,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         viewButtonGroup.add(detailsViewToggle);
         detailsViewToggle.setSelected(true);
         detailsViewToggle.setToolTipText("Tree");
+        detailsViewToggle.setActionCommand("treeView");
         detailsViewToggle.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fileViewToggleActionPerformed(evt);
@@ -366,6 +367,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         viewButtonGroup.add(listViewToggle);
         listViewToggle.setToolTipText("List");
+        listViewToggle.setActionCommand("listView");
         listViewToggle.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fileViewToggleActionPerformed(evt);
@@ -392,7 +394,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         treePanel.add(treeScrollPanel, java.awt.BorderLayout.CENTER);
 
-        fileViewPanel.add(treePanel, "card3");
+        fileViewPanel.add(treePanel, "treeView");
 
         listPanel.setInheritsPopupMenu(true);
 
@@ -556,7 +558,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }//GEN-LAST:event_fileNameFieldActionPerformed
 
     private void fileViewToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileViewToggleActionPerformed
-        // TODO add your handling code here:
+        System.out.println(evt.getActionCommand());
+        LinkManagerUtilities.setCard(fileViewPanel, evt.getActionCommand());
     }//GEN-LAST:event_fileViewToggleActionPerformed
     /**
      * 

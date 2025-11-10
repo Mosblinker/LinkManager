@@ -152,6 +152,7 @@
         </Property>
         <Property name="selected" type="boolean" value="true"/>
         <Property name="toolTipText" type="java.lang.String" value="Tree"/>
+        <Property name="actionCommand" type="java.lang.String" value="treeView"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fileViewToggleActionPerformed"/>
@@ -163,6 +164,7 @@
           <ComponentRef name="viewButtonGroup"/>
         </Property>
         <Property name="toolTipText" type="java.lang.String" value="List"/>
+        <Property name="actionCommand" type="java.lang.String" value="listView"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fileViewToggleActionPerformed"/>
@@ -183,7 +185,7 @@
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignCardLayout" value="org.netbeans.modules.form.compat2.layouts.DesignCardLayout$CardConstraintsDescription">
-              <CardConstraints cardName="card3"/>
+              <CardConstraints cardName="treeView"/>
             </Constraint>
           </Constraints>
 
