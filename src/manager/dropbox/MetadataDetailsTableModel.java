@@ -241,6 +241,22 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
     }
     /**
      * 
+     * @param fromIndex
+     * @param toIndex 
+     */
+    public void removeRows(int fromIndex, int toIndex){
+        Objects.checkFromToIndex(fromIndex, toIndex, getRowCount());
+        if (fromIndex == 0 && toIndex == getRowCount())
+            data.clear();
+        else{
+            for (int i = toIndex-1; i >= fromIndex; i--){
+                data.remove(i);
+            }
+        }
+        fireTableRowsDeleted(fromIndex,toIndex-1);
+    }
+    /**
+     * 
      * @return 
      */
     public List<Metadata> getMetadataList(){
@@ -296,14 +312,7 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
          */
         @Override
         protected void removeRange(int fromIndex, int toIndex){
-            if (fromIndex == 0 && toIndex == size())
-                data.clear();
-            else{
-                for (int i = toIndex-1; i >= fromIndex; i--){
-                    data.remove(i);
-                }
-            }
-            fireTableRowsDeleted(fromIndex,toIndex-1);
+            removeRows(fromIndex,toIndex);
         }
         @Override
         public Metadata set(int index, Metadata element) {
