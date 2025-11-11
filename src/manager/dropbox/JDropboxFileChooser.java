@@ -304,16 +304,28 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 client);
         DefaultMutableTreeNode node = DropboxUtilities.listFolderTree(client);
         fileTreeModel.setRoot(node);
-        metadataLoadList.clear();
-        fileDetailsModel.getMetadataList().clear();
+        loadDirectory(client,currDirMetadata);
+        LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
+    }
+    /**
+     * 
+     * @param client
+     * @param dir
+     * @throws com.dropbox.core.DbxException
+     */
+    protected void loadDirectory(DbxClientV2 client, Metadata dir) throws DbxException{
+        LinkManager.getLogger().entering("JDropboxFileChooser", "loadDirectory",
+                new Object[]{client,dir});
         String path = null;
-        if (currDirMetadata != null && !(currDirMetadata instanceof DbxRootMetadata))
-            path = currDirMetadata.getPathLower();
+        if (dir != null && !(dir instanceof DbxRootMetadata))
+            path = dir.getPathLower();
+        metadataLoadList.clear();
         metadataLoadList = DropboxUtilities.listFolder(client, path, metadataLoadList);
         metadataLoadList.sort(METADATA_COMPARATOR);
         fileDetailsModel.getMetadataList().clear();
         fileDetailsModel.getMetadataList().addAll(metadataLoadList);
-        LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
+        LinkManager.getLogger().exiting("JDropboxFileChooser", "loadDirectory");
+    }
     }
     @Override
     public void accept(){
