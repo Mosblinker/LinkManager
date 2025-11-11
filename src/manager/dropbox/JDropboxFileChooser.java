@@ -746,7 +746,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }//GEN-LAST:event_dropboxFileListValueChanged
 
     private void homeFolderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeFolderButtonActionPerformed
-        // TODO add your handling code here:
+        setCurrentDirectory(new DbxRootMetadata());
     }//GEN-LAST:event_homeFolderButtonActionPerformed
 
     private void upFolderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_upFolderButtonActionPerformed
