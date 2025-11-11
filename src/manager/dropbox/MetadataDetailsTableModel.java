@@ -133,7 +133,7 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
                 case(2):
                     if (metadata instanceof FolderMetadata || 
                             metadata instanceof DbxRootMetadata)
-                        return "File Folder";
+                        return "File folder";
                     else if (metadata instanceof DeletedMetadata)
                         return "Deleted";
                     else if (metadata instanceof FileMetadata){
