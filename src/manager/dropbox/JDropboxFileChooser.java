@@ -71,25 +71,25 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         dropboxFileTree.setModel(fileTreeModel);
         ToolTipManager.sharedInstance().registerComponent(dropboxFileTree);
         fileNameField.getDocument().addDocumentListener(handler);
-        fileDetailsModel = new MetadataDetailsTableModel(detailsFileTable);
+        fileDetailsModel = new MetadataDetailsTableModel(fileDetailsTable);
         fileDetailsPaths = new MetadataPathLowerList(fileDetailsModel.getMetadataList());
         fileDetailsModel.addTableModelListener(handler);
-        detailsFileTable.setModel(fileDetailsModel);
-        detailsFileTable.setDefaultRenderer(Metadata.class, 
+        fileDetailsTable.setModel(fileDetailsModel);
+        fileDetailsTable.setDefaultRenderer(Metadata.class, 
                 new MetadataNameTableCellRenderer());
-        detailsFileTable.setDefaultRenderer(Date.class, 
+        fileDetailsTable.setDefaultRenderer(Date.class, 
                 new DateTableCellRenderer(MODIFIED_DATE_FORMAT));
-        detailsFileTable.getColumnModel()
+        fileDetailsTable.getColumnModel()
                 .getColumn(fileDetailsModel.findColumn("Size"))
                 .setCellRenderer(new FileSizeTableCellRenderer());
         MetadataNameCellEditor cellEditor = new MetadataNameCellEditor();
         cellEditor.setClickCountToStart(3);
-        detailsFileTable.setDefaultEditor(Metadata.class, cellEditor);
+        fileDetailsTable.setDefaultEditor(Metadata.class, cellEditor);
         TableRowSorter<MetadataDetailsTableModel> detailsRowSorter = new TableRowSorter<>(fileDetailsModel);
         detailsRowSorter.setComparator(0, METADATA_COMPARATOR);
         detailsRowSorter.setSortsOnUpdates(true);
-        detailsFileTable.setRowSorter(detailsRowSorter);
-        detailsFileTable.getSelectionModel().addListSelectionListener(handler);
+        fileDetailsTable.setRowSorter(detailsRowSorter);
+        fileDetailsTable.getSelectionModel().addListSelectionListener(handler);
         renameItem.setVisible(false);
     }
     /**
@@ -382,9 +382,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             if (success){
                 int index = fileDetailsPaths.indexOf(path);
                 if (index < 0)
-                    detailsFileTable.clearSelection();
+                    fileDetailsTable.clearSelection();
                 else
-                    detailsFileTable.setRowSelectionInterval(index, index);
+                    fileDetailsTable.setRowSelectionInterval(index, index);
             } else
                 path = prevPath;
         }
@@ -414,7 +414,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * @return 
      */
     protected Metadata getSelectedDetails(){
-        int index = detailsFileTable.getSelectedRow();
+        int index = fileDetailsTable.getSelectedRow();
         if (index < 0)
             return null;
         return fileDetailsModel.getMetadataList().get(index);
@@ -425,10 +425,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     protected void setSelectedDetails(Metadata metadata){
         if (metadata == null)
-            detailsFileTable.clearSelection();
+            fileDetailsTable.clearSelection();
         else {
             int index = fileDetailsModel.getMetadataList().indexOf(metadata);
-            detailsFileTable.setRowSelectionInterval(index, index);
+            fileDetailsTable.setRowSelectionInterval(index, index);
         }
     }
     /**
@@ -470,7 +470,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         dropboxFileList = new javax.swing.JList<>();
         detailsView = new javax.swing.JPanel();
         detailsScrollPane = new javax.swing.JScrollPane();
-        detailsFileTable = new javax.swing.JTable();
+        fileDetailsTable = new javax.swing.JTable();
         homeFolderButton = new javax.swing.JButton();
         upFolderButton = new javax.swing.JButton();
         lookInLabel = new javax.swing.JLabel();
@@ -588,15 +588,15 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         detailsScrollPane.setInheritsPopupMenu(true);
 
-        detailsFileTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
-        detailsFileTable.setInheritsPopupMenu(true);
-        detailsFileTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        detailsFileTable.addMouseListener(new java.awt.event.MouseAdapter() {
+        fileDetailsTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        fileDetailsTable.setInheritsPopupMenu(true);
+        fileDetailsTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        fileDetailsTable.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                detailsFileTableMouseClicked(evt);
+                fileDetailsTableMouseClicked(evt);
             }
         });
-        detailsScrollPane.setViewportView(detailsFileTable);
+        detailsScrollPane.setViewportView(fileDetailsTable);
 
         detailsView.add(detailsScrollPane, java.awt.BorderLayout.CENTER);
 
@@ -723,8 +723,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 dropboxFileTree.startEditingAtPath(nodePath);
             } else if (detailsViewToggle.isSelected()){
                 int index = fileDetailsModel.getMetadataList().indexOf(metadata);
-                detailsFileTable.setRowSelectionInterval(index, index);
-                detailsFileTable.editCellAt(index, 0);
+                fileDetailsTable.setRowSelectionInterval(index, index);
+                fileDetailsTable.editCellAt(index, 0);
             }
         } catch (DbxException ex){
             LinkManager.getLogger().log(Level.WARNING, "Failed to create folder in Dropbox", ex);
@@ -794,7 +794,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private void fileViewToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileViewToggleActionPerformed
         if (firstTimeShowingDetails && detailsViewToggle.isSelected()){
             firstTimeShowingDetails = false;
-            TableColumnModel columns = detailsFileTable.getColumnModel();
+            TableColumnModel columns = fileDetailsTable.getColumnModel();
             columns.getColumn(2).setPreferredWidth(90);
             columns.getColumn(3).setPreferredWidth(108);
             columns.getColumn(4).setPreferredWidth(108);
@@ -827,13 +827,13 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_lookInComboBoxActionPerformed
 
-    private void detailsFileTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_detailsFileTableMouseClicked
+    private void fileDetailsTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileDetailsTableMouseClicked
         System.out.println(evt);
         if (evt.getButton() == MouseEvent.BUTTON1 && evt.getClickCount() == 2){
             Point point = evt.getPoint();
-            int row = detailsFileTable.rowAtPoint(point);
+            int row = fileDetailsTable.rowAtPoint(point);
             System.out.println("Double click on Cell (" + row + 
-                    ", " + detailsFileTable.columnAtPoint(point)+")");
+                    ", " + fileDetailsTable.columnAtPoint(point)+")");
             if (row >= 0){
                 Metadata metadata = fileDetailsModel.getMetadataList().get(row);
                 if (metadata instanceof DbxRootMetadata)
@@ -844,13 +844,13 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                     accept();
             }
         }
-    }//GEN-LAST:event_detailsFileTableMouseClicked
+    }//GEN-LAST:event_fileDetailsTableMouseClicked
 
     private void renameItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameItemActionPerformed
         if (detailsViewToggle.isSelected()){
-            int row = detailsFileTable.getSelectedRow();
+            int row = fileDetailsTable.getSelectedRow();
             if (row >= 0)
-                detailsFileTable.editCellAt(row, 0);
+                fileDetailsTable.editCellAt(row, 0);
         }
     }//GEN-LAST:event_renameItemActionPerformed
     /**
@@ -953,12 +953,12 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private boolean firstTimeShowingDetails = true;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
-    private javax.swing.JTable detailsFileTable;
     private javax.swing.JScrollPane detailsScrollPane;
     private javax.swing.JPanel detailsView;
     private javax.swing.JToggleButton detailsViewToggle;
     private javax.swing.JList<String> dropboxFileList;
     private javax.swing.JTree dropboxFileTree;
+    private javax.swing.JTable fileDetailsTable;
     private javax.swing.JTextField fileNameField;
     private javax.swing.JLabel fileNameLabel;
     private javax.swing.JPopupMenu filePopupMenu;
@@ -1056,7 +1056,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             System.out.println(evt);
             if (detailsViewToggle.isSelected()){
                 updateSelectedFileName(getSelectedDetails());
-                int row = detailsFileTable.getSelectedRow();
+                int row = fileDetailsTable.getSelectedRow();
                 if (row >= 0)
                     renameItem.setVisible(true);
                 else
