@@ -290,6 +290,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             return ERROR_OPTION;
         if (getDropboxClient() == null)
             throw new IllegalStateException("No Dropbox client set");
+        refreshCurrentDirectory();
         try{
             String selectedPath = getSelectedPath();
             loadFiles(getDropboxClient());
@@ -310,7 +311,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 client);
         DefaultMutableTreeNode node = DropboxUtilities.listFolderTree(client);
         fileTreeModel.setRoot(node);
-        loadDirectory(client,currDirPath);
         LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
     }
     /**
@@ -359,6 +359,13 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             throw new UncheckedDbxException(ex);
         }
         return false;
+    }
+    /**
+     * 
+     */
+    protected void refreshCurrentDirectory(){
+        if (!changeCurrentDirectory(currDirPath))
+            goUpInDirectoryTree();
     }
     /**
      * 
@@ -722,6 +729,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }//GEN-LAST:event_newFolderActionPerformed
 
     private void refreshItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshItemActionPerformed
+        refreshCurrentDirectory();
         try{
             
             DefaultMutableTreeNode selected = getSelectedNode();
