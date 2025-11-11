@@ -532,6 +532,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         detailsFileTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
         detailsFileTable.setInheritsPopupMenu(true);
+        detailsFileTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         detailsFileTable.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 detailsFileTableMouseClicked(evt);
