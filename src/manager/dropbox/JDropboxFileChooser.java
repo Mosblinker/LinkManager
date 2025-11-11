@@ -779,8 +779,13 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         if (currDirPath == null || currDirPath.isBlank()){
             upFolderButton.setEnabled(false);
         } else {
-            setCurrentDirectory(currDirPath.substring(0, currDirPath.lastIndexOf("/")));
+            String oldDirPath = currDirPath;
             if (changeCurrentDirectory(currDirPath.substring(0, currDirPath.lastIndexOf("/")))){
+                int index = fileDetailsPaths.indexOf(oldDirPath);
+                if (index < 0)
+                    detailsFileTable.clearSelection();
+                else
+                    detailsFileTable.setRowSelectionInterval(index, index);
             }
         }
     }//GEN-LAST:event_upFolderButtonActionPerformed
