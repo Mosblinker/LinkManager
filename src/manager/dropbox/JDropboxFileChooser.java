@@ -41,8 +41,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         initComponents();
         MetadataNameTreeCellRenderer treeCellRenderer = new MetadataNameTreeCellRenderer();
         dropboxFileTree.setCellRenderer(treeCellRenderer);
+        MetadataNameCellEditor cellEditor = new MetadataNameCellEditor();
         treeCellEditor = new MetadataNameTreeCellEditor(dropboxFileTree,treeCellRenderer);
-        dropboxFileTree.setCellEditor(treeCellEditor);
+        dropboxFileTree.setCellEditor(cellEditor);
         UIDefaults uiDefaults = UIManager.getLookAndFeelDefaults();
         setButtonIcon(newFolderButton,uiDefaults,"FileChooser.newFolderIcon",
                 "New Folder");
@@ -70,6 +71,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         detailsFileTable.getTableHeader().getColumnModel().getColumn(
                 fileDetailsModel.findColumn("Size")).setCellRenderer(
                 new FileSizeTableCellRenderer());
+        detailsFileTable.setDefaultEditor(Metadata.class, cellEditor);
     }
     /**
      * 
