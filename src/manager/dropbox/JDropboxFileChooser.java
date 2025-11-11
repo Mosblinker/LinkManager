@@ -227,7 +227,13 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     protected void updateSelectedPath(){
-        updateSelectedPath(getSelectedPathFromTree());
+        if (detailsViewToggle.isSelected()){
+            String path = currDirPath;
+            if (path == null || path.isBlank())
+                path = "/";
+            updateSelectedPath(path + fileNameField.getText());
+        } else
+            updateSelectedPath(getSelectedPathFromTree());
     }
     /**
      * 
