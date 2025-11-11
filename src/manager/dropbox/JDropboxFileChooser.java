@@ -84,6 +84,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         detailsRowSorter.setComparator(0, METADATA_COMPARATOR);
         detailsRowSorter.setSortsOnUpdates(true);
         detailsFileTable.setRowSorter(detailsRowSorter);
+        detailsFileTable.getSelectionModel().addListSelectionListener(handler);
     }
     /**
      * 
@@ -841,7 +842,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.ButtonGroup viewButtonGroup;
     // End of variables declaration//GEN-END:variables
 
-    private class Handler implements TreeModelListener, DocumentListener, TableModelListener{
+    private class Handler implements TreeModelListener, DocumentListener, 
+            TableModelListener, ListSelectionListener{
         @Override
         public void treeNodesChanged(TreeModelEvent evt) {
             boolean renamedNode = false;
@@ -911,6 +913,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         public void tableChanged(TableModelEvent evt) {
             System.out.println(evt);
             System.out.println(evt.getType());
+        }
+        @Override
+        public void valueChanged(ListSelectionEvent evt) {
+            
         }
     }
 }
