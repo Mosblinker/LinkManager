@@ -7,6 +7,10 @@ package manager.dropbox;
 import com.dropbox.core.DbxException;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.Metadata;
+import java.awt.Component;
+import java.util.Objects;
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
 
 /**
  * This is an object representing a renamed metadata
@@ -19,7 +23,7 @@ public class RenamedMetadata {
     private String name;
 
     protected RenamedMetadata(Metadata metadata, String name){
-        this.metadata = metadata;
+        this.metadata = Objects.requireNonNull(metadata);
         this.name = name;
     }
 
@@ -46,5 +50,24 @@ public class RenamedMetadata {
         if (getNewName().equals(getMetadata().getName()))
             return getMetadata();
         return DropboxUtilities.rename(client, getMetadata(), getNewName());
+    }
+    /**
+     * 
+     * @param parent 
+     */
+    public void giveRenameErrorFeedback(Component parent){
+        giveRenameErrorFeedback(parent,getMetadata().getName());
+    }
+    /**
+     * 
+     * @param parent
+     * @param name
+     */
+    public static void giveRenameErrorFeedback(Component parent, String name){
+        UIManager.getLookAndFeel().provideErrorFeedback(parent);
+        JOptionPane.showMessageDialog(parent, "Cannot rename "+name+
+                ": A file with the name you specified already exists. "
+                        + "Specify a different file name.", 
+                "Error Renaming File of Folder", JOptionPane.ERROR_MESSAGE);
     }
 }

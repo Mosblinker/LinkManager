@@ -664,21 +664,11 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }//GEN-LAST:event_lookInComboBoxActionPerformed
     /**
      * 
-     * @param name
-     */
-    protected void giveErrorFeedback(String name){
-        UIManager.getLookAndFeel().provideErrorFeedback(dropboxFileTree);
-        JOptionPane.showMessageDialog(dropboxFileTree, "Cannot rename "+name+
-                ": A file with the name you specified already exists. "
-                        + "Specify a different file name.", 
-                "Error Renaming File of Folder", JOptionPane.ERROR_MESSAGE);
-    }
-    /**
-     * 
+     * @param parent
      * @param renamedMetadata
      * @return 
      */
-    protected Metadata renameFile(RenamedMetadata renamedMetadata){
+    protected Metadata renameFile(Component parent, RenamedMetadata renamedMetadata){
         try{
             Metadata temp = renamedMetadata.rename(getDropboxClient());
             if (temp != null)
@@ -687,7 +677,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         } catch (DbxException ex){
             LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);
         }
-        giveErrorFeedback(renamedMetadata.getMetadata().getName());
+        renamedMetadata.giveRenameErrorFeedback(parent);
         return renamedMetadata.getMetadata();
     }
     @Override
@@ -788,7 +778,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 if (child instanceof DefaultMutableTreeNode){
                     DefaultMutableTreeNode node = (DefaultMutableTreeNode)child;
                     if (node.getUserObject() instanceof RenamedMetadata){
-                        node.setUserObject(renameFile(
+                        node.setUserObject(renameFile(dropboxFileTree,
                                 (RenamedMetadata)node.getUserObject()));
                         fileTreeModel.nodeChanged(node);
                         renamedNode = true;
