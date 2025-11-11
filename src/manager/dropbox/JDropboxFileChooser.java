@@ -12,6 +12,7 @@ import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.text.SimpleDateFormat;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -71,6 +72,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         ToolTipManager.sharedInstance().registerComponent(dropboxFileTree);
         fileNameField.getDocument().addDocumentListener(handler);
         fileDetailsModel = new MetadataDetailsTableModel(detailsFileTable);
+        fileDetailsPaths = new MetadataPathLowerList(fileDetailsModel.getMetadataList());
         fileDetailsModel.addTableModelListener(handler);
         detailsFileTable.setModel(fileDetailsModel);
         detailsFileTable.setDefaultRenderer(Metadata.class, 
@@ -879,6 +881,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     /**
      * 
      */
+    private List<String> fileDetailsPaths;
+    /**
+     * 
+     */
     private boolean firstTimeShowingDetails = true;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
@@ -983,6 +989,62 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         public void valueChanged(ListSelectionEvent evt) {
             System.out.println(evt);
             updateSelectedFileName(getSelectedDetails());
+            }
+        }
+    }
+    /**
+     * 
+     * @param <E> 
+     */
+    private abstract class MetadataPropertyList<E> extends AbstractList<E>{
+        /**
+         * 
+         */
+        private final List<Metadata> metadata;
+        /**
+         * 
+         * @param metadata 
+         */
+        MetadataPropertyList(List<Metadata> metadata){
+            this.metadata = Objects.requireNonNull(metadata);
+        }
+        /**
+         * 
+         * @return 
+         */
+        public List<Metadata> getMetadata(){
+            return metadata;
+        }
+        /**
+         * 
+         * @param metadata
+         * @return 
+         */
+        protected abstract E getValue(Metadata metadata);
+        @Override
+        public E get(int index) {
+            Metadata value = metadata.get(index);
+            return (value!=null)?getValue(value):null;
+        }
+        @Override
+        public int size() {
+            return metadata.size();
+        }
+    }
+    /**
+     * 
+     */
+    private class MetadataPathLowerList extends MetadataPropertyList<String>{
+        /**
+         * 
+         * @param metadata 
+         */
+        public MetadataPathLowerList(List<Metadata> metadata) {
+            super(metadata);
+        }
+        @Override
+        protected String getValue(Metadata metadata) {
+            return metadata.getPathLower();
         }
     }
 }
