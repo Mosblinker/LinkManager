@@ -266,6 +266,8 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
      */
     public void removeRows(int fromIndex, int toIndex){
         Objects.checkFromToIndex(fromIndex, toIndex, getRowCount());
+        if (fromIndex == toIndex)
+            return;
         if (fromIndex == 0 && toIndex == getRowCount())
             data.clear();
         else{
