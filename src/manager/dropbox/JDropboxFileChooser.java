@@ -90,6 +90,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         detailsRowSorter.setSortsOnUpdates(true);
         detailsFileTable.setRowSorter(detailsRowSorter);
         detailsFileTable.getSelectionModel().addListSelectionListener(handler);
+        renameItem.setVisible(false);
     }
     /**
      * 
@@ -405,6 +406,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         filePopupMenu = new javax.swing.JPopupMenu();
         refreshItem = new javax.swing.JMenuItem();
         newFolderItem = new javax.swing.JMenuItem();
+        renameItem = new javax.swing.JMenuItem();
         controlButtonPanel = new javax.swing.JPanel();
         javax.swing.JButton acceptButton = getAcceptButton();
         javax.swing.JButton cancelButton = getCancelButton();
@@ -443,6 +445,14 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             }
         });
         filePopupMenu.add(newFolderItem);
+
+        renameItem.setText("Rename");
+        renameItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                renameItemActionPerformed(evt);
+            }
+        });
+        filePopupMenu.add(renameItem);
 
         setPreferredSize(new java.awt.Dimension(722, 458));
 
@@ -788,6 +798,12 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             }
         }
     }//GEN-LAST:event_detailsFileTableMouseClicked
+
+    private void renameItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameItemActionPerformed
+        if (detailsViewToggle.isSelected()){
+            
+        }
+    }//GEN-LAST:event_renameItemActionPerformed
     /**
      * 
      * @param parent
@@ -907,6 +923,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JButton newFolderButton;
     private javax.swing.JMenuItem newFolderItem;
     private javax.swing.JMenuItem refreshItem;
+    private javax.swing.JMenuItem renameItem;
     private javax.swing.JPanel treePanel;
     private javax.swing.JScrollPane treeScrollPanel;
     private javax.swing.JButton upFolderButton;
@@ -988,7 +1005,13 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         @Override
         public void valueChanged(ListSelectionEvent evt) {
             System.out.println(evt);
-            updateSelectedFileName(getSelectedDetails());
+            if (detailsViewToggle.isSelected()){
+                updateSelectedFileName(getSelectedDetails());
+                int row = detailsFileTable.getSelectedRow();
+                if (row >= 0)
+                    renameItem.setVisible(true);
+                else
+                    renameItem.setVisible(false);
             }
         }
     }
