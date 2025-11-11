@@ -360,6 +360,25 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         }
         return false;
     }
+    /**
+     * 
+     */
+    protected void goUpInDirectoryTree(){
+        String path = currDirPath;
+        boolean success = false;
+        while (path != null && !path.isBlank() && !success){
+            String prevPath = path.substring(0, path.lastIndexOf("/"));
+            success = changeCurrentDirectory(prevPath);
+            if (success){
+                int index = fileDetailsPaths.indexOf(path);
+                if (index < 0)
+                    detailsFileTable.clearSelection();
+                else
+                    detailsFileTable.setRowSelectionInterval(index, index);
+            } else
+                path = prevPath;
+        }
+    }
     @Override
     public void accept(){
         updateSelectedPath();
@@ -784,19 +803,12 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private void homeFolderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeFolderButtonActionPerformed
         changeCurrentDirectory(null);
     }//GEN-LAST:event_homeFolderButtonActionPerformed
-
+    
     private void upFolderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_upFolderButtonActionPerformed
         if (currDirPath == null || currDirPath.isBlank()){
             upFolderButton.setEnabled(false);
         } else {
-            String oldDirPath = currDirPath;
-            if (changeCurrentDirectory(currDirPath.substring(0, currDirPath.lastIndexOf("/")))){
-                int index = fileDetailsPaths.indexOf(oldDirPath);
-                if (index < 0)
-                    detailsFileTable.clearSelection();
-                else
-                    detailsFileTable.setRowSelectionInterval(index, index);
-            }
+            goUpInDirectoryTree();
         }
     }//GEN-LAST:event_upFolderButtonActionPerformed
 
