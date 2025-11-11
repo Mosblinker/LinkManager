@@ -288,6 +288,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 client);
         DefaultMutableTreeNode node = DropboxUtilities.listFolderTree(client);
         fileTreeModel.setRoot(node);
+        fileDetailsModel.getMetadataList().clear();
         String path = null;
         if (currDirMetadata != null && !(currDirMetadata instanceof DbxRootMetadata))
             path = currDirMetadata.getPathLower();
