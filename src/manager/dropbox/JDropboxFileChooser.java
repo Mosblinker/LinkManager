@@ -333,7 +333,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     protected void setCurrentDirectory(String path){
         try{
             loadDirectory(getDropboxClient(),path);
-            currDirPath = path;
+            currDirPath = (path!=null)?path:"";
             updateUpFolderButtonEnabled();
         } catch (DbxException ex){
             LinkManager.getLogger().log(Level.WARNING, "Failed to load files from Dropbox", ex);
@@ -854,7 +854,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     /**
      * 
      */
-    private String currDirPath = null;
+    private String currDirPath = "";
     /**
      * 
      */
