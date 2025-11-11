@@ -9,6 +9,8 @@ import com.dropbox.core.v2.*;
 import com.dropbox.core.v2.files.*;
 import components.AbstractConfirmDialogPanel;
 import java.awt.Component;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -531,6 +533,11 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         detailsFileTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
         detailsFileTable.setInheritsPopupMenu(true);
+        detailsFileTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                detailsFileTableMouseClicked(evt);
+            }
+        });
         detailsScrollPane.setViewportView(detailsFileTable);
 
         detailsView.add(detailsScrollPane, java.awt.BorderLayout.CENTER);
@@ -756,6 +763,23 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private void lookInComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lookInComboBoxActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_lookInComboBoxActionPerformed
+
+    private void detailsFileTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_detailsFileTableMouseClicked
+        System.out.println(evt);
+        if (evt.getButton() == MouseEvent.BUTTON1 && evt.getClickCount() == 2){
+            Point point = evt.getPoint();
+            int row = detailsFileTable.rowAtPoint(point);
+            System.out.println("Double click on Cell (" + row + 
+                    ", " + detailsFileTable.columnAtPoint(point)+")");
+            if (row >= 0){
+                Metadata metadata = fileDetailsModel.getMetadataList().get(row);
+                if (metadata instanceof FolderMetadata || metadata instanceof DbxRootMetadata)
+                    setCurrentDirectory(metadata);
+                else if (isAcceptEnabled())
+                    accept();
+            }
+        }
+    }//GEN-LAST:event_detailsFileTableMouseClicked
     /**
      * 
      * @param parent
