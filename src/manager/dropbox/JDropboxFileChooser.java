@@ -337,6 +337,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         try{
             loadDirectory(getDropboxClient(),dir);
             currDirMetadata = dir;
+            updateUpFolderButtonEnabled();
         } catch (DbxException ex){
             LinkManager.getLogger().log(Level.WARNING, "Failed to load files from Dropbox", ex);
             throw new UncheckedDbxException(ex);
@@ -808,6 +809,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     protected void updateComponentsEnabled(){
+        updateUpFolderButtonEnabled();
         try{
             boolean enabled = isEnabled() && getDropboxClient() != null;
             dropboxFileTree.setEnabled(enabled);
@@ -818,6 +820,14 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             LinkManager.getLogger().log(Level.WARNING, 
                     "Null encountered while setting enable value", ex);
         }
+    }
+    /**
+     * 
+     */
+    protected void updateUpFolderButtonEnabled(){
+        if (upFolderButton != null)
+            upFolderButton.setEnabled(isEnabled() && getDropboxClient() != null && 
+                    currDirMetadata != null && !(currDirMetadata instanceof DbxRootMetadata));
     }
     @Override
     protected boolean isAcceptEnabled(){
