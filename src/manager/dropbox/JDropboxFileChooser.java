@@ -55,6 +55,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         dropboxFileTree.setModel(fileTreeModel);
         ToolTipManager.sharedInstance().registerComponent(dropboxFileTree);
         fileNameField.getDocument().addDocumentListener(handler);
+        fileDetailsModel = new MetadataDetailsTableModel();
+        fileDetailsModel.addTableModelListener(handler);
+        detailsFileTable.setModel(fileDetailsModel);
     }
     /**
      * 
@@ -273,6 +276,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 client);
         DefaultMutableTreeNode node = DropboxUtilities.listFolderTree(client);
         fileTreeModel.setRoot(node);
+        String path = null;
+        if (currDirMetadata != null && !(currDirMetadata instanceof DbxRootMetadata))
+            path = currDirMetadata.getPathLower();
+        DropboxUtilities.listFolder(client, path, fileDetailsModel.getMetadataList());
         LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
     }
     @Override
@@ -731,6 +738,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private DefaultTreeModel fileTreeModel;
+    /**
+     * 
+     */
+    private MetadataDetailsTableModel fileDetailsModel;
     /**
      * 
      */
