@@ -207,6 +207,8 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
                 return temp;
         } catch (RelocationErrorException ex){
             // TODO: Add different error prompts for the different types of errors
+            
+            // Issue thrown when there's a conflict with the name: {".tag":"to","to":{".tag":"conflict","conflict":"folder"}}
             LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);
         } catch (DbxException ex){
             LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);
