@@ -5675,10 +5675,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      * @param fc
      * @param title
+     * @param checkIfExists
+     * @return 
+     */
+    private File showSaveFileChooser(JFileChooser fc, String title, 
+            boolean checkIfExists){
+        return LinkManagerUtilities.showSaveFileChooser(fc, this, config,title,
+                checkIfExists);
+    }
+    /**
+     * 
+     * @param fc
+     * @param title
      * @return 
      */
     private File showSaveFileChooser(JFileChooser fc, String title){
-        return LinkManagerUtilities.showSaveFileChooser(fc, this, config,title);
+        return showSaveFileChooser(fc, title, true);
     }
     /**
      * This is the model used for the spinner to set the chunk size for 
