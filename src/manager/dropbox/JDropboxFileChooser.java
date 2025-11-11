@@ -679,16 +679,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * @return 
      */
     protected Metadata renameFile(RenamedMetadata renamedMetadata){
-        if (renamedMetadata.getNewName() == null || renamedMetadata.getNewName().isBlank()){
-            giveErrorFeedback(renamedMetadata.getMetadata().getName());
-            return renamedMetadata.getMetadata();
-        }
-        if (renamedMetadata.getNewName().equals(renamedMetadata.getMetadata().getName()))
-            return renamedMetadata.getMetadata();
         try{
-            return DropboxUtilities.rename(getDropboxClient(), 
-                    renamedMetadata.getMetadata(), 
-                    renamedMetadata.getNewName());
+            Metadata temp = renamedMetadata.rename(getDropboxClient());
+            if (temp != null)
+                return temp;
         } catch (RelocationErrorException ex){
         } catch (DbxException ex){
             LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);

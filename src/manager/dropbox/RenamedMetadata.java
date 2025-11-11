@@ -4,6 +4,8 @@
  */
 package manager.dropbox;
 
+import com.dropbox.core.DbxException;
+import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.Metadata;
 
 /**
@@ -31,5 +33,18 @@ public class RenamedMetadata {
     @Override
     public String toString(){
         return name;
+    }
+    /**
+     * 
+     * @param client
+     * @return 
+     * @throws com.dropbox.core.DbxException 
+     */
+    public Metadata rename(DbxClientV2 client) throws DbxException{
+        if (getNewName() == null || getNewName().isBlank())
+            return null;
+        if (getNewName().equals(getMetadata().getName()))
+            return getMetadata();
+        return DropboxUtilities.rename(client, getMetadata(), getNewName());
     }
 }
