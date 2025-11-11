@@ -324,13 +324,23 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         LinkManager.getLogger().entering("JDropboxFileChooser", "loadDirectory",
                 new Object[]{client,path});
         metadataLoadList.clear();
-        metadataLoadList = DropboxUtilities.listFolder(client, path, metadataLoadList);
-        metadataLoadList.sort(METADATA_COMPARATOR);
-        fileDetailsModel.getMetadataList().clear();
-        fileDetailsModel.getMetadataList().addAll(metadataLoadList);
-        LinkManager.getLogger().exiting("JDropboxFileChooser", "loadDirectory");
+        try{
+            metadataLoadList = DropboxUtilities.listFolder(client, path, metadataLoadList);
+            metadataLoadList.sort(METADATA_COMPARATOR);
+            fileDetailsModel.getMetadataList().clear();
+            fileDetailsModel.getMetadataList().addAll(metadataLoadList);
             LinkManager.getLogger().exiting("JDropboxFileChooser", "loadDirectory", true);
             return true;
+        } catch (ListFolderErrorException ex){
+            if (ex.errorValue.isPath()){
+                if (ex.errorValue.getPathValue().isNotFound()){
+                    LinkManager.getLogger().log(Level.INFO, "Path not found", ex);
+                    LinkManager.getLogger().exiting("JDropboxFileChooser", "loadDirectory", false);
+                    return false;
+                }
+            }
+            throw ex;
+        }
     }
     /**
      * 
