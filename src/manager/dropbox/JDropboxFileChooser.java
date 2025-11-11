@@ -18,7 +18,6 @@ import java.util.Objects;
 import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.tree.*;
@@ -618,9 +617,17 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 root.add(node);
                 fileTreeModel.nodesWereInserted(root, new int[]{root.getChildCount()-1});
             }
-            TreePath nodePath = new TreePath(node.getPath());
-            dropboxFileTree.setSelectionPath(nodePath);
-            dropboxFileTree.startEditingAtPath(nodePath);
+            fileDetailsModel.getMetadataList().add(metadata);
+            fileDetailsModel.getMetadataList().sort(METADATA_COMPARATOR);
+            if (listViewToggle.isSelected()){
+                TreePath nodePath = new TreePath(node.getPath());
+                dropboxFileTree.setSelectionPath(nodePath);
+                dropboxFileTree.startEditingAtPath(nodePath);
+            } else if (detailsViewToggle.isSelected()){
+                int index = fileDetailsModel.getMetadataList().indexOf(metadata);
+                detailsFileTable.setRowSelectionInterval(index, index);
+                detailsFileTable.editCellAt(index, 0);
+            }
         } catch (DbxException ex){
             LinkManager.getLogger().log(Level.WARNING, "Failed to create folder in Dropbox", ex);
         }
@@ -688,10 +695,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }//GEN-LAST:event_fileNameFieldActionPerformed
 
     private void fileViewToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileViewToggleActionPerformed
-        if ("detailsView".equals(evt.getActionCommand())){
+        if (detailsViewToggle.isSelected()){
             firstTimeShowingDetails = false;
-            System.out.println(detailsFileTable.getWidth());
-            System.out.println(detailsScrollPane.getViewport().getWidth());
             TableColumnModel columns = detailsFileTable.getColumnModel();
             columns.getColumn(2).setPreferredWidth(90);
             columns.getColumn(3).setPreferredWidth(108);
@@ -701,11 +706,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 firstWidth -= columns.getColumn(i).getPreferredWidth();
             }
             columns.getColumn(0).setPreferredWidth(firstWidth);
-            Iterator<TableColumn> itr = columns.getColumns().asIterator();
-            while (itr.hasNext()){
-                TableColumn col = itr.next();
-                System.out.printf("%20s %3d %3d%n",col.getIdentifier(),col.getWidth(),col.getPreferredWidth());
-            }
         }
         LinkManagerUtilities.setCard(fileViewPanel, evt.getActionCommand());
     }//GEN-LAST:event_fileViewToggleActionPerformed
