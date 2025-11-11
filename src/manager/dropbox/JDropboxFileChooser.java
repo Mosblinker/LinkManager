@@ -702,7 +702,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }//GEN-LAST:event_fileNameFieldActionPerformed
 
     private void fileViewToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileViewToggleActionPerformed
-        if (detailsViewToggle.isSelected()){
+        if (firstTimeShowingDetails && detailsViewToggle.isSelected()){
             firstTimeShowingDetails = false;
             TableColumnModel columns = detailsFileTable.getColumnModel();
             columns.getColumn(2).setPreferredWidth(90);
