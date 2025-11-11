@@ -9,6 +9,8 @@ import com.dropbox.core.v2.*;
 import com.dropbox.core.v2.files.*;
 import components.AbstractConfirmDialogPanel;
 import java.awt.Component;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -17,6 +19,7 @@ import javax.swing.event.*;
 import javax.swing.tree.*;
 import manager.LinkManager;
 import manager.LinkManagerUtilities;
+import manager.renderer.*;
 
 /**
  *
@@ -28,7 +31,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     public static final String SELECTED_PATH_PROPERTY_CHANGED = 
             "SelectedPathPropertyChanged";
-
+    
+    protected static final SimpleDateFormat MODIFIED_DATE_FORMAT = 
+            new SimpleDateFormat("M/d/yyyy h:mm a");
     /**
      * Creates new form JDropboxFileChooser
      */
@@ -58,6 +63,13 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileDetailsModel = new MetadataDetailsTableModel();
         fileDetailsModel.addTableModelListener(handler);
         detailsFileTable.setModel(fileDetailsModel);
+        detailsFileTable.setDefaultRenderer(Metadata.class, 
+                new MetadataNameTableCellRenderer());
+        detailsFileTable.setDefaultRenderer(Date.class, 
+                new DateTableCellRenderer(MODIFIED_DATE_FORMAT));
+        detailsFileTable.getTableHeader().getColumnModel().getColumn(
+                fileDetailsModel.findColumn("Size")).setCellRenderer(
+                new FileSizeTableCellRenderer());
     }
     /**
      * 
