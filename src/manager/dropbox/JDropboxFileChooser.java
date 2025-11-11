@@ -756,7 +756,11 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }//GEN-LAST:event_homeFolderButtonActionPerformed
 
     private void upFolderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_upFolderButtonActionPerformed
-        // TODO add your handling code here:
+        if (currDirPath == null || currDirPath.isBlank()){
+            upFolderButton.setEnabled(false);
+        } else {
+            setCurrentDirectory(currDirPath.substring(0, currDirPath.lastIndexOf("/")));
+        }
     }//GEN-LAST:event_upFolderButtonActionPerformed
 
     private void lookInComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lookInComboBoxActionPerformed
