@@ -49,17 +49,39 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
     
     private DbxClientV2 dbxClient = null;
     
-    public MetadataDetailsTableModel(){
-        
+    private JTable table;
+    
+    public MetadataDetailsTableModel(JTable table){
+        this.table = table;
     }
     
-    public MetadataDetailsTableModel(Collection<? extends Metadata> data){
-        this();
+    public MetadataDetailsTableModel(JTable table,Collection<? extends Metadata> data){
+        this(table);
         this.data.addAll(data);
     }
     
+    public MetadataDetailsTableModel(JTable table, Metadata[] data){
+        this(table,Arrays.asList(data));
+    }
+    
+    public MetadataDetailsTableModel(){
+        this((JTable)null);
+    }
+    
+    public MetadataDetailsTableModel(Collection<? extends Metadata> data){
+        this(null,data);
+    }
+    
     public MetadataDetailsTableModel(Metadata[] data){
-        this(Arrays.asList(data));
+        this(null,data);
+    }
+    
+    public JTable getTable(){
+        return table;
+    }
+    
+    public void setTable(JTable table){
+        this.table = table;
     }
     /**
      * 

@@ -61,7 +61,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         dropboxFileTree.setModel(fileTreeModel);
         ToolTipManager.sharedInstance().registerComponent(dropboxFileTree);
         fileNameField.getDocument().addDocumentListener(handler);
-        fileDetailsModel = new MetadataDetailsTableModel();
+        fileDetailsModel = new MetadataDetailsTableModel(detailsFileTable);
         fileDetailsModel.addTableModelListener(handler);
         detailsFileTable.setModel(fileDetailsModel);
         detailsFileTable.setDefaultRenderer(Metadata.class, 
@@ -115,6 +115,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         dbxClient = client;
         updateAcceptEnabled();
         updateComponentsEnabled();
+        fileDetailsModel.setDropboxClient(client);
     }
     /**
      * 
