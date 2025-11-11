@@ -81,6 +81,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 .getColumn(fileDetailsModel.findColumn("Size"))
                 .setCellRenderer(new FileSizeTableCellRenderer());
         MetadataNameCellEditor cellEditor = new MetadataNameCellEditor();
+        cellEditor.setClickCountToStart(3);
         detailsFileTable.setDefaultEditor(Metadata.class, cellEditor);
         TableRowSorter<MetadataDetailsTableModel> detailsRowSorter = new TableRowSorter<>(fileDetailsModel);
         detailsRowSorter.setComparator(0, METADATA_COMPARATOR);
