@@ -65,28 +65,4 @@ public class MetadataNameTreeCellEditor extends DefaultTreeCellEditor{
             return value;
         return new RenamedMetadata(lastMetadata,(value!=null)?value.toString():null); 
     }
-    
-    public class RenamedMetadata{
-        
-        private Metadata metadata;
-        
-        private String name;
-        
-        protected RenamedMetadata(Metadata metadata, String name){
-            this.metadata = metadata;
-            this.name = name;
-        }
-        
-        public Metadata getMetadata(){
-            return metadata;
-        }
-        
-        public String getNewName(){
-            return name;
-        }
-        @Override
-        public String toString(){
-            return name;
-        }
-    }
 }

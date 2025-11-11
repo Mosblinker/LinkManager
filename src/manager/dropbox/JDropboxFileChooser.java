@@ -678,7 +678,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * @param renamedMetadata
      * @return 
      */
-    protected Metadata renameFile(MetadataNameTreeCellEditor.RenamedMetadata renamedMetadata){
+    protected Metadata renameFile(RenamedMetadata renamedMetadata){
         if (renamedMetadata.getNewName() == null || renamedMetadata.getNewName().isBlank()){
             giveErrorFeedback(renamedMetadata.getMetadata().getName());
             return renamedMetadata.getMetadata();
@@ -793,9 +793,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             for (Object child : evt.getChildren()){
                 if (child instanceof DefaultMutableTreeNode){
                     DefaultMutableTreeNode node = (DefaultMutableTreeNode)child;
-                    if (node.getUserObject() instanceof MetadataNameTreeCellEditor.RenamedMetadata){
+                    if (node.getUserObject() instanceof RenamedMetadata){
                         node.setUserObject(renameFile(
-                                (MetadataNameTreeCellEditor.RenamedMetadata)node.getUserObject()));
+                                (RenamedMetadata)node.getUserObject()));
                         fileTreeModel.nodeChanged(node);
                         renamedNode = true;
                     }
