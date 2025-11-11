@@ -206,6 +206,8 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
             if (temp != null)
                 return temp;
         } catch (RelocationErrorException ex){
+            // TODO: Add different error prompts for the different types of errors
+            LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);
         } catch (DbxException ex){
             LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);
         }
