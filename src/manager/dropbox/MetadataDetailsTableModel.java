@@ -4,6 +4,7 @@
  */
 package manager.dropbox;
 
+import com.dropbox.core.DbxException;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import java.util.AbstractList;
@@ -15,7 +16,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
+import java.util.logging.Level;
+import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
+import manager.LinkManager;
 
 /**
  *
@@ -193,6 +197,23 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
     }
     /**
      * 
+     * @param renamedMetadata
+     * @return 
+     */
+    protected Metadata rename(RenamedMetadata renamedMetadata){
+        try{
+            Metadata temp = renamedMetadata.rename(getDropboxClient());
+            if (temp != null)
+                return temp;
+        } catch (RelocationErrorException ex){
+        } catch (DbxException ex){
+            LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);
+        }
+        renamedMetadata.giveRenameErrorFeedback(getTable());
+        return renamedMetadata.getMetadata();
+    }
+    /**
+     * 
      * @param aValue
      * @param row
      * @param column
@@ -220,10 +241,14 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
                         .withPathDisplay(folder.getPathDisplay())
                         .withPathLower(folder.getPathLower());
             }
+        } else if (aValue instanceof RenamedMetadata){
+            aValue = rename((RenamedMetadata)aValue);
         }
         if (aValue instanceof Metadata || aValue == null){
-            data.set(row, (Metadata)aValue);
-            fireTableCellUpdated(row, column);
+            if (!Objects.equals(data.get(row), aValue)){
+                data.set(row, (Metadata)aValue);
+                fireTableCellUpdated(row, column);
+            }
         } else
             throw new ClassCastException();
     }
