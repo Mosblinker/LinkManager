@@ -326,6 +326,18 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileDetailsModel.getMetadataList().addAll(metadataLoadList);
         LinkManager.getLogger().exiting("JDropboxFileChooser", "loadDirectory");
     }
+    /**
+     * 
+     * @param dir 
+     */
+    protected void setCurrentDirectory(Metadata dir){
+        try{
+            loadDirectory(getDropboxClient(),dir);
+            currDirMetadata = dir;
+        } catch (DbxException ex){
+            LinkManager.getLogger().log(Level.WARNING, "Failed to load files from Dropbox", ex);
+            throw new UncheckedDbxException(ex);
+        }
     }
     @Override
     public void accept(){
