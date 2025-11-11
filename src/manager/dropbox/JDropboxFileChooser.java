@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.table.TableRowSorter;
 import javax.swing.tree.*;
 import manager.LinkManager;
 import manager.LinkManagerUtilities;
@@ -78,6 +79,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 fileDetailsModel.findColumn("Size")).setCellRenderer(
                 new FileSizeTableCellRenderer());
         detailsFileTable.setDefaultEditor(Metadata.class, cellEditor);
+        TableRowSorter<MetadataDetailsTableModel> detailsRowSorter = new TableRowSorter<>(fileDetailsModel);
+        detailsRowSorter.setComparator(0, METADATA_COMPARATOR);
+        detailsRowSorter.setSortsOnUpdates(true);
+        detailsFileTable.setRowSorter(detailsRowSorter);
     }
     /**
      * 
@@ -304,11 +309,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             path = currDirMetadata.getPathLower();
         metadataLoadList = DropboxUtilities.listFolder(client, path, metadataLoadList);
         metadataLoadList.sort(METADATA_COMPARATOR);
-        boolean willNotSortDetails = dontSortDetails;
-        dontSortDetails = true;
         fileDetailsModel.getMetadataList().clear();
         fileDetailsModel.getMetadataList().addAll(metadataLoadList);
-        dontSortDetails = willNotSortDetails;
         LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
     }
     @Override
@@ -491,7 +493,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         detailsScrollPane.setInheritsPopupMenu(true);
 
-        detailsFileTable.setAutoCreateRowSorter(true);
         detailsFileTable.setInheritsPopupMenu(true);
         detailsScrollPane.setViewportView(detailsFileTable);
 
@@ -785,10 +786,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private MetadataNameTreeCellEditor treeCellEditor;
-    /**
-     * 
-     */
-    private boolean dontSortDetails = false;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JTable detailsFileTable;
@@ -884,14 +881,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         }
         @Override
         public void tableChanged(TableModelEvent evt) {
-            if (!dontSortDetails){
-                boolean willNotSortDetails = dontSortDetails;
-                dontSortDetails = true;
-                Metadata selected = getSelectedDetails();
-                fileDetailsModel.getMetadataList().sort(METADATA_COMPARATOR);
-                setSelectedDetails(selected);
-                dontSortDetails = willNotSortDetails;
-            }
+            System.out.println(evt);
+            System.out.println(evt.getType());
         }
     }
 }

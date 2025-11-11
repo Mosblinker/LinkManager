@@ -305,7 +305,6 @@
               <SubComponents>
                 <Component class="javax.swing.JTable" name="detailsFileTable">
                   <Properties>
-                    <Property name="autoCreateRowSorter" type="boolean" value="true"/>
                     <Property name="inheritsPopupMenu" type="boolean" value="true"/>
                   </Properties>
                 </Component>
