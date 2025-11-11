@@ -317,9 +317,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      * @param client
      * @param path
+     * @return 
      * @throws com.dropbox.core.DbxException
      */
-    protected void loadDirectory(DbxClientV2 client, String path) throws DbxException{
+    protected boolean loadDirectory(DbxClientV2 client, String path) throws DbxException{
         LinkManager.getLogger().entering("JDropboxFileChooser", "loadDirectory",
                 new Object[]{client,path});
         metadataLoadList.clear();
@@ -328,20 +329,26 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileDetailsModel.getMetadataList().clear();
         fileDetailsModel.getMetadataList().addAll(metadataLoadList);
         LinkManager.getLogger().exiting("JDropboxFileChooser", "loadDirectory");
+            LinkManager.getLogger().exiting("JDropboxFileChooser", "loadDirectory", true);
+            return true;
     }
     /**
      * 
      * @param path 
+     * @return  
      */
-    protected void setCurrentDirectory(String path){
+    protected boolean changeCurrentDirectory(String path){
         try{
-            loadDirectory(getDropboxClient(),path);
-            currDirPath = (path!=null)?path:"";
-            updateUpFolderButtonEnabled();
+            if (loadDirectory(getDropboxClient(),path)){
+                currDirPath = (path!=null)?path:"";
+                updateUpFolderButtonEnabled();
+                return true;
+            }
         } catch (DbxException ex){
             LinkManager.getLogger().log(Level.WARNING, "Failed to load files from Dropbox", ex);
             throw new UncheckedDbxException(ex);
         }
+        return false;
     }
     @Override
     public void accept(){
@@ -765,7 +772,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }//GEN-LAST:event_dropboxFileListValueChanged
 
     private void homeFolderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeFolderButtonActionPerformed
-        setCurrentDirectory(null);
+        changeCurrentDirectory(null);
     }//GEN-LAST:event_homeFolderButtonActionPerformed
 
     private void upFolderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_upFolderButtonActionPerformed
@@ -773,6 +780,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             upFolderButton.setEnabled(false);
         } else {
             setCurrentDirectory(currDirPath.substring(0, currDirPath.lastIndexOf("/")));
+            if (changeCurrentDirectory(currDirPath.substring(0, currDirPath.lastIndexOf("/")))){
+            }
         }
     }//GEN-LAST:event_upFolderButtonActionPerformed
 
@@ -790,9 +799,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             if (row >= 0){
                 Metadata metadata = fileDetailsModel.getMetadataList().get(row);
                 if (metadata instanceof DbxRootMetadata)
-                    setCurrentDirectory(null);
+                    changeCurrentDirectory(null);
                 if (metadata instanceof FolderMetadata)
-                    setCurrentDirectory(metadata.getPathLower());
+                    changeCurrentDirectory(metadata.getPathLower());
                 else if (isAcceptEnabled())
                     accept();
             }
