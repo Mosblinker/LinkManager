@@ -10,8 +10,10 @@ import com.dropbox.core.v2.files.*;
 import components.AbstractConfirmDialogPanel;
 import java.awt.Component;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import javax.swing.*;
@@ -34,6 +36,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     
     protected static final SimpleDateFormat MODIFIED_DATE_FORMAT = 
             new SimpleDateFormat("M/d/yyyy h:mm a");
+    /**
+     * 
+     */
+    private static final MetadataComparator METADATA_COMPARATOR = new MetadataComparator();
     /**
      * Creates new form JDropboxFileChooser
      */
@@ -291,11 +297,18 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 client);
         DefaultMutableTreeNode node = DropboxUtilities.listFolderTree(client);
         fileTreeModel.setRoot(node);
+        metadataLoadList.clear();
         fileDetailsModel.getMetadataList().clear();
         String path = null;
         if (currDirMetadata != null && !(currDirMetadata instanceof DbxRootMetadata))
             path = currDirMetadata.getPathLower();
-        DropboxUtilities.listFolder(client, path, fileDetailsModel.getMetadataList());
+        metadataLoadList = DropboxUtilities.listFolder(client, path, metadataLoadList);
+        metadataLoadList.sort(METADATA_COMPARATOR);
+        boolean willNotSortDetails = dontSortDetails;
+        dontSortDetails = true;
+        fileDetailsModel.getMetadataList().clear();
+        fileDetailsModel.getMetadataList().addAll(metadataLoadList);
+        dontSortDetails = willNotSortDetails;
         LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
     }
     @Override
@@ -317,6 +330,28 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             return (DefaultMutableTreeNode)selection.getLastPathComponent();
         }
         return null;
+    }
+    /**
+     * 
+     * @return 
+     */
+    protected Metadata getSelectedDetails(){
+        int index = detailsFileTable.getSelectedRow();
+        if (index < 0)
+            return null;
+        return fileDetailsModel.getMetadataList().get(index);
+    }
+    /**
+     * 
+     * @param metadata 
+     */
+    protected void setSelectedDetails(Metadata metadata){
+        if (metadata == null)
+            detailsFileTable.clearSelection();
+        else {
+            int index = fileDetailsModel.getMetadataList().indexOf(metadata);
+            detailsFileTable.setRowSelectionInterval(index, index);
+        }
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -731,6 +766,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     private Metadata currDirMetadata = new DbxRootMetadata();
     /**
+     * 
+     */
+    private List<Metadata> metadataLoadList = new ArrayList<>();
+    /**
      * This is the Dropbox client being used currently.
      */
     private DbxClientV2 dbxClient = null;
@@ -746,6 +785,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private MetadataNameTreeCellEditor treeCellEditor;
+    /**
+     * 
+     */
+    private boolean dontSortDetails = false;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JTable detailsFileTable;
@@ -841,7 +884,14 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         }
         @Override
         public void tableChanged(TableModelEvent evt) {
-            
+            if (!dontSortDetails){
+                boolean willNotSortDetails = dontSortDetails;
+                dontSortDetails = true;
+                Metadata selected = getSelectedDetails();
+                fileDetailsModel.getMetadataList().sort(METADATA_COMPARATOR);
+                setSelectedDetails(selected);
+                dontSortDetails = willNotSortDetails;
+            }
         }
     }
 }
