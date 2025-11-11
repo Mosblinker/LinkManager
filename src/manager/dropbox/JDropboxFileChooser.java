@@ -18,6 +18,8 @@ import java.util.Objects;
 import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.tree.*;
 import manager.LinkManager;
@@ -75,9 +77,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 new MetadataNameTableCellRenderer());
         detailsFileTable.setDefaultRenderer(Date.class, 
                 new DateTableCellRenderer(MODIFIED_DATE_FORMAT));
-        detailsFileTable.getTableHeader().getColumnModel().getColumn(
-                fileDetailsModel.findColumn("Size")).setCellRenderer(
-                new FileSizeTableCellRenderer());
+        detailsFileTable.getColumnModel()
+                .getColumn(fileDetailsModel.findColumn("Size"))
+                .setCellRenderer(new FileSizeTableCellRenderer());
         detailsFileTable.setDefaultEditor(Metadata.class, cellEditor);
         TableRowSorter<MetadataDetailsTableModel> detailsRowSorter = new TableRowSorter<>(fileDetailsModel);
         detailsRowSorter.setComparator(0, METADATA_COMPARATOR);
@@ -495,6 +497,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         detailsScrollPane.setInheritsPopupMenu(true);
 
+        detailsFileTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
         detailsFileTable.setInheritsPopupMenu(true);
         detailsScrollPane.setViewportView(detailsFileTable);
 
@@ -685,6 +688,25 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }//GEN-LAST:event_fileNameFieldActionPerformed
 
     private void fileViewToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileViewToggleActionPerformed
+        if ("detailsView".equals(evt.getActionCommand())){
+            firstTimeShowingDetails = false;
+            System.out.println(detailsFileTable.getWidth());
+            System.out.println(detailsScrollPane.getViewport().getWidth());
+            TableColumnModel columns = detailsFileTable.getColumnModel();
+            columns.getColumn(2).setPreferredWidth(90);
+            columns.getColumn(3).setPreferredWidth(108);
+            columns.getColumn(4).setPreferredWidth(108);
+            int firstWidth = detailsScrollPane.getViewport().getWidth();
+            for (int i = 1; i < columns.getColumnCount(); i++){
+                firstWidth -= columns.getColumn(i).getPreferredWidth();
+            }
+            columns.getColumn(0).setPreferredWidth(firstWidth);
+            Iterator<TableColumn> itr = columns.getColumns().asIterator();
+            while (itr.hasNext()){
+                TableColumn col = itr.next();
+                System.out.printf("%20s %3d %3d%n",col.getIdentifier(),col.getWidth(),col.getPreferredWidth());
+            }
+        }
         LinkManagerUtilities.setCard(fileViewPanel, evt.getActionCommand());
     }//GEN-LAST:event_fileViewToggleActionPerformed
 
@@ -784,6 +806,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private MetadataDetailsTableModel fileDetailsModel;
+    /**
+     * 
+     */
+    private boolean firstTimeShowingDetails = true;
     /**
      * 
      */
