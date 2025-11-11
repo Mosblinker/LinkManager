@@ -815,7 +815,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
     private void renameItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameItemActionPerformed
         if (detailsViewToggle.isSelected()){
-            
+            int row = detailsFileTable.getSelectedRow();
+            if (row >= 0)
+                detailsFileTable.editCellAt(row, 0);
         }
     }//GEN-LAST:event_renameItemActionPerformed
     /**
