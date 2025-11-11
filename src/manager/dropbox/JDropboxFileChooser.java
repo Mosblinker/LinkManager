@@ -624,7 +624,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }//GEN-LAST:event_fileNameFieldActionPerformed
 
     private void fileViewToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileViewToggleActionPerformed
-        System.out.println(evt.getActionCommand());
         LinkManagerUtilities.setCard(fileViewPanel, evt.getActionCommand());
     }//GEN-LAST:event_fileViewToggleActionPerformed
 
@@ -720,6 +719,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private String selectedPath = null;
+    /**
+     * 
+     */
+    private Metadata currDirMetadata = new DbxRootMetadata();
     /**
      * This is the Dropbox client being used currently.
      */
