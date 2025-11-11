@@ -759,7 +759,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.ButtonGroup viewButtonGroup;
     // End of variables declaration//GEN-END:variables
 
-    private class Handler implements TreeModelListener, DocumentListener{
+    private class Handler implements TreeModelListener, DocumentListener, TableModelListener{
         @Override
         public void treeNodesChanged(TreeModelEvent evt) {
             boolean renamedNode = false;
@@ -823,6 +823,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         }
         @Override
         public void changedUpdate(DocumentEvent evt) {
+            
+        }
+        @Override
+        public void tableChanged(TableModelEvent evt) {
             
         }
     }
