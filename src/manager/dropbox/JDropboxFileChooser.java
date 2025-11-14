@@ -75,7 +75,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         dropboxFileList.setModel(fileListModel);
         dropboxFileList.setCellRenderer(new MetadataNameListCellRenderer());
         dropboxFileList.addListSelectionListener(handler);
-        fileDetailsModel = new MetadataDetailsTableModel(fileDetailsTable);
+        fileDetailsModel = new MetadataDetailsTableModel(fileDetailsTable,fileListModel);
         fileDetailsPaths = new MetadataPathLowerList(fileDetailsModel.getMetadataList());
         fileDetailsModel.addTableModelListener(handler);
         fileDetailsTable.setModel(fileDetailsModel);
@@ -245,8 +245,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         try{
             metadataLoadList = DropboxUtilities.listFolder(client, path, metadataLoadList);
             metadataLoadList.sort(METADATA_COMPARATOR);
-            fileDetailsModel.getMetadataList().clear();
-            fileDetailsModel.getMetadataList().addAll(metadataLoadList);
             fileListModel.clear();
             fileListModel.addAll(metadataLoadList);
             LinkManager.getLogger().exiting("JDropboxFileChooser", "loadDirectory", true);
@@ -607,8 +605,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         try{
             CreateFolderResult result = getDropboxClient().files().createFolderV2(currDirPath+"/New Folder", true);
             Metadata metadata = result.getMetadata();
-            fileDetailsModel.getMetadataList().add(metadata);
-            fileDetailsModel.getMetadataList().sort(METADATA_COMPARATOR);
             fileListModel.add(metadata);
             fileListModel.sort(METADATA_COMPARATOR);
             if (listViewToggle.isSelected()){
