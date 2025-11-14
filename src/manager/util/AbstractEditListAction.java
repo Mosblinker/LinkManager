@@ -58,6 +58,19 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
      * @return The new value for the JList.
      */
     protected abstract E valueFromString(String value, E oldValue);
+    /**
+     * This gets a List equivalent of the given ListModel that can be edited. 
+     * Any change to the given List should be reflected in the given ListModel.
+     * @param model The model to get a List from.
+     * @return A List view of the given model, or null if the ListModel cannot 
+     * be accessed using a List.
+     */
+    @SuppressWarnings("unchecked")
+    protected java.util.List<E> getListFromModel(ListModel<E> model){
+            // If the model already implements the List interface
+        if (model instanceof java.util.List)
+            return (java.util.List<E>)model;
+        return new ListModelList<>(model);
     }
     
     /*
