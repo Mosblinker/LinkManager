@@ -49,6 +49,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     private static final MetadataComparator METADATA_COMPARATOR = new MetadataComparator();
     /**
+     * 
+     */
+    private static final Icon DROPBOX_ICON_16 = new DropboxIcon(16);
+    /**
      * Creates new form JDropboxFileChooser
      */
     public JDropboxFileChooser() {
@@ -1162,6 +1166,12 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 Object value,int index,boolean isSelected,boolean cellHasFocus){
             Component comp = super.getListCellRendererComponent(list, value, 
                     index, isSelected, cellHasFocus);
+            if (value == null || value instanceof DbxRootMetadata)
+                setIcon(DROPBOX_ICON_16);
+            else if (value instanceof Metadata) {
+                if (value instanceof FolderMetadata)
+                    setIcon(folderIcon);
+            }
             return comp;
         }
         @Override
