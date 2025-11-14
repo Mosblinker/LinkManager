@@ -231,7 +231,7 @@
 
               <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
               <SubComponents>
-                <Component class="javax.swing.JList" name="dropboxFileList">
+                <Component class="javax.swing.JList" name="fileListList">
                   <Properties>
                     <Property name="selectionMode" type="int" value="0"/>
                     <Property name="inheritsPopupMenu" type="boolean" value="true"/>
@@ -239,7 +239,7 @@
                     <Property name="visibleRowCount" type="int" value="-1"/>
                   </Properties>
                   <Events>
-                    <EventHandler event="valueChanged" listener="javax.swing.event.ListSelectionListener" parameters="javax.swing.event.ListSelectionEvent" handler="dropboxFileListValueChanged"/>
+                    <EventHandler event="valueChanged" listener="javax.swing.event.ListSelectionListener" parameters="javax.swing.event.ListSelectionEvent" handler="fileListListValueChanged"/>
                   </Events>
                   <AuxValues>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Metadata&gt;"/>

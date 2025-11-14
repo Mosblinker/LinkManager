@@ -26,10 +26,9 @@ import javax.swing.border.Border;
 import javax.swing.event.*;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
-import manager.LinkManager;
-import manager.LinkManagerUtilities;
+import manager.*;
 import manager.renderer.*;
-import manager.util.AbstractEditListAction;
+import manager.util.*;
 
 /**
  *
@@ -72,10 +71,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileNameField.getDocument().addDocumentListener(handler);
         fileListModel = new ArrayListModel<>();
         fileListModel.addListDataListener(handler);
-        dropboxFileList.setModel(fileListModel);
+        fileListList.setModel(fileListModel);
         filePaths = new MetadataPathLowerList(fileListModel);
-        dropboxFileList.setCellRenderer(new MetadataNameListCellRenderer());
-        dropboxFileList.addListSelectionListener(handler);
+        fileListList.setCellRenderer(new MetadataNameListCellRenderer());
+        fileListList.addListSelectionListener(handler);
         fileDetailsModel = new MetadataDetailsTableModel(fileDetailsTable,fileListModel){
             @Override
             public void setValueAt(Object aValue, int row, int column){
@@ -350,9 +349,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     protected void setSelectedListIndex(int index){
         if (index < 0 || index >= fileListModel.size())
-            dropboxFileList.clearSelection();
+            fileListList.clearSelection();
         else 
-            dropboxFileList.setSelectedIndex(index);
+            fileListList.setSelectedIndex(index);
     }
     /**
      * 
@@ -381,7 +380,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * @return 
      */
     protected int getSelectedListIndex(){
-        return dropboxFileList.getSelectedIndex();
+        return fileListList.getSelectedIndex();
     }
     /**
      * 
@@ -440,7 +439,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileViewPanel = new javax.swing.JPanel();
         listPanel = new javax.swing.JPanel();
         listScrollPane = new javax.swing.JScrollPane();
-        dropboxFileList = new javax.swing.JList<>();
+        fileListList = new javax.swing.JList<>();
         detailsView = new javax.swing.JPanel();
         detailsScrollPane = new javax.swing.JScrollPane();
         fileDetailsTable = new javax.swing.JTable();
@@ -523,16 +522,16 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         listScrollPane.setInheritsPopupMenu(true);
 
-        dropboxFileList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        dropboxFileList.setInheritsPopupMenu(true);
-        dropboxFileList.setLayoutOrientation(javax.swing.JList.VERTICAL_WRAP);
-        dropboxFileList.setVisibleRowCount(-1);
-        dropboxFileList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+        fileListList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        fileListList.setInheritsPopupMenu(true);
+        fileListList.setLayoutOrientation(javax.swing.JList.VERTICAL_WRAP);
+        fileListList.setVisibleRowCount(-1);
+        fileListList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                dropboxFileListValueChanged(evt);
+                fileListListValueChanged(evt);
             }
         });
-        listScrollPane.setViewportView(dropboxFileList);
+        listScrollPane.setViewportView(fileListList);
 
         listPanel.add(listScrollPane, java.awt.BorderLayout.CENTER);
 
@@ -645,7 +644,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             fileListModel.sort(METADATA_COMPARATOR);
             if (listViewToggle.isSelected()){
                 int index = fileListModel.indexOf(metadata);
-                dropboxFileList.setSelectedIndex(index);
+                fileListList.setSelectedIndex(index);
                 // TODO: Start editing the selected index
             } else if (detailsViewToggle.isSelected()){
                 int index = fileDetailsModel.getMetadataList().indexOf(metadata);
@@ -682,9 +681,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         LinkManagerUtilities.setCard(fileViewPanel, evt.getActionCommand());
     }//GEN-LAST:event_fileViewToggleActionPerformed
 
-    private void dropboxFileListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_dropboxFileListValueChanged
+    private void fileListListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_fileListListValueChanged
         // TODO add your handling code here:
-    }//GEN-LAST:event_dropboxFileListValueChanged
+    }//GEN-LAST:event_fileListListValueChanged
 
     private void homeFolderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeFolderButtonActionPerformed
         changeCurrentDirectory(null);
@@ -735,7 +734,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             if (row >= 0)
                 fileDetailsTable.editCellAt(row, 0);
         } else if (listViewToggle.isSelected()){
-            fileListEditAction.actionPerformed(new ActionEvent(dropboxFileList,
+            fileListEditAction.actionPerformed(new ActionEvent(fileListList,
                     ActionEvent.ACTION_PERFORMED,""));
         }
     }//GEN-LAST:event_renameItemActionPerformed
@@ -840,8 +839,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JScrollPane detailsScrollPane;
     private javax.swing.JPanel detailsView;
     private javax.swing.JToggleButton detailsViewToggle;
-    private javax.swing.JList<Metadata> dropboxFileList;
     private javax.swing.JTable fileDetailsTable;
+    private javax.swing.JList<Metadata> fileListList;
     private javax.swing.JTextField fileNameField;
     private javax.swing.JLabel fileNameLabel;
     private javax.swing.JPopupMenu filePopupMenu;
@@ -885,7 +884,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             if (detailsViewToggle.isSelected())
                 targetSource = fileDetailsTable.getSelectionModel();
             else if (listViewToggle.isSelected())
-                targetSource = dropboxFileList;
+                targetSource = fileListList;
             if (evt.getSource() != targetSource)
                 return;
             int index = getSelectedIndex();
@@ -1006,7 +1005,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         @Override
         protected Metadata valueFromString(String value, Metadata oldValue) {
             RenamedMetadata renamed = new RenamedMetadata(oldValue,value);
-            return renamed.renameWithError(getDropboxClient(), dropboxFileList);
+            return renamed.renameWithError(getDropboxClient(), fileListList);
         }
         @Override
         protected void setValue(ActionEvent evt){
