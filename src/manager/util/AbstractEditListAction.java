@@ -120,7 +120,10 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
 
         editTextField.addActionListener((ActionEvent e) -> {
             String value = editTextField.getText();
-            ListModel model = list.getModel();
+            if (lastList == null){
+                ListModel<E> model = list.getModel();
+                lastList = getListFromModel(model);
+            }
             if (lastList != null){
                 int row = list.getSelectedIndex();
                 lastList.set(row, valueFromString(value,lastValue));
