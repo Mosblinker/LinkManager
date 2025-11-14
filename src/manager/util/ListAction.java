@@ -21,8 +21,7 @@ import javax.swing.*;
  * 
  * @author Rob Camick
  */
-public class ListAction implements MouseListener
-{
+public class ListAction implements MouseListener {
     private static final KeyStroke ENTER = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
 
     private JList list;
