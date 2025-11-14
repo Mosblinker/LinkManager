@@ -106,12 +106,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             // Action and mouse listener for the selection
         SelectionAction selAction = new SelectionAction();
         
-        fileNameField.getDocument().addDocumentListener(handler);
         fileNameField.setAction(selAction);
         
             // Create and set up the model for the list view
         fileListModel = new ArrayListModel<>();
-        fileListModel.addListDataListener(handler);
         filePaths = new MetadataPathLowerList(fileListModel);
         
             // Set up the list view
@@ -131,7 +129,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 sortMetadata();
             }
         };
-        fileDetailsModel.addTableModelListener(handler);
         
             // Set up the details table
         fileDetailsTable.setModel(fileDetailsModel);
@@ -969,24 +966,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.ButtonGroup viewMenuGroup;
     // End of variables declaration//GEN-END:variables
 
-    private class Handler implements DocumentListener, TableModelListener, 
-            ListSelectionListener, ListDataListener{
-        @Override
-        public void insertUpdate(DocumentEvent evt) {
-            
-        }
-        @Override
-        public void removeUpdate(DocumentEvent evt) {
-            
-        }
-        @Override
-        public void changedUpdate(DocumentEvent evt) {
-            
-        }
-        @Override
-        public void tableChanged(TableModelEvent evt) {
-            
-        }
+    private class Handler implements ListSelectionListener{
         @Override
         public void valueChanged(ListSelectionEvent evt) {
             Object targetSource = null;
@@ -1006,18 +986,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 renameItem.setVisible(true);
             else
                 renameItem.setVisible(false);
-        }
-        @Override
-        public void intervalAdded(ListDataEvent evt) {
-            
-        }
-        @Override
-        public void intervalRemoved(ListDataEvent evt) {
-            
-        }
-        @Override
-        public void contentsChanged(ListDataEvent evt) {
-            
         }
     }
     /**
