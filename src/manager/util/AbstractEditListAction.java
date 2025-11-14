@@ -34,6 +34,7 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
 
     private JPopupMenu editPopup;
     private JTextField editTextField;
+    private java.util.List<E> lastList = null;
     
     public AbstractEditListAction() {
         
@@ -81,6 +82,11 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
     public void actionPerformed(ActionEvent e) {
         list = (JList<E>)e.getSource();
         ListModel<E> model = list.getModel();
+            // Get a list view of the model
+        lastList = getListFromModel(model);
+            // If the model cannot be accessed as a List
+        if (lastList == null) 
+            return;
 
             //  Do a lazy creation of the popup editor
 
