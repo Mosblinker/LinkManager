@@ -16,7 +16,6 @@ import java.text.SimpleDateFormat;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -61,10 +60,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     public JDropboxFileChooser() {
         initComponents();
-        MetadataNameTreeCellRenderer treeCellRenderer = new MetadataNameTreeCellRenderer();
-        dropboxFileTree.setCellRenderer(treeCellRenderer);
-        MetadataNameCellEditor treeCellEditor = new MetadataNameCellEditor();
-        dropboxFileTree.setCellEditor(treeCellEditor);
         UIDefaults uiDefaults = UIManager.getLookAndFeelDefaults();
         setButtonIcon(newFolderButton,uiDefaults,"FileChooser.newFolderIcon",
                 "New Folder");
@@ -78,10 +73,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 "Up One Level");
         folderIcon = uiDefaults.getIcon("FileChooser.directoryIcon");
         Handler handler = new Handler();
-        fileTreeModel = new DefaultTreeModel(null,true);
-        fileTreeModel.addTreeModelListener(handler);
-        dropboxFileTree.setModel(fileTreeModel);
-        ToolTipManager.sharedInstance().registerComponent(dropboxFileTree);
         fileNameField.getDocument().addDocumentListener(handler);
         fileDetailsModel = new MetadataDetailsTableModel(fileDetailsTable);
         fileDetailsPaths = new MetadataPathLowerList(fileDetailsModel.getMetadataList());
@@ -153,32 +144,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }
     /**
      * 
-     * @return 
-     */
-    protected String getSelectedPathFromTree(){
-        String name = fileNameField.getText();
-        DefaultMutableTreeNode node = getSelectedNode();
-        if (node == null && (name == null || name.isBlank()))
-            return null;
-        if (node == null || !(node.getUserObject() instanceof Metadata))
-            return "/"+name;
-        while (node != null && 
-                !(node.getUserObject() instanceof DbxRootMetadata) && 
-                !(node.getUserObject() instanceof FolderMetadata)){
-            TreeNode parent = node.getParent();
-            while (!(parent instanceof DefaultMutableTreeNode) && parent != null)
-                parent = parent.getParent();
-            node = (DefaultMutableTreeNode)parent;
-        }
-        if (node == null || node.getUserObject() == null)
-            return "/"+name;
-        Metadata metadata = (Metadata)node.getUserObject();
-        if (!(node.getUserObject() instanceof DbxRootMetadata))
-            name = "/"+name;
-        return metadata.getPathLower()+name;
-    }
-    /**
-     * 
      * @param newPath 
      * @return  
      */
@@ -192,60 +157,13 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }
     /**
      * 
-     * @param path 
-     */
-    protected void updateSelectedTreePath(String path){
-        if (path == null)
-            dropboxFileTree.clearSelection();
-        else{
-            if (!(fileTreeModel.getRoot() instanceof DefaultMutableTreeNode)){
-                dropboxFileTree.clearSelection();
-                return;
-            }
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode)fileTreeModel.getRoot();
-            String[] paths = path.split("/");
-            String currPath = "";
-            for (int i = 1; i < paths.length; i++){
-                String nextPath = currPath+"/"+paths[i].toLowerCase();
-                Iterator<TreeNode> itr = node.children().asIterator();
-                DefaultMutableTreeNode nextNode = null;
-                while(itr.hasNext() && nextNode == null){
-                    TreeNode temp = itr.next();
-                    if (temp instanceof DefaultMutableTreeNode){
-                        DefaultMutableTreeNode currNode = (DefaultMutableTreeNode)temp;
-                        if (currNode.getUserObject() instanceof Metadata){
-                            Metadata metadata = (Metadata)currNode.getUserObject();
-                            if (nextPath.equals(metadata.getPathLower()))
-                                nextNode = currNode;
-                        }
-                    }
-                }
-                if (nextNode != null){
-                    node = nextNode;
-                    currPath = nextPath;
-                } else {
-                    break;
-                }
-            }
-            TreePath selPath = new TreePath(node.getPath());
-            dropboxFileTree.setSelectionPath(selPath);
-            dropboxFileTree.expandPath(selPath);
-            if (currPath.length()+1 < path.length()){
-                fileNameField.setText(path.substring(currPath.length()+1));
-            } else if (node.getUserObject() instanceof FileMetadata){
-                fileNameField.setText(((Metadata)node.getUserObject()).getName());
-            } else
-                fileNameField.setText("");
-        }
-    }
-    /**
-     * 
      */
     protected void updateSelectedPath(){
         if (detailsViewToggle.isSelected()){
             updateSelectedPath(currDirPath + "/" + fileNameField.getText());
-        } else
-            updateSelectedPath(getSelectedPathFromTree());
+        } else{
+            
+        }
     }
     /**
      * 
@@ -260,7 +178,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     public void setSelectedPath(String path){
         if (updateSelectedPath(path)){
-            updateSelectedTreePath(path);
+            
         }
     }
     /**
@@ -309,27 +227,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         if (getDropboxClient() == null)
             throw new IllegalStateException("No Dropbox client set");
         refreshCurrentDirectory();
-        try{
-            String selectedPath = getSelectedPath();
-            loadFiles(getDropboxClient());
-            updateSelectedTreePath(selectedPath);
-        } catch (DbxException ex){
-            LinkManager.getLogger().log(Level.WARNING, "Failed to load files from Dropbox", ex);
-            throw new UncheckedDbxException(ex);
-        }
         return super.showDialog(panel);
-    }
-    /**
-     * 
-     * @param client 
-     * @throws com.dropbox.core.DbxException 
-     */
-    protected void loadFiles(DbxClientV2 client) throws DbxException{
-        LinkManager.getLogger().entering("JDropboxFileChooser", "loadFiles",
-                client);
-        DefaultMutableTreeNode node = DropboxUtilities.listFolderTree(client);
-        fileTreeModel.setRoot(node);
-        LinkManager.getLogger().exiting("JDropboxFileChooser", "loadFiles");
     }
     /**
      * 
@@ -427,16 +325,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         updateSelectedPath();
         super.cancel();
     }
-    
-    protected DefaultMutableTreeNode getSelectedNode(){
-        TreePath selection = dropboxFileTree.getSelectionPath();
-        if (selection == null)
-            return null;
-        if (selection.getLastPathComponent() instanceof DefaultMutableTreeNode){
-            return (DefaultMutableTreeNode)selection.getLastPathComponent();
-        }
-        return null;
-    }
     /**
      * 
      * @return 
@@ -490,9 +378,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         detailsViewToggle = new javax.swing.JToggleButton();
         listViewToggle = new javax.swing.JToggleButton();
         fileViewPanel = new javax.swing.JPanel();
-        treePanel = new javax.swing.JPanel();
-        treeScrollPanel = new javax.swing.JScrollPane();
-        dropboxFileTree = new javax.swing.JTree();
         listPanel = new javax.swing.JPanel();
         listScrollPane = new javax.swing.JScrollPane();
         dropboxFileList = new javax.swing.JList<>();
@@ -572,25 +457,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         fileViewPanel.setComponentPopupMenu(filePopupMenu);
         fileViewPanel.setLayout(new java.awt.CardLayout());
-
-        treePanel.setInheritsPopupMenu(true);
-        treePanel.setLayout(new java.awt.BorderLayout());
-
-        treeScrollPanel.setInheritsPopupMenu(true);
-
-        dropboxFileTree.setEditable(true);
-        dropboxFileTree.setInheritsPopupMenu(true);
-        dropboxFileTree.setShowsRootHandles(true);
-        dropboxFileTree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-                dropboxFileTreeValueChanged(evt);
-            }
-        });
-        treeScrollPanel.setViewportView(dropboxFileTree);
-
-        treePanel.add(treeScrollPanel, java.awt.BorderLayout.CENTER);
-
-        fileViewPanel.add(treePanel, "treeView");
 
         listPanel.setInheritsPopupMenu(true);
         listPanel.setLayout(new java.awt.BorderLayout());
@@ -713,43 +579,12 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
     private void newFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newFolderActionPerformed
         try{
-            DefaultMutableTreeNode root = getSelectedNode();
-            String path = "";
-            while (root != null && !root.getAllowsChildren()){
-                TreeNode parent = root.getParent();
-                if (parent instanceof DefaultMutableTreeNode)
-                    root = (DefaultMutableTreeNode) parent;
-            }
-            if (root == null)
-                root = (DefaultMutableTreeNode)fileTreeModel.getRoot();
-            else if (root.getUserObject() instanceof FolderMetadata){
-                path = ((Metadata)root.getUserObject()).getPathLower();
-            }
             CreateFolderResult result = getDropboxClient().files().createFolderV2(currDirPath+"/New Folder", true);
             Metadata metadata = result.getMetadata();
-            DefaultMutableTreeNode node = new DefaultMutableTreeNode(metadata,true);
-            boolean added = false;
-            for (int i = 0; i < root.getChildCount() && !added; i++){
-                TreeNode temp = root.getChildAt(i);
-                if (temp instanceof DefaultMutableTreeNode){
-                    DefaultMutableTreeNode tempNode = (DefaultMutableTreeNode)temp;
-                    if (compareNodes(tempNode, node) >= 0){
-                        root.insert(node, i);
-                        fileTreeModel.nodesWereInserted(root, new int[]{i});
-                        added = true;
-                    }
-                }
-            }
-            if (!added){
-                root.add(node);
-                fileTreeModel.nodesWereInserted(root, new int[]{root.getChildCount()-1});
-            }
             fileDetailsModel.getMetadataList().add(metadata);
             fileDetailsModel.getMetadataList().sort(METADATA_COMPARATOR);
             if (listViewToggle.isSelected()){
-                TreePath nodePath = new TreePath(node.getPath());
-                dropboxFileTree.setSelectionPath(nodePath);
-                dropboxFileTree.startEditingAtPath(nodePath);
+                
             } else if (detailsViewToggle.isSelected()){
                 int index = fileDetailsModel.getMetadataList().indexOf(metadata);
                 fileDetailsTable.setRowSelectionInterval(index, index);
@@ -762,58 +597,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
     private void refreshItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshItemActionPerformed
         refreshCurrentDirectory();
-        try{
-            
-            DefaultMutableTreeNode selected = getSelectedNode();
-            loadFiles(getDropboxClient());
-            if (selected != null){
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode)fileTreeModel.getRoot();
-                Object[] objPath = selected.getUserObjectPath();
-                for (int i = 1; i < objPath.length && node != null; i++){
-                    Iterator<TreeNode> nodes = node.children().asIterator();
-                    String selID = null;
-                    String selPath = null;
-                    if (objPath[i] instanceof FileMetadata)
-                        selID = ((FileMetadata)objPath[i]).getId();
-                    else if (objPath[i] instanceof FolderMetadata)
-                        selID = ((FolderMetadata)objPath[i]).getId();
-                    if (objPath[i] instanceof Metadata)
-                        selPath = ((Metadata)objPath[i]).getPathLower();
-                    DefaultMutableTreeNode nextNode = null;
-                    while(nodes.hasNext() && nextNode == null){
-                        TreeNode temp = nodes.next();
-                        if (temp instanceof DefaultMutableTreeNode){
-                            DefaultMutableTreeNode currNode = (DefaultMutableTreeNode)temp;
-                            Object o = currNode.getUserObject();
-                            if (o instanceof Metadata){
-                                String oID = null;
-                                if (o instanceof FileMetadata)
-                                    oID = ((FileMetadata)o).getId();
-                                else if (o instanceof FolderMetadata)
-                                    oID = ((FolderMetadata)o).getId();
-                                if (Objects.equals(oID, selID) || 
-                                        Objects.equals(selPath, ((Metadata) o).getPathLower()))
-                                    nextNode = currNode;
-                            } else if (Objects.equals(o, objPath[i]))
-                                nextNode = currNode;
-                        }
-                    }
-                    node = nextNode;
-                }
-                if (node != null){
-                    dropboxFileTree.setSelectionPath(new TreePath(node.getPath()));
-                }
-            }
-        } catch (DbxException ex){
-            LinkManager.getLogger().log(Level.WARNING, "Failed to load files from Dropbox", ex);
-        }
     }//GEN-LAST:event_refreshItemActionPerformed
-
-    private void dropboxFileTreeValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_dropboxFileTreeValueChanged
-        DefaultMutableTreeNode selected = getSelectedNode();
-        if (selected != null)
-            updateSelectedFileName(selected.getUserObject());
-    }//GEN-LAST:event_dropboxFileTreeValueChanged
 
     private void fileNameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileNameFieldActionPerformed
         if (isAcceptEnabled())
@@ -920,7 +704,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         updateUpFolderButtonEnabled();
         try{
             boolean enabled = isEnabled() && getDropboxClient() != null;
-            dropboxFileTree.setEnabled(enabled);
             newFolderButton.setEnabled(enabled);
             newFolderItem.setEnabled(newFolderButton.isEnabled());
             refreshItem.setEnabled(enabled);
@@ -975,10 +758,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     /**
      * 
      */
-    private DefaultTreeModel fileTreeModel;
-    /**
-     * 
-     */
     private MetadataDetailsTableModel fileDetailsModel;
     /**
      * 
@@ -1000,7 +779,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JPanel detailsView;
     private javax.swing.JToggleButton detailsViewToggle;
     private javax.swing.JList<String> dropboxFileList;
-    private javax.swing.JTree dropboxFileTree;
     private javax.swing.JTable fileDetailsTable;
     private javax.swing.JTextField fileNameField;
     private javax.swing.JLabel fileNameLabel;
@@ -1016,67 +794,12 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JMenuItem newFolderItem;
     private javax.swing.JMenuItem refreshItem;
     private javax.swing.JMenuItem renameItem;
-    private javax.swing.JPanel treePanel;
-    private javax.swing.JScrollPane treeScrollPanel;
     private javax.swing.JButton upFolderButton;
     private javax.swing.ButtonGroup viewButtonGroup;
     // End of variables declaration//GEN-END:variables
 
-    private class Handler implements TreeModelListener, DocumentListener, 
+    private class Handler implements DocumentListener, 
             TableModelListener, ListSelectionListener{
-        @Override
-        public void treeNodesChanged(TreeModelEvent evt) {
-            boolean renamedNode = false;
-            for (Object child : evt.getChildren()){
-                if (child instanceof DefaultMutableTreeNode){
-                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)child;
-                    if (node.getUserObject() instanceof RenamedMetadata){
-                        node.setUserObject(renameFile(dropboxFileTree,
-                                (RenamedMetadata)node.getUserObject()));
-                        fileTreeModel.nodeChanged(node);
-                        renamedNode = true;
-                    }
-                }
-            }
-            if (renamedNode)
-                return;
-            TreePath parentPath = evt.getTreePath();
-            if (parentPath == null || !(parentPath.getLastPathComponent() instanceof DefaultMutableTreeNode))
-                return;
-            DefaultMutableTreeNode parent = (DefaultMutableTreeNode)parentPath.getLastPathComponent();
-            boolean swapped = false;
-            for (int i = 0; i < parent.getChildCount()-1; i++){
-                if (!(parent.getChildAt(i) instanceof DefaultMutableTreeNode))
-                    continue;
-                DefaultMutableTreeNode node1 = (DefaultMutableTreeNode)parent.getChildAt(i);
-                for (int j = i+1; j < parent.getChildCount(); j++){
-                    if (!(parent.getChildAt(j) instanceof DefaultMutableTreeNode))
-                        continue;
-                    DefaultMutableTreeNode node2 = (DefaultMutableTreeNode)parent.getChildAt(j);
-                    if (compareNodes(node1, node2) >= 0){
-                        parent.remove(node1);
-                        parent.remove(node2);
-                        parent.insert(node2, i);
-                        parent.insert(node1, j);
-                        swapped = true;
-                    }
-                }
-            }
-            if (swapped)
-                fileTreeModel.reload(parent);
-        }
-        @Override
-        public void treeNodesInserted(TreeModelEvent evt) {
-            
-        }
-        @Override
-        public void treeNodesRemoved(TreeModelEvent evt) {
-            
-        }
-        @Override
-        public void treeStructureChanged(TreeModelEvent evt) {
-            
-        }
         @Override
         public void insertUpdate(DocumentEvent evt) {
             
