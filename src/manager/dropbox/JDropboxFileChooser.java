@@ -370,7 +370,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             if (loadDirectory(getDropboxClient(),path)){
                 currDirPath = (path!=null)?path:"";
                 String[] paths = currDirPath.split("/");
-                System.out.println(currDirPath + " " + paths.length);
                 String temp = "";
                 lookInComboModel.clear();
                 lookInComboModel.add(new DbxRootMetadata());
