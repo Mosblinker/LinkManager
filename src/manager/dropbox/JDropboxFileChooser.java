@@ -56,6 +56,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     public JDropboxFileChooser() {
         initComponents();
+        
+            // Set up navigation buttons
         UIDefaults uiDefaults = UIManager.getLookAndFeelDefaults();
         setButtonIcon(newFolderButton,uiDefaults,"FileChooser.newFolderIcon",
                 "New Folder");
@@ -67,14 +69,23 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 "Home");
         setButtonIcon(upFolderButton,uiDefaults,"FileChooser.upFolderIcon",
                 "Up One Level");
+        
+            // Handler for listening to components and models
         Handler handler = new Handler();
+        
         fileNameField.getDocument().addDocumentListener(handler);
+        
+            // Create and set up the model for the list view
         fileListModel = new ArrayListModel<>();
         fileListModel.addListDataListener(handler);
         fileListList.setModel(fileListModel);
         filePaths = new MetadataPathLowerList(fileListModel);
+        
+            // Set up the list view
         fileListList.setCellRenderer(new MetadataNameListCellRenderer());
         fileListList.addListSelectionListener(handler);
+        
+            // Create and set up the model for the details view
         fileDetailsModel = new MetadataDetailsTableModel(fileDetailsTable,fileListModel){
             @Override
             public void setValueAt(Object aValue, int row, int column){
@@ -83,6 +94,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             }
         };
         fileDetailsModel.addTableModelListener(handler);
+        
+            // Set up the details table
         fileDetailsTable.setModel(fileDetailsModel);
         fileDetailsTable.setDefaultRenderer(Metadata.class, 
                 new MetadataNameTableCellRenderer());
