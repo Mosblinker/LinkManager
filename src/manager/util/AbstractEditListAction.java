@@ -40,11 +40,6 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
     public AbstractEditListAction() {
         
     }
-    
-    protected void applyValueToModel(String value, ListModel model, int row){
-        DefaultListModel dlm = (DefaultListModel)model;
-        dlm.set(row, value);
-    }
     /**
      * This converts the given value into a String so that it can be edited 
      * using a JTextField.
@@ -126,7 +121,6 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
             String value = editTextField.getText();
             ListModel model = list.getModel();
             int row = list.getSelectedIndex();
-            applyValueToModel(value, model, row);
             editPopup.setVisible(false);
         });
 
