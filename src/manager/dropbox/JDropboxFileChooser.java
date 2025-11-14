@@ -9,6 +9,7 @@ import com.dropbox.core.v2.*;
 import com.dropbox.core.v2.files.*;
 import components.AbstractConfirmDialogPanel;
 import components.ArrayComboBoxModel;
+import components.ArrayListModel;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -74,6 +75,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         folderIcon = uiDefaults.getIcon("FileChooser.directoryIcon");
         Handler handler = new Handler();
         fileNameField.getDocument().addDocumentListener(handler);
+        fileListModel = new ArrayListModel<>();
+        dropboxFileList.setModel(fileListModel);
         fileDetailsModel = new MetadataDetailsTableModel(fileDetailsTable);
         fileDetailsPaths = new MetadataPathLowerList(fileDetailsModel.getMetadataList());
         fileDetailsModel.addTableModelListener(handler);
@@ -245,6 +248,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             metadataLoadList.sort(METADATA_COMPARATOR);
             fileDetailsModel.getMetadataList().clear();
             fileDetailsModel.getMetadataList().addAll(metadataLoadList);
+            fileListModel.clear();
+            fileListModel.addAll(metadataLoadList);
             LinkManager.getLogger().exiting("JDropboxFileChooser", "loadDirectory", true);
             return true;
         } catch (ListFolderErrorException ex){
@@ -762,6 +767,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     /**
      * 
      */
+    private ArrayListModel<Metadata> fileListModel;
+    /**
+     * 
+     */
     private List<String> fileDetailsPaths;
     /**
      * 
@@ -778,7 +787,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JScrollPane detailsScrollPane;
     private javax.swing.JPanel detailsView;
     private javax.swing.JToggleButton detailsViewToggle;
-    private javax.swing.JList<String> dropboxFileList;
+    private javax.swing.JList<Metadata> dropboxFileList;
     private javax.swing.JTable fileDetailsTable;
     private javax.swing.JTextField fileNameField;
     private javax.swing.JLabel fileNameLabel;
