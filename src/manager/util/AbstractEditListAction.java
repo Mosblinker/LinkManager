@@ -31,12 +31,12 @@ import javax.swing.border.*;
  * @author Mosblinker
  */
 public abstract class AbstractEditListAction<E> extends AbstractAction {
-    private JList<E> list;
+    protected JList<E> list;
 
     private JPopupMenu editPopup;
     private JTextField editTextField;
-    private E lastValue = null;
-    private java.util.List<E> lastList = null;
+    protected E lastValue = null;
+    protected java.util.List<E> lastList = null;
     
     public AbstractEditListAction() {
         
