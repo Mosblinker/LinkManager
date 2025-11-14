@@ -495,11 +495,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileNameLabel.setText("File Name:");
 
         fileNameField.setActionCommand(ACCEPT_SELECTED);
-        fileNameField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fileNameFieldActionPerformed(evt);
-            }
-        });
 
         newFolderButton.setToolTipText("Create New Folder");
         newFolderButton.addActionListener(new java.awt.event.ActionListener() {
@@ -672,11 +667,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private void refreshItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshItemActionPerformed
         refreshCurrentDirectory();
     }//GEN-LAST:event_refreshItemActionPerformed
-
-    private void fileNameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileNameFieldActionPerformed
-        if (isAcceptEnabled())
-            accept(evt);
-    }//GEN-LAST:event_fileNameFieldActionPerformed
 
     private void fileViewToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileViewToggleActionPerformed
         if (firstTimeShowingDetails && detailsViewToggle.isSelected()){
