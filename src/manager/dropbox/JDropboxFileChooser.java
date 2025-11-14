@@ -853,14 +853,19 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         @Override
         public void valueChanged(ListSelectionEvent evt) {
             System.out.println(evt);
+            Metadata selected = null;
             if (detailsViewToggle.isSelected()){
-                updateSelectedFileName(getSelectedDetails());
-                int row = fileDetailsTable.getSelectedRow();
-                if (row >= 0)
-                    renameItem.setVisible(true);
-                else
-                    renameItem.setVisible(false);
+                selected = getSelectedDetails();
+                setSelectedListValue(selected);
+            } else if (listViewToggle.isSelected()){
+                selected = getSelectedListValue();
+                setSelectedDetails(selected);
             }
+            updateSelectedFileName(selected);
+            if (selected != null)
+                renameItem.setVisible(true);
+            else
+                renameItem.setVisible(false);
         }
     }
     /**
