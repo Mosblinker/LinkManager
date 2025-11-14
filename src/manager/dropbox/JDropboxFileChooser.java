@@ -52,6 +52,11 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     private static final int FOLDER_INDENTATION = 8;
     /**
+     * 
+     */
+    private static final KeyStroke ENTER_KEYSTROKE = 
+            KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
+    /**
      * Creates new form JDropboxFileChooser
      */
     public JDropboxFileChooser() {
@@ -72,18 +77,22 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         
             // Handler for listening to components and models
         Handler handler = new Handler();
+            // Action and mouse listener for the selection
+        SelectionAction selAction = new SelectionAction();
         
         fileNameField.getDocument().addDocumentListener(handler);
         
             // Create and set up the model for the list view
         fileListModel = new ArrayListModel<>();
         fileListModel.addListDataListener(handler);
-        fileListList.setModel(fileListModel);
         filePaths = new MetadataPathLowerList(fileListModel);
         
             // Set up the list view
+        fileListList.setModel(fileListModel);
         fileListList.setCellRenderer(new MetadataNameListCellRenderer());
         fileListList.addListSelectionListener(handler);
+        fileListList.addMouseListener(selAction);
+        addAction(fileListList,selAction,ENTER_KEYSTROKE);
         
             // Create and set up the model for the details view
         fileDetailsModel = new MetadataDetailsTableModel(fileDetailsTable,fileListModel){
@@ -112,12 +121,25 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         detailsRowSorter.setSortsOnUpdates(true);
         fileDetailsTable.setRowSorter(detailsRowSorter);
         fileDetailsTable.getSelectionModel().addListSelectionListener(handler);
+        fileDetailsTable.addMouseListener(selAction);
+        addAction(fileDetailsTable,selAction,ENTER_KEYSTROKE);
         renameItem.setVisible(false);
         lookInComboModel = new ArrayComboBoxModel<>();
         lookInComboModel.add(new DbxRootMetadata());
         lookInComboBox.setModel(lookInComboModel);
         lookInComboBox.setRenderer(new LookInListCellRenderer());
         fileListEditAction = new MetadataEditListAction();
+    }
+    /**
+     * 
+     * @param comp
+     * @param action
+     * @param keyStroke 
+     */
+    private void addAction(JComponent comp, Action action, KeyStroke keyStroke){
+        comp.getInputMap(JComponent.WHEN_FOCUSED).put(keyStroke, 
+                action.getValue(Action.NAME));
+        comp.getActionMap().put(action.getValue(Action.NAME), action);
     }
     /**
      * 
