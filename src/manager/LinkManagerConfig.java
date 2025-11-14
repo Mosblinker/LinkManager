@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.prefs.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
+import javax.swing.JFileChooser;
 import static manager.DatabaseSyncMode.DROPBOX;
 import manager.config.*;
 import manager.database.CacheSetIterator;
@@ -318,6 +319,10 @@ public class LinkManagerConfig implements LinksListSettings{
      */
     private final Map<Component, String> compNameMap;
     /**
+     * This is a map used to map file choosers to their preference nodes.
+     */
+    private final Map<JFileChooser, ConfigPreferences> fcNodeMap;
+    /**
      * This is a map view of the current tab listIDs. This is initially null 
      * and is initialized when first used.
      */
@@ -381,6 +386,7 @@ public class LinkManagerConfig implements LinksListSettings{
     private LinkManagerConfig(Properties sqlProp, ConfigPreferences node){
         config = new ConfigProperties();
         compNameMap = new HashMap<>();
+        fcNodeMap = new HashMap<>();
             // If the given SQLite config properties is not null
         if(sqlProp != null)
             sqlConfig = new SQLiteConfig(sqlProp);
@@ -399,7 +405,7 @@ public class LinkManagerConfig implements LinksListSettings{
             public String getParentPath() {
                 return LIST_ID_PREFERENCE_NODE_NAME;
             }
-        };;
+        };
     }
     /**
      * 
