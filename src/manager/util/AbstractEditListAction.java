@@ -34,6 +34,7 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
 
     private JPopupMenu editPopup;
     private JTextField editTextField;
+    private E lastValue = null;
     private java.util.List<E> lastList = null;
     
     public AbstractEditListAction() {
@@ -104,6 +105,7 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
             //  Prepare the text field for editing
 
         editTextField.setText( list.getSelectedValue().toString() );
+        lastValue = lastList.get(row);
         editTextField.selectAll();
         editTextField.requestFocusInWindow();
     }
