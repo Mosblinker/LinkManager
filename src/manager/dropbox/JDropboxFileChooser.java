@@ -859,9 +859,13 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             System.out.println(evt);
             Metadata selected = null;
             if (detailsViewToggle.isSelected()){
+                if (evt.getSource() != fileDetailsTable.getSelectionModel())
+                    return;
                 selected = getSelectedDetails();
                 setSelectedListValue(selected);
             } else if (listViewToggle.isSelected()){
+                if (evt.getSource() != dropboxFileList)
+                    return;
                 selected = getSelectedListValue();
                 setSelectedDetails(selected);
             }
