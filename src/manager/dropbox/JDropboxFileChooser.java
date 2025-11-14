@@ -1013,4 +1013,63 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             sortMetadata();
         }
     }
+    /**
+     * 
+     */
+    private class SelectionAction extends AbstractAction implements MouseListener{
+        /**
+         * 
+         */
+        SelectionAction(){
+            super("SelectRow");
+        }
+        /**
+         * 
+         * @param index 
+         */
+        public void rowActionPerformed(int index){
+            if (index >= 0){
+                Metadata metadata = fileDetailsModel.getMetadataList().get(index);
+                if (metadata instanceof DbxRootMetadata)
+                    changeCurrentDirectory(null);
+                if (metadata instanceof FolderMetadata)
+                    changeCurrentDirectory(metadata.getPathLower());
+                else if (isAcceptEnabled())
+                    JDropboxFileChooser.this.accept();
+            }
+        }
+        @Override
+        public void actionPerformed(ActionEvent evt) {
+            if (evt.getSource() == fileDetailsTable || 
+                    evt.getSource() == detailsScrollPane)
+                rowActionPerformed(getSelectedDetailsIndex());
+            else if (evt.getSource() == fileListList || 
+                    evt.getSource() == listScrollPane)
+                rowActionPerformed(getSelectedListIndex());
+            else {
+                if (listViewToggle.isSelected())
+                    rowActionPerformed(getSelectedListIndex());
+                else if (detailsViewToggle.isSelected())
+                    rowActionPerformed(getSelectedDetailsIndex());
+            }
+        }
+        @Override
+        public void mouseClicked(MouseEvent evt) {
+            if (evt.getButton() == MouseEvent.BUTTON1 && evt.getClickCount() == 2){
+                Point point = evt.getPoint();
+                if (evt.getSource() == fileDetailsTable)
+                    rowActionPerformed(fileDetailsTable.rowAtPoint(point));
+                else if (evt.getSource() == fileListList)
+                    rowActionPerformed(fileListList.locationToIndex(point));
+            }
+        }
+        @Override
+        public void mousePressed(MouseEvent e) { }
+        @Override
+        public void mouseReleased(MouseEvent e) { }
+        @Override
+        public void mouseEntered(MouseEvent e) { }
+        @Override
+        public void mouseExited(MouseEvent e) { }
+    }
 }
