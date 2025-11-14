@@ -1199,12 +1199,11 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 if (listViewToggle.isSelected()){
                     int index = fileListModel.indexOf(metadata);
                     fileListList.setSelectedIndex(index);
-                    // TODO: Start editing the selected index
                 } else if (detailsViewToggle.isSelected()){
-                    int index = fileDetailsModel.getMetadataList().indexOf(metadata);
+                    int index = fileListModel.indexOf(metadata);
                     fileDetailsTable.setRowSelectionInterval(index, index);
-                    fileDetailsTable.editCellAt(index, 0);
                 }
+                editSelectedMetadata();
             } catch (DbxException ex){
                 LinkManager.getLogger().log(Level.WARNING, "Failed to create folder in Dropbox", ex);
             }
