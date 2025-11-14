@@ -84,7 +84,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         setButtonIcon(homeFolderButton,uiDefaults,"FileChooser.homeFolderIcon",
                 "Home");
         setButtonIcon(upFolderButton,uiDefaults,"FileChooser.upFolderIcon",
-                "Up One Level");
+                "Go Up");
         
             // Handler for listening to components and models
         Handler handler = new Handler();
