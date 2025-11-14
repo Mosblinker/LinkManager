@@ -725,7 +725,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             else if (root.getUserObject() instanceof FolderMetadata){
                 path = ((Metadata)root.getUserObject()).getPathLower();
             }
-            CreateFolderResult result = getDropboxClient().files().createFolderV2(path+"/New Folder", true);
+            CreateFolderResult result = getDropboxClient().files().createFolderV2(currDirPath+"/New Folder", true);
             Metadata metadata = result.getMetadata();
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(metadata,true);
             boolean added = false;
