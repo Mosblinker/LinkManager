@@ -43,6 +43,22 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
         DefaultListModel dlm = (DefaultListModel)model;
         dlm.set(row, value);
     }
+    /**
+     * This converts the given value into a String so that it can be edited 
+     * using a JTextField.
+     * @param value The value to get the String of.
+     * @return The String equivalent of the given value.
+     */
+    protected abstract String valueToString(E value);
+    /**
+     * This converts the given String into a value that can be stored in the 
+     * JList.
+     * @param value The new value, as a String.
+     * @param oldValue The old value that is being replaced.
+     * @return The new value for the JList.
+     */
+    protected abstract E valueFromString(String value, E oldValue);
+    }
     
     /*
      *	Display the popup editor when requested
