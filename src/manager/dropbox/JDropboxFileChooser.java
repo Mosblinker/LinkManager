@@ -73,10 +73,11 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileListModel = new ArrayListModel<>();
         fileListModel.addListDataListener(handler);
         dropboxFileList.setModel(fileListModel);
+        filePaths = new MetadataPathLowerList(fileListModel);
         dropboxFileList.setCellRenderer(new MetadataNameListCellRenderer());
         dropboxFileList.addListSelectionListener(handler);
         fileDetailsModel = new MetadataDetailsTableModel(fileDetailsTable,fileListModel);
-        fileDetailsPaths = new MetadataPathLowerList(fileDetailsModel.getMetadataList());
+        
         fileDetailsModel.addTableModelListener(handler);
         fileDetailsTable.setModel(fileDetailsModel);
         fileDetailsTable.setDefaultRenderer(Metadata.class, 
@@ -308,7 +309,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             String prevPath = path.substring(0, path.lastIndexOf("/"));
             success = changeCurrentDirectory(prevPath);
             if (success){
-                int index = fileDetailsPaths.indexOf(path);
+                int index = filePaths.indexOf(path);
                 if (index < 0)
                     fileDetailsTable.clearSelection();
                 else
@@ -783,7 +784,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     /**
      * 
      */
-    private List<String> fileDetailsPaths;
+    private List<String> filePaths;
     /**
      * 
      */
