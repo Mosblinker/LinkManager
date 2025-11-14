@@ -24,10 +24,14 @@ import javax.swing.*;
  */
 public class ListAction implements MouseListener {
     private static final KeyStroke ENTER = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
-
+    
     private JList list;
     private KeyStroke keyStroke;
-
+    /**
+     * The number of times the list needs to be clicked on before the action is 
+     * invoked.
+     */
+    private int clickCount = 2;
     /*
      *	Add an Action to the JList bound by the default KeyStroke
      */
@@ -49,21 +53,40 @@ public class ListAction implements MouseListener {
 
             //  Add the Action to the ActionMap
 
-        setAction( action );
+        ListAction.this.setAction( action );
 
             //  Handle mouse double click
 
-        list.addMouseListener( this );
+        list.addMouseListener( ListAction.this );
     }
 
     /*
      *  Add the Action to the ActionMap
      */
     public void setAction(Action action) {
-            list.getActionMap().put(keyStroke, action);
+        list.getActionMap().put(keyStroke, action);
     }
     /**
-     * 
+     * This returns the number of times the list needs to be clicked on before 
+     * the action is invoked.
+     * @return The number of times the list needs to be clicked on before 
+     * preforming the action.
+     */
+    public int getClickCount(){
+        return clickCount;
+    }
+    /**
+     * This sets the number of times the list needs to be clicked on before the 
+     * action is invoked. The default for this value is {@code 2}. If this is 
+     * set to 0 or below, then the action cannot be invoked by clicking on it.
+     * @param count The number of times the list will need to be clicked on 
+     * before the action is preformed.
+     */
+    public void setClickCount(int count){
+        this.clickCount = count;
+    }
+    /**
+     * This performs the action as if the list action was invoked.
      */
     public void doClick(){
         Action action = list.getActionMap().get(keyStroke);
@@ -77,7 +100,7 @@ public class ListAction implements MouseListener {
     //  Implement MouseListener interface
     @Override
     public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() == 2) {
+        if (e.getClickCount() == getClickCount()) {
             doClick();
         }
     }
