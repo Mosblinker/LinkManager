@@ -42,6 +42,11 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     public static final String SELECTED_PATH_PROPERTY_CHANGED = 
             "SelectedPathPropertyChanged";
+    /**
+     * 
+     */
+    public static final String DIRECTORY_PROPERTY_CHANGED = 
+            JFileChooser.DIRECTORY_CHANGED_PROPERTY;
     
     protected static final SimpleDateFormat MODIFIED_DATE_FORMAT = 
             new SimpleDateFormat("M/d/yyyy h:mm a");
@@ -280,6 +285,21 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }
     /**
      * 
+     * @return 
+     */
+    public String getCurrentDirectory(){
+        return currDirPath;
+    }
+    /**
+     * 
+     * @param path 
+     */
+    public void setCurrentDirectory(String path){
+        if (!Objects.equals(path, currDirPath))
+            changeCurrentDirectory(path);
+    }
+    /**
+     * 
      * @param client
      * @param path
      * @return 
@@ -314,8 +334,11 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     protected boolean changeCurrentDirectory(String path){
         try{
+            String oldDirPath = currDirPath;
             if (loadDirectory(getDropboxClient(),path)){
                 currDirPath = (path!=null)?path:"";
+                firePropertyChange(DIRECTORY_PROPERTY_CHANGED,oldDirPath,
+                        currDirPath);
                 String[] paths = currDirPath.split("/");
                 String temp = "";
                 lookInComboModel.clear();
