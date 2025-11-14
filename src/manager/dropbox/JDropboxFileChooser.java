@@ -97,6 +97,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileListList.addMouseListener(selAction);
         addAction(fileListList,selAction,ENTER_KEYSTROKE);
         addAction(listScrollPane,selAction,ENTER_KEYSTROKE);
+        fileListEditAction = new MetadataEditListAction();
         
             // Create and set up the model for the details view
         fileDetailsModel = new MetadataDetailsTableModel(fileDetailsTable,fileListModel){
@@ -134,7 +135,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         lookInComboModel.add(new DbxRootMetadata());
         lookInComboBox.setModel(lookInComboModel);
         lookInComboBox.setRenderer(new LookInListCellRenderer());
-        fileListEditAction = new MetadataEditListAction();
     }
     /**
      * 
