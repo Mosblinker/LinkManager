@@ -761,10 +761,12 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     protected void sortMetadata(){
-        boolean wasSorting = isSorting;
-        isSorting = true;
+        Metadata selected = getSelectedListValue();
         fileListModel.sort(METADATA_COMPARATOR);
-        isSorting = wasSorting;
+        if (selected != null){
+            setSelectedListValue(selected);
+            setSelectedDetails(selected);
+        }
     }
     /**
      * 
@@ -806,10 +808,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private ArrayComboBoxModel<Metadata> lookInComboModel;
-    /**
-     * 
-     */
-    private boolean isSorting = false;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JScrollPane detailsScrollPane;
