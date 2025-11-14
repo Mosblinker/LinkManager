@@ -849,9 +849,13 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         updateUpFolderButtonEnabled();
         try{
             boolean enabled = isEnabled() && getDropboxClient() != null;
-            newFolderButton.setEnabled(enabled);
-            newFolderItem.setEnabled(newFolderButton.isEnabled());
+            newFolderAction.setEnabled(enabled);
             refreshItem.setEnabled(enabled);
+            homeFolderButton.setEnabled(enabled);
+            renameItem.setEnabled(enabled && getSelectedIndex() >= 0);
+            lookInComboBox.setEnabled(enabled);
+            fileListList.setEnabled(enabled);
+            fileDetailsTable.setEnabled(enabled);
         } catch (NullPointerException ex){
             LinkManager.getLogger().log(Level.WARNING, 
                     "Null encountered while setting enable value", ex);
@@ -1107,8 +1111,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
          * @param evt
          */
         public void actionPerformed(int index, ActionEvent evt){
-            if (index >= 0){
-                Metadata metadata = fileDetailsModel.getMetadataList().get(index);
+            if (index >= 0 && isEnabled() && getDropboxClient() != null){
+                Metadata metadata = fileListModel.get(index);
                 if (metadata instanceof DbxRootMetadata)
                     changeCurrentDirectory(null);
                 else if (metadata instanceof FolderMetadata)
