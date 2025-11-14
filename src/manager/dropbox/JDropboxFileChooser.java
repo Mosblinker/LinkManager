@@ -562,8 +562,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         viewButtonGroup.add(listViewToggle);
         listViewToggle.setSelected(true);
-        listViewToggle.setToolTipText("Tree");
-        listViewToggle.setActionCommand("treeView");
+        listViewToggle.setToolTipText("List");
+        listViewToggle.setActionCommand("listView");
         listViewToggle.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fileViewToggleActionPerformed(evt);
