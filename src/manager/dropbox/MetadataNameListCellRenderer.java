@@ -28,7 +28,8 @@ public class MetadataNameListCellRenderer extends DefaultListCellRenderer{
             Object value,int index,boolean isSelected,boolean cellHasFocus){
         if (value instanceof Metadata){
             value = setValue((Metadata)value);
-        }
+        } else if (value == null)
+            value = setValue(null);
         return super.getListCellRendererComponent(list, value, index, 
                 isSelected, cellHasFocus);
     }
@@ -38,6 +39,8 @@ public class MetadataNameListCellRenderer extends DefaultListCellRenderer{
      * @return 
      */
     protected Object setValue(Metadata value){
+        if (value == null)
+            return value;
         return value.getName();
     }
 }
