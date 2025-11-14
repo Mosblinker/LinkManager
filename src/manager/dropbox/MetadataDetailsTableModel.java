@@ -4,7 +4,6 @@
  */
 package manager.dropbox;
 
-import com.dropbox.core.DbxException;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import java.util.AbstractList;
@@ -16,10 +15,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
-import java.util.logging.Level;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
-import manager.LinkManager;
 
 /**
  *
@@ -201,20 +198,7 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
      * @return 
      */
     protected Metadata rename(RenamedMetadata renamedMetadata){
-        try{
-            Metadata temp = renamedMetadata.rename(getDropboxClient());
-            if (temp != null)
-                return temp;
-        } catch (RelocationErrorException ex){
-            // TODO: Add different error prompts for the different types of errors
-            
-            // Issue thrown when there's a conflict with the name: {".tag":"to","to":{".tag":"conflict","conflict":"folder"}}
-            LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);
-        } catch (DbxException ex){
-            LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);
-        }
-        renamedMetadata.giveRenameErrorFeedback(getTable());
-        return renamedMetadata.getMetadata();
+        return renamedMetadata.renameWithError(getDropboxClient(), getTable());
     }
     /**
      * 

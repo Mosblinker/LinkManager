@@ -6,11 +6,13 @@ package manager.dropbox;
 
 import com.dropbox.core.DbxException;
 import com.dropbox.core.v2.DbxClientV2;
-import com.dropbox.core.v2.files.Metadata;
+import com.dropbox.core.v2.files.*;
 import java.awt.Component;
 import java.util.Objects;
+import java.util.logging.Level;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
+import manager.LinkManager;
 
 /**
  * This is an object representing a renamed metadata
@@ -50,6 +52,28 @@ public class RenamedMetadata {
         if (getNewName().equals(getMetadata().getName()))
             return getMetadata();
         return DropboxUtilities.rename(client, getMetadata(), getNewName());
+    }
+    /**
+     * 
+     * @param client
+     * @param parent
+     * @return 
+     */
+    public Metadata renameWithError(DbxClientV2 client, Component parent){
+        try{
+            Metadata temp = rename(client);
+            if (temp != null)
+                return temp;
+        } catch (RelocationErrorException ex){
+            // TODO: Add different error prompts for the different types of errors
+            
+            // Issue thrown when there's a conflict with the name: {".tag":"to","to":{".tag":"conflict","conflict":"folder"}}
+            LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);
+        } catch (DbxException ex){
+            LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);
+        }
+        giveRenameErrorFeedback(parent);
+        return getMetadata();
     }
     /**
      * 

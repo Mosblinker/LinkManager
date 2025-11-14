@@ -715,16 +715,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * @return 
      */
     protected Metadata renameFile(Component parent, RenamedMetadata renamedMetadata){
-        try{
-            Metadata temp = renamedMetadata.rename(getDropboxClient());
-            if (temp != null)
-                return temp;
-        } catch (RelocationErrorException ex){
-        } catch (DbxException ex){
-            LinkManager.getLogger().log(Level.WARNING, "Failed to rename file in Dropbox", ex);
-        }
-        renamedMetadata.giveRenameErrorFeedback(parent);
-        return renamedMetadata.getMetadata();
+        return renamedMetadata.renameWithError(getDropboxClient(), parent);
     }
     @Override
     public void setEnabled(boolean enabled){
