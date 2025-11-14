@@ -103,9 +103,9 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
         editPopup.show(list, r.x, r.y);
 
             //  Prepare the text field for editing
-
-        editTextField.setText( list.getSelectedValue().toString() );
+        
         lastValue = lastList.get(row);
+        editTextField.setText(valueToString(lastValue));
         editTextField.selectAll();
         editTextField.requestFocusInWindow();
     }
