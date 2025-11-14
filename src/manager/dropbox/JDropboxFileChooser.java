@@ -20,7 +20,11 @@ import java.text.SimpleDateFormat;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import javax.swing.*;
@@ -155,6 +159,12 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         lookInComboModel.add(new DbxRootMetadata());
         lookInComboBox.setModel(lookInComboModel);
         lookInComboBox.setRenderer(new LookInListCellRenderer());
+        
+        viewButtonPairs.put(listViewToggle, listViewMenuToggle);
+        viewButtonPairs.put(detailsViewToggle, detailsViewMenuToggle);
+        for (AbstractButton button : new HashSet<>(viewButtonPairs.keySet())){
+            viewButtonPairs.put(viewButtonPairs.get(button), button);
+        }
     }
     /**
      * 
@@ -530,8 +540,12 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private void initComponents() {
 
         viewButtonGroup = new javax.swing.ButtonGroup();
+        viewMenuGroup = new javax.swing.ButtonGroup();
         filePopupMenu = new javax.swing.JPopupMenu();
         upFolderItem = new javax.swing.JMenuItem();
+        viewMenu = new javax.swing.JMenu();
+        listViewMenuToggle = new javax.swing.JRadioButtonMenuItem();
+        detailsViewMenuToggle = new javax.swing.JRadioButtonMenuItem();
         refreshItem = new javax.swing.JMenuItem();
         newFolderItem = new javax.swing.JMenuItem();
         renameItem = new javax.swing.JMenuItem();
@@ -558,6 +572,31 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         upFolderItem.setAction(upFolderAction);
         upFolderItem.setText("Go Up");
         filePopupMenu.add(upFolderItem);
+
+        viewMenu.setText("View");
+
+        viewMenuGroup.add(listViewMenuToggle);
+        listViewMenuToggle.setSelected(true);
+        listViewMenuToggle.setText("List");
+        listViewMenuToggle.setActionCommand(LIST_VIEW_ACTION_COMMAND);
+        listViewMenuToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fileViewMenuToggleActionPerformed(evt);
+            }
+        });
+        viewMenu.add(listViewMenuToggle);
+
+        viewMenuGroup.add(detailsViewMenuToggle);
+        detailsViewMenuToggle.setText("Details");
+        detailsViewMenuToggle.setActionCommand(DETAILS_VIEW_ACTION_COMMAND);
+        detailsViewMenuToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fileViewMenuToggleActionPerformed(evt);
+            }
+        });
+        viewMenu.add(detailsViewMenuToggle);
+
+        filePopupMenu.add(viewMenu);
 
         refreshItem.setText("Refresh");
         refreshItem.addActionListener(new java.awt.event.ActionListener() {
@@ -728,8 +767,17 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private void refreshItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshItemActionPerformed
         refreshCurrentDirectory();
     }//GEN-LAST:event_refreshItemActionPerformed
-
-    private void fileViewToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileViewToggleActionPerformed
+    /**
+     * 
+     * @param cardName
+     * @param oppositeGroup 
+     */
+    private void changeFileView(String cardName, ButtonGroup group){
+        Iterator<AbstractButton> itr = group.getElements().asIterator();
+        while(itr.hasNext()){
+            AbstractButton button = itr.next();
+            viewButtonPairs.get(button).setSelected(button.isSelected());
+        }
         if (firstTimeShowingDetails && detailsViewToggle.isSelected()){
             firstTimeShowingDetails = false;
             TableColumnModel columns = fileDetailsTable.getColumnModel();
@@ -742,7 +790,11 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             }
             columns.getColumn(0).setPreferredWidth(firstWidth);
         }
-        LinkManagerUtilities.setCard(fileViewPanel, evt.getActionCommand());
+        LinkManagerUtilities.setCard(fileViewPanel, cardName);
+    }
+    
+    private void fileViewToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileViewToggleActionPerformed
+        changeFileView(evt.getActionCommand(),viewButtonGroup);
     }//GEN-LAST:event_fileViewToggleActionPerformed
 
     private void fileListListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_fileListListValueChanged
@@ -775,6 +827,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                     ActionEvent.ACTION_PERFORMED,""));
         }
     }//GEN-LAST:event_renameItemActionPerformed
+
+    private void fileViewMenuToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileViewMenuToggleActionPerformed
+        changeFileView(evt.getActionCommand(),viewMenuGroup);
+    }//GEN-LAST:event_fileViewMenuToggleActionPerformed
     /**
      * 
      * @param parent
@@ -879,10 +935,15 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private Action newFolderAction;
+    /**
+     * 
+     */
+    private Map<AbstractButton,AbstractButton> viewButtonPairs = new HashMap<>();
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JScrollPane detailsScrollPane;
     private javax.swing.JPanel detailsView;
+    private javax.swing.JRadioButtonMenuItem detailsViewMenuToggle;
     private javax.swing.JToggleButton detailsViewToggle;
     private javax.swing.JTable fileDetailsTable;
     private javax.swing.JList<Metadata> fileListList;
@@ -893,6 +954,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JButton homeFolderButton;
     private javax.swing.JPanel listPanel;
     private javax.swing.JScrollPane listScrollPane;
+    private javax.swing.JRadioButtonMenuItem listViewMenuToggle;
     private javax.swing.JToggleButton listViewToggle;
     private javax.swing.JComboBox<Metadata> lookInComboBox;
     private javax.swing.JLabel lookInLabel;
@@ -903,6 +965,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JButton upFolderButton;
     private javax.swing.JMenuItem upFolderItem;
     private javax.swing.ButtonGroup viewButtonGroup;
+    private javax.swing.JMenu viewMenu;
+    private javax.swing.ButtonGroup viewMenuGroup;
     // End of variables declaration//GEN-END:variables
 
     private class Handler implements DocumentListener, TableModelListener, 
