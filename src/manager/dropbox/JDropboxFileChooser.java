@@ -77,6 +77,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileNameField.getDocument().addDocumentListener(handler);
         fileListModel = new ArrayListModel<>();
         dropboxFileList.setModel(fileListModel);
+        dropboxFileList.setCellRenderer(new MetadataNameListCellRenderer());
         fileDetailsModel = new MetadataDetailsTableModel(fileDetailsTable);
         fileDetailsPaths = new MetadataPathLowerList(fileDetailsModel.getMetadataList());
         fileDetailsModel.addTableModelListener(handler);
@@ -100,6 +101,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         lookInComboModel = new ArrayComboBoxModel<>();
         lookInComboModel.add(new DbxRootMetadata());
         lookInComboBox.setModel(lookInComboModel);
+        lookInComboBox.setRenderer(new LookInListCellRenderer());
     }
     /**
      * 
@@ -519,7 +521,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         lookInLabel.setLabelFor(lookInComboBox);
         lookInLabel.setText("Look In:");
 
-        lookInComboBox.setRenderer(new LookInListCellRenderer());
         lookInComboBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 lookInComboBoxActionPerformed(evt);
