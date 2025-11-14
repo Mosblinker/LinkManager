@@ -113,15 +113,15 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
      */
     protected void setValue(ActionEvent evt){
         String value = editTextField.getText();
-            if (lastList == null){
-                ListModel<E> model = list.getModel();
-                lastList = getListFromModel(model);
-            }
-            if (lastList != null){
-                int row = list.getSelectedIndex();
-                lastList.set(row, valueFromString(value,lastValue));
-            }
-            editPopup.setVisible(false);
+        if (lastList == null){
+            ListModel<E> model = list.getModel();
+            lastList = getListFromModel(model);
+        }
+        if (lastList != null){
+            int row = list.getSelectedIndex();
+            lastList.set(row, valueFromString(value,lastValue));
+        }
+        editPopup.setVisible(false);
     }
     /*
      *  Create the popup editor
