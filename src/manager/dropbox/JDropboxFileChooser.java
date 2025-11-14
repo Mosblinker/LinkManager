@@ -841,7 +841,15 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }//GEN-LAST:event_upFolderButtonActionPerformed
 
     private void lookInComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lookInComboBoxActionPerformed
-        // TODO add your handling code here:
+        int selIndex = lookInComboBox.getSelectedIndex();
+        if (selIndex >= 0){
+            Metadata metadata = lookInComboModel.get(selIndex);
+            String path = "";
+            if (metadata != null && !(metadata instanceof DbxRootMetadata))
+                path = metadata.getPathLower();
+            if (!currDirPath.equals(path))
+                changeCurrentDirectory(path);
+        }
     }//GEN-LAST:event_lookInComboBoxActionPerformed
 
     private void fileDetailsTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileDetailsTableMouseClicked
