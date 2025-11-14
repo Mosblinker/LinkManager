@@ -794,17 +794,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         searchMenu.add(searchPanel.getFindNextAction());
         searchMenu.add(searchPanel.getFindPreviousAction());
         
+            // Set up file chooser map
+        config.addFileChooser(openFC, OPEN_FILE_CHOOSER_NAME);
+        config.addFileChooser(saveFC, SAVE_FILE_CHOOSER_NAME);
+        config.addFileChooser(configFC, CONFIG_FILE_CHOOSER_NAME);
+        config.addFileChooser(exportFC, EXPORT_FILE_CHOOSER_NAME);
+        config.addFileChooser(databaseFC, DATABASE_FILE_CHOOSER_NAME);
+        
             // Set up the component key prefix map
         config.getComponentNames().put(listManipulator, LIST_MANAGER_NAME);
         config.getComponentNames().put(listTabsManipulator, LIST_TABS_MANAGER_NAME);
         config.getComponentNames().put(addLinksPanel, ADD_LINKS_PANEL_NAME);
         config.getComponentNames().put(copyOrMoveListSelector, 
                 COPY_OR_MOVE_LINKS_PANEL_NAME);
-        config.getComponentNames().put(openFC, OPEN_FILE_CHOOSER_NAME);
-        config.getComponentNames().put(saveFC, SAVE_FILE_CHOOSER_NAME);
-        config.getComponentNames().put(configFC, CONFIG_FILE_CHOOSER_NAME);
-        config.getComponentNames().put(exportFC, EXPORT_FILE_CHOOSER_NAME);
-        config.getComponentNames().put(databaseFC, DATABASE_FILE_CHOOSER_NAME);
         config.getComponentNames().put(LinkManager.this, LINK_MANAGER_NAME);
         config.getComponentNames().put(setLocationDialog, DATABASE_LOCATION_DIALOG_NAME);
         config.getComponentNames().put(searchDialog, SEARCH_DIALOG_NAME);
