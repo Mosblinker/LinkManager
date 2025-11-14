@@ -521,6 +521,19 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }
     /**
      * 
+     */
+    private void editSelectedMetadata(){
+        if (detailsViewToggle.isSelected()){
+            int row = getSelectedDetailsIndex();
+            if (row >= 0)
+                fileDetailsTable.editCellAt(row, 0);
+        } else if (listViewToggle.isSelected()){
+            fileListEditAction.actionPerformed(new ActionEvent(fileListList,
+                    ActionEvent.ACTION_PERFORMED,""));
+        }
+    }
+    /**
+     * 
      * @param value 
      */
     protected void updateSelectedFileName(Object value){
@@ -813,16 +826,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 changeCurrentDirectory(path);
         }
     }//GEN-LAST:event_lookInComboBoxActionPerformed
-
+    
     private void renameItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameItemActionPerformed
-        if (detailsViewToggle.isSelected()){
-            int row = fileDetailsTable.getSelectedRow();
-            if (row >= 0)
-                fileDetailsTable.editCellAt(row, 0);
-        } else if (listViewToggle.isSelected()){
-            fileListEditAction.actionPerformed(new ActionEvent(fileListList,
-                    ActionEvent.ACTION_PERFORMED,""));
-        }
+        editSelectedMetadata();
     }//GEN-LAST:event_renameItemActionPerformed
 
     private void fileViewMenuToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileViewMenuToggleActionPerformed
