@@ -26,6 +26,7 @@ import javax.swing.border.*;
  * <a href="https://github.com/tips4java/tips4java/blob/main/source/EditListAction.java">EditListAction.java</a>
  * 
  * @author Rob Camick
+ * @author Mosblinker
  */
 public class AbstractEditListAction extends AbstractAction {
     private JList list;
