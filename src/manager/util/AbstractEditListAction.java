@@ -25,11 +25,12 @@ import javax.swing.border.*;
  * <br>
  * <a href="https://github.com/tips4java/tips4java/blob/main/source/EditListAction.java">EditListAction.java</a>
  * 
+ * @param <E>
  * @author Rob Camick
  * @author Mosblinker
  */
-public class AbstractEditListAction extends AbstractAction {
-    private JList list;
+public abstract class AbstractEditListAction<E> extends AbstractAction {
+    private JList<E> list;
 
     private JPopupMenu editPopup;
     private JTextField editTextField;
