@@ -78,6 +78,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileListModel = new ArrayListModel<>();
         dropboxFileList.setModel(fileListModel);
         dropboxFileList.setCellRenderer(new MetadataNameListCellRenderer());
+        dropboxFileList.addListSelectionListener(handler);
         fileDetailsModel = new MetadataDetailsTableModel(fileDetailsTable);
         fileDetailsPaths = new MetadataPathLowerList(fileDetailsModel.getMetadataList());
         fileDetailsModel.addTableModelListener(handler);
