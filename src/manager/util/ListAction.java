@@ -20,6 +20,7 @@ import javax.swing.*;
  * <a href="https://github.com/tips4java/tips4java/blob/main/source/ListAction.java">ListAction.java</a>
  * 
  * @author Rob Camick
+ * @author Mosblinker
  */
 public class ListAction implements MouseListener {
     private static final KeyStroke ENTER = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
@@ -61,7 +62,9 @@ public class ListAction implements MouseListener {
     public void setAction(Action action) {
             list.getActionMap().put(keyStroke, action);
     }
-
+    /**
+     * 
+     */
     public void doClick(){
         Action action = list.getActionMap().get(keyStroke);
 
