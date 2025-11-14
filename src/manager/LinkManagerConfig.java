@@ -388,7 +388,7 @@ public class LinkManagerConfig implements LinksListSettings{
         compNameMap = new HashMap<>();
         fcNodeMap = new HashMap<>();
             // If the given SQLite config properties is not null
-        if(sqlProp != null)
+        if (sqlProp != null)
             sqlConfig = new SQLiteConfig(sqlProp);
         else
             sqlConfig = new SQLiteConfig();
