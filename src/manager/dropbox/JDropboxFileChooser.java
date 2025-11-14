@@ -303,7 +303,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             return ERROR_OPTION;
         if (getDropboxClient() == null)
             throw new IllegalStateException("No Dropbox client set");
+        String path = getSelectedPath();
         refreshCurrentDirectory();
+        updateSelection(path);
         return super.showDialog(panel);
     }
     /**
