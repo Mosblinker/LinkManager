@@ -336,47 +336,76 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }
     /**
      * 
-     * @return 
+     * @param index 
      */
-    protected Metadata getSelectedDetails(){
-        int index = fileDetailsTable.getSelectedRow();
-        if (index < 0)
-            return null;
-        return fileDetailsModel.getMetadataList().get(index);
+    protected void setSelectedDetailsIndex(int index){
+        if (index < 0 || index >= fileListModel.size())
+            fileDetailsTable.clearSelection();
+        else
+            fileDetailsTable.setRowSelectionInterval(index, index);
+    }
+    /**
+     * 
+     * @param index 
+     */
+    protected void setSelectedListIndex(int index){
+        if (index < 0 || index >= fileListModel.size())
+            dropboxFileList.clearSelection();
+        else 
+            dropboxFileList.setSelectedIndex(index);
+    }
+    /**
+     * 
+     * @param index 
+     */
+    protected void setSelectedIndex(int index){
+        setSelectedListIndex(index);
+        setSelectedDetailsIndex(index);
     }
     /**
      * 
      * @param metadata 
      */
-    protected void setSelectedDetails(Metadata metadata){
-        if (metadata == null)
-            fileDetailsTable.clearSelection();
-        else {
-            int index = fileDetailsModel.getMetadataList().indexOf(metadata);
-            fileDetailsTable.setRowSelectionInterval(index, index);
-        }
+    protected void setSelectedMetadata(Metadata metadata){
+        setSelectedIndex(fileListModel.indexOf(metadata));
     }
     /**
      * 
      * @return 
      */
-    protected Metadata getSelectedListValue(){
-        int index = dropboxFileList.getSelectedIndex();
+    protected int getSelectedDetailsIndex(){
+        return fileDetailsTable.getSelectedRow();
+    }
+    /**
+     * 
+     * @return 
+     */
+    protected int getSelectedListIndex(){
+        return dropboxFileList.getSelectedIndex();
+    }
+    /**
+     * 
+     * @return 
+     */
+    protected int getSelectedIndex(){
+        int index = -1;
+        if (listViewToggle.isSelected())
+            index = getSelectedListIndex();
+        else if (detailsViewToggle.isSelected())
+            index = getSelectedDetailsIndex();
+        if (index < 0 || index >= fileListModel.size())
+            return -1;
+        return index;
+    }
+    /**
+     * 
+     * @return 
+     */
+    protected Metadata getSelectedMetadata(){
+        int index = getSelectedIndex();
         if (index < 0 || index >= fileListModel.size())
             return null;
         return fileListModel.get(index);
-    }
-    /**
-     * 
-     * @param metadata 
-     */
-    protected void setSelectedListValue(Metadata metadata){
-        if (metadata == null)
-            dropboxFileList.clearSelection();
-        else {
-            int index = fileListModel.indexOf(metadata);
-            dropboxFileList.setSelectedIndex(index);
-        }
     }
     /**
      * 
@@ -761,12 +790,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     protected void sortMetadata(){
-        Metadata selected = getSelectedListValue();
+        Metadata selected = getSelectedMetadata();
         fileListModel.sort(METADATA_COMPARATOR);
-        if (selected != null){
-            setSelectedListValue(selected);
-            setSelectedDetails(selected);
-        }
+        if (selected != null)
+            setSelectedMetadata(selected);
     }
     /**
      * 
@@ -854,19 +881,18 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         }
         @Override
         public void valueChanged(ListSelectionEvent evt) {
-            System.out.println(evt);
+            Object targetSource = null;
+            if (detailsViewToggle.isSelected())
+                targetSource = fileDetailsTable.getSelectionModel();
+            else if (listViewToggle.isSelected())
+                targetSource = dropboxFileList;
+            if (evt.getSource() != targetSource)
+                return;
+            int index = getSelectedIndex();
+            setSelectedIndex(index);
             Metadata selected = null;
-            if (detailsViewToggle.isSelected()){
-                if (evt.getSource() != fileDetailsTable.getSelectionModel())
-                    return;
-                selected = getSelectedDetails();
-                setSelectedListValue(selected);
-            } else if (listViewToggle.isSelected()){
-                if (evt.getSource() != dropboxFileList)
-                    return;
-                selected = getSelectedListValue();
-                setSelectedDetails(selected);
-            }
+            if (index >= 0)
+                selected = fileListModel.get(index);
             updateSelectedFileName(selected);
             if (selected != null)
                 renameItem.setVisible(true);
