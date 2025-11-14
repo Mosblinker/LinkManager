@@ -76,8 +76,13 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         filePaths = new MetadataPathLowerList(fileListModel);
         dropboxFileList.setCellRenderer(new MetadataNameListCellRenderer());
         dropboxFileList.addListSelectionListener(handler);
-        fileDetailsModel = new MetadataDetailsTableModel(fileDetailsTable,fileListModel);
-        
+        fileDetailsModel = new MetadataDetailsTableModel(fileDetailsTable,fileListModel){
+            @Override
+            public void setValueAt(Object aValue, int row, int column){
+                super.setValueAt(aValue, row, column);
+                sortMetadata();
+            }
+        };
         fileDetailsModel.addTableModelListener(handler);
         fileDetailsTable.setModel(fileDetailsModel);
         fileDetailsTable.setDefaultRenderer(Metadata.class, 
@@ -755,6 +760,15 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     /**
      * 
      */
+    protected void sortMetadata(){
+        boolean wasSorting = isSorting;
+        isSorting = true;
+        fileListModel.sort(METADATA_COMPARATOR);
+        isSorting = wasSorting;
+    }
+    /**
+     * 
+     */
     private String selectedPath = null;
     /**
      * 
@@ -792,6 +806,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private ArrayComboBoxModel<Metadata> lookInComboModel;
+    /**
+     * 
+     */
+    private boolean isSorting = false;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JScrollPane detailsScrollPane;
@@ -961,6 +979,11 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         protected Metadata valueFromString(String value, Metadata oldValue) {
             RenamedMetadata renamed = new RenamedMetadata(oldValue,value);
             return renamed.renameWithError(getDropboxClient(), dropboxFileList);
+        }
+        @Override
+        protected void setValue(ActionEvent evt){
+            super.setValue(evt);
+            sortMetadata();
         }
     }
 }
