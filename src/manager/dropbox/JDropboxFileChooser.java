@@ -700,6 +700,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             int row = fileDetailsTable.getSelectedRow();
             if (row >= 0)
                 fileDetailsTable.editCellAt(row, 0);
+        } else if (listViewToggle.isSelected()){
+            fileListEditAction.actionPerformed(new ActionEvent(dropboxFileList,
+                    ActionEvent.ACTION_PERFORMED,""));
         }
     }//GEN-LAST:event_renameItemActionPerformed
     /**
