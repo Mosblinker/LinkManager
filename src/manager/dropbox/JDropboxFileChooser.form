@@ -28,11 +28,11 @@
         </MenuItem>
         <MenuItem class="javax.swing.JMenuItem" name="newFolderItem">
           <Properties>
+            <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="newFolderAction" type="code"/>
+            </Property>
             <Property name="text" type="java.lang.String" value="New Folder"/>
           </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newFolderActionPerformed"/>
-          </Events>
         </MenuItem>
         <MenuItem class="javax.swing.JMenuItem" name="renameItem">
           <Properties>
@@ -169,11 +169,11 @@
     </Component>
     <Component class="javax.swing.JButton" name="newFolderButton">
       <Properties>
+        <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="newFolderAction" type="code"/>
+        </Property>
         <Property name="toolTipText" type="java.lang.String" value="Create New Folder"/>
       </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="newFolderActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JToggleButton" name="detailsViewToggle">
       <Properties>

@@ -70,6 +70,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             // Create actions for navigation buttons
         upFolderAction = new UpFolderAction();
         upFolderAction.setEnabled(false);
+        newFolderAction = new NewFolderAction();
         
         initComponents();
         
@@ -556,12 +557,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         });
         filePopupMenu.add(refreshItem);
 
+        newFolderItem.setAction(newFolderAction);
         newFolderItem.setText("New Folder");
-        newFolderItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                newFolderActionPerformed(evt);
-            }
-        });
         filePopupMenu.add(newFolderItem);
 
         renameItem.setText("Rename");
@@ -583,12 +580,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         fileNameField.setActionCommand(ACCEPT_SELECTED);
 
+        newFolderButton.setAction(newFolderAction);
         newFolderButton.setToolTipText("Create New Folder");
-        newFolderButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                newFolderActionPerformed(evt);
-            }
-        });
 
         viewButtonGroup.add(detailsViewToggle);
         detailsViewToggle.setToolTipText("Details");
@@ -721,26 +714,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
-
-    private void newFolderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newFolderActionPerformed
-        try{
-            CreateFolderResult result = getDropboxClient().files().createFolderV2(currDirPath+"/New Folder", true);
-            Metadata metadata = result.getMetadata();
-            fileListModel.add(metadata);
-            fileListModel.sort(METADATA_COMPARATOR);
-            if (listViewToggle.isSelected()){
-                int index = fileListModel.indexOf(metadata);
-                fileListList.setSelectedIndex(index);
-                // TODO: Start editing the selected index
-            } else if (detailsViewToggle.isSelected()){
-                int index = fileDetailsModel.getMetadataList().indexOf(metadata);
-                fileDetailsTable.setRowSelectionInterval(index, index);
-                fileDetailsTable.editCellAt(index, 0);
-            }
-        } catch (DbxException ex){
-            LinkManager.getLogger().log(Level.WARNING, "Failed to create folder in Dropbox", ex);
-        }
-    }//GEN-LAST:event_newFolderActionPerformed
 
     private void refreshItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshItemActionPerformed
         refreshCurrentDirectory();
@@ -892,6 +865,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private Action upFolderAction;
+    /**
+     * 
+     */
+    private Action newFolderAction;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JScrollPane detailsScrollPane;
@@ -1153,6 +1130,31 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 setEnabled(false);
             } else {
                 goUpInDirectoryTree();
+            }
+        }
+    }
+    /**
+     * 
+     */
+    private class NewFolderAction extends AbstractAction{
+        @Override
+        public void actionPerformed(ActionEvent evt) {
+            try{
+                CreateFolderResult result = getDropboxClient().files().createFolderV2(currDirPath+"/New Folder", true);
+                Metadata metadata = result.getMetadata();
+                fileListModel.add(metadata);
+                fileListModel.sort(METADATA_COMPARATOR);
+                if (listViewToggle.isSelected()){
+                    int index = fileListModel.indexOf(metadata);
+                    fileListList.setSelectedIndex(index);
+                    // TODO: Start editing the selected index
+                } else if (detailsViewToggle.isSelected()){
+                    int index = fileDetailsModel.getMetadataList().indexOf(metadata);
+                    fileDetailsTable.setRowSelectionInterval(index, index);
+                    fileDetailsTable.editCellAt(index, 0);
+                }
+            } catch (DbxException ex){
+                LinkManager.getLogger().log(Level.WARNING, "Failed to create folder in Dropbox", ex);
             }
         }
     }
