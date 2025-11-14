@@ -93,6 +93,8 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
             //  Position the popup editor over top of the selected row
 
         int row = list.getSelectedIndex();
+        if (row < 0)
+            return;
         Rectangle r = list.getCellBounds(row, row);
 
         editPopup.setPreferredSize(new Dimension(r.width, r.height));
