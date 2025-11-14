@@ -25,7 +25,6 @@ import javax.swing.border.Border;
 import javax.swing.event.*;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
-import javax.swing.tree.*;
 import manager.LinkManager;
 import manager.LinkManagerUtilities;
 import manager.renderer.*;
@@ -67,7 +66,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 "Home");
         setButtonIcon(upFolderButton,uiDefaults,"FileChooser.upFolderIcon",
                 "Up One Level");
-        folderIcon = uiDefaults.getIcon("FileChooser.directoryIcon");
         Handler handler = new Handler();
         fileNameField.getDocument().addDocumentListener(handler);
         fileListModel = new ArrayListModel<>();
@@ -750,15 +748,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }
     /**
      * 
-     * @param node1
-     * @param node2
-     * @return 
-     */
-    protected int compareNodes(DefaultMutableTreeNode node1, DefaultMutableTreeNode node2){
-        return DropboxUtilities.METADATA_TREE_NODE_COMPARATOR.compare(node1,node2);
-    }
-    /**
-     * 
      */
     private String selectedPath = null;
     /**
@@ -793,8 +782,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private ArrayComboBoxModel<Metadata> lookInComboModel;
-    
-    private Icon folderIcon = null;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JScrollPane detailsScrollPane;
