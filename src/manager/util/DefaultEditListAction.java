@@ -42,8 +42,6 @@ public class DefaultEditListAction extends AbstractAction {
         this.modelClass = modelClass;
     }
     
-//    protected String getValueFromModel(ListModel model, int )
-    
     protected void applyValueToModel(String value, ListModel model, int row){
         DefaultListModel dlm = (DefaultListModel)model;
         dlm.set(row, value);
