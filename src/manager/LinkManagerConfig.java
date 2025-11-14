@@ -151,10 +151,10 @@ public class LinkManagerConfig implements LinksListSettings{
     /**
      * This is the configuration key for the index of the currently selected 
      * tab if a tab is selected.This value is used as a fallback value to be 
- used when the value for {@link CURRENT_TAB_LIST_ID_KEY#SELECTED_TAB_LIST_ID_KEY} is unavailable 
- either due to the currently selected list not having a listID, no lists 
- have the selected listID, or the current tab is not a list. The value for 
- {@code CURRENT_TAB_LIST_ID_KEY} takes priority over this value due to 
+     * used when the value for {@link SELECTED_TAB_LIST_ID_KEY} is unavailable 
+     * either due to the currently selected list not having a listID, no lists 
+     * have the selected listID, or the current tab is not a list. The value for 
+     * {@code CURRENT_TAB_LIST_ID_KEY} takes priority over this value due to 
      * the listIDs staying more or less constant for any given list saved to or 
      * loaded from the database, whereas the index for any given list may vary 
      * between instances of the program.
