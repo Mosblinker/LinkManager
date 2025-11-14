@@ -2782,6 +2782,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addContainerGap())
         );
 
+        dropboxFC.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                dropboxFCPropertyChange(evt);
+            }
+        });
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle(PROGRAM_NAME);
         setLocationByPlatform(true);
@@ -5173,6 +5179,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.WARNING, null, ex);
         } 
     }//GEN-LAST:event_dbxBrowseButtonActionPerformed
+
+    private void dropboxFCPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dropboxFCPropertyChange
+        System.out.println(evt);
+    }//GEN-LAST:event_dropboxFCPropertyChange
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
