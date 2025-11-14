@@ -553,11 +553,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileDetailsTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
         fileDetailsTable.setInheritsPopupMenu(true);
         fileDetailsTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        fileDetailsTable.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                fileDetailsTableMouseClicked(evt);
-            }
-        });
         detailsScrollPane.setViewportView(fileDetailsTable);
 
         detailsView.add(detailsScrollPane, java.awt.BorderLayout.CENTER);
@@ -711,25 +706,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 changeCurrentDirectory(path);
         }
     }//GEN-LAST:event_lookInComboBoxActionPerformed
-
-    private void fileDetailsTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fileDetailsTableMouseClicked
-        System.out.println(evt);
-        if (evt.getButton() == MouseEvent.BUTTON1 && evt.getClickCount() == 2){
-            Point point = evt.getPoint();
-            int row = fileDetailsTable.rowAtPoint(point);
-            System.out.println("Double click on Cell (" + row + 
-                    ", " + fileDetailsTable.columnAtPoint(point)+")");
-            if (row >= 0){
-                Metadata metadata = fileDetailsModel.getMetadataList().get(row);
-                if (metadata instanceof DbxRootMetadata)
-                    changeCurrentDirectory(null);
-                if (metadata instanceof FolderMetadata)
-                    changeCurrentDirectory(metadata.getPathLower());
-                else if (isAcceptEnabled())
-                    accept();
-            }
-        }
-    }//GEN-LAST:event_fileDetailsTableMouseClicked
 
     private void renameItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameItemActionPerformed
         if (detailsViewToggle.isSelected()){
