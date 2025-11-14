@@ -12,6 +12,7 @@ import components.ArrayComboBoxModel;
 import components.ArrayListModel;
 import java.awt.Component;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.text.SimpleDateFormat;
 import java.util.AbstractList;
@@ -28,6 +29,7 @@ import javax.swing.table.TableRowSorter;
 import manager.LinkManager;
 import manager.LinkManagerUtilities;
 import manager.renderer.*;
+import manager.util.AbstractEditListAction;
 
 /**
  *
@@ -98,6 +100,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         lookInComboModel.add(new DbxRootMetadata());
         lookInComboBox.setModel(lookInComboModel);
         lookInComboBox.setRenderer(new LookInListCellRenderer());
+        fileListEditAction = new MetadataEditListAction();
     }
     /**
      * 
@@ -773,6 +776,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     /**
      * 
      */
+    private MetadataEditListAction fileListEditAction;
+    /**
+     * 
+     */
     private List<String> filePaths;
     /**
      * 
@@ -937,6 +944,20 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             if (value == null || value instanceof DbxRootMetadata)
                 return "Dropbox";
             return value.getName();
+        }
+    }
+    /**
+     * 
+     */
+    private class MetadataEditListAction extends AbstractEditListAction<Metadata>{
+        @Override
+        protected String valueToString(Metadata value) {
+            return (value!=null)?value.getName():null;
+        }
+        @Override
+        protected Metadata valueFromString(String value, Metadata oldValue) {
+            RenamedMetadata renamed = new RenamedMetadata(oldValue,value);
+            return renamed.renameWithError(getDropboxClient(), dropboxFileList);
         }
     }
 }
