@@ -6,16 +6,12 @@ package manager.dropbox;
 
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.UnaryOperator;
+import components.AbstractListModelList;
+import components.ArrayListModel;
+import java.util.*;
 import javax.swing.JTable;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.table.AbstractTableModel;
 
 /**
@@ -44,16 +40,20 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
         Date.class
     };
     
-    private List<Metadata> data = new ArrayList<>();
-    
-    private List<Metadata> listView = new RowList();
+    private AbstractListModelList<Metadata> data;
     
     private DbxClientV2 dbxClient = null;
     
     private JTable table;
     
-    public MetadataDetailsTableModel(JTable table){
+    public MetadataDetailsTableModel(JTable table, AbstractListModelList<Metadata> data){
         this.table = table;
+        this.data = Objects.requireNonNull(data);
+        this.data.addListDataListener(new Handler());
+    }
+    
+    public MetadataDetailsTableModel(JTable table){
+        this(table,new ArrayListModel<>());
     }
     
     public MetadataDetailsTableModel(JTable table,Collection<? extends Metadata> data){
@@ -235,7 +235,6 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
         if (aValue instanceof Metadata || aValue == null){
             if (!Objects.equals(data.get(row), aValue)){
                 data.set(row, (Metadata)aValue);
-                fireTableCellUpdated(row, column);
             }
         } else
             throw new ClassCastException();
@@ -255,7 +254,6 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
      */
     public void insertRow(int index, Metadata metadata){
         data.add(index, metadata);
-        fireTableRowsInserted(index,index);
     }
     /**
      * 
@@ -270,9 +268,7 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
      * @return 
      */
     public Metadata removeRow(int index){
-        Metadata value = data.remove(index);
-        fireTableRowsDeleted(index,index);
-        return value;
+        return data.remove(index);
     }
     /**
      * 
@@ -289,10 +285,7 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
      * @return 
      */
     public Metadata setRow(int index, Metadata metadata){
-        Metadata old = data.set(index, metadata);
-        if (!Objects.equals(old, metadata))
-            fireTableRowsUpdated(index,index);
-        return old;
+        return data.set(index, metadata);
     }
     /**
      * 
@@ -300,106 +293,38 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
      * @param toIndex 
      */
     public void removeRows(int fromIndex, int toIndex){
-        Objects.checkFromToIndex(fromIndex, toIndex, getRowCount());
-        if (fromIndex == toIndex)
-            return;
-        if (fromIndex == 0 && toIndex == getRowCount())
+        if (fromIndex <= 0 && toIndex >= data.size())
             data.clear();
-        else{
-            for (int i = toIndex-1; i >= fromIndex; i--){
-                data.remove(i);
-            }
-        }
-        fireTableRowsDeleted(fromIndex,toIndex-1);
+        else
+            data.subList(fromIndex, toIndex).clear();
     }
     /**
      * 
      * @return 
      */
     public List<Metadata> getMetadataList(){
-        return listView;
+        return data;
     }
     /**
      * 
      */
-    protected class RowList extends AbstractList<Metadata>{
+    private class Handler implements ListDataListener{
         @Override
-        public Metadata get(int index) {
-            return getRow(index);
+        public void intervalAdded(ListDataEvent evt) {
+            fireTableRowsInserted(evt.getIndex0(),evt.getIndex1());
         }
         @Override
-        public int size() {
-            return getRowCount();
+        public void intervalRemoved(ListDataEvent evt) {
+            fireTableRowsDeleted(evt.getIndex0(),evt.getIndex1());
         }
         @Override
-        public boolean contains(Object o) {
-            return data.contains(o);
-        }
-        @Override
-        public Object[] toArray() {
-            return data.toArray();
-        }
-        @Override
-        public boolean remove(Object o) {
-            int index = indexOf(o);
-            if (index < 0)
-                return false;
-            remove(index);
-            return true;
-        }
-        @Override
-        public boolean containsAll(Collection<?> c) {
-            return data.containsAll(c);
-        }
-        @Override
-        public boolean addAll(Collection<? extends Metadata> c) {
-            return addAll(size(),c);
-        }
-        @Override
-        public boolean addAll(int index, Collection<? extends Metadata> c) {
-            boolean modified = data.addAll(index, c);
-            if (modified)
-                fireTableRowsInserted(index,index+c.size()-1);
-            return modified;
-        }
-        /**
-         * 
-         * @param fromIndex
-         * @param toIndex 
-         */
-        @Override
-        protected void removeRange(int fromIndex, int toIndex){
-            removeRows(fromIndex,toIndex);
-        }
-        @Override
-        public Metadata set(int index, Metadata element) {
-            return setRow(index,element);
-        }
-        @Override
-        public void add(int index, Metadata element) {
-            insertRow(index,element);
-        }
-        @Override
-        public Metadata remove(int index) {
-            return removeRow(index);
-        }
-        @Override
-        public int indexOf(Object o) {
-            return data.indexOf(o);
-        }
-        @Override
-        public int lastIndexOf(Object o) {
-            return data.lastIndexOf(o);
-        }
-        @Override
-        public void replaceAll(UnaryOperator<Metadata> operator){
-            data.replaceAll(operator);
-            fireTableRowsUpdated(0,size()-1);
-        }
-        @Override
-        public void sort(Comparator<? super Metadata> c){
-            data.sort(c);
-            fireTableRowsUpdated(0,size()-1);
+        public void contentsChanged(ListDataEvent evt) {
+            if (evt.getIndex0() >= 0 && evt.getIndex1() >= 0){
+                if (evt.getIndex0() == 0 && evt.getIndex1() >= data.size())
+                    fireTableDataChanged();
+                else
+                    fireTableRowsUpdated(evt.getIndex0(),evt.getIndex1());
+            }
         }
     }
 }
