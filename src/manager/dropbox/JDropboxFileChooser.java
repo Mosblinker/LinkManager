@@ -354,7 +354,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     protected Metadata getSelectedListValue(){
         int index = dropboxFileList.getSelectedIndex();
-        if (index < 0)
+        if (index < 0 || index >= fileListModel.size())
             return null;
         return fileListModel.get(index);
     }
