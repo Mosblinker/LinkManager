@@ -107,7 +107,22 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
         editTextField.selectAll();
         editTextField.requestFocusInWindow();
     }
-
+    /**
+     * 
+     * @param evt 
+     */
+    protected void setValue(ActionEvent evt){
+        String value = editTextField.getText();
+            if (lastList == null){
+                ListModel<E> model = list.getModel();
+                lastList = getListFromModel(model);
+            }
+            if (lastList != null){
+                int row = list.getSelectedIndex();
+                lastList.set(row, valueFromString(value,lastValue));
+            }
+            editPopup.setVisible(false);
+    }
     /*
      *  Create the popup editor
      */
@@ -121,16 +136,7 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
             //  Add an Action to the text field to save the new value to the model
 
         editTextField.addActionListener((ActionEvent e) -> {
-            String value = editTextField.getText();
-            if (lastList == null){
-                ListModel<E> model = list.getModel();
-                lastList = getListFromModel(model);
-            }
-            if (lastList != null){
-                int row = list.getSelectedIndex();
-                lastList.set(row, valueFromString(value,lastValue));
-            }
-            editPopup.setVisible(false);
+            setValue(e);
         });
 
             //  Add the editor to the popup
