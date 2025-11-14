@@ -27,9 +27,17 @@ public class MetadataNameListCellRenderer extends DefaultListCellRenderer{
     public Component getListCellRendererComponent(JList list,
             Object value,int index,boolean isSelected,boolean cellHasFocus){
         if (value instanceof Metadata){
-            value = ((Metadata)value).getName();
+            value = setValue((Metadata)value);
         }
         return super.getListCellRendererComponent(list, value, index, 
                 isSelected, cellHasFocus);
+    }
+    /**
+     * 
+     * @param value
+     * @return 
+     */
+    protected Object setValue(Metadata value){
+        return value.getName();
     }
 }
