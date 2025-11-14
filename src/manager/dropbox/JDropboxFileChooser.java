@@ -217,6 +217,33 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     }
     /**
      * 
+     * @param path 
+     */
+    protected void updateSelection(String path){
+        if (path == null || path.isBlank()){
+            setSelectedIndex(-1);
+            fileNameField.setText("");
+        } else {
+            if (path.startsWith(currDirPath))
+                path = path.substring(currDirPath.length());
+            if (path.startsWith("/"))
+                path = path.substring(1);
+            if (path.isBlank()){
+                setSelectedIndex(-1);
+                fileNameField.setText("");
+            } else{
+                int separator = path.indexOf("/");
+                String selection = path;
+                if (separator >= 0)
+                    selection = path.substring(0, separator);
+                selection = currDirPath+"/"+selection.toLowerCase();
+                setSelectedIndex(filePaths.indexOf(selection));
+                fileNameField.setText(path);
+            }
+        }
+    }
+    /**
+     * 
      * @return 
      */
     public String getSelectedPath(){
@@ -228,7 +255,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     public void setSelectedPath(String path){
         if (updateSelectedPath(path)){
-            
+            updateSelection(path);
         }
     }
     /**
