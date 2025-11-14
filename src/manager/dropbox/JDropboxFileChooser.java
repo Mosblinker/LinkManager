@@ -520,6 +520,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         viewButtonGroup = new javax.swing.ButtonGroup();
         filePopupMenu = new javax.swing.JPopupMenu();
+        upFolderItem = new javax.swing.JMenuItem();
         refreshItem = new javax.swing.JMenuItem();
         newFolderItem = new javax.swing.JMenuItem();
         renameItem = new javax.swing.JMenuItem();
@@ -542,6 +543,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         upFolderButton = new javax.swing.JButton();
         lookInLabel = new javax.swing.JLabel();
         lookInComboBox = new javax.swing.JComboBox<>();
+
+        upFolderItem.setAction(upFolderAction);
+        upFolderItem.setText("Go Up");
+        filePopupMenu.add(upFolderItem);
 
         refreshItem.setText("Refresh");
         refreshItem.addActionListener(new java.awt.event.ActionListener() {
@@ -909,6 +914,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JMenuItem refreshItem;
     private javax.swing.JMenuItem renameItem;
     private javax.swing.JButton upFolderButton;
+    private javax.swing.JMenuItem upFolderItem;
     private javax.swing.ButtonGroup viewButtonGroup;
     // End of variables declaration//GEN-END:variables
 
