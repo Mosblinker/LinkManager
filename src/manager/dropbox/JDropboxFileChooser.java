@@ -882,8 +882,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         }
         @Override
         public void tableChanged(TableModelEvent evt) {
-            System.out.println(evt);
-            System.out.println(evt.getType());
+            
         }
         @Override
         public void valueChanged(ListSelectionEvent evt) {
