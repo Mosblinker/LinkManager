@@ -217,9 +217,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     public void setDropboxClient(DbxClientV2 client){
         dbxClient = client;
+        fileDetailsModel.setDropboxClient(client);
         updateAcceptEnabled();
         updateComponentsEnabled();
-        fileDetailsModel.setDropboxClient(client);
     }
     /**
      * 
