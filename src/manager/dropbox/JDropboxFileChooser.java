@@ -8,6 +8,7 @@ import com.dropbox.core.*;
 import com.dropbox.core.v2.*;
 import com.dropbox.core.v2.files.*;
 import components.AbstractConfirmDialogPanel;
+import components.ArrayComboBoxModel;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -91,6 +92,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileDetailsTable.setRowSorter(detailsRowSorter);
         fileDetailsTable.getSelectionModel().addListSelectionListener(handler);
         renameItem.setVisible(false);
+        lookInComboModel = new ArrayComboBoxModel<>();
+        lookInComboModel.add(new DbxRootMetadata());
+        lookInComboBox.setModel(lookInComboModel);
     }
     /**
      * 
@@ -354,6 +358,19 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         try{
             if (loadDirectory(getDropboxClient(),path)){
                 currDirPath = (path!=null)?path:"";
+                String[] paths = currDirPath.split("/");
+                String temp = "";
+                lookInComboModel.clear();
+                lookInComboModel.add(new DbxRootMetadata());
+                for (int i = 1; i < paths.length; i++){
+                    temp += "/"+paths[i];
+                    try{
+                        lookInComboModel.add(getDropboxClient().files().getMetadataBuilder(temp).start());
+                    } catch (DbxException ex){
+                        LinkManager.getLogger().log(Level.WARNING, "Failed to load Directory from Dropbox", ex);
+                    }
+                }
+                lookInComboModel.setSelectedItem(lookInComboModel.get(lookInComboModel.size()-1));
                 updateUpFolderButtonEnabled();
                 return true;
             }
@@ -951,6 +968,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private boolean firstTimeShowingDetails = true;
+    /**
+     * 
+     */
+    private ArrayComboBoxModel<Metadata> lookInComboModel;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JScrollPane detailsScrollPane;
@@ -967,7 +988,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.JPanel listPanel;
     private javax.swing.JScrollPane listScrollPane;
     private javax.swing.JToggleButton listViewToggle;
-    private javax.swing.JComboBox<String> lookInComboBox;
+    private javax.swing.JComboBox<Metadata> lookInComboBox;
     private javax.swing.JLabel lookInLabel;
     private javax.swing.JButton newFolderButton;
     private javax.swing.JMenuItem newFolderItem;
