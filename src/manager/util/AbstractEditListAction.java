@@ -77,10 +77,10 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
      *	Display the popup editor when requested
      */
     @Override
+    @SuppressWarnings("unchecked")
     public void actionPerformed(ActionEvent e) {
-        list = (JList)e.getSource();
-        ListModel model = list.getModel();
-
+        list = (JList<E>)e.getSource();
+        ListModel<E> model = list.getModel();
 
             //  Do a lazy creation of the popup editor
 
