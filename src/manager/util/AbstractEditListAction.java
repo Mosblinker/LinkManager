@@ -1,5 +1,6 @@
 package manager.util;
 
+import components.ListModelList;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -120,7 +121,10 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
         editTextField.addActionListener((ActionEvent e) -> {
             String value = editTextField.getText();
             ListModel model = list.getModel();
-            int row = list.getSelectedIndex();
+            if (lastList != null){
+                int row = list.getSelectedIndex();
+                lastList.set(row, valueFromString(value,lastValue));
+            }
             editPopup.setVisible(false);
         });
 
