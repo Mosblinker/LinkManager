@@ -63,15 +63,14 @@ public class ListAction implements MouseListener {
     }
 
     //  Implement MouseListener interface
-
     @Override
     public void mouseClicked(MouseEvent e) {
         if (e.getClickCount() == 2) {
             Action action = list.getActionMap().get(keyStroke);
 
             if (action != null) {
-                ActionEvent event = new ActionEvent(list,ActionEvent.ACTION_PERFORMED,
-                        "");
+                ActionEvent event = new ActionEvent(list,ActionEvent.ACTION_PERFORMED, 
+                        (String) action.getValue(Action.ACTION_COMMAND_KEY));
                 action.actionPerformed(event);
             }
         }
