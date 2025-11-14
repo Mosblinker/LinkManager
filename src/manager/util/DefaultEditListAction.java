@@ -27,26 +27,28 @@ import javax.swing.border.*;
  * 
  * @author Rob Camick
  */
-public class EditListAction extends AbstractAction {
+public class DefaultEditListAction extends AbstractAction {
     private JList list;
 
     private JPopupMenu editPopup;
     private JTextField editTextField;
     private Class<?> modelClass;
-
-    public EditListAction() {
+    
+    public DefaultEditListAction() {
         setModelClass(DefaultListModel.class);
     }
-
+    
     protected void setModelClass(Class modelClass) {
         this.modelClass = modelClass;
     }
-
+    
+//    protected String getValueFromModel(ListModel model, int )
+    
     protected void applyValueToModel(String value, ListModel model, int row){
         DefaultListModel dlm = (DefaultListModel)model;
         dlm.set(row, value);
     }
-
+    
     /*
      *	Display the popup editor when requested
      */
