@@ -390,8 +390,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     protected void refreshCurrentDirectory(){
+        Metadata selected = getSelectedMetadata();
         if (!changeCurrentDirectory(currDirPath))
             goUpInDirectoryTree();
+        setSelectedMetadata(selected);
     }
     /**
      * 
