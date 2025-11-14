@@ -53,6 +53,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     private static final Icon DROPBOX_ICON_16 = new DropboxIcon(16);
     /**
+     * 
+     */
+    private static final int FOLDER_INDENTATION = 8;
+    /**
      * Creates new form JDropboxFileChooser
      */
     public JDropboxFileChooser() {
@@ -1171,6 +1175,14 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             else if (value instanceof Metadata) {
                 if (value instanceof FolderMetadata)
                     setIcon(folderIcon);
+                Border border = getBorder();
+                String path = ((Metadata)value).getPathLower();
+                if (path != null){
+                    String[] paths = path.split("/");
+                    setBorder(BorderFactory.createCompoundBorder(border, 
+                            BorderFactory.createEmptyBorder(0, 
+                                    FOLDER_INDENTATION*(paths.length-1), 0, 0)));
+                }
             }
             return comp;
         }
