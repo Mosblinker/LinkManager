@@ -613,8 +613,12 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             Metadata metadata = result.getMetadata();
             fileDetailsModel.getMetadataList().add(metadata);
             fileDetailsModel.getMetadataList().sort(METADATA_COMPARATOR);
+            fileListModel.add(metadata);
+            fileListModel.sort(METADATA_COMPARATOR);
             if (listViewToggle.isSelected()){
-                
+                int index = fileListModel.indexOf(metadata);
+                dropboxFileList.setSelectedIndex(index);
+                // TODO: Start editing the selected index
             } else if (detailsViewToggle.isSelected()){
                 int index = fileDetailsModel.getMetadataList().indexOf(metadata);
                 fileDetailsTable.setRowSelectionInterval(index, index);
