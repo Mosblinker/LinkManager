@@ -28,7 +28,6 @@ import javax.swing.table.TableRowSorter;
 import javax.swing.tree.*;
 import manager.LinkManager;
 import manager.LinkManagerUtilities;
-import manager.icons.DropboxIcon;
 import manager.renderer.*;
 
 /**
@@ -48,10 +47,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private static final MetadataComparator METADATA_COMPARATOR = new MetadataComparator();
-    /**
-     * 
-     */
-    private static final Icon DROPBOX_ICON_16 = new DropboxIcon(16);
     /**
      * 
      */
@@ -76,6 +71,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         Handler handler = new Handler();
         fileNameField.getDocument().addDocumentListener(handler);
         fileListModel = new ArrayListModel<>();
+        fileListModel.addListDataListener(handler);
         dropboxFileList.setModel(fileListModel);
         dropboxFileList.setCellRenderer(new MetadataNameListCellRenderer());
         dropboxFileList.addListSelectionListener(handler);
@@ -827,8 +823,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private javax.swing.ButtonGroup viewButtonGroup;
     // End of variables declaration//GEN-END:variables
 
-    private class Handler implements DocumentListener, 
-            TableModelListener, ListSelectionListener{
+    private class Handler implements DocumentListener, TableModelListener, 
+            ListSelectionListener, ListDataListener{
         @Override
         public void insertUpdate(DocumentEvent evt) {
             
@@ -862,6 +858,18 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 renameItem.setVisible(true);
             else
                 renameItem.setVisible(false);
+        }
+        @Override
+        public void intervalAdded(ListDataEvent evt) {
+            
+        }
+        @Override
+        public void intervalRemoved(ListDataEvent evt) {
+            
+        }
+        @Override
+        public void contentsChanged(ListDataEvent evt) {
+            
         }
     }
     /**
@@ -919,7 +927,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             return metadata.getPathLower();
         }
     }
-    
+    /**
+     * 
+     */
     private class LookInListCellRenderer extends MetadataNameListCellRenderer{
         @Override
         public Component getListCellRendererComponent(JList list,
@@ -944,6 +954,5 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 return "Dropbox";
             return value.getName();
         }
-        
     }
 }
