@@ -34,17 +34,10 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
 
     private JPopupMenu editPopup;
     private JTextField editTextField;
-    private Class<?> modelClass;
     
     public AbstractEditListAction() {
-        setModelClass(DefaultListModel.class);
+        
     }
-    
-    protected void setModelClass(Class modelClass) {
-        this.modelClass = modelClass;
-    }
-    
-//    protected String getValueFromModel(ListModel model, int )
     
     protected void applyValueToModel(String value, ListModel model, int row){
         DefaultListModel dlm = (DefaultListModel)model;
@@ -59,8 +52,6 @@ public abstract class AbstractEditListAction<E> extends AbstractAction {
         list = (JList)e.getSource();
         ListModel model = list.getModel();
 
-        if (! modelClass.isAssignableFrom(model.getClass())) 
-            return;
 
             //  Do a lazy creation of the popup editor
 
