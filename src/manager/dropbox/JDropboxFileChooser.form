@@ -285,9 +285,6 @@
                     <Property name="layoutOrientation" type="int" value="1"/>
                     <Property name="visibleRowCount" type="int" value="-1"/>
                   </Properties>
-                  <Events>
-                    <EventHandler event="valueChanged" listener="javax.swing.event.ListSelectionListener" parameters="javax.swing.event.ListSelectionEvent" handler="fileListListValueChanged"/>
-                  </Events>
                   <AuxValues>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Metadata&gt;"/>
                   </AuxValues>

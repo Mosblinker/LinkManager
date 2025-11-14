@@ -673,11 +673,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileListList.setInheritsPopupMenu(true);
         fileListList.setLayoutOrientation(javax.swing.JList.VERTICAL_WRAP);
         fileListList.setVisibleRowCount(-1);
-        fileListList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                fileListListValueChanged(evt);
-            }
-        });
         listScrollPane.setViewportView(fileListList);
 
         listPanel.add(listScrollPane, java.awt.BorderLayout.CENTER);
@@ -806,10 +801,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     private void fileViewToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileViewToggleActionPerformed
         changeFileView(evt.getActionCommand(),viewButtonGroup);
     }//GEN-LAST:event_fileViewToggleActionPerformed
-
-    private void fileListListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_fileListListValueChanged
-        // TODO add your handling code here:
-    }//GEN-LAST:event_fileListListValueChanged
 
     private void homeFolderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeFolderButtonActionPerformed
         changeCurrentDirectory(null);
