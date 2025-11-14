@@ -100,7 +100,7 @@ public class MetadataNameTableCellRenderer extends DefaultTableCellRenderer{
             return getFileIcon();
         if (metadata instanceof FolderMetadata)
             return getFolderIcon();
-        if (metadata instanceof DbxRootMetadata)
+        if (metadata instanceof DbxRootMetadata || metadata == null)
             return DROPBOX_ICON;
         return null;
     }
