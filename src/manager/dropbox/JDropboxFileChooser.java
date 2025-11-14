@@ -1059,7 +1059,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 Metadata metadata = fileDetailsModel.getMetadataList().get(index);
                 if (metadata instanceof DbxRootMetadata)
                     changeCurrentDirectory(null);
-                if (metadata instanceof FolderMetadata)
+                else if (metadata instanceof FolderMetadata)
                     changeCurrentDirectory(metadata.getPathLower());
                 else if (isAcceptEnabled())
                     JDropboxFileChooser.this.accept(evt);
