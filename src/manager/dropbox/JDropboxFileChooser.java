@@ -901,11 +901,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 Object value,int index,boolean isSelected,boolean cellHasFocus){
             Component comp = super.getListCellRendererComponent(list, value, 
                     index, isSelected, cellHasFocus);
-            if (value == null || value instanceof DbxRootMetadata)
-                setIcon(DROPBOX_ICON_16);
-            else if (value instanceof Metadata) {
-                if (value instanceof FolderMetadata)
-                    setIcon(folderIcon);
+            if (value instanceof Metadata && !(value instanceof DbxRootMetadata)) {
                 Border border = getBorder();
                 String path = ((Metadata)value).getPathLower();
                 if (path != null){
@@ -918,7 +914,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             return comp;
         }
         @Override
-        protected Object setValue(Metadata value){
+        protected Object getValue(Metadata value){
             if (value == null || value instanceof DbxRootMetadata)
                 return "Dropbox";
             return value.getName();
