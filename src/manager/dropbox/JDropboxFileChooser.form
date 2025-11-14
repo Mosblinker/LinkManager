@@ -181,7 +181,9 @@
           <ComponentRef name="viewButtonGroup"/>
         </Property>
         <Property name="toolTipText" type="java.lang.String" value="Details"/>
-        <Property name="actionCommand" type="java.lang.String" value="detailsView"/>
+        <Property name="actionCommand" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="DETAILS_VIEW_ACTION_COMMAND" type="code"/>
+        </Property>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fileViewToggleActionPerformed"/>
@@ -194,7 +196,9 @@
         </Property>
         <Property name="selected" type="boolean" value="true"/>
         <Property name="toolTipText" type="java.lang.String" value="List"/>
-        <Property name="actionCommand" type="java.lang.String" value="listView"/>
+        <Property name="actionCommand" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="LIST_VIEW_ACTION_COMMAND" type="code"/>
+        </Property>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fileViewToggleActionPerformed"/>

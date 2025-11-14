@@ -47,7 +47,17 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      */
     public static final String DIRECTORY_PROPERTY_CHANGED = 
             JFileChooser.DIRECTORY_CHANGED_PROPERTY;
-    
+    /**
+     * 
+     */
+    protected static final String LIST_VIEW_ACTION_COMMAND = "listView";
+    /**
+     * 
+     */
+    protected static final String DETAILS_VIEW_ACTION_COMMAND = "detailsView";
+    /**
+     * 
+     */
     protected static final SimpleDateFormat MODIFIED_DATE_FORMAT = 
             new SimpleDateFormat("M/d/yyyy h:mm a");
     /**
@@ -585,7 +595,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
 
         viewButtonGroup.add(detailsViewToggle);
         detailsViewToggle.setToolTipText("Details");
-        detailsViewToggle.setActionCommand("detailsView");
+        detailsViewToggle.setActionCommand(DETAILS_VIEW_ACTION_COMMAND);
         detailsViewToggle.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fileViewToggleActionPerformed(evt);
@@ -595,7 +605,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         viewButtonGroup.add(listViewToggle);
         listViewToggle.setSelected(true);
         listViewToggle.setToolTipText("List");
-        listViewToggle.setActionCommand("listView");
+        listViewToggle.setActionCommand(LIST_VIEW_ACTION_COMMAND);
         listViewToggle.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fileViewToggleActionPerformed(evt);
