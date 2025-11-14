@@ -1035,12 +1035,14 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
          */
         SelectionAction(){
             super("SelectRow");
+            super.putValue(Action.ACTION_COMMAND_KEY, ACCEPT_SELECTED);
         }
         /**
          * 
          * @param index 
+         * @param evt
          */
-        public void rowActionPerformed(int index){
+        public void actionPerformed(int index, ActionEvent evt){
             if (index >= 0){
                 Metadata metadata = fileDetailsModel.getMetadataList().get(index);
                 if (metadata instanceof DbxRootMetadata)
@@ -1048,22 +1050,33 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 if (metadata instanceof FolderMetadata)
                     changeCurrentDirectory(metadata.getPathLower());
                 else if (isAcceptEnabled())
-                    JDropboxFileChooser.this.accept();
+                    JDropboxFileChooser.this.accept(evt);
             }
+        }
+        /**
+         * 
+         * @param index
+         * @param evt 
+         */
+        protected void mouseClicked(int index, MouseEvent evt){
+            actionPerformed(index,new ActionEvent(evt.getSource(),
+                    ActionEvent.ACTION_PERFORMED,
+                    (String)getValue(Action.ACTION_COMMAND_KEY),
+                    evt.getModifiersEx()));
         }
         @Override
         public void actionPerformed(ActionEvent evt) {
             if (evt.getSource() == fileDetailsTable || 
                     evt.getSource() == detailsScrollPane)
-                rowActionPerformed(getSelectedDetailsIndex());
+                actionPerformed(getSelectedDetailsIndex(),evt);
             else if (evt.getSource() == fileListList || 
                     evt.getSource() == listScrollPane)
-                rowActionPerformed(getSelectedListIndex());
+                actionPerformed(getSelectedListIndex(),evt);
             else {
                 if (listViewToggle.isSelected())
-                    rowActionPerformed(getSelectedListIndex());
+                    actionPerformed(getSelectedListIndex(),evt);
                 else if (detailsViewToggle.isSelected())
-                    rowActionPerformed(getSelectedDetailsIndex());
+                    actionPerformed(getSelectedDetailsIndex(),evt);
             }
         }
         @Override
@@ -1071,9 +1084,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             if (evt.getButton() == MouseEvent.BUTTON1 && evt.getClickCount() == 2){
                 Point point = evt.getPoint();
                 if (evt.getSource() == fileDetailsTable)
-                    rowActionPerformed(fileDetailsTable.rowAtPoint(point));
+                    mouseClicked(fileDetailsTable.rowAtPoint(point),evt);
                 else if (evt.getSource() == fileListList)
-                    rowActionPerformed(fileListList.locationToIndex(point));
+                    mouseClicked(fileListList.locationToIndex(point),evt);
             }
         }
         @Override
