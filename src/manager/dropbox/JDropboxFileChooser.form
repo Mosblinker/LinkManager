@@ -296,12 +296,12 @@
     </Component>
     <Component class="javax.swing.JButton" name="upFolderButton">
       <Properties>
+        <Property name="action" type="javax.swing.Action" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="upFolderAction" type="code"/>
+        </Property>
         <Property name="toolTipText" type="java.lang.String" value="Up One Level"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="upFolderButtonActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="lookInLabel">
       <Properties>

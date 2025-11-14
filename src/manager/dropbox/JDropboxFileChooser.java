@@ -67,6 +67,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * Creates new form JDropboxFileChooser
      */
     public JDropboxFileChooser() {
+            // Create actions for navigation buttons
+        upFolderAction = new UpFolderAction();
+        upFolderAction.setEnabled(false);
+        
         initComponents();
         
             // Set up navigation buttons
@@ -644,13 +648,9 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             }
         });
 
+        upFolderButton.setAction(upFolderAction);
         upFolderButton.setToolTipText("Up One Level");
         upFolderButton.setEnabled(false);
-        upFolderButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                upFolderButtonActionPerformed(evt);
-            }
-        });
 
         lookInLabel.setLabelFor(lookInComboBox);
         lookInLabel.setText("Look In:");
@@ -765,14 +765,6 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         changeCurrentDirectory(null);
     }//GEN-LAST:event_homeFolderButtonActionPerformed
     
-    private void upFolderButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_upFolderButtonActionPerformed
-        if (currDirPath == null || currDirPath.isBlank()){
-            upFolderButton.setEnabled(false);
-        } else {
-            goUpInDirectoryTree();
-        }
-    }//GEN-LAST:event_upFolderButtonActionPerformed
-
     private void lookInComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lookInComboBoxActionPerformed
         int selIndex = lookInComboBox.getSelectedIndex();
         if (selIndex >= 0){
@@ -828,8 +820,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     protected void updateUpFolderButtonEnabled(){
-        if (upFolderButton != null)
-            upFolderButton.setEnabled(isEnabled() && getDropboxClient() != null && 
+        if (upFolderAction != null)
+            upFolderAction.setEnabled(isEnabled() && getDropboxClient() != null && 
                     currDirPath != null && !currDirPath.isBlank());
     }
     @Override
@@ -891,6 +883,10 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private ArrayComboBoxModel<Metadata> lookInComboModel;
+    /**
+     * 
+     */
+    private Action upFolderAction;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JScrollPane detailsScrollPane;
@@ -1140,5 +1136,18 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         public void mouseEntered(MouseEvent e) { }
         @Override
         public void mouseExited(MouseEvent e) { }
+    }
+    /**
+     * 
+     */
+    private class UpFolderAction extends AbstractAction{
+        @Override
+        public void actionPerformed(ActionEvent evt) {
+            if (currDirPath == null || currDirPath.isBlank()){
+                setEnabled(false);
+            } else {
+                goUpInDirectoryTree();
+            }
+        }
     }
 }
