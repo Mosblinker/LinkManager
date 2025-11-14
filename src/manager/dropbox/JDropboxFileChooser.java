@@ -13,7 +13,9 @@ import components.ArrayListModel;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.text.SimpleDateFormat;
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -123,6 +125,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         fileDetailsTable.getSelectionModel().addListSelectionListener(handler);
         fileDetailsTable.addMouseListener(selAction);
         addAction(fileDetailsTable,selAction,ENTER_KEYSTROKE);
+        
         renameItem.setVisible(false);
         lookInComboModel = new ArrayComboBoxModel<>();
         lookInComboModel.add(new DbxRootMetadata());
