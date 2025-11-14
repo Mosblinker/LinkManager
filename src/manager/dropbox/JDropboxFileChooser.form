@@ -358,6 +358,11 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JComboBox" name="lookInComboBox">
+      <Properties>
+        <Property name="renderer" type="javax.swing.ListCellRenderer" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="new LookInListCellRenderer()" type="code"/>
+        </Property>
+      </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="lookInComboBoxActionPerformed"/>
       </Events>

@@ -21,12 +21,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.*;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.tree.*;
 import manager.LinkManager;
 import manager.LinkManagerUtilities;
+import manager.icons.DropboxIcon;
 import manager.renderer.*;
 
 /**
@@ -66,6 +68,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 "Home");
         setButtonIcon(upFolderButton,uiDefaults,"FileChooser.upFolderIcon",
                 "Up One Level");
+        folderIcon = uiDefaults.getIcon("FileChooser.directoryIcon");
         Handler handler = new Handler();
         fileTreeModel = new DefaultTreeModel(null,true);
         fileTreeModel.addTreeModelListener(handler);
@@ -359,6 +362,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             if (loadDirectory(getDropboxClient(),path)){
                 currDirPath = (path!=null)?path:"";
                 String[] paths = currDirPath.split("/");
+                System.out.println(currDirPath + " " + paths.length);
                 String temp = "";
                 lookInComboModel.clear();
                 lookInComboModel.add(new DbxRootMetadata());
@@ -637,6 +641,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         lookInLabel.setLabelFor(lookInComboBox);
         lookInLabel.setText("Look In:");
 
+        lookInComboBox.setRenderer(new LookInListCellRenderer());
         lookInComboBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 lookInComboBoxActionPerformed(evt);
@@ -980,6 +985,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
      * 
      */
     private ArrayComboBoxModel<Metadata> lookInComboModel;
+    
+    private Icon folderIcon = null;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel controlButtonPanel;
     private javax.swing.JScrollPane detailsScrollPane;
@@ -1147,5 +1154,22 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         protected String getValue(Metadata metadata) {
             return metadata.getPathLower();
         }
+    }
+    
+    private class LookInListCellRenderer extends MetadataNameListCellRenderer{
+        @Override
+        public Component getListCellRendererComponent(JList list,
+                Object value,int index,boolean isSelected,boolean cellHasFocus){
+            Component comp = super.getListCellRendererComponent(list, value, 
+                    index, isSelected, cellHasFocus);
+            return comp;
+        }
+        @Override
+        protected Object setValue(Metadata value){
+            if (value == null || value instanceof DbxRootMetadata)
+                return "Dropbox";
+            return value.getName();
+        }
+        
     }
 }
