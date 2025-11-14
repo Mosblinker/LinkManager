@@ -236,6 +236,7 @@
                     <Property name="selectionMode" type="int" value="0"/>
                     <Property name="inheritsPopupMenu" type="boolean" value="true"/>
                     <Property name="layoutOrientation" type="int" value="1"/>
+                    <Property name="visibleRowCount" type="int" value="-1"/>
                   </Properties>
                   <Events>
                     <EventHandler event="valueChanged" listener="javax.swing.event.ListSelectionListener" parameters="javax.swing.event.ListSelectionEvent" handler="dropboxFileListValueChanged"/>

@@ -473,6 +473,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         dropboxFileList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         dropboxFileList.setInheritsPopupMenu(true);
         dropboxFileList.setLayoutOrientation(javax.swing.JList.VERTICAL_WRAP);
+        dropboxFileList.setVisibleRowCount(-1);
         dropboxFileList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
                 dropboxFileListValueChanged(evt);
