@@ -83,6 +83,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         SelectionAction selAction = new SelectionAction();
         
         fileNameField.getDocument().addDocumentListener(handler);
+        fileNameField.setAction(selAction);
         
             // Create and set up the model for the list view
         fileListModel = new ArrayListModel<>();
