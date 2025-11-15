@@ -2782,11 +2782,18 @@ public class LinkManagerConfig implements LinksListSettings{
     }
     /**
      * 
+     * @param dim 
+     */
+    public void setDropboxFileChooserSize(Dimension dim){
+        ConfigUtilities.putDimension(getDropboxFileChooserPreferences(), 
+                FILE_CHOOSER_SIZE_KEY,dim);
+    }
+    /**
+     * 
      * @param fc
      */
     public void setDropboxFileChooserSize(JDropboxFileChooser fc){
-        ConfigUtilities.putDimension(getDropboxFileChooserPreferences(), 
-                FILE_CHOOSER_SIZE_KEY,fc);
+        setDropboxFileChooserSize(fc.getSize());
     }
     /**
      * 
@@ -2798,11 +2805,18 @@ public class LinkManagerConfig implements LinksListSettings{
     }
     /**
      * 
+     * @param path 
+     */
+    public void setDropboxCurrentDirectory(String path){
+        getDropboxFileChooserPreferences().put(
+                FILE_CHOOSER_CURRENT_DIRECTORY_KEY, path);
+    }
+    /**
+     * 
      * @param fc 
      */
     public void setDropboxCurrentDirectory(JDropboxFileChooser fc){
-        getDropboxFileChooserPreferences().put(
-                FILE_CHOOSER_CURRENT_DIRECTORY_KEY, fc.getCurrentDirectory());
+        setDropboxCurrentDirectory(fc.getCurrentDirectory());
     }
     /**
      * 
