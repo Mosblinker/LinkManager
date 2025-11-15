@@ -594,8 +594,6 @@ public class DropboxUtilities {
         DefaultMutableTreeNode node = new DefaultMutableTreeNode(metadata);
         if (metadata instanceof FolderMetadata)
             traverseFolderTree(client,metadata.getPathLower(),includeDeleted,node);
-        else if (metadata instanceof DbxRootMetadata)
-            traverseFolderTree(client,"",includeDeleted,node);
         else 
             node.setAllowsChildren(false);
         LinkManager.getLogger().exiting("DropboxUtilities", 
@@ -627,7 +625,7 @@ public class DropboxUtilities {
                 new Object[]{client,path,includeDeleted});
         DefaultMutableTreeNode root;
         if (path == null || path.isEmpty() || path.equals("/")){
-            root = new DefaultMutableTreeNode(new DbxRootMetadata());
+            root = new DefaultMutableTreeNode();
             traverseFolderTree(client,"",includeDeleted,root);
         } else {
             root = listFolderTree(client,client.files().getMetadata(path),

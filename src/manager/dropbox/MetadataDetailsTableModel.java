@@ -128,8 +128,7 @@ public class MetadataDetailsTableModel extends AbstractTableModel{
                         return ((FileMetadata)metadata).getSize();
                     return null;
                 case(2):
-                    if (metadata instanceof FolderMetadata || 
-                            metadata instanceof DbxRootMetadata)
+                    if (metadata instanceof FolderMetadata)
                         return "File folder";
                     else if (metadata instanceof DeletedMetadata)
                         return "Deleted";

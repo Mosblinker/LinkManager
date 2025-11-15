@@ -22,17 +22,13 @@ public class MetadataComparator implements Comparator<Metadata>{
             return -1;
         else if (o2 == null)
             return 1;
-        int comparison = compareClass(o1,o2,DbxRootMetadata.class);
-        if (comparison == 0)
-            comparison = compareClass(o1,o2,FolderMetadata.class);
+        int comparison = compareClass(o1,o2,FolderMetadata.class);
         if (comparison == 0)
             comparison = compareClass(o1,o2,FileMetadata.class);
         if (comparison == 0)
             comparison = compareClass(o2,o1,DeletedMetadata.class);
         if (comparison != 0)
             return comparison;
-        if (o1 instanceof DbxRootMetadata && !(o2 instanceof DbxRootMetadata))
-            return -1;
         String o1Path = o1.getPathLower();
         String o2Path = o2.getPathLower();
         if (Objects.equals(o1Path, o2Path)){

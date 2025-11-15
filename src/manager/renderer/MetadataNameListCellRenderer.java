@@ -11,7 +11,6 @@ import javax.swing.Icon;
 import javax.swing.JList;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
-import manager.dropbox.DbxRootMetadata;
 import manager.icons.DropboxIcon;
 
 /**
@@ -103,7 +102,7 @@ public class MetadataNameListCellRenderer extends DefaultListCellRenderer{
             return getFileIcon();
         if (metadata instanceof FolderMetadata)
             return getFolderIcon();
-        if (metadata instanceof DbxRootMetadata || metadata == null)
+        if (metadata == null)
             return DROPBOX_ICON;
         return null;
     }

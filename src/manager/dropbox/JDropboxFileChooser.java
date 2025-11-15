@@ -153,7 +153,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         
         renameItem.setVisible(false);
         lookInComboModel = new ArrayComboBoxModel<>();
-        lookInComboModel.add(new DbxRootMetadata());
+        lookInComboModel.add(null);
         lookInComboBox.setModel(lookInComboModel);
         lookInComboBox.setRenderer(new LookInListCellRenderer());
         
@@ -389,7 +389,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 String[] paths = currDirPath.split("/");
                 String temp = "";
                 lookInComboModel.clear();
-                lookInComboModel.add(new DbxRootMetadata());
+                lookInComboModel.add(null);
                 for (int i = 1; i < paths.length; i++){
                     temp += "/"+paths[i];
                     try{
@@ -811,7 +811,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         if (selIndex >= 0){
             Metadata metadata = lookInComboModel.get(selIndex);
             String path = "";
-            if (metadata != null && !(metadata instanceof DbxRootMetadata))
+            if (metadata != null)
                 path = metadata.getPathLower();
             if (!currDirPath.equals(path))
                 changeCurrentDirectory(path);
@@ -1053,7 +1053,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 Object value,int index,boolean isSelected,boolean cellHasFocus){
             Component comp = super.getListCellRendererComponent(list, value, 
                     index, isSelected, cellHasFocus);
-            if (value instanceof Metadata && !(value instanceof DbxRootMetadata)) {
+            if (value instanceof Metadata) {
                 Border border = getBorder();
                 String path = ((Metadata)value).getPathLower();
                 if (path != null){
@@ -1067,7 +1067,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         }
         @Override
         protected Object getValue(Metadata value){
-            if (value == null || value instanceof DbxRootMetadata)
+            if (value == null)
                 return "Dropbox";
             return value.getName();
         }
@@ -1110,7 +1110,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         public void actionPerformed(int index, ActionEvent evt){
             if (index >= 0 && isEnabled() && getDropboxClient() != null){
                 Metadata metadata = fileListModel.get(index);
-                if (metadata instanceof DbxRootMetadata)
+                if (metadata == null)
                     changeCurrentDirectory(null);
                 else if (metadata instanceof FolderMetadata)
                     changeCurrentDirectory(metadata.getPathLower());
