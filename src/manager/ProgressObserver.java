@@ -33,6 +33,14 @@ public interface ProgressObserver {
     public ProgressObserver setValue(int value);
     /**
      * 
+     * @param value
+     * @return 
+     */
+    public default ProgressObserver setValueLong(long value){
+        return setValue((int)value);
+    }
+    /**
+     * 
      * @param offset
      * @return 
      */
@@ -79,6 +87,14 @@ public interface ProgressObserver {
      * @return 
      */
     public ProgressObserver setMaximum(int max);
+    /**
+     * 
+     * @param max
+     * @return 
+     */
+    public default ProgressObserver setMaximumLong(long max){
+        return setMaximum((int)max);
+    }
     /**
      * 
      * @return 
