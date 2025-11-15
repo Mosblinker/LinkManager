@@ -1460,6 +1460,18 @@ public class LinkManagerConfig implements LinksListSettings{
                     // Set the value for the Dropbox database file path
                 prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY, 
                         getDropboxDatabaseFileName());
+                    // If the Dropbox file chooser preference node exists
+                if (nodeExists(getDropboxPreferences(),DROPBOX_FILE_CHOOSER_PREFERENCE_NODE)){
+                    prop.setProperty(
+                            DROPBOX_PROPERTY_KEY_PREFIX+DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY, 
+                            getSelectedDropboxPath());
+                    prop.setProperty(
+                            DROPBOX_PROPERTY_KEY_PREFIX+FILE_CHOOSER_SIZE_KEY, 
+                            getDropboxFileChooserSize());
+                    prop.setProperty(
+                            DROPBOX_PROPERTY_KEY_PREFIX+FILE_CHOOSER_CURRENT_DIRECTORY_KEY, 
+                            getDropboxCurrentDirectory());
+                }
             }   // Add the current tab listID data to the properties
             addListDataToProperties(getSelectedListIDMap(),
                     SELECTED_LIST_ID_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
