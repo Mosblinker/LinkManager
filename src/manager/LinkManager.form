@@ -2237,6 +2237,7 @@
     </Container>
     <Component class="manager.dropbox.JDropboxFileChooser" name="dropboxFC">
       <Properties>
+        <Property name="acceptButtonToolTipText" type="java.lang.String" value="Open selected file"/>
         <Property name="dialogTitle" type="java.lang.String" value="Set Database Location..."/>
       </Properties>
     </Component>
