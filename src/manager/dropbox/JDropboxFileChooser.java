@@ -628,7 +628,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
         });
         filePopupMenu.add(renameItem);
 
-        setPreferredSize(new java.awt.Dimension(722, 458));
+        setPreferredSize(new java.awt.Dimension(716, 309));
 
         controlButtonPanel.setLayout(new java.awt.GridLayout(1, 0, 6, 0));
         controlButtonPanel.add(acceptButton);

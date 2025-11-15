@@ -85,7 +85,7 @@
   </NonVisualComponents>
   <Properties>
     <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-      <Dimension value="[722, 458]"/>
+      <Dimension value="[716, 309]"/>
     </Property>
   </Properties>
   <AuxValues>
