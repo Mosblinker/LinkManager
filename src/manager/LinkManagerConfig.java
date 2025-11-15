@@ -577,6 +577,15 @@ public class LinkManagerConfig implements LinksListSettings{
         return node;
     }
     /**
+     * 
+     * @return 
+     */
+    public Set<JFileChooser> getRegisteredFileChoosers(){
+        Set<JFileChooser> fcs = new HashSet<>(getFileChooserPreferenceMap().keySet());
+        fcs.addAll(getFileChooserNameMap().keySet());
+        return fcs;
+    }
+    /**
      * This creates and returns the local preference node for the program using 
      * the {@link #getProgramID() program ID} as the name of the node. This is 
      * equivalent to the following: 
@@ -1380,10 +1389,8 @@ public class LinkManagerConfig implements LinksListSettings{
         getSelectedTabIndexMap().putAll(selListMap);
             // Add all the values for the visible rectangles for the lists
         getVisibleRectMap().putAll(visRectMap);
-        Set<JFileChooser> fcs = new HashSet<>(getFileChooserPreferenceMap().keySet());
-        fcs.addAll(getFileChooserNameMap().keySet());
             // Go through the file choosers
-        for (JFileChooser fc : fcs){
+        for (JFileChooser fc : getRegisteredFileChoosers()){
                 // Import the preferences for the file chooser
             importPreferences(getFileChooserPreferences(fc),cProp);
         }
