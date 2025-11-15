@@ -7,12 +7,9 @@ package manager.dropbox;
 import com.dropbox.core.v2.files.*;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.event.MouseEvent;
-import java.util.EventObject;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
 
 /**
  *
@@ -29,24 +26,6 @@ public class MetadataNameCellEditor extends DefaultCellEditor{
     public MetadataNameCellEditor() {
         super(new JTextField());
         fieldBorder = editorComponent.getBorder();
-    }
-    
-    @Override
-    public boolean isCellEditable(EventObject event){
-        boolean editable = super.isCellEditable(event);
-        if (editable && event != null && event.getSource() instanceof JTree){
-            JTree tree = (JTree)event.getSource();
-            if (event instanceof MouseEvent) {
-                TreePath path = tree.getPathForLocation(
-                        ((MouseEvent)event).getX(),((MouseEvent)event).getY());
-                if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode){
-                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-                    if (node.getUserObject() instanceof DbxRootMetadata)
-                        return false;
-                }
-            }
-        }
-        return editable;
     }
     /**
      * 
