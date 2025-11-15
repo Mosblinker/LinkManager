@@ -717,6 +717,8 @@ public class LinkManagerConfig implements LinksListSettings{
             // Get the parent node for the listID preference nodes and clear the 
             // node cache
         listIDNodes.setParentNode();
+            // Clear the preference nodes for the file choosers
+        fcNodes.clear();
             // Reset the Dropbox node to null
         dropboxNode = null;
             // Update the values in the preference nodes
