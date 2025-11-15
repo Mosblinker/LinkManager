@@ -554,7 +554,7 @@ public class LinkManagerConfig implements LinksListSettings{
      * @param fc
      * @param name
      */
-    public void addFileChooser(JFileChooser fc, String name){
+    public void setFileChooserName(JFileChooser fc, String name){
         if (!fcNodeNames.containsKey(fc))
             fcNodeNames.put(fc, name);
         if (!fcNodes.containsKey(fc))

@@ -795,11 +795,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         searchMenu.add(searchPanel.getFindPreviousAction());
         
             // Set up file chooser map
-        config.addFileChooser(openFC, OPEN_FILE_CHOOSER_NAME);
-        config.addFileChooser(saveFC, SAVE_FILE_CHOOSER_NAME);
-        config.addFileChooser(configFC, CONFIG_FILE_CHOOSER_NAME);
-        config.addFileChooser(exportFC, EXPORT_FILE_CHOOSER_NAME);
-        config.addFileChooser(databaseFC, DATABASE_FILE_CHOOSER_NAME);
+        config.setFileChooserName(openFC, OPEN_FILE_CHOOSER_NAME);
+        config.setFileChooserName(saveFC, SAVE_FILE_CHOOSER_NAME);
+        config.setFileChooserName(configFC, CONFIG_FILE_CHOOSER_NAME);
+        config.setFileChooserName(exportFC, EXPORT_FILE_CHOOSER_NAME);
+        config.setFileChooserName(databaseFC, DATABASE_FILE_CHOOSER_NAME);
         
             // Set up the component key prefix map
         config.getComponentNames().put(listManipulator, LIST_MANAGER_NAME);
