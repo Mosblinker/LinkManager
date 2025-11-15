@@ -4270,6 +4270,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void exportListsItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportListsItemActionPerformed
             // Gets the file to save to
         File file = showSaveFileChooser(exportFC,null);
+        config.setSelectedFile(exportFC, file);
         if (file != null){  // If the user selected a file
             saver = new ExportDatabase(file);
             saver.execute();
@@ -4278,10 +4279,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void saveConfigItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveConfigItemActionPerformed
         File file = showSaveFileChooser(configFC, "Save Configuration To File...");
+        config.setSelectedFile(configFC,file);
         if (file != null){
             if (!FilesExtended.endsWithFileExtension(file,ConfigExtensions.CFG)){
                 file = new File(file.toString()+"."+ConfigExtensions.CFG);
                 configFC.setSelectedFile(file);
+                config.setSelectedFile(configFC,file);
             }
             saver = new ConfigSaver(file);
             saver.execute();
@@ -4632,6 +4635,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         File file = getDatabaseFile(fileName);
         dbFileField.setText(fileName);
         databaseFC.setCurrentDirectory(file);
+        config.setCurrentDirectory(databaseFC);
     }
     
     private void setDropboxDatabaseFileFields(String fileName){
@@ -4801,6 +4805,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     
     private void dbFileBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileBrowseButtonActionPerformed
         File file = showSaveFileChooser(databaseFC,null);
+        config.setSelectedFile(databaseFC, file);
         if (file != null){
             if (file.isDirectory()){
                 String fileName = dbFileField.getText();
@@ -6943,6 +6948,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Get the file to save to
             File file = showSaveFileChooser(saveFC,
                     "Save "+panel.getListName()+" To File...");
+            config.setSelectedFile(saveFC, file);
             if (file != null){  // If the user selected a file
                 saver = new ListSaver(file,panel.getModel());
                 saver.execute();
@@ -6972,6 +6978,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Get the file to load from
             File file = showOpenFileChooser(openFC,
                     "Load "+panel.getListName()+" From File...");
+            config.setSelectedFile(openFC, file);
             if (file != null){  // If the user selected a file
                 loader = new ListLoader(file,panel);
                 loader.execute();
@@ -9173,6 +9180,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void done(){
                 // Configure the program
             configureProgram();
+            config.setSelectedFile(configFC,file);
                 // Wrap up the loading process
             super.done();
                 // Re-enable the hidden list toggle
