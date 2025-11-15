@@ -48,6 +48,7 @@ import javax.swing.filechooser.*;
 import javax.swing.table.*;
 import javax.swing.text.*;
 import javax.swing.tree.*;
+import manager.compress.FileCreateCallback7z;
 import manager.config.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
@@ -59,6 +60,8 @@ import manager.renderer.*;
 import manager.security.*;
 import manager.timermenu.*;
 import measure.format.binary.ByteUnitFormat;
+import net.sf.sevenzipjbinding.*;
+import net.sf.sevenzipjbinding.impl.*;
 import org.sqlite.*;
 import org.sqlite.core.*;
 import sql.*;
@@ -6871,6 +6874,28 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         getLogger().exiting(this.getClass().getName(), "loadDatabase");
         return tabsModels;
+    }
+    /**
+     * 
+     * @param source
+     * @param target
+     * @throws SevenZipException
+     * @throws IOException 
+     */
+    private void compressFile(File source, File target) throws SevenZipException, IOException{
+        getLogger().entering(this.getClass().getName(), "compressFile", 
+                new Object[]{source,target});
+        try (RandomAccessFile raf = new RandomAccessFile(target, "rw");
+                IOutCreateArchive7z outArchive = SevenZip.openOutArchive7z()){
+                // Configure archive
+            outArchive.setLevel(getDropboxFileCompressionLevel());
+            outArchive.setSolid(true);
+            
+                // Create the archive
+            outArchive.createArchive(new RandomAccessFileOutStream(raf),
+                    1, new FileCreateCallback7z(progressObserver,source));
+        }
+        getLogger().exiting(this.getClass().getName(), "compressFile");
     }
     /**
      * 
