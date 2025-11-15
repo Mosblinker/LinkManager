@@ -34,7 +34,7 @@ public class FileCreateCallback7z extends AbstractFileCreateCallback<IOutItem7z>
         else
             item.setDataSize(file.length());
         item.setPropertyLastModificationTime(new Date(file.lastModified()));
-        item.setPropertyPath(file.getName());
+        item.setPropertyPath(getFilePathMap().getOrDefault(file,file.getName()));
         return item;
     }
     

@@ -8,7 +8,9 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import manager.LinkManagerUtilities;
 import manager.ProgressObserver;
 import net.sf.sevenzipjbinding.*;
@@ -35,6 +37,10 @@ public abstract class AbstractFileCreateCallback<T extends IOutItemBase>
     protected List<File> files;
     /**
      * 
+     */
+    protected Map<File,String> nameMap;
+    /**
+     * 
      * @param observer
      * @param files 
      */
@@ -43,6 +49,7 @@ public abstract class AbstractFileCreateCallback<T extends IOutItemBase>
             throw new IllegalArgumentException();
         this.observer = observer;
         this.files = new ArrayList<>(files);
+        nameMap = new HashMap<>();
     }
     /**
      * 
@@ -65,6 +72,13 @@ public abstract class AbstractFileCreateCallback<T extends IOutItemBase>
      */
     public List<File> getFiles(){
         return files;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<File,String> getFilePathMap(){
+        return nameMap;
     }
     @Override
     public void setOperationResult(boolean operationResultOk) throws SevenZipException {
