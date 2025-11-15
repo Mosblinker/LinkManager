@@ -114,15 +114,6 @@ public class MetadataNameListCellRenderer extends DefaultListCellRenderer{
     protected Object getValue(Metadata value){
         return (value!=null)?value.getName():null;
     }
-    /**
-     * 
-     * @param list
-     * @param value
-     * @param index
-     * @param isSelected
-     * @param cellHasFocus
-     * @return 
-     */
     @Override
     public Component getListCellRendererComponent(JList list,
             Object value,int index,boolean isSelected,boolean cellHasFocus){
