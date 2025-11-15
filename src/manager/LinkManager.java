@@ -5176,11 +5176,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try{    // Get a client to communicate with Dropbox, refreshing the 
                 // Dropbox credentials if necessary
             DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
-            
-            dropboxFC.showOpenDialog(this,client);
-            System.out.println(dropboxFC.getSelectedPath());
+            int option = dropboxFC.showOpenDialog(this,client);
+            config.storeDropboxFileChooser(dropboxFC);
+            String path = dropboxFC.getSelectedPath();
+            config.setSelectedDropboxPath(path);
+            if (option == JDropboxFileChooser.ACCEPT_OPTION){
+                dbxDbFileField.setText(path);
+            }
         } catch (DbxException | UncheckedDbxException ex) {
-            getLogger().log(Level.WARNING, null, ex);
+            getLogger().log(Level.WARNING, "Cannot browse Dropbox", ex);
         } 
     }//GEN-LAST:event_dbxBrowseButtonActionPerformed
     
