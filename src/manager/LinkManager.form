@@ -223,12 +223,12 @@
                                           <EmptySpace max="-2" attributes="0"/>
                                           <Component id="jLabel11" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                                          <Component id="compressionToggle" min="-2" max="-2" attributes="0"/>
+                                          <Component id="dbxCompressionToggle" min="-2" max="-2" attributes="0"/>
                                       </Group>
                                       <Group type="102" alignment="0" attributes="0">
                                           <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                                          <Component id="compressionLevelCombo" min="-2" pref="113" max="-2" attributes="0"/>
+                                          <Component id="dbxCompressionLevelCombo" min="-2" pref="113" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
                                   <EmptySpace min="0" pref="160" max="32767" attributes="0"/>
@@ -254,12 +254,12 @@
                               <Component id="jLabel7" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="dbxChunkSizeSpinner" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="jLabel11" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="compressionToggle" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="dbxCompressionToggle" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace min="-2" pref="7" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="compressionLevelCombo" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="dbxCompressionLevelCombo" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="32767" attributes="0"/>
                       </Group>
@@ -434,23 +434,23 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dbxBrowseButtonActionPerformed"/>
                   </Events>
                 </Component>
-                <Component class="javax.swing.JCheckBox" name="compressionToggle">
+                <Component class="javax.swing.JCheckBox" name="dbxCompressionToggle">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Compressed"/>
                   </Properties>
                   <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="compressionToggleActionPerformed"/>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dbxCompressionToggleActionPerformed"/>
                   </Events>
                 </Component>
                 <Component class="javax.swing.JLabel" name="jLabel3">
                   <Properties>
                     <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
-                      <ComponentRef name="compressionLevelCombo"/>
+                      <ComponentRef name="dbxCompressionLevelCombo"/>
                     </Property>
                     <Property name="text" type="java.lang.String" value="Compression Level:"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JComboBox" name="compressionLevelCombo">
+                <Component class="javax.swing.JComboBox" name="dbxCompressionLevelCombo">
                   <Properties>
                     <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                       <Connection code="new javax.swing.DefaultComboBoxModel&lt;&gt;(COMPRESSION_LEVELS)" type="code"/>
@@ -461,7 +461,7 @@
                     </Property>
                   </Properties>
                   <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="compressionLevelComboActionPerformed"/>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dbxCompressionLevelComboActionPerformed"/>
                   </Events>
                   <AuxValues>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Integer&gt;"/>

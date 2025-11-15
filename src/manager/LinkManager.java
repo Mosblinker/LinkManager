@@ -1219,9 +1219,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxChunkSizeSpinner = new javax.swing.JSpinner();
         javax.swing.JLabel jLabel11 = new javax.swing.JLabel();
         dbxBrowseButton = new javax.swing.JButton();
-        compressionToggle = new javax.swing.JCheckBox();
+        dbxCompressionToggle = new javax.swing.JCheckBox();
         jLabel3 = new javax.swing.JLabel();
-        compressionLevelCombo = new javax.swing.JComboBox<>();
+        dbxCompressionLevelCombo = new javax.swing.JComboBox<>();
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
@@ -1618,22 +1618,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
 
-        compressionToggle.setText("Compressed");
-        compressionToggle.addActionListener(new java.awt.event.ActionListener() {
+        dbxCompressionToggle.setText("Compressed");
+        dbxCompressionToggle.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                compressionToggleActionPerformed(evt);
+                dbxCompressionToggleActionPerformed(evt);
             }
         });
 
-        jLabel3.setLabelFor(compressionLevelCombo);
+        jLabel3.setLabelFor(dbxCompressionLevelCombo);
         jLabel3.setText("Compression Level:");
 
-        compressionLevelCombo.setModel(new javax.swing.DefaultComboBoxModel<>(COMPRESSION_LEVELS));
-        compressionLevelCombo.setEnabled(false);
-        compressionLevelCombo.setRenderer(new CompressionLevelListCellRenderer());
-        compressionLevelCombo.addActionListener(new java.awt.event.ActionListener() {
+        dbxCompressionLevelCombo.setModel(new javax.swing.DefaultComboBoxModel<>(COMPRESSION_LEVELS));
+        dbxCompressionLevelCombo.setEnabled(false);
+        dbxCompressionLevelCombo.setRenderer(new CompressionLevelListCellRenderer());
+        dbxCompressionLevelCombo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                compressionLevelComboActionPerformed(evt);
+                dbxCompressionLevelComboActionPerformed(evt);
             }
         });
 
@@ -1660,11 +1660,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel11)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(compressionToggle))
+                                .addComponent(dbxCompressionToggle))
                             .addGroup(setDropboxCardLayout.createSequentialGroup()
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(compressionLevelCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(dbxCompressionLevelCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(0, 160, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -1683,11 +1683,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     .addComponent(jLabel7)
                     .addComponent(dbxChunkSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel11)
-                    .addComponent(compressionToggle))
+                    .addComponent(dbxCompressionToggle))
                 .addGap(7, 7, 7)
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(compressionLevelCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(dbxCompressionLevelCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -5236,13 +5236,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         } 
     }//GEN-LAST:event_dbxBrowseButtonActionPerformed
 
-    private void compressionToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compressionToggleActionPerformed
+    private void dbxCompressionToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxCompressionToggleActionPerformed
         updateDBLocationEnabled();
-    }//GEN-LAST:event_compressionToggleActionPerformed
+    }//GEN-LAST:event_dbxCompressionToggleActionPerformed
 
-    private void compressionLevelComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compressionLevelComboActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_compressionLevelComboActionPerformed
+    private void dbxCompressionLevelComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxCompressionLevelComboActionPerformed
+    }//GEN-LAST:event_dbxCompressionLevelComboActionPerformed
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
@@ -5569,8 +5568,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxBrowseButton.setEnabled(dbxLogInButton.isEnabled());
         dbxDbFileField.setEditable(dbxBrowseButton.isEnabled());
         dbxChunkSizeSpinner.setEnabled(dbxLogInButton.isEnabled());
-        compressionToggle.setEnabled(dbxLogInButton.isEnabled());
-        compressionLevelCombo.setEnabled(compressionToggle.isEnabled()&&compressionToggle.isSelected());
+        dbxCompressionToggle.setEnabled(dbxLogInButton.isEnabled());
+        dbxCompressionLevelCombo.setEnabled(dbxCompressionToggle.isEnabled()&&dbxCompressionToggle.isSelected());
         
         updateDBLocationButtons();
     }
@@ -5878,8 +5877,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JCheckBox checkUpdatesAtStartToggle;
     private javax.swing.JMenuItem clearListSelItem;
     private javax.swing.JMenuItem clearSelTabItem;
-    private javax.swing.JComboBox<Integer> compressionLevelCombo;
-    private javax.swing.JCheckBox compressionToggle;
     private javax.swing.JFileChooser configFC;
     private javax.swing.JScrollPane configScrollPane;
     private javax.swing.JTable configTable;
@@ -5947,6 +5944,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JLabel dbxAccountLabel;
     private javax.swing.JButton dbxBrowseButton;
     private javax.swing.JSpinner dbxChunkSizeSpinner;
+    private javax.swing.JComboBox<Integer> dbxCompressionLevelCombo;
+    private javax.swing.JCheckBox dbxCompressionToggle;
     private javax.swing.JPanel dbxDataPanel;
     private javax.swing.JTextField dbxDbFileField;
     private javax.swing.JMenuItem dbxListFilesTestButton;
@@ -6397,6 +6396,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxChunkSizeModel.getMultiplier()));
         checkUpdatesAtStartToggle.setSelected(config.getCheckForUpdateAtStartup(
                 checkUpdatesAtStartToggle.isSelected()));
+        
             // If the program has fully loaded
         if (fullyLoaded){
             getLogger().finer("Program is fully loaded");
