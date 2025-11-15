@@ -5238,10 +5238,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void dbxCompressionToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxCompressionToggleActionPerformed
         updateDBLocationEnabled();
+        config.setDropboxFileCompressionEnabled(dbxCompressionToggle.isSelected());
     }//GEN-LAST:event_dbxCompressionToggleActionPerformed
 
     private void dbxCompressionLevelComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxCompressionLevelComboActionPerformed
+        config.setDropboxFileCompressionLevel(getDropboxFileCompressionLevel());
     }//GEN-LAST:event_dbxCompressionLevelComboActionPerformed
+    
+    private int getDropboxFileCompressionLevel(){
+        return COMPRESSION_LEVELS[Math.max(dbxCompressionLevelCombo.getSelectedIndex(),0)];
+    }
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
