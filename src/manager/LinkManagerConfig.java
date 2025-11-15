@@ -1070,6 +1070,23 @@ public class LinkManagerConfig implements LinksListSettings{
     }
     /**
      * 
+     * @param node
+     * @param prop 
+     */
+    private void importPreferences(ConfigPreferences node, 
+            Properties prop){
+            // Get the name of the node used as a prefix
+        String prefix = node.name();
+            // This gets a set of keys for the properties that deal with lists
+        Set<String> listKeys = new HashSet<>(prop.stringPropertyNames());
+        listKeys.removeIf((String t) -> t == null || !t.startsWith(prefix));
+        for (String key : listKeys){
+            String value = prop.getProperty(key);
+            node.put(key.substring(prefix.length()), value);
+        }
+    }
+    /**
+     * 
      * @param prop 
      */
     public void importProperties(Properties prop){
@@ -1338,6 +1355,11 @@ public class LinkManagerConfig implements LinksListSettings{
         getSelectedTabIndexMap().putAll(selListMap);
             // Add all the values for the visible rectangles for the lists
         getVisibleRectMap().putAll(visRectMap);
+            // Go through the preference nodes for the file choosers
+        for (ConfigPreferences fcNode : getFileChooserPreferenceMap().values()){
+                // Import the preferences for the file chooser
+            importPreferences(fcNode,cProp);
+        }
     }
     /**
      * 
