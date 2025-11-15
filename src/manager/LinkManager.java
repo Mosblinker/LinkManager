@@ -844,12 +844,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
         
-            // Go through the file choosers and load them
-        for (JFileChooser fc : config.getFileChooserPreferenceMap().keySet()){
-                // Load the file chooser
-            config.loadFileChooser(fc);
-        }
-        
             // Set the SQLite config to enforce the foreign keys
         config.getSQLiteConfig().enforceForeignKeys(foreignKeysToggle.isSelected());
         
