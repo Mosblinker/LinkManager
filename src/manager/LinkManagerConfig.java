@@ -1273,6 +1273,15 @@ public class LinkManagerConfig implements LinksListSettings{
         if (str != null)
                 // Set the Dropbox database file path from the properties
             setDropboxDatabaseFileName(str);
+        
+        str = cProp.getProperty(DROPBOX_PROPERTY_KEY_PREFIX+DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY);
+        if (str != null)
+            setSelectedDropboxPath(str);
+        
+        str = cProp.getProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_CHOOSER_CURRENT_DIRECTORY_KEY);
+        if (str != null)
+            setDropboxCurrentDirectory(str);
+        
         b = cProp.getBooleanProperty(CHECK_FOR_UPDATES_AT_START_KEY);
         if (b != null)
             setCheckForUpdateAtStartup(b);
@@ -1299,7 +1308,11 @@ public class LinkManagerConfig implements LinksListSettings{
             if (rect != null)
                     // Set the component's bounds from the properties
                 setComponentBounds(entry.getKey(),rect);
-        }   // This maps listIDs to the selected link for that list
+        }
+        Dimension dim = cProp.getDimensionProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_CHOOSER_SIZE_KEY);
+        if (dim != null)
+            setDropboxFileChooserSize(dim);
+            // This maps listIDs to the selected link for that list
         Map<Integer,String> selMap = new HashMap<>();
             // This maps the listIDs to whether the selected link is visible for 
         Map<Integer,Boolean> selVisMap = new HashMap<>();   // that list
