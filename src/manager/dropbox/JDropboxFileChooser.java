@@ -355,6 +355,8 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
     protected boolean loadDirectory(DbxClientV2 client, String path) throws DbxException{
         LinkManager.getLogger().entering("JDropboxFileChooser", "loadDirectory",
                 new Object[]{client,path});
+        if (getDropboxClient() == null)
+            throw new IllegalStateException("No Dropbox client set");
         metadataLoadList.clear();
         try{
             metadataLoadList = DropboxUtilities.listFolder(client, path, metadataLoadList);
