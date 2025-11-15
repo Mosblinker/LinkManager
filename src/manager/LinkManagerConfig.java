@@ -1302,6 +1302,15 @@ public class LinkManagerConfig implements LinksListSettings{
         b = cProp.getBooleanProperty(CHECK_FOR_UPDATES_AT_START_KEY);
         if (b != null)
             setCheckForUpdateAtStartup(b);
+        
+        b = cProp.getBooleanProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_ENABLED_KEY);
+        if (b != null)
+            setDropboxFileCompressionEnabled(b);
+        
+        i = cProp.getIntProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_LEVEL_KEY);
+        if (i != null)
+            setDropboxFileCompressionLevel(i);
+        
             // Go through the entries in the component name map
         for (Map.Entry<Component,String> entry:getComponentNames().entrySet()){
                 // Get the dimension for the component from the properties
@@ -1488,6 +1497,10 @@ public class LinkManagerConfig implements LinksListSettings{
                     // Set the value for the Dropbox database file path
                 prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY, 
                         getDropboxDatabaseFileName());
+                prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_ENABLED_KEY, 
+                        isDropboxFileCompressionEnabled());
+                prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_LEVEL_KEY, 
+                        getDropboxFileCompressionLevel());
                     // If the Dropbox file chooser preference node exists
                 if (nodeExists(getDropboxPreferences(),DROPBOX_FILE_CHOOSER_PREFERENCE_NODE)){
                     prop.setProperty(
