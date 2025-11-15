@@ -164,6 +164,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public static final String DATABASE_FILE_EXTENSION = "db";
     /**
+     * The file extension for 7Zip compressed files.
+     */
+    public static final String SEVEN_ZIP_FILE_EXTENSION = "7z";
+    /**
      * This holds the abstract path to the default database file storing the 
      * tables containing the links.
      */
