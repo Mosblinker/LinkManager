@@ -36,23 +36,23 @@ public abstract class AbstractFileCreateCallback<T extends IOutItemBase>
     protected Map<File,String> nameMap;
     /**
      * 
-     * @param observer
+     * @param l
      * @param files 
      */
-    public AbstractFileCreateCallback(ProgressObserver observer, Collection<File> files){
+    public AbstractFileCreateCallback(ProgressObserver l, Collection<File> files){
         if (files == null || files.size() < 1)
             throw new IllegalArgumentException();
-        this.observer = observer;
+        this.observer = l;
         this.files = new ArrayList<>(files);
         nameMap = new HashMap<>();
     }
     /**
      * 
-     * @param observer
+     * @param l
      * @param files 
      */
-    public AbstractFileCreateCallback(ProgressObserver observer, File... files){
-        this(observer,Arrays.asList(files));
+    public AbstractFileCreateCallback(ProgressObserver l, File... files){
+        this(l,Arrays.asList(files));
     }
     /**
      * 
