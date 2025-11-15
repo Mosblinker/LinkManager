@@ -5177,7 +5177,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Dropbox credentials if necessary
             DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
             
-            dropboxFC.showDialog(this,client);
+            dropboxFC.showOpenDialog(this,client);
             System.out.println(dropboxFC.getSelectedPath());
         } catch (DbxException | UncheckedDbxException ex) {
             getLogger().log(Level.WARNING, null, ex);
