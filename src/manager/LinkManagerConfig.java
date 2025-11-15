@@ -216,6 +216,10 @@ public class LinkManagerConfig implements LinksListSettings{
      */
     public static final String FILE_CHOOSER_SELECTED_FILE_KEY = "SelectedFile";
     /**
+     * 
+     */
+    public static final String DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY = "SelectedPath";
+    /**
      * This is the suffix for the configuration keys for the size of a 
      * component.
      */
@@ -287,6 +291,11 @@ public class LinkManagerConfig implements LinksListSettings{
      * Dropbox.
      */
     public static final String DROPBOX_PREFERENCE_NODE_NAME = "dropbox";
+    /**
+     * This is the name of the preference node used to store data for the file 
+     * chooser for Dropbox.
+     */
+    public static final String DROPBOX_FILE_CHOOSER_PREFERENCE_NODE = "fileChooser";
     /**
      * This is the name of the preference node used to store the preference 
      * nodes that store the settings relating to a specific type of list. The 
@@ -381,6 +390,11 @@ public class LinkManagerConfig implements LinksListSettings{
      * Dropbox.
      */
     protected ConfigPreferences dropboxNode = null;
+    /**
+     * This is the preference node that stores the settings for the file chooser 
+     * for Dropbox.
+     */
+    protected ConfigPreferences dropboxFCNode = null;
     /**
      * This is used to handle the list type preference nodes.
      */
@@ -494,6 +508,15 @@ public class LinkManagerConfig implements LinksListSettings{
         if (dropboxNode == null)
             dropboxNode = getLocalChild(DROPBOX_PREFERENCE_NODE_NAME);
         return dropboxNode;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public ConfigPreferences getDropboxFileChooserPreferences(){
+        if (dropboxFCNode == null)
+            dropboxFCNode = getDropboxPreferences().node(DROPBOX_FILE_CHOOSER_PREFERENCE_NODE);
+        return dropboxFCNode;
     }
     /**
      * 
@@ -721,6 +744,8 @@ public class LinkManagerConfig implements LinksListSettings{
         fcNodes.clear();
             // Reset the Dropbox node to null
         dropboxNode = null;
+            // Reset the Dropbox file chooser preference node to null
+        dropboxFCNode = null;
             // Update the values in the preference nodes
         updatePreferences();
     }
