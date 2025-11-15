@@ -49,6 +49,7 @@ import javax.swing.table.*;
 import javax.swing.text.*;
 import javax.swing.tree.*;
 import manager.compress.FileCreateCallback7z;
+import manager.compress.OutputStreamSequentialOutStream;
 import manager.config.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
@@ -62,6 +63,8 @@ import manager.timermenu.*;
 import measure.format.binary.ByteUnitFormat;
 import net.sf.sevenzipjbinding.*;
 import net.sf.sevenzipjbinding.impl.*;
+import net.sf.sevenzipjbinding.simple.ISimpleInArchive;
+import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
 import org.sqlite.*;
 import org.sqlite.core.*;
 import sql.*;
@@ -6902,6 +6905,47 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             outArchive.createArchive(new RandomAccessFileOutStream(raf),1,callback);
         }
         getLogger().exiting(this.getClass().getName(), "compressFile");
+    }
+    /**
+     * 
+     * @param archive
+     * @param targetPath
+     * @param target
+     * @return 
+     * @throws SevenZipException
+     * @throws IOException 
+     */
+    private File extractFile(File archive, String targetPath, 
+            File target) throws SevenZipException, IOException{
+        getLogger().entering(this.getClass().getName(), "extractDatabaseFile", 
+                new Object[]{archive,targetPath,target});
+        if (target == null)
+            target = new File(archive.getParentFile(),targetPath);
+        getLogger().log(Level.FINER, "Extracting to {0}", target);
+        try(RandomAccessFile raf = new RandomAccessFile(archive,"r");
+                IInArchive inArchive = SevenZip.openInArchive(null, 
+                        new RandomAccessFileInStream(raf))){
+                // Get a simple interface of the archive inArchive
+            ISimpleInArchive simpleInArchive = inArchive.getSimpleInterface();
+            for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()){
+                String path = item.getPath();
+                if (path == null || path.equals(targetPath)){
+                    ExtractOperationResult result;
+                    try(OutputStreamSequentialOutStream output = 
+                            new OutputStreamSequentialOutStream(
+                                    new BufferedOutputStream(
+                                            new FileOutputStream(target)))){
+                        result = item.extractSlow(output);
+                    }
+                    if (result != ExtractOperationResult.OK){
+                        getLogger().log(Level.WARNING, "Error extracting item: {0}", result);
+                        return null;
+                    }
+                }
+            }
+        }
+        getLogger().exiting(this.getClass().getName(), "extractDatabaseFile", target);
+        return target;
     }
     /**
      * 
