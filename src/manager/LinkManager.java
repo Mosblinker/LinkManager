@@ -6377,6 +6377,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Load the file chooser
                 config.loadFileChooser(fc);
             }
+                // Load the Dropbox file chooser
+            config.loadDropboxFileChooser(dropboxFC);
         }   // Set the show hidden lists property from the config
         showHiddenListsToggle.setSelected(config.getHiddenListsAreShown(
                 showHiddenListsToggle.isSelected()));
