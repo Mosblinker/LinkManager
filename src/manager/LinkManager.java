@@ -322,6 +322,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String MAKE_LIST_READ_ONLY_ACTION_KEY = "MakeListReadOnly";
     /**
+     * These are the available compression levels for 7-Zip.
+     */
+    public static final int[] COMPRESSION_LEVELS = {
+        0, 1, 3, 5, 7, 9
+    };
+    /**
      * This is used to enable or disable the initial loading of the database and 
      * saving the database when the program closes.
      */
@@ -337,7 +343,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * up-to-date than the downloaded version.
      */
     private static final int DATABASE_LOADER_CHECK_LOCAL_FLAG = 0x02;
-    
+    /**
+     * 
+     */
     protected static final SimpleDateFormat DEBUG_DATE_FORMAT = 
             new SimpleDateFormat("M/d/yyyy h:mm:ss a");
     /**
