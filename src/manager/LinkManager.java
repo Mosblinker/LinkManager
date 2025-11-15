@@ -4824,7 +4824,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_setDBResetButtonActionPerformed
     
     private void dbFileBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileBrowseButtonActionPerformed
-        File file = showSaveFileChooser(databaseFC,null);
+        File file = showSaveFileChooser(databaseFC,null,false);
         config.setSelectedFile(databaseFC, file);
         if (file != null){
             if (file.isDirectory()){
