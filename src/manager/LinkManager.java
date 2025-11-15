@@ -6402,7 +6402,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxChunkSizeModel.getMultiplier()));
         checkUpdatesAtStartToggle.setSelected(config.getCheckForUpdateAtStartup(
                 checkUpdatesAtStartToggle.isSelected()));
-        
+        dbxCompressionToggle.setSelected(config.isDropboxFileCompressionEnabled());
+        dbxCompressionLevelCombo.setSelectedItem(config.getDropboxFileCompressionLevel());
             // If the program has fully loaded
         if (fullyLoaded){
             getLogger().finer("Program is fully loaded");
