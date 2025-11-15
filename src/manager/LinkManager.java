@@ -120,7 +120,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         {"UpdateChecker","TechnicJelle","https://github.com/TechnicJelle/UpdateCheckerJava"},
         {"sqlite-jdbc","xerial","https://github.com/xerial/sqlite-jdbc"},
         {"jackson-core","FasterXML","https://github.com/FasterXML/jackson-core"},
-        {"dropbox-core-sdk","Dropbox","https://github.com/dropbox/dropbox-sdk-java"}
+        {"dropbox-core-sdk","Dropbox","https://github.com/dropbox/dropbox-sdk-java"},
+        {"ListAction.java","Rob Camick","https://tips4java.wordpress.com/2008/10/14/list-action/"},
+        {"EditListAction.java","Rob Camick","https://tips4java.wordpress.com/2008/10/19/list-editor/"}
     };
     /**
      * This is the pattern for the file handler to use for the log files of this 
@@ -1203,6 +1205,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         javax.swing.JLabel jLabel7 = new javax.swing.JLabel();
         dbxChunkSizeSpinner = new javax.swing.JSpinner();
         javax.swing.JLabel jLabel11 = new javax.swing.JLabel();
+        dbxBrowseButton = new javax.swing.JButton();
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
@@ -1338,6 +1341,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         latestVersLabel = new javax.swing.JLabel();
         updateContinueButton = new javax.swing.JButton();
         updateOpenButton = new javax.swing.JButton();
+        dropboxFC = new manager.dropbox.JDropboxFileChooser();
         progressBar = new javax.swing.JProgressBar();
         javax.swing.JLabel newLinkLabel = new javax.swing.JLabel();
         linkTextField = new javax.swing.JTextField();
@@ -1407,6 +1411,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxPrintButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
+        dbxListFilesTestButton = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
 
         openFC.addActionListener(new java.awt.event.ActionListener() {
@@ -1590,6 +1595,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         jLabel11.setText("MiB");
 
+        dbxBrowseButton.setText("Browse");
+        dbxBrowseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbxBrowseButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout setDropboxCardLayout = new javax.swing.GroupLayout(setDropboxCard);
         setDropboxCard.setLayout(setDropboxCardLayout);
         setDropboxCardLayout.setHorizontalGroup(
@@ -1601,7 +1613,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     .addGroup(setDropboxCardLayout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbxDbFileField, javax.swing.GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE))
+                        .addComponent(dbxDbFileField, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(dbxBrowseButton))
                     .addGroup(setDropboxCardLayout.createSequentialGroup()
                         .addComponent(jLabel7)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1619,7 +1633,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(dbxDbFileField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(dbxDbFileField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(dbxBrowseButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
@@ -2769,6 +2784,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addContainerGap())
         );
 
+        dropboxFC.setAcceptButtonToolTipText("Open selected file");
+        dropboxFC.setDialogTitle("Set Database Location...");
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle(PROGRAM_NAME);
         setLocationByPlatform(true);
@@ -3245,6 +3263,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         dropboxTestMenu.add(dropboxRefreshTestButton);
+
+        dbxListFilesTestButton.setText("List Files");
+        dbxListFilesTestButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbxListFilesTestButtonActionPerformed(evt);
+            }
+        });
+        dropboxTestMenu.add(dbxListFilesTestButton);
 
         debugMenu.add(dropboxTestMenu);
 
@@ -5106,6 +5132,61 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.WARNING,"Could not open update URL "+url,ex);
         }
     }//GEN-LAST:event_updateOpenButtonActionPerformed
+
+    private void dbxListFilesTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxListFilesTestButtonActionPerformed
+        try {   // Get a client to communicate with Dropbox, refreshing the 
+                // Dropbox credentials if necessary
+            DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
+            
+            
+            DefaultMutableTreeNode nodes = DropboxUtilities.listFolderTree(client, "");
+            Iterator<TreeNode> nodeItr = nodes.preorderEnumeration().asIterator();
+            
+            while (nodeItr.hasNext()){
+                TreeNode temp = nodeItr.next();
+                if (temp instanceof DefaultMutableTreeNode){
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)temp;
+                    Metadata metadata;
+                    if (node.getUserObject() instanceof Metadata)
+                        metadata = (Metadata) node.getUserObject();
+                    else
+                        continue;
+                    System.out.print("    ".repeat(node.getLevel()));
+                    if (metadata != null)
+                        System.out.print(metadata.getName());
+                    if (metadata instanceof FileMetadata){
+                        FileMetadata file = (FileMetadata) metadata;
+                        ExportInfo exportInfo = file.getExportInfo();
+                        System.out.printf(" (%d bytes, %s, %s", file.getSize(),
+                                file.getClientModified(), file.getServerModified());
+                        if (exportInfo != null)
+                            System.out.printf(", %s, %s",
+                                    exportInfo.getExportAs(),exportInfo.getExportOptions());
+                        System.out.print(")");
+                    }
+                    System.out.println();
+                }
+            }
+        } catch (DbxException ex) {
+            getLogger().log(Level.WARNING, "Failed to list files", ex);
+        }
+    }//GEN-LAST:event_dbxListFilesTestButtonActionPerformed
+
+    private void dbxBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxBrowseButtonActionPerformed
+        try{    // Get a client to communicate with Dropbox, refreshing the 
+                // Dropbox credentials if necessary
+            DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
+            int option = dropboxFC.showOpenDialog(this,client);
+            config.storeDropboxFileChooser(dropboxFC);
+            String path = dropboxFC.getSelectedPath();
+            config.setSelectedDropboxPath(path);
+            if (option == JDropboxFileChooser.ACCEPT_OPTION){
+                dbxDbFileField.setText(path);
+            }
+        } catch (DbxException | UncheckedDbxException ex) {
+            getLogger().log(Level.WARNING, "Cannot browse Dropbox", ex);
+        } 
+    }//GEN-LAST:event_dbxBrowseButtonActionPerformed
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
@@ -5429,7 +5510,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         dbxLogInButton.setEnabled(setDBLocationItem.isEnabled() && dbxUtils != null);
         dbxLogOutButton.setEnabled(setDBLocationItem.isEnabled());
-        dbxDbFileField.setEditable(dbFileField.isEditable() && dbxUtils != null);
+        dbxBrowseButton.setEnabled(dbxLogInButton.isEnabled());
+        dbxDbFileField.setEditable(dbxBrowseButton.isEnabled());
         dbxChunkSizeSpinner.setEnabled(dbxLogInButton.isEnabled());
         
         updateDBLocationButtons();
@@ -5803,9 +5885,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem dbViewItem;
     private manager.database.DatabaseTableViewer dbViewer;
     private javax.swing.JLabel dbxAccountLabel;
+    private javax.swing.JButton dbxBrowseButton;
     private javax.swing.JSpinner dbxChunkSizeSpinner;
     private javax.swing.JPanel dbxDataPanel;
     private javax.swing.JTextField dbxDbFileField;
+    private javax.swing.JMenuItem dbxListFilesTestButton;
     private javax.swing.JButton dbxLogInButton;
     private javax.swing.JButton dbxLogOutButton;
     private components.JThumbnailLabel dbxPfpLabel;
@@ -5815,6 +5899,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenu debugMenu;
     private javax.swing.JCheckBoxMenuItem doubleNewLinesToggle;
     private javax.swing.JMenuItem downloadDBItem;
+    private manager.dropbox.JDropboxFileChooser dropboxFC;
     private javax.swing.JMenuItem dropboxRefreshTestButton;
     private manager.dropbox.DropboxSetupPanel dropboxSetupPanel;
     private javax.swing.JMenu dropboxTestMenu;
@@ -6292,6 +6377,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Load the file chooser
                 config.loadFileChooser(fc);
             }
+                // Load the Dropbox file chooser
+            config.loadDropboxFileChooser(dropboxFC);
         }   // Set the show hidden lists property from the config
         showHiddenListsToggle.setSelected(config.getHiddenListsAreShown(
                 showHiddenListsToggle.isSelected()));

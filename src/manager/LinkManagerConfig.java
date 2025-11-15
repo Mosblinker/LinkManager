@@ -21,6 +21,7 @@ import static manager.DatabaseSyncMode.DROPBOX;
 import manager.config.*;
 import manager.database.CacheSetIterator;
 import manager.dropbox.DropboxLinkUtils;
+import manager.dropbox.JDropboxFileChooser;
 import manager.links.*;
 import manager.security.*;
 import org.sqlite.SQLiteConfig;
@@ -216,6 +217,10 @@ public class LinkManagerConfig implements LinksListSettings{
      */
     public static final String FILE_CHOOSER_SELECTED_FILE_KEY = "SelectedFile";
     /**
+     * 
+     */
+    public static final String DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY = "SelectedPath";
+    /**
      * This is the suffix for the configuration keys for the size of a 
      * component.
      */
@@ -287,6 +292,11 @@ public class LinkManagerConfig implements LinksListSettings{
      * Dropbox.
      */
     public static final String DROPBOX_PREFERENCE_NODE_NAME = "dropbox";
+    /**
+     * This is the name of the preference node used to store data for the file 
+     * chooser for Dropbox.
+     */
+    public static final String DROPBOX_FILE_CHOOSER_PREFERENCE_NODE = "fileChooser";
     /**
      * This is the name of the preference node used to store the preference 
      * nodes that store the settings relating to a specific type of list. The 
@@ -381,6 +391,11 @@ public class LinkManagerConfig implements LinksListSettings{
      * Dropbox.
      */
     protected ConfigPreferences dropboxNode = null;
+    /**
+     * This is the preference node that stores the settings for the file chooser 
+     * for Dropbox.
+     */
+    protected ConfigPreferences dropboxFCNode = null;
     /**
      * This is used to handle the list type preference nodes.
      */
@@ -494,6 +509,15 @@ public class LinkManagerConfig implements LinksListSettings{
         if (dropboxNode == null)
             dropboxNode = getLocalChild(DROPBOX_PREFERENCE_NODE_NAME);
         return dropboxNode;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public ConfigPreferences getDropboxFileChooserPreferences(){
+        if (dropboxFCNode == null)
+            dropboxFCNode = getDropboxPreferences().node(DROPBOX_FILE_CHOOSER_PREFERENCE_NODE);
+        return dropboxFCNode;
     }
     /**
      * 
@@ -730,6 +754,8 @@ public class LinkManagerConfig implements LinksListSettings{
         fcNodes.clear();
             // Reset the Dropbox node to null
         dropboxNode = null;
+            // Reset the Dropbox file chooser preference node to null
+        dropboxFCNode = null;
             // Update the values in the preference nodes
         updatePreferences();
     }
@@ -1256,6 +1282,15 @@ public class LinkManagerConfig implements LinksListSettings{
         if (str != null)
                 // Set the Dropbox database file path from the properties
             setDropboxDatabaseFileName(str);
+        
+        str = cProp.getProperty(DROPBOX_PROPERTY_KEY_PREFIX+DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY);
+        if (str != null)
+            setSelectedDropboxPath(str);
+        
+        str = cProp.getProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_CHOOSER_CURRENT_DIRECTORY_KEY);
+        if (str != null)
+            setDropboxCurrentDirectory(str);
+        
         b = cProp.getBooleanProperty(CHECK_FOR_UPDATES_AT_START_KEY);
         if (b != null)
             setCheckForUpdateAtStartup(b);
@@ -1282,7 +1317,11 @@ public class LinkManagerConfig implements LinksListSettings{
             if (rect != null)
                     // Set the component's bounds from the properties
                 setComponentBounds(entry.getKey(),rect);
-        }   // This maps listIDs to the selected link for that list
+        }
+        Dimension dim = cProp.getDimensionProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_CHOOSER_SIZE_KEY);
+        if (dim != null)
+            setDropboxFileChooserSize(dim);
+            // This maps listIDs to the selected link for that list
         Map<Integer,String> selMap = new HashMap<>();
             // This maps the listIDs to whether the selected link is visible for 
         Map<Integer,Boolean> selVisMap = new HashMap<>();   // that list
@@ -1441,6 +1480,18 @@ public class LinkManagerConfig implements LinksListSettings{
                     // Set the value for the Dropbox database file path
                 prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY, 
                         getDropboxDatabaseFileName());
+                    // If the Dropbox file chooser preference node exists
+                if (nodeExists(getDropboxPreferences(),DROPBOX_FILE_CHOOSER_PREFERENCE_NODE)){
+                    prop.setProperty(
+                            DROPBOX_PROPERTY_KEY_PREFIX+DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY, 
+                            getSelectedDropboxPath());
+                    prop.setProperty(
+                            DROPBOX_PROPERTY_KEY_PREFIX+FILE_CHOOSER_SIZE_KEY, 
+                            getDropboxFileChooserSize());
+                    prop.setProperty(
+                            DROPBOX_PROPERTY_KEY_PREFIX+FILE_CHOOSER_CURRENT_DIRECTORY_KEY, 
+                            getDropboxCurrentDirectory());
+                }
             }   // Add the current tab listID data to the properties
             addListDataToProperties(getSelectedListIDMap(),
                     SELECTED_LIST_ID_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
@@ -2707,6 +2758,113 @@ public class LinkManagerConfig implements LinksListSettings{
             fc.setSelectedFile(file);
         }   // Load the file chooser's size from the preference node
         SwingExtendedUtilities.setComponentSize(fc,getFileChooserSize(fc));
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public String getSelectedDropboxPath(String defaultValue){
+        return getDropboxFileChooserPreferences().get(
+                DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY, defaultValue);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public String getSelectedDropboxPath(){
+        return getSelectedDropboxPath(null);
+    }
+    /**
+     * 
+     * @param path 
+     */
+    public void setSelectedDropboxPath(String path){
+        getDropboxFileChooserPreferences().put(
+                DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY, path);
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void setSelectedDropboxPath(JDropboxFileChooser fc){
+        setSelectedDropboxPath(fc.getSelectedPath());
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Dimension getDropboxFileChooserSize(){
+        return ConfigUtilities.getDimension(getDropboxFileChooserPreferences(), 
+                FILE_CHOOSER_SIZE_KEY, null);
+    }
+    /**
+     * 
+     * @param dim 
+     */
+    public void setDropboxFileChooserSize(Dimension dim){
+        ConfigUtilities.putDimension(getDropboxFileChooserPreferences(), 
+                FILE_CHOOSER_SIZE_KEY,dim);
+    }
+    /**
+     * 
+     * @param fc
+     */
+    public void setDropboxFileChooserSize(JDropboxFileChooser fc){
+        setDropboxFileChooserSize(fc.getSize());
+    }
+    /**
+     * 
+     * @return 
+     */
+    public String getDropboxCurrentDirectory(){
+        return getDropboxFileChooserPreferences().get(
+                FILE_CHOOSER_CURRENT_DIRECTORY_KEY, null);
+    }
+    /**
+     * 
+     * @param path 
+     */
+    public void setDropboxCurrentDirectory(String path){
+        getDropboxFileChooserPreferences().put(
+                FILE_CHOOSER_CURRENT_DIRECTORY_KEY, path);
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void setDropboxCurrentDirectory(JDropboxFileChooser fc){
+        setDropboxCurrentDirectory(fc.getCurrentDirectory());
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void storeDropboxFileChooser(JDropboxFileChooser fc){
+            // Put the file chooser's size in the preference node
+        setDropboxFileChooserSize(fc);
+            // Put the file chooser's current directory in the preference node
+        setDropboxCurrentDirectory(fc);
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void loadDropboxFileChooser(JDropboxFileChooser fc){
+            // Get the current directory for the file chooser
+        String dir = getDropboxCurrentDirectory();
+            // If there is a current directory for the file chooser and it exists
+        if (dir != null){
+                // Set the file chooser's current directory
+            fc.setCurrentDirectory(dir);
+        }   // Get the selected file for the file chooser, or null
+        String file = getSelectedDropboxPath();
+            // If there is a selected file for the file chooser
+        if (file != null){
+                // Select that file in the file chooser
+            fc.setSelectedPath(file);
+        }   // Load the file chooser's size from the preference node
+        SwingExtendedUtilities.setComponentSize(fc,getDropboxFileChooserSize());
     }
     /**
      * 

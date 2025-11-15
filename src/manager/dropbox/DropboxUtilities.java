@@ -17,6 +17,7 @@ import java.net.*;
 import java.util.*;
 import java.util.logging.Level;
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 import manager.*;
 
 /**
@@ -44,6 +45,24 @@ public class DropboxUtilities {
      * Dropbox when the file is being uploaded in chunks before giving up.
      */
     public static final int CHUNKED_UPLOAD_MAX_ATTEMPTS = 10;
+    /**
+     * 
+     */
+    private static final MetadataComparator METADATA_COMPARATOR = new MetadataComparator();
+    /**
+     * 
+     */
+    protected static final Comparator<DefaultMutableTreeNode> METADATA_TREE_NODE_COMPARATOR = 
+            (DefaultMutableTreeNode o1, DefaultMutableTreeNode o2) -> {
+        if (Objects.equals(o1, o2) || Objects.equals(o1.getUserObject(), o2.getUserObject()))
+            return 0;
+        else if (!(o2.getUserObject() instanceof Metadata))
+            return -1;
+        else if (!(o1.getUserObject() instanceof Metadata))
+            return 1;
+        return METADATA_COMPARATOR.compare((Metadata)o1.getUserObject(),
+                (Metadata)o2.getUserObject());
+    };
     /**
      * This class cannot be constructed.
      */
@@ -515,5 +534,219 @@ public class DropboxUtilities {
                 // Update the progress with the amount of bytes written
             l.setValue((int)Math.ceil(bytesWritten / div));
         };
+    }
+    /**
+     * 
+     * @param client
+     * @param path
+     * @param list
+     * @return
+     * @throws DbxException 
+     */
+    public static List<Metadata> listFolder(DbxClientV2 client, String path, 
+            List<Metadata> list) throws DbxException{
+        LinkManager.getLogger().entering("DropboxUtilities", "listFolder",
+                new Object[]{client,path,list});
+        if (list == null)
+            list = new ArrayList<>();
+            //  Get the files and folder metadata from the Dropbox directory
+        ListFolderResult results = client.files().listFolder((path!=null)?path:"");
+        for (Metadata metadata : results.getEntries()){
+            list.add(metadata);
+        }
+        while (results.getHasMore()){
+            results = client.files().listFolderContinue(results.getCursor());
+            for (Metadata metadata : results.getEntries()){
+                list.add(metadata);
+            }
+        }
+        LinkManager.getLogger().exiting("DropboxUtilities", "listFolder", list);
+        return list;
+    }
+    /**
+     * 
+     * @param client
+     * @param path
+     * @return
+     * @throws DbxException 
+     */
+    public static List<Metadata> listFolder(DbxClientV2 client, String path) throws DbxException{
+        return listFolder(client,path,new ArrayList<>());
+    }
+    /**
+     * 
+     * @param client
+     * @param metadata
+     * @param includeDeleted
+     * @return
+     * @throws DbxException 
+     */
+    public static DefaultMutableTreeNode listFolderTree(DbxClientV2 client, 
+            Metadata metadata, boolean includeDeleted) throws DbxException{
+        LinkManager.getLogger().entering("DropboxUtilities", "listFolderTree",
+                new Object[]{client,metadata,includeDeleted});
+        Objects.requireNonNull(metadata);
+        if (metadata instanceof DeletedMetadata && !includeDeleted){
+            LinkManager.getLogger().exiting("DropboxUtilities", 
+                    "listFolderTree", null);
+            return null;
+        }
+        DefaultMutableTreeNode node = new DefaultMutableTreeNode(metadata);
+        if (metadata instanceof FolderMetadata)
+            traverseFolderTree(client,metadata.getPathLower(),includeDeleted,node);
+        else 
+            node.setAllowsChildren(false);
+        LinkManager.getLogger().exiting("DropboxUtilities", 
+                "listFolderTree", node);
+        return node;
+    }
+    /**
+     * 
+     * @param client
+     * @param metadata
+     * @return
+     * @throws DbxException 
+     */
+    public static DefaultMutableTreeNode listFolderTree(DbxClientV2 client, 
+            Metadata metadata) throws DbxException{
+        return listFolderTree(client,metadata,false);
+    }
+    /**
+     * 
+     * @param client
+     * @param path
+     * @param includeDeleted
+     * @return
+     * @throws DbxException 
+     */
+    public static DefaultMutableTreeNode listFolderTree(DbxClientV2 client, 
+            String path, boolean includeDeleted) throws DbxException{
+        LinkManager.getLogger().entering("DropboxUtilities", "listFolderTree",
+                new Object[]{client,path,includeDeleted});
+        DefaultMutableTreeNode root;
+        if (path == null || path.isEmpty() || path.equals("/")){
+            root = new DefaultMutableTreeNode();
+            traverseFolderTree(client,"",includeDeleted,root);
+        } else {
+            root = listFolderTree(client,client.files().getMetadata(path),
+                    includeDeleted);
+        }
+        LinkManager.getLogger().exiting("DropboxUtilities", "listFolderTree", root);
+        return root;
+    }
+    /**
+     * 
+     * @param client
+     * @param path
+     * @return
+     * @throws DbxException 
+     */
+    public static DefaultMutableTreeNode listFolderTree(DbxClientV2 client, 
+            String path) throws DbxException{
+        return listFolderTree(client,path,false);
+    }
+    /**
+     * 
+     * @param client
+     * @param includeDeleted
+     * @return
+     * @throws DbxException 
+     */
+    public static DefaultMutableTreeNode listFolderTree(DbxClientV2 client, 
+            boolean includeDeleted) throws DbxException{
+        return listFolderTree(client,(String)null,includeDeleted);
+    }
+    /**
+     * 
+     * @param client
+     * @return
+     * @throws DbxException 
+     */
+    public static DefaultMutableTreeNode listFolderTree(DbxClientV2 client) 
+            throws DbxException{
+        return listFolderTree(client,false);
+    }
+    /**
+     * 
+     * @param client
+     * @param path
+     * @param includeDeleted
+     * @param root
+     * @return
+     * @throws DbxException 
+     */
+    private static void traverseFolderTree(DbxClientV2 client, 
+            String path, boolean includeDeleted, DefaultMutableTreeNode root) 
+            throws DbxException{
+        LinkManager.getLogger().entering("DropboxUtilities", "traverseFolderTree",
+                new Object[]{client,path,includeDeleted,root});
+            //  Get the files and folder metadata from the Dropbox directory
+        ListFolderResult results = client.files().listFolder((path!=null)?path:"");
+        List<DefaultMutableTreeNode> nodes = new ArrayList<>();
+        for (Metadata metadata : results.getEntries()){
+            if (metadata == null)
+                continue;
+            DefaultMutableTreeNode node = listFolderTree(client,metadata,
+                    includeDeleted);
+            if (node != null)
+                nodes.add(node);
+        }
+        while (results.getHasMore()){
+            results = client.files().listFolderContinue(results.getCursor());
+            for (Metadata metadata : results.getEntries()){
+                if (metadata == null)
+                    continue;
+                DefaultMutableTreeNode node = listFolderTree(client,metadata,
+                        includeDeleted);
+                if (node != null)
+                    nodes.add(node);
+            }
+        }
+        nodes.sort(METADATA_TREE_NODE_COMPARATOR);
+        for (DefaultMutableTreeNode node : nodes)
+            root.add(node);
+        LinkManager.getLogger().exiting("DropboxUtilities", "traverseFolderTree");
+    }
+    /**
+     * 
+     * @param client
+     * @param metadata
+     * @param toPath
+     * @return
+     * @throws DbxException 
+     */
+    public static Metadata move(DbxClientV2 client, Metadata metadata, 
+            String toPath) throws DbxException{
+        Objects.requireNonNull(metadata);
+        Objects.requireNonNull(toPath);
+        String fromPath;
+        if (metadata instanceof FileMetadata)
+            fromPath = ((FileMetadata)metadata).getId();
+        else if (metadata instanceof FolderMetadata)
+            fromPath = ((FolderMetadata)metadata).getId();
+        else
+            fromPath = metadata.getPathLower();
+        RelocationResult result = client.files().moveV2Builder(fromPath, toPath).start();
+        return result.getMetadata();
+    }
+    /**
+     * 
+     * @param client
+     * @param metadata
+     * @param newName
+     * @return
+     * @throws DbxException 
+     */
+    public static Metadata rename(DbxClientV2 client, Metadata metadata, 
+            String newName) throws DbxException{
+        String toPath = metadata.getPathDisplay();
+        if (toPath == null)
+            toPath = metadata.getPathLower();
+        if (toPath != null)
+            toPath = toPath.substring(0, toPath.length()-metadata.getName().length());
+        else
+            toPath = "/";
+        toPath += newName;
+        return move(client,metadata,toPath);
     }
 }
