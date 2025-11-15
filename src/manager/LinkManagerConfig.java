@@ -1459,12 +1459,10 @@ public class LinkManagerConfig implements LinksListSettings{
             addListDataToProperties(getVisibleRectMap(),
                     VISIBLE_RECTANGLE_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
                     prop);
-            Set<JFileChooser> fcs = new HashSet<>(getFileChooserPreferenceMap().keySet());
-            fcs.addAll(getFileChooserNameMap().keySet());
                 // Go through the file choosers
-            for (JFileChooser fc : fcs){
+            for (ConfigPreferences fcNode : getFileChooserPreferenceMap().values()){
                     // Add the preference node to the properties
-                addPreferencesToProperties(getFileChooserPreferences(fc),prop);
+                addPreferencesToProperties(fcNode,prop);
             }   // Remove the encryption key from the properties
             prop.remove(ENCRYPTION_KEY_KEY);
                 // Remember to remove any sensitive or unnecessary data from the 
