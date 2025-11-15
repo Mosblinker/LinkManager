@@ -5239,6 +5239,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void dbxCompressionToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxCompressionToggleActionPerformed
         updateDBLocationEnabled();
         config.setDropboxFileCompressionEnabled(dbxCompressionToggle.isSelected());
+        String path = dbxDbFileField.getText();
+        if (path.endsWith("."+SEVEN_ZIP_FILE_EXTENSION)){
+            if (!dbxCompressionToggle.isSelected())
+                path = path.substring(0,path.length()-(SEVEN_ZIP_FILE_EXTENSION.length()+1));
+        } else if (dbxCompressionToggle.isSelected())
+            path += "."+SEVEN_ZIP_FILE_EXTENSION;
+        if (dbxDbFileField.getText().equals(dropboxFC.getSelectedPath())){
+            dropboxFC.setSelectedPath(path);
+            config.setSelectedDropboxPath(path);
+        }
+        dbxDbFileField.setText(path);
     }//GEN-LAST:event_dbxCompressionToggleActionPerformed
 
     private void dbxCompressionLevelComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxCompressionLevelComboActionPerformed
