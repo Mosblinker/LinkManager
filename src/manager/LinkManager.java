@@ -6293,6 +6293,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Make the search dialog's position relative to the 
                     // program's
                 searchDialog.setLocationRelativeTo(this);
+                // Go through the file choosers and load them
+            for (JFileChooser fc : config.getFileChooserPreferenceMap().keySet()){
+                    // Load the file chooser
+                config.loadFileChooser(fc);
+            }
         }   // Set the show hidden lists property from the config
         showHiddenListsToggle.setSelected(config.getHiddenListsAreShown(
                 showHiddenListsToggle.isSelected()));
