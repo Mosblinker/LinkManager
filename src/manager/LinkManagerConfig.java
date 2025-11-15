@@ -1355,6 +1355,26 @@ public class LinkManagerConfig implements LinksListSettings{
     }
     /**
      * 
+     * @param node
+     * @param prop 
+     */
+    private void addPreferencesToProperties(ConfigPreferences node, 
+            ConfigProperties prop){
+            // Get the name of the preference node
+        String prefix = node.name();
+        try{    // Go through the keys in the preference node
+            for (String key : node.keySet()){
+                    // If that key is set
+                if (node.isKeySet(key)){
+                        // Store it in the properties
+                    prop.put(prefix+key, node.get(key, null));
+                }
+            }
+        } catch (BackingStoreException | IllegalStateException ex) {
+        }
+    }
+    /**
+     * 
      * @return 
      */
     public ConfigProperties exportProperties(){
@@ -1390,7 +1410,11 @@ public class LinkManagerConfig implements LinksListSettings{
             addListDataToProperties(getVisibleRectMap(),
                     VISIBLE_RECTANGLE_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
                     prop);
-                // Remove the encryption key from the properties
+                // Go through the preference nodes for the file choosers
+            for (ConfigPreferences fcNode : getFileChooserPreferenceMap().values()){
+                    // Add the preference node to the properties
+                addPreferencesToProperties(fcNode,prop);
+            }   // Remove the encryption key from the properties
             prop.remove(ENCRYPTION_KEY_KEY);
                 // Remember to remove any sensitive or unnecessary data from the 
                 // properties!
