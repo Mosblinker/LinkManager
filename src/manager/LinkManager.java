@@ -122,7 +122,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         {"jackson-core","FasterXML","https://github.com/FasterXML/jackson-core"},
         {"dropbox-core-sdk","Dropbox","https://github.com/dropbox/dropbox-sdk-java"},
         {"ListAction.java","Rob Camick","https://tips4java.wordpress.com/2008/10/14/list-action/"},
-        {"EditListAction.java","Rob Camick","https://tips4java.wordpress.com/2008/10/19/list-editor/"}
+        {"EditListAction.java","Rob Camick","https://tips4java.wordpress.com/2008/10/19/list-editor/"},
+        {"7-Zip-JBinding",null,"https://sevenzipjbind.sourceforge.net/"}
     };
     /**
      * This is the pattern for the file handler to use for the log files of this 
