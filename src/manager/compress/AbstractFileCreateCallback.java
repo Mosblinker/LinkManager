@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import manager.LinkManagerUtilities;
 import manager.ProgressObserver;
 import net.sf.sevenzipjbinding.*;
 import net.sf.sevenzipjbinding.impl.*;
@@ -27,10 +26,6 @@ public abstract class AbstractFileCreateCallback<T extends IOutItemBase>
      * 
      */
     protected ProgressObserver observer;
-    /**
-     * 
-     */
-    protected double divisor = 1;
     /**
      * 
      */
@@ -116,16 +111,13 @@ public abstract class AbstractFileCreateCallback<T extends IOutItemBase>
     public void setTotal(long total) throws SevenZipException {
         if (observer == null)
             return;
-            // Get the value needed to divide the file length to get it back 
-            // into the range of integers
-        divisor = LinkManagerUtilities.getFileSizeDivider(total);
-        observer.setMaximum((int)Math.ceil(total / divisor));
+        observer.setMaximumLong(total);
     }
     @Override
     public void setCompleted(long complete) throws SevenZipException {
         if (observer == null)
             return;
             // Update the progress with the amount of bytes written
-        observer.setValue((int)Math.ceil(complete / divisor));
+        observer.setValueLong(complete);
     }
 }

@@ -522,17 +522,13 @@ public class DropboxUtilities {
             ProgressObserver l){
             // Set the progress to be zero
         l.setValue(0);
-            // Get the value needed to divide the file length to get it back 
-            // into the range of integers
-        double div = LinkManagerUtilities.getFileSizeDivider(fileSize);
-            // Set the progress maximum to the file length divided by the 
-            // divisor
-        l.setMaximum((int)Math.ceil(fileSize / div));
+            // Set the progress maximum to the file length
+        l.setMaximumLong(fileSize);
             // Create and return a progress listener that will update the 
             // progress bar to reflect the bytes that have been written so far
         return (long bytesWritten) -> {
                 // Update the progress with the amount of bytes written
-            l.setValue((int)Math.ceil(bytesWritten / div));
+            l.setValueLong(fileSize);
         };
     }
     /**
