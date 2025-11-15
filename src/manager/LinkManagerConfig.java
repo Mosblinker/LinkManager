@@ -4,16 +4,19 @@
  */
 package manager;
 
+import config.ConfigUtilities;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.File;
 import java.security.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.prefs.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
+import javax.swing.JFileChooser;
 import static manager.DatabaseSyncMode.DROPBOX;
 import manager.config.*;
 import manager.database.CacheSetIterator;
@@ -200,6 +203,19 @@ public class LinkManagerConfig implements LinksListSettings{
      */
     public static final String USER_ID_KEY = "UserID";
     /**
+     * 
+     */
+    public static final String FILE_CHOOSER_SIZE_KEY = "FileChooserSize";
+    /**
+     * 
+     */
+    public static final String FILE_CHOOSER_CURRENT_DIRECTORY_KEY = 
+            "CurrentDirectory";
+    /**
+     * 
+     */
+    public static final String FILE_CHOOSER_SELECTED_FILE_KEY = "SelectedFile";
+    /**
      * This is the suffix for the configuration keys for the size of a 
      * component.
      */
@@ -318,6 +334,10 @@ public class LinkManagerConfig implements LinksListSettings{
      */
     private final Map<Component, String> compNameMap;
     /**
+     * This is a map used to map file choosers to their preference nodes.
+     */
+    private final Map<JFileChooser, ConfigPreferences> fcNodes;
+    /**
      * This is a map view of the current tab listIDs. This is initially null 
      * and is initialized when first used.
      */
@@ -381,8 +401,9 @@ public class LinkManagerConfig implements LinksListSettings{
     private LinkManagerConfig(Properties sqlProp, ConfigPreferences node){
         config = new ConfigProperties();
         compNameMap = new HashMap<>();
+        fcNodes = new HashMap<>();
             // If the given SQLite config properties is not null
-        if(sqlProp != null)
+        if (sqlProp != null)
             sqlConfig = new SQLiteConfig(sqlProp);
         else
             sqlConfig = new SQLiteConfig();
@@ -399,7 +420,7 @@ public class LinkManagerConfig implements LinksListSettings{
             public String getParentPath() {
                 return LIST_ID_PREFERENCE_NODE_NAME;
             }
-        };;
+        };
     }
     /**
      * 
@@ -507,6 +528,30 @@ public class LinkManagerConfig implements LinksListSettings{
      */
     public ConfigProperties getProperties(){
         return config;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<JFileChooser, ConfigPreferences> getFileChooserPreferenceMap(){
+        return fcNodes;
+    }
+    /**
+     * 
+     * @param fc
+     * @param name
+     */
+    public void addFileChooser(JFileChooser fc, String name){
+        if (!fcNodes.containsKey(fc))
+            fcNodes.put(fc, getPreferences().node(name));
+    }
+    /**
+     * 
+     * @param fc
+     * @return 
+     */
+    public ConfigPreferences getFileChooserPreferences(JFileChooser fc){
+        return fcNodes.get(fc);
     }
     /**
      * This creates and returns the local preference node for the program using 
@@ -948,6 +993,33 @@ public class LinkManagerConfig implements LinksListSettings{
     }
     /**
      * 
+     * @param node
+     * @param key
+     * @param defaultFile
+     * @return 
+     */
+    protected File getFile(Preferences node, String key, File defaultFile){
+            // Get the name of the file from the preference node, or null
+        String name = node.get(key, null);
+            // If there is no value set for that key
+        if (name == null)
+            return defaultFile;
+        return new File(name);
+    }
+    /**
+     * 
+     * @param node
+     * @param key
+     * @param value 
+     */
+    protected void putFile(Preferences node, String key, File value){
+        if (value == null)
+            node.remove(key);
+        else
+            node.put(key, value.toString());
+    }
+    /**
+     * 
      * @param comp
      * @return 
      */
@@ -995,6 +1067,23 @@ public class LinkManagerConfig implements LinksListSettings{
                 return true;
         }
         return false;
+    }
+    /**
+     * 
+     * @param node
+     * @param prop 
+     */
+    private void importPreferences(ConfigPreferences node, 
+            Properties prop){
+            // Get the name of the node used as a prefix
+        String prefix = node.name();
+            // This gets a set of keys for the properties that deal with lists
+        Set<String> listKeys = new HashSet<>(prop.stringPropertyNames());
+        listKeys.removeIf((String t) -> t == null || !t.startsWith(prefix));
+        for (String key : listKeys){
+            String value = prop.getProperty(key);
+            node.put(key.substring(prefix.length()), value);
+        }
     }
     /**
      * 
@@ -1266,6 +1355,11 @@ public class LinkManagerConfig implements LinksListSettings{
         getSelectedTabIndexMap().putAll(selListMap);
             // Add all the values for the visible rectangles for the lists
         getVisibleRectMap().putAll(visRectMap);
+            // Go through the preference nodes for the file choosers
+        for (ConfigPreferences fcNode : getFileChooserPreferenceMap().values()){
+                // Import the preferences for the file chooser
+            importPreferences(fcNode,cProp);
+        }
     }
     /**
      * 
@@ -1279,6 +1373,26 @@ public class LinkManagerConfig implements LinksListSettings{
         for (Map.Entry<Integer, ?> entry : listData.entrySet()){
                 // Add the current entry to the properties map
             prop.setProperty(keyPrefix+entry.getKey(), entry.getValue());
+        }
+    }
+    /**
+     * 
+     * @param node
+     * @param prop 
+     */
+    private void addPreferencesToProperties(ConfigPreferences node, 
+            ConfigProperties prop){
+            // Get the name of the preference node
+        String prefix = node.name();
+        try{    // Go through the keys in the preference node
+            for (String key : node.keySet()){
+                    // If that key is set
+                if (node.isKeySet(key)){
+                        // Store it in the properties
+                    prop.put(prefix+key, node.get(key, null));
+                }
+            }
+        } catch (BackingStoreException | IllegalStateException ex) {
         }
     }
     /**
@@ -1318,7 +1432,11 @@ public class LinkManagerConfig implements LinksListSettings{
             addListDataToProperties(getVisibleRectMap(),
                     VISIBLE_RECTANGLE_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
                     prop);
-                // Remove the encryption key from the properties
+                // Go through the preference nodes for the file choosers
+            for (ConfigPreferences fcNode : getFileChooserPreferenceMap().values()){
+                    // Add the preference node to the properties
+                addPreferencesToProperties(fcNode,prop);
+            }   // Remove the encryption key from the properties
             prop.remove(ENCRYPTION_KEY_KEY);
                 // Remember to remove any sensitive or unnecessary data from the 
                 // properties!
@@ -2458,6 +2576,103 @@ public class LinkManagerConfig implements LinksListSettings{
      */
     public void setCheckForUpdateAtStartup(boolean value){
         getPreferences().putBoolean(CHECK_FOR_UPDATES_AT_START_KEY, value);
+    }
+    /**
+     * 
+     * @param fc
+     * @param defaultValue
+     * @return 
+     */
+    public File getSelectedFile(JFileChooser fc, File defaultValue){
+        return getFile(getFileChooserPreferences(fc), 
+                FILE_CHOOSER_SELECTED_FILE_KEY,defaultValue);
+    }
+    /**
+     * 
+     * @param fc
+     * @return 
+     */
+    public File getSelectedFile(JFileChooser fc){
+        return getSelectedFile(fc,null);
+    }
+    /**
+     * 
+     * @param fc
+     * @param file 
+     */
+    public void setSelectedFile(JFileChooser fc, File file){
+        putFile(getFileChooserPreferences(fc), FILE_CHOOSER_SELECTED_FILE_KEY,file);
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void setSelectedFile(JFileChooser fc){
+        setSelectedFile(fc,fc.getSelectedFile());
+    }
+    /**
+     * 
+     * @param fc
+     * @return 
+     */
+    public Dimension getFileChooserSize(JFileChooser fc){
+        return ConfigUtilities.getDimension(getFileChooserPreferences(fc), 
+                FILE_CHOOSER_SIZE_KEY, null);
+    }
+    /**
+     * 
+     * @param fc
+     */
+    public void setFileChooserSize(JFileChooser fc){
+        ConfigUtilities.putDimension(getFileChooserPreferences(fc), 
+                FILE_CHOOSER_SIZE_KEY,fc);
+    }
+    /**
+     * 
+     * @param fc
+     * @return 
+     */
+    public File getCurrentDirectory(JFileChooser fc){
+        return getFile(getFileChooserPreferences(fc), 
+                FILE_CHOOSER_CURRENT_DIRECTORY_KEY, null);
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void setCurrentDirectory(JFileChooser fc){
+        putFile(getFileChooserPreferences(fc),FILE_CHOOSER_CURRENT_DIRECTORY_KEY,
+                fc.getCurrentDirectory());
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void storeFileChooser(JFileChooser fc){
+            // Put the file chooser's size in the preference node
+        setFileChooserSize(fc);
+            // Put the file chooser's current directory in the preference node
+        setCurrentDirectory(fc);
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void loadFileChooser(JFileChooser fc){
+            // Get the current directory for the file chooser
+        File dir = getCurrentDirectory(fc);
+            // If there is a current directory for the file chooser and it exists
+        if (dir != null && dir.exists()){
+                // Set the file chooser's current directory
+            fc.setCurrentDirectory(dir);
+        }   // Get the selected file for the file chooser, or null
+        File file = getSelectedFile(fc);
+            // If there is a selected file for the file chooser
+        if (file != null){
+                // Select that file in the file chooser
+            fc.setSelectedFile(file);
+        }   // Load the file chooser's size from the preference node
+        SwingExtendedUtilities.setComponentSize(fc,getFileChooserSize(fc));
     }
     /**
      * 
