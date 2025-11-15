@@ -6288,7 +6288,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // program's
                 searchDialog.setLocationRelativeTo(this);
                 // Go through the file choosers and load them
-            for (JFileChooser fc : config.getFileChooserPreferenceMap().keySet()){
+            for (JFileChooser fc : config.getRegisteredFileChoosers()){
                     // Load the file chooser
                 config.loadFileChooser(fc);
             }
