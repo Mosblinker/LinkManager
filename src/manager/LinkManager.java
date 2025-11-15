@@ -5237,7 +5237,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbxBrowseButtonActionPerformed
 
     private void compressionToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compressionToggleActionPerformed
-        // TODO add your handling code here:
+        updateDBLocationEnabled();
     }//GEN-LAST:event_compressionToggleActionPerformed
 
     private void compressionLevelComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compressionLevelComboActionPerformed
@@ -5569,6 +5569,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxBrowseButton.setEnabled(dbxLogInButton.isEnabled());
         dbxDbFileField.setEditable(dbxBrowseButton.isEnabled());
         dbxChunkSizeSpinner.setEnabled(dbxLogInButton.isEnabled());
+        compressionToggle.setEnabled(dbxLogInButton.isEnabled());
+        compressionLevelCombo.setEnabled(compressionToggle.isEnabled()&&compressionToggle.isSelected());
         
         updateDBLocationButtons();
     }
