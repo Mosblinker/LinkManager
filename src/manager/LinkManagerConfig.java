@@ -334,6 +334,10 @@ public class LinkManagerConfig implements LinksListSettings{
      */
     private final Map<Component, String> compNameMap;
     /**
+     * This is a map used to map file choosers to the names of the preference nodes.
+     */
+    private final Map<JFileChooser, String> fcNodeNames;
+    /**
      * This is a map used to map file choosers to their preference nodes.
      */
     private final Map<JFileChooser, ConfigPreferences> fcNodes;
@@ -401,6 +405,7 @@ public class LinkManagerConfig implements LinksListSettings{
     private LinkManagerConfig(Properties sqlProp, ConfigPreferences node){
         config = new ConfigProperties();
         compNameMap = new HashMap<>();
+        fcNodeNames = new HashMap<>();
         fcNodes = new HashMap<>();
             // If the given SQLite config properties is not null
         if (sqlProp != null)
@@ -438,6 +443,7 @@ public class LinkManagerConfig implements LinksListSettings{
         this.config.putAll(linkConfig.config);
         this.compNameMap.putAll(linkConfig.compNameMap);
         this.localDefaults.addProperties(linkConfig.localDefaults);
+        this.fcNodeNames.putAll(linkConfig.fcNodeNames);
         LinkManagerConfig.this.setProgramID(linkConfig.programID);
         this.cipherUtils = new CipherUtils(linkConfig.cipherUtils);
     }
@@ -533,6 +539,13 @@ public class LinkManagerConfig implements LinksListSettings{
      * 
      * @return 
      */
+    public Map<JFileChooser, String> getFileChooserNameMap(){
+        return fcNodeNames;
+    }
+    /**
+     * 
+     * @return 
+     */
     public Map<JFileChooser, ConfigPreferences> getFileChooserPreferenceMap(){
         return fcNodes;
     }
@@ -541,9 +554,11 @@ public class LinkManagerConfig implements LinksListSettings{
      * @param fc
      * @param name
      */
-    public void addFileChooser(JFileChooser fc, String name){
-        if (!fcNodes.containsKey(fc))
-            fcNodes.put(fc, getPreferences().node(name));
+    public void setFileChooserName(JFileChooser fc, String name){
+        String old = fcNodeNames.get(fc);
+        if (!Objects.equals(old, name))
+            fcNodes.remove(fc);
+        fcNodeNames.put(fc, name);
     }
     /**
      * 
@@ -551,7 +566,15 @@ public class LinkManagerConfig implements LinksListSettings{
      * @return 
      */
     public ConfigPreferences getFileChooserPreferences(JFileChooser fc){
-        return fcNodes.get(fc);
+        ConfigPreferences node = fcNodes.get(fc);
+        if (node == null){
+            String name = fcNodeNames.get(fc);
+            if (name != null){
+                node = getPreferences().node(name);
+                fcNodes.put(fc, node);
+            }
+        }
+        return node;
     }
     /**
      * This creates and returns the local preference node for the program using 
@@ -694,6 +717,8 @@ public class LinkManagerConfig implements LinksListSettings{
             // Get the parent node for the listID preference nodes and clear the 
             // node cache
         listIDNodes.setParentNode();
+            // Clear the preference nodes for the file choosers
+        fcNodes.clear();
             // Reset the Dropbox node to null
         dropboxNode = null;
             // Update the values in the preference nodes
@@ -1355,10 +1380,12 @@ public class LinkManagerConfig implements LinksListSettings{
         getSelectedTabIndexMap().putAll(selListMap);
             // Add all the values for the visible rectangles for the lists
         getVisibleRectMap().putAll(visRectMap);
-            // Go through the preference nodes for the file choosers
-        for (ConfigPreferences fcNode : getFileChooserPreferenceMap().values()){
+        Set<JFileChooser> fcs = new HashSet<>(getFileChooserPreferenceMap().keySet());
+        fcs.addAll(getFileChooserNameMap().keySet());
+            // Go through the file choosers
+        for (JFileChooser fc : fcs){
                 // Import the preferences for the file chooser
-            importPreferences(fcNode,cProp);
+            importPreferences(getFileChooserPreferences(fc),cProp);
         }
     }
     /**
@@ -1432,10 +1459,12 @@ public class LinkManagerConfig implements LinksListSettings{
             addListDataToProperties(getVisibleRectMap(),
                     VISIBLE_RECTANGLE_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
                     prop);
-                // Go through the preference nodes for the file choosers
-            for (ConfigPreferences fcNode : getFileChooserPreferenceMap().values()){
+            Set<JFileChooser> fcs = new HashSet<>(getFileChooserPreferenceMap().keySet());
+            fcs.addAll(getFileChooserNameMap().keySet());
+                // Go through the file choosers
+            for (JFileChooser fc : fcs){
                     // Add the preference node to the properties
-                addPreferencesToProperties(fcNode,prop);
+                addPreferencesToProperties(getFileChooserPreferences(fc),prop);
             }   // Remove the encryption key from the properties
             prop.remove(ENCRYPTION_KEY_KEY);
                 // Remember to remove any sensitive or unnecessary data from the 
