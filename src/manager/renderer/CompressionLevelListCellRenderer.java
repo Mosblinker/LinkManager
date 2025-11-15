@@ -50,6 +50,9 @@ public class CompressionLevelListCellRenderer extends DefaultListCellRenderer{
         return super.getListCellRendererComponent(list, value, index, 
                 isSelected, cellHasFocus);
     }
+    /**
+     * 
+     */
     private static class CompressionLevelNameMap extends AbstractMap<Integer, String> {
         /**
          * 
