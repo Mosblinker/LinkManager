@@ -510,7 +510,7 @@ public class LinkManagerUtilities {
                 option = fc.showOpenDialog(parent);
             fc.setPreferredSize(fc.getSize());
                 // Set the file chooser's size in the config if it's saved
-            config.setComponentSize(fc);
+            config.storeFileChooser(fc);
             if (option == JFileChooser.APPROVE_OPTION){
                 file = fc.getSelectedFile();
                 if (!file.exists()){
@@ -562,7 +562,7 @@ public class LinkManagerUtilities {
                 option = fc.showSaveDialog(parent);
             fc.setPreferredSize(fc.getSize());
                 // Set the file chooser's size in the config if it's saved
-            config.setComponentSize(fc);
+            config.storeFileChooser(fc);
             if (option == JFileChooser.APPROVE_OPTION){
                 file = fc.getSelectedFile();
                     // If the file already exists and this checks if the file exists
