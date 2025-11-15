@@ -6883,7 +6883,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @throws SevenZipException
      * @throws IOException 
      */
-    private void compressFile(File source, File archive, String targetPath) throws SevenZipException, IOException{
+    private void compressFile(File source, File archive, String targetPath) 
+            throws SevenZipException, IOException{
         getLogger().entering(this.getClass().getName(), "compressFile", 
                 new Object[]{source,archive,targetPath});
         int level = getDropboxFileCompressionLevel();
