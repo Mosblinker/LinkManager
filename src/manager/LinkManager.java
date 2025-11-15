@@ -324,7 +324,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * These are the available compression levels for 7-Zip.
      */
-    public static final int[] COMPRESSION_LEVELS = {
+    public static final Integer[] COMPRESSION_LEVELS = {
         0, 1, 3, 5, 7, 9
     };
     /**
@@ -1219,6 +1219,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxChunkSizeSpinner = new javax.swing.JSpinner();
         javax.swing.JLabel jLabel11 = new javax.swing.JLabel();
         dbxBrowseButton = new javax.swing.JButton();
+        compressionToggle = new javax.swing.JCheckBox();
+        jLabel3 = new javax.swing.JLabel();
+        compressionLevelCombo = new javax.swing.JComboBox<>();
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
@@ -1475,7 +1478,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         databaseFC.setFileSelectionMode(javax.swing.JFileChooser.FILES_AND_DIRECTORIES);
 
         setLocationDialog.setTitle("Set Database Location");
-        setLocationDialog.setMinimumSize(new java.awt.Dimension(480, 380));
+        setLocationDialog.setMinimumSize(new java.awt.Dimension(480, 415));
         setLocationDialog.addComponentListener(new java.awt.event.ComponentAdapter() {
             public void componentMoved(java.awt.event.ComponentEvent evt) {
                 setLocationDialogComponentMoved(evt);
@@ -1511,7 +1514,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             .addGroup(setExternalCardLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(dbxLogInButton)
-                .addContainerGap(158, Short.MAX_VALUE))
+                .addContainerGap(188, Short.MAX_VALUE))
         );
 
         setLocationPanel.add(setExternalCard, "logInCard");
@@ -1615,6 +1618,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
 
+        compressionToggle.setText("Compressed");
+        compressionToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                compressionToggleActionPerformed(evt);
+            }
+        });
+
+        jLabel3.setLabelFor(compressionLevelCombo);
+        jLabel3.setText("Compression Level:");
+
+        compressionLevelCombo.setModel(new javax.swing.DefaultComboBoxModel<>(COMPRESSION_LEVELS));
+        compressionLevelCombo.setEnabled(false);
+        compressionLevelCombo.setRenderer(new CompressionLevelListCellRenderer());
+        compressionLevelCombo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                compressionLevelComboActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout setDropboxCardLayout = new javax.swing.GroupLayout(setDropboxCard);
         setDropboxCard.setLayout(setDropboxCardLayout);
         setDropboxCardLayout.setHorizontalGroup(
@@ -1626,16 +1648,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     .addGroup(setDropboxCardLayout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbxDbFileField, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE)
+                        .addComponent(dbxDbFileField)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(dbxBrowseButton))
                     .addGroup(setDropboxCardLayout.createSequentialGroup()
-                        .addComponent(jLabel7)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbxChunkSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel11)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(setDropboxCardLayout.createSequentialGroup()
+                                .addComponent(jLabel7)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(dbxChunkSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel11)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(compressionToggle))
+                            .addGroup(setDropboxCardLayout.createSequentialGroup()
+                                .addComponent(jLabel3)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(compressionLevelCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 160, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         setDropboxCardLayout.setVerticalGroup(
@@ -1652,7 +1682,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
                     .addComponent(dbxChunkSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel11))
+                    .addComponent(jLabel11)
+                    .addComponent(compressionToggle))
+                .addGap(7, 7, 7)
+                .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(compressionLevelCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -5200,6 +5235,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.WARNING, "Cannot browse Dropbox", ex);
         } 
     }//GEN-LAST:event_dbxBrowseButtonActionPerformed
+
+    private void compressionToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compressionToggleActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_compressionToggleActionPerformed
+
+    private void compressionLevelComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compressionLevelComboActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_compressionLevelComboActionPerformed
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
@@ -5833,6 +5876,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JCheckBox checkUpdatesAtStartToggle;
     private javax.swing.JMenuItem clearListSelItem;
     private javax.swing.JMenuItem clearSelTabItem;
+    private javax.swing.JComboBox<Integer> compressionLevelCombo;
+    private javax.swing.JCheckBox compressionToggle;
     private javax.swing.JFileChooser configFC;
     private javax.swing.JScrollPane configScrollPane;
     private javax.swing.JTable configTable;
@@ -5925,6 +5970,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JCheckBoxMenuItem hiddenLinkOperationToggle;
     private javax.swing.JMenuItem hideAllListsItem;
     private javax.swing.JMenu hideListsMenu;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JLabel latestVersLabel;
     private javax.swing.JLabel latestVersTextLabel;
