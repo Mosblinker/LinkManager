@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package manager.dropbox;
+package manager.renderer;
 
 import com.dropbox.core.v2.files.*;
 import java.awt.Component;
@@ -11,6 +11,7 @@ import javax.swing.Icon;
 import javax.swing.JList;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
+import manager.dropbox.DbxRootMetadata;
 import manager.icons.DropboxIcon;
 
 /**
