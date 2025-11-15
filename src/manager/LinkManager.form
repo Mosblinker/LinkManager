@@ -2236,6 +2236,9 @@
       </SubComponents>
     </Container>
     <Component class="manager.dropbox.JDropboxFileChooser" name="dropboxFC">
+      <Properties>
+        <Property name="dialogTitle" type="java.lang.String" value="Set Database Location..."/>
+      </Properties>
     </Component>
     <Menu class="javax.swing.JMenuBar" name="menuBar">
       <SubComponents>

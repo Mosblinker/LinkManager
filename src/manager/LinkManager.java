@@ -2784,6 +2784,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addContainerGap())
         );
 
+        dropboxFC.setDialogTitle("Set Database Location...");
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle(PROGRAM_NAME);
         setLocationByPlatform(true);
