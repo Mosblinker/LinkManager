@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.logging.Level;
 import javax.swing.table.*;
 import manager.*;
+import manager.config.DatabaseLinksListSettings;
 import manager.links.*;
 import org.sqlite.*;
 import sql.*;
@@ -1515,11 +1516,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    public static final String LIST_TYPE_SELECTION_TABLE_NAME = "listTypeSelection";
+    public static final String LIST_TYPE_SETTINGS_TABLE_NAME = "listTypeSettings";
     /**
      * 
      */
-    public static final String[] LIST_TYPE_SELECTION_TABLE_COLUMN_NAMES = {
+    public static final String[] LIST_TYPE_SETTINGS_TABLE_COLUMN_NAMES = {
         PROGRAM_ID_COLUMN_NAME,
         LIST_TYPE_COLUMN_NAME,
         LIST_ID_COLUMN_NAME
@@ -1527,7 +1528,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    public static final String LIST_TYPE_SELECTION_TABLE_CREATION_QUERY = 
+    public static final String LIST_TYPE_SETTINGS_TABLE_CREATION_QUERY = 
             String.format("CREATE TABLE IF NOT EXISTS %s ("+
                         // Program ID column definition. Cannot be null
                     "%s integer NOT NULL, "+
@@ -1538,10 +1539,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         // Foreign key constraint for the program ID
                     FOREIGN_KEY_TEMPLATE+", "+ 
                         // Foreign key constraint for the list ID
-                    FOREIGN_KEY_TEMPLATE+", "+
+                    "FOREIGN KEY (%s) REFERENCES %s(%s) ON DELETE SET NULL, "+
                         // Unique constraint for program ID and list type
                     "UNIQUE (%s, %s));",
-            LIST_TYPE_SELECTION_TABLE_NAME,
+            LIST_TYPE_SETTINGS_TABLE_NAME,
             PROGRAM_ID_COLUMN_NAME,
             LIST_TYPE_COLUMN_NAME,
             LIST_ID_COLUMN_NAME,
@@ -1554,15 +1555,15 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    public static final String LIST_TYPE_SELECTION_INDEX_NAME = "listTypeSelectionIndex";
+    public static final String LIST_TYPE_SETTINGS_INDEX_NAME = "listTypeSettingsIndex";
     /**
      * 
      */
-    public static final String LIST_TYPE_SELECTION_INDEX_CREATION_QUERY = String.format(
+    public static final String LIST_TYPE_SETTINGS_INDEX_CREATION_QUERY = String.format(
             "CREATE UNIQUE INDEX IF NOT EXISTS %s ON %s(%s, %s);",
-                LIST_TYPE_SELECTION_INDEX_NAME,
-                    // Applied on the list type selection table
-                LIST_TYPE_SELECTION_TABLE_NAME,
+                LIST_TYPE_SETTINGS_INDEX_NAME,
+                    // Applied on the list type settings table
+                LIST_TYPE_SETTINGS_TABLE_NAME,
                     // First column is the program ID
                 PROGRAM_ID_COLUMN_NAME,
                     // Second column is the list type
@@ -1570,7 +1571,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    public static final String LIST_SELECTION_TABLE_NAME = "listSelection";
+    public static final String LIST_SETTINGS_TABLE_NAME = "listSettings";
     /**
      * 
      */
@@ -1594,7 +1595,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    public static final String[] LIST_SELECTION_TABLE_COLUMN_NAMES = {
+    public static final String[] LIST_SETTINGS_TABLE_COLUMN_NAMES = {
         PROGRAM_ID_COLUMN_NAME,
         LIST_ID_COLUMN_NAME,
         LINK_ID_COLUMN_NAME,
@@ -1606,7 +1607,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    public static final String LIST_SELECTION_TABLE_CREATION_QUERY = String.format(
+    public static final String LIST_SETTINGS_TABLE_CREATION_QUERY = String.format(
             "CREATE TABLE IF NOT EXISTS %s ("+
                         // Program ID column definition. Cannot be null
                     "%s integer NOT NULL, "+
@@ -1627,10 +1628,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                         // Foreign key constraint for the list ID
                     FOREIGN_KEY_TEMPLATE+", "+
                         // Foreign key constraint for the link ID
-                    FOREIGN_KEY_TEMPLATE+", "+
+                    "FOREIGN KEY (%s) REFERENCES %s(%s) ON DELETE SET NULL, "+
                         // Unique constraint for program ID and list ID
                     "UNIQUE (%s, %s));",
-            LIST_SELECTION_TABLE_NAME,
+            LIST_SETTINGS_TABLE_NAME,
             PROGRAM_ID_COLUMN_NAME,
             LIST_ID_COLUMN_NAME,
             LINK_ID_COLUMN_NAME,
@@ -1649,15 +1650,15 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    public static final String LIST_SELECTION_INDEX_NAME = "listSelectionIndex";
+    public static final String LIST_SETTINGS_INDEX_NAME = "listSettingsIndex";
     /**
      * 
      */
-    public static final String LIST_SELECTION_INDEX_CREATION_QUERY = String.format(
+    public static final String LIST_SETTINGS_INDEX_CREATION_QUERY = String.format(
             "CREATE UNIQUE INDEX IF NOT EXISTS %s ON %s(%s, %s);",
-                LIST_SELECTION_INDEX_NAME,
-                    // Applied on the list selection table
-                LIST_SELECTION_TABLE_NAME,
+                LIST_SETTINGS_INDEX_NAME,
+                    // Applied on the list settings table
+                LIST_SETTINGS_TABLE_NAME,
                     // First column is the program ID
                 PROGRAM_ID_COLUMN_NAME,
                     // Second column is the list ID
@@ -1683,10 +1684,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @see EXCLUSIVE_LISTS_INDEX_CREATION_QUERY
      * @see DATABASE_CONFIG_TABLE_CREATION_QUERY
      * @see PROGRAM_ID_TABLE_CREATION_QUERY
-     * @see LIST_TYPE_SELECTION_TABLE_CREATION_QUERY
-     * @see LIST_TYPE_SELECTION_INDEX_CREATION_QUERY
-     * @see LIST_SELECTION_TABLE_CREATION_QUERY
-     * @see LIST_SELECTION_INDEX_CREATION_QUERY
+     * @see LIST_TYPE_SETTINGS_TABLE_CREATION_QUERY
+     * @see LIST_TYPE_SETTINGS_INDEX_CREATION_QUERY
+     * @see LIST_SETTINGS_TABLE_CREATION_QUERY
+     * @see LIST_SETTINGS_INDEX_CREATION_QUERY
      * @see #createTables(Statement) 
      * @see #createTables() 
      */
@@ -1710,10 +1711,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
 //        EXCLUSIVE_LISTS_INDEX_CREATION_QUERY,       // Exclusive lists index
         DATABASE_CONFIG_TABLE_CREATION_QUERY,       // Database settings table
         PROGRAM_ID_TABLE_CREATION_QUERY,            // Program ID table
-        LIST_TYPE_SELECTION_TABLE_CREATION_QUERY,   // List type selection table
-        LIST_TYPE_SELECTION_INDEX_CREATION_QUERY,   // List type selection index
-        LIST_SELECTION_TABLE_CREATION_QUERY,        // List selection table
-        LIST_SELECTION_INDEX_CREATION_QUERY         // List selection index
+        LIST_TYPE_SETTINGS_TABLE_CREATION_QUERY,   // List type selection table
+        LIST_TYPE_SETTINGS_INDEX_CREATION_QUERY,   // List type selection index
+        LIST_SETTINGS_TABLE_CREATION_QUERY,        // List selection table
+        LIST_SETTINGS_INDEX_CREATION_QUERY// List selection index
     };
     
     
@@ -1780,9 +1781,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     
     protected static final String DEFAULT_DATABASE_VERSION = "0.5.0";
     
-    public static final int DATABASE_MAJOR_VERSION = 3;
+    public static final int DATABASE_MAJOR_VERSION = 4;
     
-    public static final int DATABASE_MINOR_VERSION = 4;
+    public static final int DATABASE_MINOR_VERSION = 1;
     
     public static final int DATABASE_PATCH_VERSION = 0;
     
@@ -2175,6 +2176,11 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * 
      */
     private final Set<UUID> programUserIDs = new ProgramUserIDSet();
+    /**
+     * 
+     */
+    private final Map<Integer, DatabaseLinksListSettings> listSettingsMap = 
+            new TreeMap<>();
     /**
      * This is the SQLiteConfig used to construct this connection if one was 
      * provided.
@@ -3609,6 +3615,104 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
         return true;
     }
     /**
+     * This updates the database to version 4.1.0. Version 4.1.0 updates 
+     * definitions of the two list settings tables to make it so that they don't 
+     * delete settings upon deletion of their foreign key constraints.
+     * @param stmt
+     * @param l
+     * @return
+     * @throws SQLException 
+     */
+    protected boolean updateToVersion4_1_0(Statement stmt, ProgressObserver l) 
+            throws SQLException{
+        Map<Integer,Map<Integer,Integer>> selLists = new TreeMap<>();
+        Map<Integer,Map<Integer,Long>> selLinkIDs = new TreeMap<>();
+        Map<Integer,Map<Integer,Boolean>> selVis = new TreeMap<>();
+        Map<Integer,Map<Integer,Integer>> firstVis = new TreeMap<>();
+        Map<Integer,Map<Integer,Integer>> lastVis = new TreeMap<>();
+        Map<Integer,Map<Integer,Rectangle>> visRect = new TreeMap<>();
+        Map<Integer,Set<Integer>> listIDs = new TreeMap<>();
+        if (showTables().contains(LIST_TYPE_SETTINGS_TABLE_NAME)){
+            ResultSet rs = stmt.executeQuery(String.format("SELECT %s, %s, %s FROM %s", 
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_TYPE_COLUMN_NAME,
+                    LIST_ID_COLUMN_NAME,
+                    LIST_TYPE_SETTINGS_TABLE_NAME));
+            while (rs.next()){
+                int id = rs.getInt(PROGRAM_ID_COLUMN_NAME);
+                if (!selLists.containsKey(id))
+                    selLists.put(id, new TreeMap<>());
+                Integer value = rs.getInt(LIST_ID_COLUMN_NAME);
+                if (rs.wasNull())
+                    value = null;
+                selLists.get(id).put(rs.getInt(LIST_TYPE_COLUMN_NAME), value);
+            }
+        }
+        if (showTables().contains(LIST_SETTINGS_TABLE_NAME)){
+            ResultSet rs = stmt.executeQuery(String.format("SELECT %s, %s, %s, %s, %s, %s, %s FROM %s", 
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_ID_COLUMN_NAME,
+                    LINK_ID_COLUMN_NAME,
+                    SELECTION_IS_VISIBLE_COLUMN_NAME,
+                    FIRST_VISIBLE_INDEX_COLUMN_NAME,
+                    LAST_VISIBLE_INDEX_COLUMN_NAME,
+                    VISIBLE_RECTANGLE_COLUMN_NAME,
+                    LIST_SETTINGS_TABLE_NAME));
+            while (rs.next()){
+                int progID = rs.getInt(PROGRAM_ID_COLUMN_NAME);
+                int listID = rs.getInt(LIST_ID_COLUMN_NAME);
+                if (!listIDs.containsKey(progID)){
+                    listIDs.put(progID, new TreeSet<>());
+                    selLinkIDs.put(progID, new TreeMap<>());
+                    selVis.put(progID, new TreeMap<>());
+                    firstVis.put(progID, new TreeMap<>());
+                    lastVis.put(progID, new TreeMap<>());
+                    visRect.put(progID, new TreeMap<>());
+                }
+                listIDs.get(progID).add(listID);
+                Long linkID = rs.getLong(LINK_ID_COLUMN_NAME);
+                if (rs.wasNull())
+                    linkID = null;
+                selLinkIDs.get(progID).put(listID, linkID);
+                Boolean vis = rs.getBoolean(SELECTION_IS_VISIBLE_COLUMN_NAME);
+                if (rs.wasNull())
+                    vis = null;
+                selVis.get(progID).put(listID, vis);
+                Integer index = rs.getInt(FIRST_VISIBLE_INDEX_COLUMN_NAME);
+                if (rs.wasNull())
+                    index = null;
+                firstVis.get(progID).put(listID, index);
+                index = rs.getInt(LAST_VISIBLE_INDEX_COLUMN_NAME);
+                if (rs.wasNull())
+                    index = null;
+                lastVis.get(progID).put(listID, index);
+                visRect.get(progID).put(listID, 
+                        ConfigUtilities.rectangleFromByteArray(
+                                rs.getBytes(VISIBLE_RECTANGLE_COLUMN_NAME)));
+            }
+        }
+        deleteTable(LIST_TYPE_SETTINGS_TABLE_NAME,stmt);
+        deleteTable(LIST_SETTINGS_TABLE_NAME,stmt);
+        createTables(stmt); // Create the new tables
+        commit();       // Commit the changes to the database
+        for (Map.Entry<Integer, Map<Integer,Integer>> entry : selLists.entrySet()){
+            getListSettings(entry.getKey()).getSelectedListIDMap().putAll(entry.getValue());
+        }
+        commit();       // Commit the changes to the database
+        for (Map.Entry<Integer,Set<Integer>> entry : listIDs.entrySet()){
+            DatabaseLinksListSettings settings = getListSettings(entry.getKey());
+            for (Integer listID : entry.getValue()){
+                settings.setListSettings(listID, 
+                        selLinkIDs.get(entry.getKey()).get(listID), 
+                        selVis.get(entry.getKey()).get(listID), 
+                        firstVis.get(entry.getKey()).get(listID), 
+                        lastVis.get(entry.getKey()).get(listID), 
+                        visRect.get(entry.getKey()).get(listID));
+            }
+        }
+        return true;
+    }
+    /**
      * 
      * @param stmt
      * @param l
@@ -3746,8 +3850,32 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 LinkManager.getLogger().finer("Updating to version 3.3.0");
                 setDatabaseUUIDIfAbsent();
             case("3.3.0"):      // If version 3.3.0
-                createTables(stmt); // Create the new tables
-//            case("3.4.0"):      // If version 3.4.0
+                LinkManager.getLogger().finer("Updating to version 3.4.0");
+            case("3.4.0"):      // If version 3.4.0
+                LinkManager.getLogger().finer("Updating to version 4.0.0");
+                    // Delete the old indexes
+                deleteIndex("listTypeSelectionIndex",stmt);
+                deleteIndex("listSelectionIndex",stmt);
+                if (showTables().contains("listTypeSelection")){
+                        // Delete the created table since they just need to be renamed
+                    deleteTable(LIST_TYPE_SETTINGS_TABLE_NAME,stmt);
+                        // Rename the old table
+                    renameTable("listTypeSelection",LIST_TYPE_SETTINGS_TABLE_NAME,stmt);
+                }
+                if (showTables().contains("listSelection")){
+                        // Delete the created table since they just need to be renamed
+                    deleteTable(LIST_SETTINGS_TABLE_NAME,stmt);
+                        // Rename the old table
+                    renameTable("listSelection",LIST_SETTINGS_TABLE_NAME,stmt);
+                }
+            case("4.0.0"):      // If version 4.0.0
+                LinkManager.getLogger().finer("Updating to version 4.1.0");
+                    // Update the database to version 4.1.0
+                updateSuccess = updateToVersion4_1_0(stmt,l);
+                    // If the update was not successful
+                if (!updateSuccess)
+                    break;
+//            case("4.1.0"):      // If version 4.1.0
         }
             // If foreign keys are supported
         if (foreignKeys != null)
@@ -5345,77 +5473,19 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * 
      * @param programID
      * @param listType
-     * @param listID
-     * @return 
-     * @throws SQLException 
-     */
-    public Integer setListTypeSelection(int programID, int listType, Integer listID) throws SQLException{
-        Integer old = getListTypeSelection(programID,listType);
-        if (listID == null){
-            try(PreparedStatement pstmt = prepareStatement(String.format(
-                    "DELETE FROM %s WHERE %s = ? AND %s = ?", 
-                        LIST_TYPE_SELECTION_TABLE_NAME,
-                        PROGRAM_ID_COLUMN_NAME,
-                        LIST_TYPE_COLUMN_NAME))){
-                pstmt.setInt(1, programID);
-                pstmt.setInt(2, listType);
-                pstmt.executeUpdate();
-            }
-        } else{
-            try(PreparedStatement pstmt = prepareStatement(String.format(
-                    (old != null)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
-                            "INSERT INTO %s(%s, %s, %s) VALUES (?,?,?)",
-                        LIST_TYPE_SELECTION_TABLE_NAME,
-                        LIST_ID_COLUMN_NAME,
-                        PROGRAM_ID_COLUMN_NAME,
-                        LIST_TYPE_COLUMN_NAME))){
-                pstmt.setInt(1, listID);
-                pstmt.setInt(2, programID);
-                pstmt.setInt(3, listType);
-                pstmt.executeUpdate();
-            }
-        }
-        return old;
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listType
-     * @param listID
      * @return
      * @throws SQLException 
      */
-    public Integer setListTypeSelection(UUID userID, UUID programID, 
-            int listType, Integer listID) throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
-        return setListTypeSelection(id,listType,listID);
-    }
-    /**
-     * 
-     * @param programID
-     * @param listType
-     * @return 
-     * @throws java.sql.SQLException 
-     */
-    public Integer getListTypeSelection(int programID, int listType) throws SQLException{
-        try(PreparedStatement pstmt = prepareStatement(String.format(
-            "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
-                LIST_ID_COLUMN_NAME,
-                LIST_TYPE_SELECTION_TABLE_NAME,
-                PROGRAM_ID_COLUMN_NAME,
-                LIST_TYPE_COLUMN_NAME))){
+    public boolean listSelectionTableContains(int programID, int listType) throws SQLException{
+        try(PreparedStatement pstmt = prepareStatement(String.format(TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_TYPE_SETTINGS_TABLE_NAME,
+                    PROGRAM_ID_COLUMN_NAME,
+                    LIST_TYPE_COLUMN_NAME))){
             pstmt.setInt(1, programID);
             pstmt.setInt(2, listType);
-                // Get the results of the query
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()){
-                int value = rs.getInt(LIST_ID_COLUMN_NAME);
-                if (!rs.wasNull())
-                    return value;
-            }
+            return containsCountResult(pstmt.executeQuery());
         }
-        return null;
     }
     /**
      * 
@@ -5425,43 +5495,10 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @return
      * @throws SQLException 
      */
-    public Integer getListTypeSelection(UUID userID, UUID programID, 
-            int listType) throws SQLException{
-        Integer id = getProgramUUIDMap(userID).get(programID);
-        if (id == null)
-            return null;
-        return getListTypeSelection(id,listType);
-    }
-    /**
-     * 
-     * @param programID
-     * @return 
-     * @throws java.sql.SQLException 
-     */
-    public boolean removeListTypeSelection(int programID) throws SQLException{
-            // Prepare a statement to remove the entries with the given program ID 
-        try (PreparedStatement pstmt = prepareStatement(
-                String.format("DELETE FROM %s WHERE %s = ?", 
-                        LIST_TYPE_SELECTION_TABLE_NAME,
-                        PROGRAM_ID_COLUMN_NAME))) {
-                // Set the program ID to remove for
-            pstmt.setInt(1, programID);
-                // Update the database
-            return pstmt.executeUpdate() > 0;
-        }
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @return
-     * @throws SQLException 
-     */
-    public boolean removeListTypeSelection(UUID userID, UUID programID) throws SQLException{
-        Integer id = getProgramUUIDMap(userID).get(programID);
-        if (id == null)
-            return false;
-        return removeListTypeSelection(id);
+    public boolean listSelectionTableContains(UUID userID, UUID programID, int listType) 
+            throws SQLException{
+        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
+        return listSelectionTableContains(id,listType);
     }
     /**
      * 
@@ -5471,10 +5508,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * @throws SQLException 
      */
     public boolean selectionTableContains(int programID, int listID) throws SQLException{
-        try(PreparedStatement pstmt = prepareStatement(String.format(
-                TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
+        try(PreparedStatement pstmt = prepareStatement(String.format(TABLE_CONTAINS_QUERY_TEMPLATE+" AND %s = ?", 
                     PROGRAM_ID_COLUMN_NAME,
-                    LIST_SELECTION_TABLE_NAME,
+                    LIST_SETTINGS_TABLE_NAME,
                     PROGRAM_ID_COLUMN_NAME,
                     LIST_ID_COLUMN_NAME))){
             pstmt.setInt(1, programID);
@@ -5498,994 +5534,30 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      * @param programID
-     * @param listID
-     * @param linkID
-     * @throws SQLException 
+     * @return 
      */
-    public void setSelectedLink(int programID, int listID, Long linkID) throws SQLException{
-        boolean contains = selectionTableContains(programID,listID);
-        if (contains || linkID != null){
-            try(PreparedStatement pstmt = prepareStatement(String.format(
-                    (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
-                            "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
-                        LIST_SELECTION_TABLE_NAME,
-                        LINK_ID_COLUMN_NAME,
-                        PROGRAM_ID_COLUMN_NAME,
-                        LIST_ID_COLUMN_NAME))){
-                setParameter(pstmt,1,linkID);
-                pstmt.setInt(2, programID);
-                pstmt.setInt(3, listID);
-                pstmt.executeUpdate();
-            }
-        }
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @param link
-     * @param linkIDMap 
-     * @throws java.sql.SQLException 
-     */
-    public void setSelectedLink(int programID, int listID, String link, 
-            Map<String,Long> linkIDMap) throws SQLException{
-        if (linkIDMap == null)
-            linkIDMap = getLinkMap().inverse();
-        setSelectedLink(programID,listID,linkIDMap.get(link));
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @param link
-     * @throws SQLException 
-     */
-    public void setSelectedLink(int programID, int listID, String link) throws SQLException{
-        setSelectedLink(programID,listID,link,null);
+    public DatabaseLinksListSettings getListSettings(int programID){
+        if (!listSettingsMap.containsKey(programID))
+            listSettingsMap.put(programID, new DatabaseLinksListSettingsImpl(this,programID));
+        return listSettingsMap.get(programID);
     }
     /**
      * 
      * @param userID
-     * @param programID
-     * @param listID
-     * @param linkID
-     * @throws SQLException 
-     */
-    public void setSelectedLink(UUID userID, UUID programID, int listID, Long linkID) throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
-        setSelectedLink(id,listID,linkID);
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @param link
-     * @param linkIDMap
-     * @throws SQLException 
-     */
-    public void setSelectedLink(UUID userID, UUID programID, int listID, 
-            String link, Map<String,Long> linkIDMap) throws SQLException{
-        if (linkIDMap == null)
-            linkIDMap = getLinkMap().inverse();
-        setSelectedLink(userID,programID,listID,linkIDMap.get(link));
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @param link
-     * @throws SQLException 
-     */
-    public void setSelectedLink(UUID userID, UUID programID, int listID, 
-            String link) throws SQLException{
-        setSelectedLink(userID,programID,listID,link,null);
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @return
-     * @throws SQLException 
-     */
-    public Long getSelectedLinkID(int programID, int listID) throws SQLException{
-        try(PreparedStatement pstmt = prepareStatement(String.format(
-            "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
-                LINK_ID_COLUMN_NAME,
-                LIST_SELECTION_TABLE_NAME,
-                PROGRAM_ID_COLUMN_NAME,
-                LIST_ID_COLUMN_NAME))){
-            pstmt.setInt(1, programID);
-            pstmt.setInt(2, listID);
-                // Get the results of the query
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()){
-                long value = rs.getLong(LINK_ID_COLUMN_NAME);
-                if (!rs.wasNull())
-                    return value;
-            }
-        }
-        return null;
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @return
-     * @throws SQLException 
-     */
-    public Long getSelectedLinkID(UUID userID, UUID programID, int listID) 
-            throws SQLException{
-        Integer id = getProgramUUIDMap(userID).get(programID);
-        if (id == null)
-            return null;
-        return getSelectedLinkID(id,listID);
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @return
-     * @throws SQLException 
-     */
-    public String getSelectedLink(int programID, int listID) throws SQLException{
-        return getLinkMap().get(getSelectedLinkID(programID,listID));
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @return
-     * @throws SQLException 
-     */
-    public String getSelectedLink(UUID userID, UUID programID, int listID) 
-            throws SQLException{
-        return getLinkMap().get(getSelectedLinkID(userID,programID,listID));
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @param value
-     * @param columnName
-     * @throws SQLException 
-     */
-    private void setSelectionInteger(int programID, int listID, 
-            Integer value, String columnName)throws SQLException{
-        boolean contains = selectionTableContains(programID,listID);
-        if (contains || value != null){
-            try(PreparedStatement pstmt = prepareStatement(String.format(
-                    (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
-                            "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
-                        LIST_SELECTION_TABLE_NAME,
-                        columnName,
-                        PROGRAM_ID_COLUMN_NAME,
-                        LIST_ID_COLUMN_NAME))){
-                setParameter(pstmt,1,value);
-                pstmt.setInt(2, programID);
-                pstmt.setInt(3, listID);
-                pstmt.executeUpdate();
-            }
-        }
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @param columnName
-     * @return
-     * @throws SQLException 
-     */
-    private Integer getSelectionInteger(int programID, int listID, 
-            String columnName)throws SQLException{
-        try(PreparedStatement pstmt = prepareStatement(String.format(
-            "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
-                columnName,
-                LIST_SELECTION_TABLE_NAME,
-                PROGRAM_ID_COLUMN_NAME,
-                LIST_ID_COLUMN_NAME))){
-            pstmt.setInt(1, programID);
-            pstmt.setInt(2, listID);
-                // Get the results of the query
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()){
-                int value = rs.getInt(columnName);
-                if (!rs.wasNull())
-                    return value;
-            }
-        }
-        return null;
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @param visible
-     * @throws SQLException 
-     */
-    public void setSelectedLinkVisible(int programID, int listID, boolean visible) 
-            throws SQLException{
-        boolean contains = selectionTableContains(programID,listID);
-        if (contains || visible){
-            try(PreparedStatement pstmt = prepareStatement(String.format(
-                    (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
-                            "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
-                        LIST_SELECTION_TABLE_NAME,
-                        SELECTION_IS_VISIBLE_COLUMN_NAME,
-                        PROGRAM_ID_COLUMN_NAME,
-                        LIST_ID_COLUMN_NAME))){
-                pstmt.setBoolean(1, visible);
-                pstmt.setInt(2, programID);
-                pstmt.setInt(3, listID);
-                pstmt.executeUpdate();
-            }
-        }
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @param visible
-     * @throws SQLException 
-     */
-    public void setSelectedLinkVisible(UUID userID, UUID programID, int listID, 
-            boolean visible) throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
-        setSelectedLinkVisible(id,listID,visible);
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @return
-     * @throws SQLException 
-     */
-    public Boolean isSelectedLinkVisible(int programID, int listID) throws SQLException{
-        try(PreparedStatement pstmt = prepareStatement(String.format(
-            "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
-                SELECTION_IS_VISIBLE_COLUMN_NAME,
-                LIST_SELECTION_TABLE_NAME,
-                PROGRAM_ID_COLUMN_NAME,
-                LIST_ID_COLUMN_NAME))){
-            pstmt.setInt(1, programID);
-            pstmt.setInt(2, listID);
-                // Get the results of the query
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()){
-                Boolean value = rs.getBoolean(SELECTION_IS_VISIBLE_COLUMN_NAME);
-                if (!rs.wasNull())
-                    return value;
-            }
-        }
-        return null;
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @return
-     * @throws SQLException 
-     */
-    public Boolean isSelectedLinkVisible(UUID userID, UUID programID, 
-            int listID) throws SQLException{
-        Integer id = getProgramUUIDMap(userID).get(programID);
-        if (id == null)
-            return null;
-        return isSelectedLinkVisible(id,listID);
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @param index
-     * @throws SQLException 
-     */
-    public void setFirstVisibleIndex(int programID, int listID, Integer index)
-            throws SQLException{
-        setSelectionInteger(programID,listID,index,FIRST_VISIBLE_INDEX_COLUMN_NAME);
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @param index
-     * @throws SQLException 
-     */
-    public void setFirstVisibleIndex(UUID userID, UUID programID, int listID, 
-            Integer index)throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
-        setFirstVisibleIndex(id,listID,index);
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @return
-     * @throws SQLException 
-     */
-    public Integer getFirstVisibleIndex(int programID, int listID) throws SQLException{
-        return getSelectionInteger(programID,listID,FIRST_VISIBLE_INDEX_COLUMN_NAME);
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @return
-     * @throws SQLException 
-     */
-    public Integer getFirstVisibleIndex(UUID userID, UUID programID, int listID) 
-            throws SQLException{
-        Integer id = getProgramUUIDMap(userID).get(programID);
-        if (id == null)
-            return null;
-        return getFirstVisibleIndex(id,listID);
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @param index
-     * @throws SQLException 
-     */
-    public void setLastVisibleIndex(int programID, int listID, Integer index)
-            throws SQLException{
-        setSelectionInteger(programID,listID,index,LAST_VISIBLE_INDEX_COLUMN_NAME);
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @param index
-     * @throws SQLException 
-     */
-    public void setLastVisibleIndex(UUID userID, UUID programID, int listID, 
-            Integer index)throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
-        setLastVisibleIndex(id,listID,index);
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @return
-     * @throws SQLException 
-     */
-    public Integer getLastVisibleIndex(int programID, int listID) throws SQLException{
-        return getSelectionInteger(programID,listID,LAST_VISIBLE_INDEX_COLUMN_NAME);
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @return
-     * @throws SQLException 
-     */
-    public Integer getLastVisibleIndex(UUID userID, UUID programID, int listID) 
-            throws SQLException{
-        Integer id = getProgramUUIDMap(userID).get(programID);
-        if (id == null)
-            return null;
-        return getLastVisibleIndex(id,listID);
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @param visRect
-     * @throws SQLException 
-     */
-    public void setListVisibleRect(int programID, int listID, Rectangle visRect)
-            throws SQLException{
-        boolean contains = selectionTableContains(programID,listID);
-        if (contains || visRect != null){
-            try(PreparedStatement pstmt = prepareStatement(String.format(
-                    (contains)?"UPDATE %s SET %s = ? WHERE %s = ? AND %s = ?":
-                            "INSERT INTO %s(%s, %s, %s) VALUES (?, ?, ?)",
-                        LIST_SELECTION_TABLE_NAME,
-                        VISIBLE_RECTANGLE_COLUMN_NAME,
-                        PROGRAM_ID_COLUMN_NAME,
-                        LIST_ID_COLUMN_NAME))){
-                setParameter(pstmt,1,visRect);
-                pstmt.setInt(2, programID);
-                pstmt.setInt(3, listID);
-                pstmt.executeUpdate();
-            }
-        }
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @param visRect
-     * @throws SQLException 
-     */
-    public void setListVisibleRect(UUID userID, UUID programID, int listID, 
-            Rectangle visRect) throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
-        setListVisibleRect(id,listID,visRect);
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @return
-     * @throws SQLException 
-     */
-    public Rectangle getListVisibleRect(int programID, int listID)throws SQLException{
-        try(PreparedStatement pstmt = prepareStatement(String.format(
-            "SELECT %s FROM %s WHERE %s = ? AND %s = ?",
-                VISIBLE_RECTANGLE_COLUMN_NAME,
-                LIST_SELECTION_TABLE_NAME,
-                PROGRAM_ID_COLUMN_NAME,
-                LIST_ID_COLUMN_NAME))){
-            pstmt.setInt(1, programID);
-            pstmt.setInt(2, listID);
-                // Get the results of the query
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()){
-                byte[] bytes = rs.getBytes(VISIBLE_RECTANGLE_COLUMN_NAME);
-                if (!rs.wasNull())
-                    return ConfigUtilities.rectangleFromByteArray(bytes);
-            }
-        }
-        return null;
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @return
-     * @throws SQLException 
-     */
-    public Rectangle getListVisibleRect(UUID userID, UUID programID, int listID)
-            throws SQLException{
-        Integer id = getProgramUUIDMap(userID).get(programID);
-        if (id == null)
-            return null;
-        return getListVisibleRect(id,listID);
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @param linkID
-     * @param isVisible
-     * @param firstVisIndex
-     * @param lastVisIndex
-     * @param visRect
-     * @throws SQLException 
-     */
-    public void setSelectionForList(int programID, int listID, Long linkID, 
-            boolean isVisible, Integer firstVisIndex, Integer lastVisIndex, 
-            Rectangle visRect) throws SQLException{
-        boolean contains = selectionTableContains(programID,listID);
-        if (contains || linkID != null || isVisible || firstVisIndex != null || 
-                lastVisIndex != null || visRect != null){
-            try(PreparedStatement pstmt = prepareStatement(String.format(
-                    (contains)?
-                            "UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ?, %s = ? WHERE %s = ? AND %s = ?":
-                            "INSERT INTO %s(%s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        LIST_SELECTION_TABLE_NAME,
-                        LINK_ID_COLUMN_NAME,
-                        SELECTION_IS_VISIBLE_COLUMN_NAME,
-                        FIRST_VISIBLE_INDEX_COLUMN_NAME,
-                        LAST_VISIBLE_INDEX_COLUMN_NAME,
-                        VISIBLE_RECTANGLE_COLUMN_NAME,
-                        PROGRAM_ID_COLUMN_NAME,
-                        LIST_ID_COLUMN_NAME))){
-                setParameter(pstmt,1,linkID);
-                pstmt.setBoolean(2, isVisible);
-                setParameter(pstmt,3,firstVisIndex);
-                setParameter(pstmt,4,lastVisIndex);
-                setParameter(pstmt,5,visRect);
-                pstmt.setInt(6, programID);
-                pstmt.setInt(7, listID);
-                pstmt.executeUpdate();
-            }
-        }
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @param linkID
-     * @param isVisible
-     * @param firstVisIndex
-     * @param lastVisIndex
-     * @param visRect
-     * @throws SQLException 
-     */
-    public void setSelectionForList(UUID userID, UUID programID, int listID, 
-            Long linkID, boolean isVisible, Integer firstVisIndex, 
-            Integer lastVisIndex, Rectangle visRect) throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
-        setSelectionForList(id,listID,linkID,isVisible,firstVisIndex,
-                lastVisIndex,visRect);
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @param panel 
-     * @param linkIDMap 
-     * @throws java.sql.SQLException 
-     */
-    public void setSelectionForList(int programID, int listID, LinksListPanel panel, 
-            Map<String,Long> linkIDMap) throws SQLException{
-        if (linkIDMap == null)
-            linkIDMap = getLinkMap().inverse();
-        setSelectionForList(programID,listID,
-                linkIDMap.get(panel.getSelectedValue()),
-                panel.isIndexVisible(panel.getSelectedIndex()),
-                panel.getList().getFirstVisibleIndex(),
-                panel.getList().getLastVisibleIndex(),
-                panel.getList().getVisibleRect());
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID
-     * @param panel
-     * @throws SQLException 
-     */
-    public void setSelectionForList(int programID, int listID, LinksListPanel panel)
-            throws SQLException{
-        setSelectionForList(programID,listID,panel,null);
-    }
-    /**
-     * 
-     * @param programID
-     * @param panel
-     * @param linkIDMap
-     * @throws SQLException 
-     */
-    public void setSelectionForList(int programID, LinksListPanel panel, 
-            Map<String,Long> linkIDMap) throws SQLException{
-        if (panel.getListID() != null)
-            setSelectionForList(programID,panel.getListID(),panel,linkIDMap);
-    }
-    /**
-     * 
-     * @param programID
-     * @param panel
-     * @throws SQLException 
-     */
-    public void setSelectionForList(int programID, LinksListPanel panel) 
-            throws SQLException{
-        setSelectionForList(programID,panel,null);
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @param panel
-     * @param linkIDMap
-     * @throws SQLException 
-     */
-    public void setSelectionForList(UUID userID, UUID programID, int listID, 
-            LinksListPanel panel, Map<String,Long> linkIDMap) throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
-        setSelectionForList(id,listID,panel,linkIDMap);
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @param panel
-     * @throws SQLException 
-     */
-    public void setSelectionForList(UUID userID, UUID programID, int listID, 
-            LinksListPanel panel) throws SQLException{
-        setSelectionForList(userID,programID,listID,panel,null);
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param panel
-     * @param linkIDMap
-     * @throws SQLException 
-     */
-    public void setSelectionForList(UUID userID, UUID programID, 
-            LinksListPanel panel, Map<String,Long> linkIDMap) throws SQLException{
-        Integer id = getProgramUUIDMap(userID).addIfAbsent(programID);
-        setSelectionForList(id,panel,linkIDMap);
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param panel
-     * @throws SQLException 
-     */
-    public void setSelectionForList(UUID userID, UUID programID, 
-            LinksListPanel panel) throws SQLException{
-        setSelectionForList(userID,programID,panel,null);
-    }
-    /**
-     * 
-     * @param programID
-     * @param listID 
-     * @return  
-     * @throws java.sql.SQLException 
-     */
-    public boolean removeSelectionForList(int programID, int listID) throws SQLException{
-            // Prepare a statement to remove the entry with the given program ID 
-            // and listID
-        try (PreparedStatement pstmt = prepareStatement(
-                String.format("DELETE FROM %s WHERE %s = ? AND %s = ?", 
-                        LIST_SELECTION_TABLE_NAME,
-                        PROGRAM_ID_COLUMN_NAME,
-                        LIST_ID_COLUMN_NAME))) {
-                // Set the program ID to remove for
-            pstmt.setInt(1, programID);
-            pstmt.setInt(2, listID);
-                // Update the database
-            return pstmt.executeUpdate() > 0;
-        }
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @param listID
-     * @return
-     * @throws SQLException 
-     */
-    public boolean removeSelectionForList(UUID userID, UUID programID, int listID) 
-            throws SQLException{
-        Integer id = getProgramUUIDMap(userID).get(programID);
-        if (id == null)
-            return false;
-        return removeSelectionForList(id,listID);
-    }
-    /**
-     * 
      * @param programID
      * @return 
-     * @throws java.sql.SQLException 
      */
-    public boolean removeSelectionForList(int programID) throws SQLException{
-            // Prepare a statement to remove the entries with the given program ID 
-        try (PreparedStatement pstmt = prepareStatement(
-                String.format("DELETE FROM %s WHERE %s = ?", 
-                        LIST_SELECTION_TABLE_NAME,
-                        PROGRAM_ID_COLUMN_NAME))) {
-                // Set the program ID to remove for
-            pstmt.setInt(1, programID);
-                // Update the database
-            return pstmt.executeUpdate() > 0;
-        }
+    public DatabaseLinksListSettings getListSettings(UUID userID, UUID programID){
+        return getListSettings(getProgramUUIDMap(userID).addIfAbsent(programID));
     }
     /**
      * 
      * @param userID
      * @param programID
-     * @return
-     * @throws SQLException 
+     * @return 
      */
-    public boolean removeSelectionForList(UUID userID, UUID programID) throws SQLException{
-        Integer id = getProgramUUIDMap(userID).get(programID);
-        if (id == null)
-            return false;
-        return removeListTypeSelection(id);
-    }
-    /**
-     * 
-     * @param programID
-     * @return
-     * @throws SQLException 
-     */
-    public Set<Integer> getListSelectionIDs(int programID) throws SQLException{
-        Set<Integer> listIDs = new TreeSet<>();
-        try(PreparedStatement pstmt = prepareStatement(String.format(
-            "SELECT DISTINCT %s FROM %s WHERE %s = ?",
-                LIST_ID_COLUMN_NAME,
-                LIST_SELECTION_TABLE_NAME,
-                PROGRAM_ID_COLUMN_NAME))){
-            pstmt.setInt(1, programID);
-                // Get the results of the query
-            ResultSet rs = pstmt.executeQuery();
-            while(rs.next()){
-                listIDs.add(rs.getInt(LIST_ID_COLUMN_NAME));
-            }
-        }
-        return Collections.unmodifiableSet(listIDs);
-    }
-    /**
-     * 
-     * @param userID
-     * @param programID
-     * @return
-     * @throws SQLException 
-     */
-    public Set<Integer> getListSelectionIDs(UUID userID, UUID programID) 
-            throws SQLException{
-        Integer id = getProgramUUIDMap(userID).get(programID);
-        if (id == null)
-            return Collections.emptySet();
-        return getListSelectionIDs(id);
-    }
-    /**
-     * 
-     * @param <E> The type of elements stored in this set.
-     */
-    private abstract class AbstractQuerySet<E> extends AbstractSQLSet<E>{
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public LinkDatabaseConnection getConnection() throws SQLException {
-            return LinkDatabaseConnection.this;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected boolean addAllSQL(Collection<? extends E> c)throws SQLException{
-                // Get the current state of the auto-commit
-            boolean autoCommit = getAutoCommit();
-                // Turn off the auto-commit in order to group the following 
-                // database transactions to improve performance
-            setAutoCommit(false);
-                // Add all the elements in the given collection to this set and 
-                // get if this set was modified as a result
-            boolean modified = super.addAllSQL(c);
-            commit();       // Commit the changes to the database
-                // Restore the auto-commit back to what it was set to before
-            setAutoCommit(autoCommit);
-            return modified;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected boolean removeAllSQL(Collection<?> c)throws SQLException{
-                // Get the current state of the auto-commit
-            boolean autoCommit = getAutoCommit();
-                // Turn off the auto-commit in order to group the following 
-                // database transactions to improve performance
-            setAutoCommit(false);
-                // Remove any elements in this set that are also in the given 
-                // collection and get if this set was modified as a result
-            boolean modified = super.removeAllSQL(c);
-            commit();       // Commit the changes to the database
-                // Restore the auto-commit back to what it was set to before
-            setAutoCommit(autoCommit);
-            return modified;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected boolean retainAllSQL(Collection<?> c)throws SQLException{
-                // Get the current state of the auto-commit
-            boolean autoCommit = getAutoCommit();
-                // Turn off the auto-commit in order to group the following 
-                // database transactions to improve performance
-            setAutoCommit(false);
-                // Retain only the elements in this set that are also in the 
-                // given collection and get if this set was modified as a result
-            boolean modified = super.retainAllSQL(c);
-            commit();       // Commit the changes to the database
-                // Restore the auto-commit back to what it was set to before
-            setAutoCommit(autoCommit);
-            return modified;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected abstract boolean containsSQL(Object o) throws SQLException;
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected abstract boolean removeSQL(Object o) throws SQLException;
-        /**
-         * 
-         * @return
-         * @throws SQLException 
-         */
-        protected abstract Set<E> valueCacheSet() throws SQLException;
-        /**
-         * 
-         * @return
-         * @throws SQLException 
-         */
-        protected Iterator<E> iteratorSQL() throws SQLException{
-            return new CacheSetIterator<>(valueCacheSet()){
-                @Override
-                protected void remove(E value) {
-                    AbstractQuerySet.this.remove(value);
-                }
-            };
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public Iterator<E> iterator(){
-            try{
-                return iteratorSQL();
-            } catch (SQLException ex) {
-                LinkManager.getLogger().log(Level.WARNING, 
-                        "Failed to get iterator for query set", ex);
-                appendWarning(ex);
-                return Collections.emptyIterator();
-            }
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public boolean equals(Object obj){
-                // If the given object is this set
-            if (obj == this)
-                return true;
-                // If the given object is a set
-            else if (obj instanceof Set){
-                    // Create a copy of this set (to reduce the number of 
-                Set<E> temp = new HashSet<>(this);  // queries)
-                    // Return whether the object matches the copy
-                return temp.equals(obj);
-            }
-            return false;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public int hashCode() {
-                // Create a copy of this set (to reduce the number of queries)
-            Set<E> temp = new HashSet<>(this);
-            return temp.hashCode();
-        }
-    }
-    /**
-     * 
-     * @param <K> The type of keys maintained by the map.
-     * @param <V> The type of mapped values.
-     */
-    private abstract class AbstractQueryMap<K, V> extends AbstractSQLMap<K, V>{
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public LinkDatabaseConnection getConnection() throws SQLException {
-            return LinkDatabaseConnection.this;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected abstract boolean containsKeySQL(Object key) throws SQLException;
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected abstract V removeSQL(Object key) throws SQLException;
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected abstract V getSQL(Object key) throws SQLException;
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected abstract V putSQL(K key, V value) throws SQLException;
-        /**
-         * 
-         * @return
-         * @throws SQLException 
-         */
-        protected abstract Set<Entry<K,V>> entryCacheSet() throws SQLException;
-        /**
-         * 
-         * @return
-         * @throws SQLException 
-         */
-        protected Iterator<Entry<K,V>> entryIteratorSQL() throws SQLException{
-            return new CacheSetIterator<>(entryCacheSet()){
-                @Override
-                protected void remove(Entry<K,V> value) {
-                    AbstractQueryMap.this.remove(value.getKey(),value.getValue());
-                }
-            };
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected Iterator<Entry<K,V>> entryIterator(){
-            try{
-                return entryIteratorSQL();
-            } catch (SQLException ex) {
-                LinkManager.getLogger().log(Level.WARNING, 
-                        "Failed to get iterator for entries in query map", ex);
-                appendWarning(ex);
-                return Collections.emptyIterator();
-            }
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        protected void putAllSQL(Map<? extends K, ? extends V> m) 
-                throws SQLException{
-                // Get the current state of the auto-commit
-            boolean autoCommit = getAutoCommit();
-                // Turn off the auto-commit in order to group the following 
-                // database transactions to improve performance
-            setAutoCommit(false);
-                // Put all the entries in the given map into this map
-            super.putAllSQL(m);
-            commit();       // Commit the changes to the database
-                // Restore the auto-commit back to what it was set to before
-            setAutoCommit(autoCommit);
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public boolean equals(Object obj){
-                // If the given object is this map
-            if (obj == this)
-                return true;
-                // If the given object is a map
-            else if (obj instanceof Map){
-                    // Create a copy of this map (to reduce the number of 
-                Map<K, V> temp = new HashMap<>(this);   // queries)
-                    // Return whether the object matches the copy
-                return temp.equals(obj);
-            }
-            return false;
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public int hashCode() {
-                // Create a copy of this map (to reduce the number of queries)
-            Map<K, V> temp = new HashMap<>(this);
-            return temp.hashCode();
-        }
-    }
-    /**
-     * 
-     * @param <V> The type of mapped values.
-     */
-    private abstract class AbstractDatabaseTypeIDMap<V> extends 
-            AbstractNavigableTypeIDMap<V>{
-        /**
-         * 
-         * @param typeIDSet 
-         */
-        AbstractDatabaseTypeIDMap(NavigableSet<Integer> typeIDSet){
-            super(typeIDSet);
-        }
-        /**
-         * {@inheritDoc }
-         */
-        @Override
-        public LinkDatabaseConnection getConnection() throws SQLException {
-            return LinkDatabaseConnection.this;
-        }
+    public DatabaseLinksListSettings getListSettingsOrNull(UUID userID, UUID programID){
+        return getListSettings(getProgramUUIDMap(userID).get(programID));
     }
     /**
      * 
@@ -6500,6 +5572,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * @param type 
          */
         protected SchemaViewSet(String type) {
+            super(LinkDatabaseConnection.this);
             this.type = type;
         }
         /**
@@ -6642,6 +5715,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      * 
      */
     private class TableStructureMap extends AbstractQueryMap<String, String>{
+        /**
+         * 
+         * @param conn 
+         */
+        TableStructureMap() {
+            super(LinkDatabaseConnection.this);
+        }
         /**
          * {@inheritDoc }
          */
@@ -6807,6 +5887,9 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     private class ListNameMapImpl extends AbstractQueryRowMap<Integer, String> 
             implements ListNameMap{
+        /**
+         * 
+         */
         ListNameMapImpl() {
             super(LinkDatabaseConnection.this);
         }
@@ -7109,6 +6192,13 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     private class ListTypeSet extends AbstractQuerySet<Integer>{
         /**
+         * 
+         * @param conn 
+         */
+        ListTypeSet() {
+            super(LinkDatabaseConnection.this);
+        }
+        /**
          * {@inheritDoc }
          */
         @Override
@@ -7334,6 +6424,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * @throws SQLException 
          */
         ListTypeMapImpl() throws SQLException{
+            super(LinkDatabaseConnection.this);
             this.listTypeSet = getListTypes();
         }
         /**
@@ -7413,14 +6504,15 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     /**
      * 
      */
-    private class ListDataMapImpl extends AbstractDatabaseTypeIDMap<ListContents> 
+    private class ListDataMapImpl extends AbstractNavigableTypeIDMap<ListContents> 
             implements ListDataMap{
         /**
          * 
          * @throws SQLException 
          */
         ListDataMapImpl() throws SQLException {
-            super(LinkDatabaseConnection.this.getListNameMap().navigableKeySet());
+            super(LinkDatabaseConnection.this,
+                    LinkDatabaseConnection.this.getListNameMap().navigableKeySet());
         }
         /**
          * {@inheritDoc }
@@ -7515,6 +6607,12 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
      */
     private abstract class AbstractDatabasePropertyMap extends 
             AbstractQueryMap<String,String> implements DatabasePropertyMap{
+        /**
+         * 
+         */
+        AbstractDatabasePropertyMap() {
+            super(LinkDatabaseConnection.this);
+        }
         /**
          * 
          * @return 
@@ -7969,25 +7067,6 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
     }
     /**
      * 
-     * @param userID
-     * @return
-     * @throws SQLException 
-     */
-    private boolean programIDsContainsUserID(UUID userID) throws SQLException{
-            // Prepare a statement to check if the given user ID is found in the 
-            // program ID table
-        try(PreparedStatement pstmt = prepareStatement(String.format(
-                TABLE_CONTAINS_QUERY_TEMPLATE, 
-                        PROGRAM_ID_COLUMN_NAME,
-                        PROGRAM_ID_TABLE_NAME,
-                        PROGRAM_USER_ID_COLUMN_NAME))){
-                // Set the user ID to search for
-            pstmt.setString(1, userID.toString());
-            return containsCountResult(pstmt.executeQuery());
-        }
-    }
-    /**
-     * 
      */
     private class ProgramUUIDMapImpl extends AbstractQueryMap<UUID, Integer> 
             implements ProgramUUIDMap{
@@ -8000,6 +7079,7 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
          * @param userID 
          */
         ProgramUUIDMapImpl(UUID userID){
+            super(LinkDatabaseConnection.this);
             this.userID = Objects.requireNonNull(userID);
         }
         @Override
@@ -8237,26 +7317,33 @@ public class LinkDatabaseConnection extends AbstractDatabaseConnection{
                 throw new UncheckedSQLException(ex);
             }
         }
-        @Override
-        public boolean exists() {
-            try {
-                return programIDsContainsUserID(userID);
-            } catch (SQLException ex) {
-                appendWarning(ex);
-                throw new UncheckedSQLException(ex);
-            }
-        }
     }
     /**
      * 
      */
     private class ProgramUserIDSet extends AbstractQuerySet<UUID>{
+        /**
+         * 
+         */
+        ProgramUserIDSet() {
+            super(LinkDatabaseConnection.this);
+        }
         @Override
         protected boolean containsSQL(Object o) throws SQLException {
                 // If the given object is null or not a UUID
             if (o == null || !(o instanceof UUID))
                 return false;
-            return programIDsContainsUserID((UUID)o);
+                // Prepare a statement to check if the given user ID is found in the 
+                // program ID table
+            try(PreparedStatement pstmt = prepareStatement(String.format(
+                    TABLE_CONTAINS_QUERY_TEMPLATE, 
+                            PROGRAM_ID_COLUMN_NAME,
+                            PROGRAM_ID_TABLE_NAME,
+                            PROGRAM_USER_ID_COLUMN_NAME))){
+                    // Set the user ID to search for
+                pstmt.setString(1, o.toString());
+                return containsCountResult(pstmt.executeQuery());
+            }
         }
         @Override
         protected boolean removeSQL(Object o) throws SQLException {

@@ -4,19 +4,24 @@
  */
 package manager;
 
+import config.ConfigUtilities;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.File;
 import java.security.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.prefs.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
+import javax.swing.JFileChooser;
 import static manager.DatabaseSyncMode.DROPBOX;
 import manager.config.*;
+import manager.database.CacheSetIterator;
 import manager.dropbox.DropboxLinkUtils;
+import manager.dropbox.JDropboxFileChooser;
 import manager.links.*;
 import manager.security.*;
 import org.sqlite.SQLiteConfig;
@@ -28,7 +33,7 @@ import utils.SwingExtendedUtilities;
  * as Strings.
  * @author Milo Steier
  */
-public class LinkManagerConfig {
+public class LinkManagerConfig implements LinksListSettings{
     /**
      * This is the configuration key for the progress display setting.
      */
@@ -146,11 +151,11 @@ public class LinkManagerConfig {
      * This is the configuration key for the listID of the currently selected 
      * list if a list with a listID is selected.
      */
-    public static final String CURRENT_TAB_LIST_ID_KEY = "CurrentTabListID";
+    public static final String SELECTED_LIST_ID_KEY = "CurrentTabListID";
     /**
      * This is the configuration key for the index of the currently selected 
-     * tab if a tab is selected. This value is used as a fallback value to be 
-     * used when the value for {@link CURRENT_TAB_LIST_ID_KEY} is unavailable 
+     * tab if a tab is selected.This value is used as a fallback value to be 
+     * used when the value for {@link SELECTED_TAB_LIST_ID_KEY} is unavailable 
      * either due to the currently selected list not having a listID, no lists 
      * have the selected listID, or the current tab is not a list. The value for 
      * {@code CURRENT_TAB_LIST_ID_KEY} takes priority over this value due to 
@@ -158,7 +163,7 @@ public class LinkManagerConfig {
      * loaded from the database, whereas the index for any given list may vary 
      * between instances of the program.
      */
-    public static final String CURRENT_TAB_INDEX_KEY = "CurrentTabIndex";
+    public static final String SELECTED_TAB_INDEX_KEY = "CurrentTabIndex";
     /**
      * This is the configuration key for the currently selected link in a list 
      * with a listID.
@@ -198,6 +203,23 @@ public class LinkManagerConfig {
      * This is the configuration key for the UUID for the user of the program.
      */
     public static final String USER_ID_KEY = "UserID";
+    /**
+     * 
+     */
+    public static final String FILE_CHOOSER_SIZE_KEY = "FileChooserSize";
+    /**
+     * 
+     */
+    public static final String FILE_CHOOSER_CURRENT_DIRECTORY_KEY = 
+            "CurrentDirectory";
+    /**
+     * 
+     */
+    public static final String FILE_CHOOSER_SELECTED_FILE_KEY = "SelectedFile";
+    /**
+     * 
+     */
+    public static final String DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY = "SelectedPath";
     /**
      * This is the suffix for the configuration keys for the size of a 
      * component.
@@ -251,8 +273,8 @@ public class LinkManagerConfig {
      * that deal with list types.
      */
     private static final String[] LIST_TYPE_PROPERTY_KEY_PREFIXES = {
-        CURRENT_TAB_LIST_ID_KEY,
-        CURRENT_TAB_INDEX_KEY
+        SELECTED_LIST_ID_KEY,
+        SELECTED_TAB_INDEX_KEY
     };
     /**
      * This is an array that contains the prefixes for the keys in properties 
@@ -270,6 +292,11 @@ public class LinkManagerConfig {
      * Dropbox.
      */
     public static final String DROPBOX_PREFERENCE_NODE_NAME = "dropbox";
+    /**
+     * This is the name of the preference node used to store data for the file 
+     * chooser for Dropbox.
+     */
+    public static final String DROPBOX_FILE_CHOOSER_PREFERENCE_NODE = "fileChooser";
     /**
      * This is the name of the preference node used to store the preference 
      * nodes that store the settings relating to a specific type of list. The 
@@ -317,6 +344,14 @@ public class LinkManagerConfig {
      */
     private final Map<Component, String> compNameMap;
     /**
+     * This is a map used to map file choosers to the names of the preference nodes.
+     */
+    private final Map<JFileChooser, String> fcNodeNames;
+    /**
+     * This is a map used to map file choosers to their preference nodes.
+     */
+    private final Map<JFileChooser, ConfigPreferences> fcNodes;
+    /**
      * This is a map view of the current tab listIDs. This is initially null 
      * and is initialized when first used.
      */
@@ -357,6 +392,11 @@ public class LinkManagerConfig {
      */
     protected ConfigPreferences dropboxNode = null;
     /**
+     * This is the preference node that stores the settings for the file chooser 
+     * for Dropbox.
+     */
+    protected ConfigPreferences dropboxFCNode = null;
+    /**
      * This is used to handle the list type preference nodes.
      */
     protected final ListConfigNodeParent listTypeNodes;
@@ -380,8 +420,10 @@ public class LinkManagerConfig {
     private LinkManagerConfig(Properties sqlProp, ConfigPreferences node){
         config = new ConfigProperties();
         compNameMap = new HashMap<>();
+        fcNodeNames = new HashMap<>();
+        fcNodes = new HashMap<>();
             // If the given SQLite config properties is not null
-        if(sqlProp != null)
+        if (sqlProp != null)
             sqlConfig = new SQLiteConfig(sqlProp);
         else
             sqlConfig = new SQLiteConfig();
@@ -398,7 +440,7 @@ public class LinkManagerConfig {
             public String getParentPath() {
                 return LIST_ID_PREFERENCE_NODE_NAME;
             }
-        };;
+        };
     }
     /**
      * 
@@ -416,6 +458,7 @@ public class LinkManagerConfig {
         this.config.putAll(linkConfig.config);
         this.compNameMap.putAll(linkConfig.compNameMap);
         this.localDefaults.addProperties(linkConfig.localDefaults);
+        this.fcNodeNames.putAll(linkConfig.fcNodeNames);
         LinkManagerConfig.this.setProgramID(linkConfig.programID);
         this.cipherUtils = new CipherUtils(linkConfig.cipherUtils);
     }
@@ -469,6 +512,15 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @return 
+     */
+    public ConfigPreferences getDropboxFileChooserPreferences(){
+        if (dropboxFCNode == null)
+            dropboxFCNode = getDropboxPreferences().node(DROPBOX_FILE_CHOOSER_PREFERENCE_NODE);
+        return dropboxFCNode;
+    }
+    /**
+     * 
      * @param type The list type
      * @return 
      */
@@ -477,25 +529,11 @@ public class LinkManagerConfig {
     }
     /**
      * 
-     * @return 
-     */
-    public Set<Integer> getListTypes(){
-        return Collections.unmodifiableSet(listTypeNodes.getKeys());
-    }
-    /**
-     * 
      * @param listID The list ID
      * @return 
      */
     public ConfigPreferences getListPreferences(int listID){
         return listIDNodes.getNode(listID);
-    }
-    /**
-     * 
-     * @return 
-     */
-    public Set<Integer> getListIDs(){
-        return Collections.unmodifiableSet(listIDNodes.getKeys());
     }
     /**
      * This returns the SQLite configuration for the database used by 
@@ -520,6 +558,56 @@ public class LinkManagerConfig {
      */
     public ConfigProperties getProperties(){
         return config;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<JFileChooser, String> getFileChooserNameMap(){
+        return fcNodeNames;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<JFileChooser, ConfigPreferences> getFileChooserPreferenceMap(){
+        return fcNodes;
+    }
+    /**
+     * 
+     * @param fc
+     * @param name
+     */
+    public void setFileChooserName(JFileChooser fc, String name){
+        String old = fcNodeNames.get(fc);
+        if (!Objects.equals(old, name))
+            fcNodes.remove(fc);
+        fcNodeNames.put(fc, name);
+    }
+    /**
+     * 
+     * @param fc
+     * @return 
+     */
+    public ConfigPreferences getFileChooserPreferences(JFileChooser fc){
+        ConfigPreferences node = fcNodes.get(fc);
+        if (node == null){
+            String name = fcNodeNames.get(fc);
+            if (name != null){
+                node = getPreferences().node(name);
+                fcNodes.put(fc, node);
+            }
+        }
+        return node;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Set<JFileChooser> getRegisteredFileChoosers(){
+        Set<JFileChooser> fcs = new HashSet<>(getFileChooserPreferenceMap().keySet());
+        fcs.addAll(getFileChooserNameMap().keySet());
+        return fcs;
     }
     /**
      * This creates and returns the local preference node for the program using 
@@ -662,8 +750,12 @@ public class LinkManagerConfig {
             // Get the parent node for the listID preference nodes and clear the 
             // node cache
         listIDNodes.setParentNode();
+            // Clear the preference nodes for the file choosers
+        fcNodes.clear();
             // Reset the Dropbox node to null
         dropboxNode = null;
+            // Reset the Dropbox file chooser preference node to null
+        dropboxFCNode = null;
             // Update the values in the preference nodes
         updatePreferences();
     }
@@ -961,6 +1053,33 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @param node
+     * @param key
+     * @param defaultFile
+     * @return 
+     */
+    protected File getFile(Preferences node, String key, File defaultFile){
+            // Get the name of the file from the preference node, or null
+        String name = node.get(key, null);
+            // If there is no value set for that key
+        if (name == null)
+            return defaultFile;
+        return new File(name);
+    }
+    /**
+     * 
+     * @param node
+     * @param key
+     * @param value 
+     */
+    protected void putFile(Preferences node, String key, File value){
+        if (value == null)
+            node.remove(key);
+        else
+            node.put(key, value.toString());
+    }
+    /**
+     * 
      * @param comp
      * @return 
      */
@@ -1008,6 +1127,23 @@ public class LinkManagerConfig {
                 return true;
         }
         return false;
+    }
+    /**
+     * 
+     * @param node
+     * @param prop 
+     */
+    private void importPreferences(ConfigPreferences node, 
+            Properties prop){
+            // Get the name of the node used as a prefix
+        String prefix = node.name();
+            // This gets a set of keys for the properties that deal with lists
+        Set<String> listKeys = new HashSet<>(prop.stringPropertyNames());
+        listKeys.removeIf((String t) -> t == null || !t.startsWith(prefix));
+        for (String key : listKeys){
+            String value = prop.getProperty(key);
+            node.put(key.substring(prefix.length()), value);
+        }
     }
     /**
      * 
@@ -1146,6 +1282,15 @@ public class LinkManagerConfig {
         if (str != null)
                 // Set the Dropbox database file path from the properties
             setDropboxDatabaseFileName(str);
+        
+        str = cProp.getProperty(DROPBOX_PROPERTY_KEY_PREFIX+DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY);
+        if (str != null)
+            setSelectedDropboxPath(str);
+        
+        str = cProp.getProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_CHOOSER_CURRENT_DIRECTORY_KEY);
+        if (str != null)
+            setDropboxCurrentDirectory(str);
+        
         b = cProp.getBooleanProperty(CHECK_FOR_UPDATES_AT_START_KEY);
         if (b != null)
             setCheckForUpdateAtStartup(b);
@@ -1172,7 +1317,11 @@ public class LinkManagerConfig {
             if (rect != null)
                     // Set the component's bounds from the properties
                 setComponentBounds(entry.getKey(),rect);
-        }   // This maps listIDs to the selected link for that list
+        }
+        Dimension dim = cProp.getDimensionProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_CHOOSER_SIZE_KEY);
+        if (dim != null)
+            setDropboxFileChooserSize(dim);
+            // This maps listIDs to the selected link for that list
         Map<Integer,String> selMap = new HashMap<>();
             // This maps the listIDs to whether the selected link is visible for 
         Map<Integer,Boolean> selVisMap = new HashMap<>();   // that list
@@ -1239,11 +1388,11 @@ public class LinkManagerConfig {
                         lastVisMap.put(type, cProp.getIntProperty(key));
                         break;
                         // If this is the current tab listID key
-                    case(CURRENT_TAB_LIST_ID_KEY):
+                    case(SELECTED_LIST_ID_KEY):
                         selListIDMap.put(type, cProp.getIntProperty(key));
                         break;
                         // If this is the current tab index key
-                    case(CURRENT_TAB_INDEX_KEY):
+                    case(SELECTED_TAB_INDEX_KEY):
                         selListMap.put(type, cProp.getIntProperty(key));
                         break;
                         // If this is the visible rectangle index key
@@ -1268,17 +1417,22 @@ public class LinkManagerConfig {
             // Add all the values for the selected links in the lists
         getSelectedLinkMap().putAll(selMap);
             // Add all the values for the selected links are visible in the lists
-        getSelectedLinkIsVisibleMap().putAll(selVisMap);
+        getSelectedLinkVisibleMap().putAll(selVisMap);
             // Add all the values for the first visible indexes in the lists
         getFirstVisibleIndexMap().putAll(firstVisMap);
             // Add all the values for the last visible indexes in the lists
         getLastVisibleIndexMap().putAll(lastVisMap);
             // Add all the values for the current tab listIDs 
-        getCurrentTabListIDMap().putAll(selListIDMap);
+        getSelectedListIDMap().putAll(selListIDMap);
             // Add all the values for the current tab indexes
-        getCurrentTabIndexMap().putAll(selListMap);
+        getSelectedTabIndexMap().putAll(selListMap);
             // Add all the values for the visible rectangles for the lists
         getVisibleRectMap().putAll(visRectMap);
+            // Go through the file choosers
+        for (JFileChooser fc : getRegisteredFileChoosers()){
+                // Import the preferences for the file chooser
+            importPreferences(getFileChooserPreferences(fc),cProp);
+        }
     }
     /**
      * 
@@ -1296,6 +1450,26 @@ public class LinkManagerConfig {
     }
     /**
      * 
+     * @param node
+     * @param prop 
+     */
+    private void addPreferencesToProperties(ConfigPreferences node, 
+            ConfigProperties prop){
+            // Get the name of the preference node
+        String prefix = node.name();
+        try{    // Go through the keys in the preference node
+            for (String key : node.keySet()){
+                    // If that key is set
+                if (node.isKeySet(key)){
+                        // Store it in the properties
+                    prop.put(prefix+key, node.get(key, null));
+                }
+            }
+        } catch (BackingStoreException | IllegalStateException ex) {
+        }
+    }
+    /**
+     * 
      * @return 
      */
     public ConfigProperties exportProperties(){
@@ -1306,17 +1480,29 @@ public class LinkManagerConfig {
                     // Set the value for the Dropbox database file path
                 prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY, 
                         getDropboxDatabaseFileName());
+                    // If the Dropbox file chooser preference node exists
+                if (nodeExists(getDropboxPreferences(),DROPBOX_FILE_CHOOSER_PREFERENCE_NODE)){
+                    prop.setProperty(
+                            DROPBOX_PROPERTY_KEY_PREFIX+DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY, 
+                            getSelectedDropboxPath());
+                    prop.setProperty(
+                            DROPBOX_PROPERTY_KEY_PREFIX+FILE_CHOOSER_SIZE_KEY, 
+                            getDropboxFileChooserSize());
+                    prop.setProperty(
+                            DROPBOX_PROPERTY_KEY_PREFIX+FILE_CHOOSER_CURRENT_DIRECTORY_KEY, 
+                            getDropboxCurrentDirectory());
+                }
             }   // Add the current tab listID data to the properties
-            addListDataToProperties(getCurrentTabListIDMap(),
-                    CURRENT_TAB_LIST_ID_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
+            addListDataToProperties(getSelectedListIDMap(),
+                    SELECTED_LIST_ID_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
                 // Add the current tab index data to the properties
-            addListDataToProperties(getCurrentTabIndexMap(),
-                    CURRENT_TAB_INDEX_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
+            addListDataToProperties(getSelectedTabIndexMap(),
+                    SELECTED_TAB_INDEX_KEY+LIST_TYPE_PROPERTY_KEY_SUFFIX,prop);
                 // Add the selected link data to the properties
             addListDataToProperties(getSelectedLinkMap(),
                     SELECTED_LINK_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,prop);
                 // Add the selected link visibility data to the properties
-            addListDataToProperties(getSelectedLinkIsVisibleMap(),
+            addListDataToProperties(getSelectedLinkVisibleMap(),
                     SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY+
                             LIST_ID_PROPERTY_KEY_SUFFIX,prop);
                 // Add the first visible index data to the properties
@@ -1331,7 +1517,11 @@ public class LinkManagerConfig {
             addListDataToProperties(getVisibleRectMap(),
                     VISIBLE_RECTANGLE_FOR_LIST_KEY+LIST_ID_PROPERTY_KEY_SUFFIX,
                     prop);
-                // Remove the encryption key from the properties
+                // Go through the file choosers
+            for (ConfigPreferences fcNode : getFileChooserPreferenceMap().values()){
+                    // Add the preference node to the properties
+                addPreferencesToProperties(fcNode,prop);
+            }   // Remove the encryption key from the properties
             prop.remove(ENCRYPTION_KEY_KEY);
                 // Remember to remove any sensitive or unnecessary data from the 
                 // properties!
@@ -1993,38 +2183,27 @@ public class LinkManagerConfig {
             return node.getInt(key, 0);
         return null;
     }
-    /**
-     * 
-     * @param listType
-     * @param listID 
-     */
-    public void setCurrentTabListID(int listType, Integer listID){
-        getListTypePreferences(listType).putObject(CURRENT_TAB_LIST_ID_KEY, 
+    @Override
+    public void setSelectedListID(int listType, Integer listID){
+        getListTypePreferences(listType).putObject(SELECTED_LIST_ID_KEY, 
                 listID);
     }
-    /**
-     * 
-     * @param listType
-     * @return 
-     */
-    public Integer getCurrentTabListID(int listType){
+    @Override
+    public Integer getSelectedListID(int listType){
         return getIntegerPreference(getListTypePreferences(listType), 
-                CURRENT_TAB_LIST_ID_KEY);
+                SELECTED_LIST_ID_KEY);
     }
-    /**
-     * 
-     * @return 
-     */
-    public Map<Integer, Integer> getCurrentTabListIDMap(){
+    @Override
+    public Map<Integer, Integer> getSelectedListIDMap(){
         if (currTabIDMap == null){
             currTabIDMap = new ListConfigDataMap<>(){
                 @Override
                 protected Integer getValue(int key) {
-                    return getCurrentTabListID(key);
+                    return getSelectedListID(key);
                 }
                 @Override
                 protected void putValue(int key, Integer value) {
-                    setCurrentTabListID(key,value);
+                    setSelectedListID(key,value);
                 }
                 @Override
                 protected ListConfigNodeParent getNodes() {
@@ -2039,35 +2218,34 @@ public class LinkManagerConfig {
      * @param listType
      * @param index 
      */
-    public void setCurrentTabIndex(int listType, Integer index){
-        getListTypePreferences(listType).putObject(CURRENT_TAB_INDEX_KEY,index);
+    public void setSelectedTabIndex(int listType, Integer index){
+        getListTypePreferences(listType).putObject(SELECTED_TAB_INDEX_KEY,index);
     }
     /**
      * 
      * @param listType
      * @return 
      */
-    public int getCurrentTabIndex(int listType){
-        return getListTypePreferences(listType).getInt(CURRENT_TAB_INDEX_KEY,0);
+    public int getSelectedTabIndex(int listType){
+        return getListTypePreferences(listType).getInt(SELECTED_TAB_INDEX_KEY,0);
     }
     /**
      * 
      * @return 
      */
-    public Map<Integer, Integer> getCurrentTabIndexMap(){
+    public Map<Integer, Integer> getSelectedTabIndexMap(){
         if (currTabIndexMap == null){
             currTabIndexMap = new ListConfigDataMap<>(){
                 @Override
                 protected Integer getValue(int key) {
                          // If the node contains the current tab index key
-                    if (getListTypePreferences(key).containsKey(
-                            CURRENT_TAB_INDEX_KEY))
-                        return getCurrentTabIndex(key);
+                    if (getListTypePreferences(key).containsKey(SELECTED_TAB_INDEX_KEY))
+                        return getSelectedTabIndex(key);
                     return null;
                 }
                 @Override
                 protected void putValue(int key, Integer value) {
-                    setCurrentTabIndex(key,value);
+                    setSelectedTabIndex(key,value);
                 }
                 @Override
                 protected ListConfigNodeParent getNodes() {
@@ -2082,7 +2260,8 @@ public class LinkManagerConfig {
      * @param listType
      * @param tabsPanel 
      */
-    public void setCurrentTab(int listType, LinksListTabsPanel tabsPanel){
+    @Override
+    public void setSelectedTab(int listType, LinksListTabsPanel tabsPanel){
             // The listID of the current tab
         Integer listID = null;
             // The index of the current tab
@@ -2095,14 +2274,14 @@ public class LinkManagerConfig {
             index = (tabsPanel.isSelectionEmpty()) ? null :
                     tabsPanel.getSelectedIndex();
         }
-        setCurrentTabListID(listType,listID);
-        setCurrentTabIndex(listType, index);
+        setSelectedListID(listType,listID);
+        setSelectedTabIndex(listType, index);
     }
-    /**
-     * 
-     * @param listID
-     * @param value 
-     */
+    @Override
+    public boolean removeSelectedTab(int listType) {
+        return listTypeNodes.removeNode(listType);
+    }
+    @Override
     public void setSelectedLink(int listID, String value){
         LinkManager.getLogger().entering(this.getClass().getName(), 
                 "setSelectedLink", new Object[]{listID,value});
@@ -2110,18 +2289,11 @@ public class LinkManagerConfig {
         LinkManager.getLogger().exiting(this.getClass().getName(), 
                 "setSelectedLink");
     }
-    /**
-     * 
-     * @param listID
-     * @return 
-     */
+    @Override
     public String getSelectedLink(int listID){
         return getListPreferences(listID).get(SELECTED_LINK_FOR_LIST_KEY, null);
     }
-    /**
-     * 
-     * @return 
-     */
+    @Override
     public Map<Integer,String> getSelectedLinkMap(){
         if (selLinkMap == null){
             selLinkMap = new ListConfigDataMap<>(){
@@ -2141,42 +2313,30 @@ public class LinkManagerConfig {
         }
         return selLinkMap;
     }
-    /**
-     * 
-     * @param listID
-     * @param value 
-     */
-    public void setSelectedLinkIsVisible(int listID, Boolean value){
+    @Override
+    public void setSelectedLinkVisible(int listID, Boolean value){
         getListPreferences(listID).putObject(
                 SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, value);
     }
-    /**
-     * 
-     * @param listID
-     * @return 
-     */
-    public boolean getSelectedLinkIsVisible(int listID){
-        return getListPreferences(listID).getBoolean(
-                SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, false);
+    @Override
+    public Boolean isSelectedLinkVisible(int listID){
+        if (getListPreferences(listID).containsKey(
+                            SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
+            return getListPreferences(listID).getBoolean(
+                    SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY, false);
+        return null;
     }
-    /**
-     * 
-     * @return 
-     */
-    public Map<Integer,Boolean> getSelectedLinkIsVisibleMap(){
+    @Override
+    public Map<Integer,Boolean> getSelectedLinkVisibleMap(){
         if (selLinkVisMap == null){
             selLinkVisMap = new ListConfigDataMap<>(){
                 @Override
                 protected Boolean getValue(int key) {
-                        // If the node contains the selected link is visible key
-                    if (getListPreferences(key).containsKey(
-                            SELECTED_LINK_IS_VISIBLE_FOR_LIST_KEY))
-                        return getSelectedLinkIsVisible(key);
-                    return null;
+                    return isSelectedLinkVisible(key);
                 }
                 @Override
                 protected void putValue(int key, Boolean value) {
-                    setSelectedLinkIsVisible(key,value);
+                    setSelectedLinkVisible(key,value);
                 }
                 @Override
                 protected ListConfigNodeParent getNodes() {
@@ -2186,28 +2346,17 @@ public class LinkManagerConfig {
         }
         return selLinkVisMap;
     }
-    /**
-     * 
-     * @param listID
-     * @param value 
-     */
+    @Override
     public void setFirstVisibleIndex(int listID, Integer value){
         getListPreferences(listID).putObject(FIRST_VISIBLE_INDEX_FOR_LIST_KEY,
                 value);
     }
-    /**
-     * 
-     * @param listID
-     * @return 
-     */
+    @Override
     public Integer getFirstVisibleIndex(int listID){
         return getIntegerPreference(getListPreferences(listID), 
                 FIRST_VISIBLE_INDEX_FOR_LIST_KEY);
     }
-    /**
-     * 
-     * @return 
-     */
+    @Override
     public Map<Integer, Integer> getFirstVisibleIndexMap(){
         if (firstVisIndexMap == null){
             firstVisIndexMap = new ListConfigDataMap<>(){
@@ -2227,28 +2376,17 @@ public class LinkManagerConfig {
         }
         return firstVisIndexMap;
     }
-    /**
-     * 
-     * @param listID
-     * @param value 
-     */
+    @Override
     public void setLastVisibleIndex(int listID, Integer value){
         getListPreferences(listID).putObject(LAST_VISIBLE_INDEX_FOR_LIST_KEY,
                 value);
     }
-    /**
-     * 
-     * @param listID
-     * @return 
-     */
+    @Override
     public Integer getLastVisibleIndex(int listID){
         return getIntegerPreference(getListPreferences(listID), 
                 LAST_VISIBLE_INDEX_FOR_LIST_KEY);
     }
-    /**
-     * 
-     * @return 
-     */
+    @Override
     public Map<Integer, Integer> getLastVisibleIndexMap(){
         if (lastVisIndexMap == null){
             lastVisIndexMap = new ListConfigDataMap<>(){
@@ -2268,37 +2406,17 @@ public class LinkManagerConfig {
         }
         return lastVisIndexMap;
     }
-    /**
-     * 
-     * @param listID
-     * @param value 
-     */
+    @Override
     public void setVisibleRect(int listID, Rectangle value){
         getListPreferences(listID).putObject(VISIBLE_RECTANGLE_FOR_LIST_KEY, 
                 value);
     }
-    /**
-     * 
-     * @param listID
-     * @param defaultValue
-     * @return 
-     */
+    @Override
     public Rectangle getVisibleRect(int listID, Rectangle defaultValue){
         return getListPreferences(listID).getRectangle(
                 VISIBLE_RECTANGLE_FOR_LIST_KEY, defaultValue);
     }
-    /**
-     * 
-     * @param listID
-     * @return 
-     */
-    public Rectangle getVisibleRect(int listID){
-        return getVisibleRect(listID,null);
-    }
-    /**
-     * 
-     * @return 
-     */
+    @Override
     public Map<Integer, Rectangle> getVisibleRectMap(){
         if (visRectMap == null){
             visRectMap = new ListConfigDataMap<>(){
@@ -2318,82 +2436,17 @@ public class LinkManagerConfig {
         }
         return visRectMap;
     }
-    /**
-     * 
-     * @param listID
-     * @param panel 
-     */
-    public void setVisibleSection(int listID, LinksListPanel panel){
-        LinkManager.getLogger().entering(this.getClass().getName(), 
-                "setVisibleSection", new Object[]{listID,panel});
-            // This will get the first visible index
-        Integer firstVisIndex = null;
-            // This will get the last visible index
-        Integer lastVisIndex = null;
-            // This will get whether the selected index is visible
-        Boolean isSelVis = null;
-            // This will get the visible rectangle for the list
-        Rectangle visRect = null;
-            // If the panel is not null
-        if (panel != null){
-                // Get the first visible index for the list
-            firstVisIndex = panel.getList().getFirstVisibleIndex();
-                // If the first visible index is negative
-            if (firstVisIndex < 0)
-                firstVisIndex = null;
-                // Get the last visible index for the list
-            lastVisIndex = panel.getList().getLastVisibleIndex();
-                // If the last visible index is negative
-            if (lastVisIndex < 0)
-                lastVisIndex = null;
-                // If the panel's selection is not empty
-            if (!panel.isSelectionEmpty())
-                    // Get whether the selected indes is visible
-                isSelVis = panel.isIndexVisible(panel.getSelectedIndex());
-                // Get the panel's list's visible rectangle
-            visRect = panel.getList().getVisibleRect();
-        }   // Set the first visible index for the list
-        setFirstVisibleIndex(listID,firstVisIndex);
-            // Set the last visible index for the list
-        setLastVisibleIndex(listID,lastVisIndex);
-            // Set whether the selected link is visible
-        setSelectedLinkIsVisible(listID,isSelVis);
-            // Set the visible rectangle for the list
-        setVisibleRect(listID,visRect);
-        LinkManager.getLogger().exiting(this.getClass().getName(), 
-                "setVisibleSection");
-    }
-    /**
-     * 
-     * @param panel 
-     */
-    public void setVisibleSection(LinksListPanel panel){
-            // If the panel is not null and has a non-null listID
-        if (panel != null && panel.getListID() != null)
-            setVisibleSection(panel.getListID(),panel);
-    }
-    /**
-     * 
-     * @param listID 
-     * @return  
-     */
-    public boolean removeListPreferences(int listID){
+    @Override
+    public boolean removeListSettings(int listID){
         return listIDNodes.removeNode(listID);
     }
-    /**
-     * 
-     * @param listIDs
-     * @return 
-     */
-    public boolean removeListPreferences(Collection<Integer> listIDs){
-        boolean changed = false;
-        for (Integer listID : listIDs){
-            if (listID != null){
-                boolean removed = removeListPreferences(listID);
-                changed |= removed;
-            }
-        }
-        return changed;
+    @Override
+    public Set<Integer> getListIDs(){
+        return listIDNodes.getKeys();
+    }
+    @Override
+    public Set<Integer> getListTypes(){
+        return listTypeNodes.getKeys();
     }
     /**
      * This returns the user ID set for this configuration.
@@ -2608,6 +2661,210 @@ public class LinkManagerConfig {
      */
     public void setCheckForUpdateAtStartup(boolean value){
         getPreferences().putBoolean(CHECK_FOR_UPDATES_AT_START_KEY, value);
+    }
+    /**
+     * 
+     * @param fc
+     * @param defaultValue
+     * @return 
+     */
+    public File getSelectedFile(JFileChooser fc, File defaultValue){
+        return getFile(getFileChooserPreferences(fc), 
+                FILE_CHOOSER_SELECTED_FILE_KEY,defaultValue);
+    }
+    /**
+     * 
+     * @param fc
+     * @return 
+     */
+    public File getSelectedFile(JFileChooser fc){
+        return getSelectedFile(fc,null);
+    }
+    /**
+     * 
+     * @param fc
+     * @param file 
+     */
+    public void setSelectedFile(JFileChooser fc, File file){
+        putFile(getFileChooserPreferences(fc), FILE_CHOOSER_SELECTED_FILE_KEY,file);
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void setSelectedFile(JFileChooser fc){
+        setSelectedFile(fc,fc.getSelectedFile());
+    }
+    /**
+     * 
+     * @param fc
+     * @return 
+     */
+    public Dimension getFileChooserSize(JFileChooser fc){
+        return ConfigUtilities.getDimension(getFileChooserPreferences(fc), 
+                FILE_CHOOSER_SIZE_KEY, null);
+    }
+    /**
+     * 
+     * @param fc
+     */
+    public void setFileChooserSize(JFileChooser fc){
+        ConfigUtilities.putDimension(getFileChooserPreferences(fc), 
+                FILE_CHOOSER_SIZE_KEY,fc);
+    }
+    /**
+     * 
+     * @param fc
+     * @return 
+     */
+    public File getCurrentDirectory(JFileChooser fc){
+        return getFile(getFileChooserPreferences(fc), 
+                FILE_CHOOSER_CURRENT_DIRECTORY_KEY, null);
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void setCurrentDirectory(JFileChooser fc){
+        putFile(getFileChooserPreferences(fc),FILE_CHOOSER_CURRENT_DIRECTORY_KEY,
+                fc.getCurrentDirectory());
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void storeFileChooser(JFileChooser fc){
+            // Put the file chooser's size in the preference node
+        setFileChooserSize(fc);
+            // Put the file chooser's current directory in the preference node
+        setCurrentDirectory(fc);
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void loadFileChooser(JFileChooser fc){
+            // Get the current directory for the file chooser
+        File dir = getCurrentDirectory(fc);
+            // If there is a current directory for the file chooser and it exists
+        if (dir != null && dir.exists()){
+                // Set the file chooser's current directory
+            fc.setCurrentDirectory(dir);
+        }   // Get the selected file for the file chooser, or null
+        File file = getSelectedFile(fc);
+            // If there is a selected file for the file chooser
+        if (file != null){
+                // Select that file in the file chooser
+            fc.setSelectedFile(file);
+        }   // Load the file chooser's size from the preference node
+        SwingExtendedUtilities.setComponentSize(fc,getFileChooserSize(fc));
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public String getSelectedDropboxPath(String defaultValue){
+        return getDropboxFileChooserPreferences().get(
+                DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY, defaultValue);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public String getSelectedDropboxPath(){
+        return getSelectedDropboxPath(null);
+    }
+    /**
+     * 
+     * @param path 
+     */
+    public void setSelectedDropboxPath(String path){
+        getDropboxFileChooserPreferences().put(
+                DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY, path);
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void setSelectedDropboxPath(JDropboxFileChooser fc){
+        setSelectedDropboxPath(fc.getSelectedPath());
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Dimension getDropboxFileChooserSize(){
+        return ConfigUtilities.getDimension(getDropboxFileChooserPreferences(), 
+                FILE_CHOOSER_SIZE_KEY, null);
+    }
+    /**
+     * 
+     * @param dim 
+     */
+    public void setDropboxFileChooserSize(Dimension dim){
+        ConfigUtilities.putDimension(getDropboxFileChooserPreferences(), 
+                FILE_CHOOSER_SIZE_KEY,dim);
+    }
+    /**
+     * 
+     * @param fc
+     */
+    public void setDropboxFileChooserSize(JDropboxFileChooser fc){
+        setDropboxFileChooserSize(fc.getSize());
+    }
+    /**
+     * 
+     * @return 
+     */
+    public String getDropboxCurrentDirectory(){
+        return getDropboxFileChooserPreferences().get(
+                FILE_CHOOSER_CURRENT_DIRECTORY_KEY, null);
+    }
+    /**
+     * 
+     * @param path 
+     */
+    public void setDropboxCurrentDirectory(String path){
+        getDropboxFileChooserPreferences().put(
+                FILE_CHOOSER_CURRENT_DIRECTORY_KEY, path);
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void setDropboxCurrentDirectory(JDropboxFileChooser fc){
+        setDropboxCurrentDirectory(fc.getCurrentDirectory());
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void storeDropboxFileChooser(JDropboxFileChooser fc){
+            // Put the file chooser's size in the preference node
+        setDropboxFileChooserSize(fc);
+            // Put the file chooser's current directory in the preference node
+        setDropboxCurrentDirectory(fc);
+    }
+    /**
+     * 
+     * @param fc 
+     */
+    public void loadDropboxFileChooser(JDropboxFileChooser fc){
+            // Get the current directory for the file chooser
+        String dir = getDropboxCurrentDirectory();
+            // If there is a current directory for the file chooser and it exists
+        if (dir != null){
+                // Set the file chooser's current directory
+            fc.setCurrentDirectory(dir);
+        }   // Get the selected file for the file chooser, or null
+        String file = getSelectedDropboxPath();
+            // If there is a selected file for the file chooser
+        if (file != null){
+                // Select that file in the file chooser
+            fc.setSelectedPath(file);
+        }   // Load the file chooser's size from the preference node
+        SwingExtendedUtilities.setComponentSize(fc,getDropboxFileChooserSize());
     }
     /**
      * 
@@ -2826,6 +3083,10 @@ public class LinkManagerConfig {
         protected Map<Integer, ConfigPreferences> nodeMap = new HashMap<>();
         /**
          * 
+         */
+        private Set<Integer> keys;
+        /**
+         * 
          * @return 
          */
         public Map<Integer, ConfigPreferences> getNodeCache(){
@@ -2923,9 +3184,9 @@ public class LinkManagerConfig {
          * 
          * @return 
          */
-        public Set<Integer> getKeys(){
+        public Set<Integer> getKeyCache(){
                 // This will get the keys in this map
-            Set<Integer> keys = new TreeSet<>();
+            Set<Integer> cache = new TreeSet<>();
             try{    // Get the names of the child nodes in the parent preference 
                 String[] childNodes = getParentNode().childrenNames(); // node
                     // Go through the names of the child nodes
@@ -2933,12 +3194,45 @@ public class LinkManagerConfig {
                         // If the child's name is not null
                     if (child != null){
                         try{    // Parse the number
-                            keys.add(Integer.valueOf(child));
+                            cache.add(Integer.valueOf(child));
                         } catch (NumberFormatException ex) {}
                     }
                 }
             } catch (BackingStoreException ex) {}
+            return cache;
+        }
+        /**
+         * 
+         * @return 
+         */
+        public Set<Integer> getKeys(){
+            if (keys == null)
+                keys = new ListConfigKeySet();
             return keys;
+        }
+        /**
+         * 
+         */
+        private class ListConfigKeySet extends AbstractSet<Integer>{
+            @Override
+            public Iterator<Integer> iterator() {
+                return new CacheSetIterator<>(getKeyCache()){
+                    @Override
+                    protected void remove(Integer value) {
+                        removeNode(value);
+                    }
+                };
+            }
+            @Override
+            public int size() {
+                return getKeyCache().size();
+            }
+            @Override
+            public boolean remove(Object o){
+                if (o instanceof Integer)
+                    return removeNode((Integer)o);
+                return false;
+            }
         }
     }
 }

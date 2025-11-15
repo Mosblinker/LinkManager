@@ -82,7 +82,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This is the version of the program.
      */
-    public static final String PROGRAM_VERSION = "0.2.0";
+    public static final String PROGRAM_VERSION = "0.5.0";
     /**
      * The name of the author and main developer.
      */
@@ -120,7 +120,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         {"UpdateChecker","TechnicJelle","https://github.com/TechnicJelle/UpdateCheckerJava"},
         {"sqlite-jdbc","xerial","https://github.com/xerial/sqlite-jdbc"},
         {"jackson-core","FasterXML","https://github.com/FasterXML/jackson-core"},
-        {"dropbox-core-sdk","Dropbox","https://github.com/dropbox/dropbox-sdk-java"}
+        {"dropbox-core-sdk","Dropbox","https://github.com/dropbox/dropbox-sdk-java"},
+        {"ListAction.java","Rob Camick","https://tips4java.wordpress.com/2008/10/14/list-action/"},
+        {"EditListAction.java","Rob Camick","https://tips4java.wordpress.com/2008/10/19/list-editor/"}
     };
     /**
      * This is the pattern for the file handler to use for the log files of this 
@@ -794,17 +796,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         searchMenu.add(searchPanel.getFindNextAction());
         searchMenu.add(searchPanel.getFindPreviousAction());
         
+            // Set up file chooser map
+        config.setFileChooserName(openFC, OPEN_FILE_CHOOSER_NAME);
+        config.setFileChooserName(saveFC, SAVE_FILE_CHOOSER_NAME);
+        config.setFileChooserName(configFC, CONFIG_FILE_CHOOSER_NAME);
+        config.setFileChooserName(exportFC, EXPORT_FILE_CHOOSER_NAME);
+        config.setFileChooserName(databaseFC, DATABASE_FILE_CHOOSER_NAME);
+        
             // Set up the component key prefix map
         config.getComponentNames().put(listManipulator, LIST_MANAGER_NAME);
         config.getComponentNames().put(listTabsManipulator, LIST_TABS_MANAGER_NAME);
         config.getComponentNames().put(addLinksPanel, ADD_LINKS_PANEL_NAME);
         config.getComponentNames().put(copyOrMoveListSelector, 
                 COPY_OR_MOVE_LINKS_PANEL_NAME);
-        config.getComponentNames().put(openFC, OPEN_FILE_CHOOSER_NAME);
-        config.getComponentNames().put(saveFC, SAVE_FILE_CHOOSER_NAME);
-        config.getComponentNames().put(configFC, CONFIG_FILE_CHOOSER_NAME);
-        config.getComponentNames().put(exportFC, EXPORT_FILE_CHOOSER_NAME);
-        config.getComponentNames().put(databaseFC, DATABASE_FILE_CHOOSER_NAME);
         config.getComponentNames().put(LinkManager.this, LINK_MANAGER_NAME);
         config.getComponentNames().put(setLocationDialog, DATABASE_LOCATION_DIALOG_NAME);
         config.getComponentNames().put(searchDialog, SEARCH_DIALOG_NAME);
@@ -1201,6 +1205,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         javax.swing.JLabel jLabel7 = new javax.swing.JLabel();
         dbxChunkSizeSpinner = new javax.swing.JSpinner();
         javax.swing.JLabel jLabel11 = new javax.swing.JLabel();
+        dbxBrowseButton = new javax.swing.JButton();
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
@@ -1336,6 +1341,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         latestVersLabel = new javax.swing.JLabel();
         updateContinueButton = new javax.swing.JButton();
         updateOpenButton = new javax.swing.JButton();
+        dropboxFC = new manager.dropbox.JDropboxFileChooser();
         progressBar = new javax.swing.JProgressBar();
         javax.swing.JLabel newLinkLabel = new javax.swing.JLabel();
         linkTextField = new javax.swing.JTextField();
@@ -1405,6 +1411,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxPrintButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
+        dbxListFilesTestButton = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
 
         openFC.addActionListener(new java.awt.event.ActionListener() {
@@ -1588,6 +1595,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         jLabel11.setText("MiB");
 
+        dbxBrowseButton.setText("Browse");
+        dbxBrowseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbxBrowseButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout setDropboxCardLayout = new javax.swing.GroupLayout(setDropboxCard);
         setDropboxCard.setLayout(setDropboxCardLayout);
         setDropboxCardLayout.setHorizontalGroup(
@@ -1599,7 +1613,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     .addGroup(setDropboxCardLayout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbxDbFileField, javax.swing.GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE))
+                        .addComponent(dbxDbFileField, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(dbxBrowseButton))
                     .addGroup(setDropboxCardLayout.createSequentialGroup()
                         .addComponent(jLabel7)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1617,7 +1633,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(dbxDbFileField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(dbxDbFileField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(dbxBrowseButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
@@ -2767,6 +2784,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addContainerGap())
         );
 
+        dropboxFC.setAcceptButtonToolTipText("Open selected file");
+        dropboxFC.setDialogTitle("Set Database Location...");
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle(PROGRAM_NAME);
         setLocationByPlatform(true);
@@ -3243,6 +3263,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         dropboxTestMenu.add(dropboxRefreshTestButton);
+
+        dbxListFilesTestButton.setText("List Files");
+        dbxListFilesTestButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbxListFilesTestButtonActionPerformed(evt);
+            }
+        });
+        dropboxTestMenu.add(dbxListFilesTestButton);
 
         debugMenu.add(dropboxTestMenu);
 
@@ -4115,7 +4143,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     type = i;
             }   // If the event source is found in the list tabs panel array (it 
             if (type >= 0)  // should be)
-                config.setCurrentTab(type, listsTabPanels[type]);
+                config.setSelectedTab(type, listsTabPanels[type]);
             else{
                 getLogger().log(Level.WARNING, 
                         "Source not found in list tabs panels: {0}", evt.getSource());
@@ -4262,6 +4290,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void exportListsItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportListsItemActionPerformed
             // Gets the file to save to
         File file = showSaveFileChooser(exportFC,null);
+        config.setSelectedFile(exportFC, file);
         if (file != null){  // If the user selected a file
             saver = new ExportDatabase(file);
             saver.execute();
@@ -4270,10 +4299,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void saveConfigItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveConfigItemActionPerformed
         File file = showSaveFileChooser(configFC, "Save Configuration To File...");
+        config.setSelectedFile(configFC,file);
         if (file != null){
             if (!FilesExtended.endsWithFileExtension(file,ConfigExtensions.CFG)){
                 file = new File(file.toString()+"."+ConfigExtensions.CFG);
                 configFC.setSelectedFile(file);
+                config.setSelectedFile(configFC,file);
             }
             saver = new ConfigSaver(file);
             saver.execute();
@@ -4624,6 +4655,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         File file = getDatabaseFile(fileName);
         dbFileField.setText(fileName);
         databaseFC.setCurrentDirectory(file);
+        config.setCurrentDirectory(databaseFC);
     }
     
     private void setDropboxDatabaseFileFields(String fileName){
@@ -4792,7 +4824,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_setDBResetButtonActionPerformed
     
     private void dbFileBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileBrowseButtonActionPerformed
-        File file = showSaveFileChooser(databaseFC,null);
+        File file = showSaveFileChooser(databaseFC,null,false);
+        config.setSelectedFile(databaseFC, file);
         if (file != null){
             if (file.isDirectory()){
                 String fileName = dbFileField.getText();
@@ -5099,6 +5132,61 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.WARNING,"Could not open update URL "+url,ex);
         }
     }//GEN-LAST:event_updateOpenButtonActionPerformed
+
+    private void dbxListFilesTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxListFilesTestButtonActionPerformed
+        try {   // Get a client to communicate with Dropbox, refreshing the 
+                // Dropbox credentials if necessary
+            DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
+            
+            
+            DefaultMutableTreeNode nodes = DropboxUtilities.listFolderTree(client, "");
+            Iterator<TreeNode> nodeItr = nodes.preorderEnumeration().asIterator();
+            
+            while (nodeItr.hasNext()){
+                TreeNode temp = nodeItr.next();
+                if (temp instanceof DefaultMutableTreeNode){
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)temp;
+                    Metadata metadata;
+                    if (node.getUserObject() instanceof Metadata)
+                        metadata = (Metadata) node.getUserObject();
+                    else
+                        continue;
+                    System.out.print("    ".repeat(node.getLevel()));
+                    if (metadata != null)
+                        System.out.print(metadata.getName());
+                    if (metadata instanceof FileMetadata){
+                        FileMetadata file = (FileMetadata) metadata;
+                        ExportInfo exportInfo = file.getExportInfo();
+                        System.out.printf(" (%d bytes, %s, %s", file.getSize(),
+                                file.getClientModified(), file.getServerModified());
+                        if (exportInfo != null)
+                            System.out.printf(", %s, %s",
+                                    exportInfo.getExportAs(),exportInfo.getExportOptions());
+                        System.out.print(")");
+                    }
+                    System.out.println();
+                }
+            }
+        } catch (DbxException ex) {
+            getLogger().log(Level.WARNING, "Failed to list files", ex);
+        }
+    }//GEN-LAST:event_dbxListFilesTestButtonActionPerformed
+
+    private void dbxBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxBrowseButtonActionPerformed
+        try{    // Get a client to communicate with Dropbox, refreshing the 
+                // Dropbox credentials if necessary
+            DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
+            int option = dropboxFC.showOpenDialog(this,client);
+            config.storeDropboxFileChooser(dropboxFC);
+            String path = dropboxFC.getSelectedPath();
+            config.setSelectedDropboxPath(path);
+            if (option == JDropboxFileChooser.ACCEPT_OPTION){
+                dbxDbFileField.setText(path);
+            }
+        } catch (DbxException | UncheckedDbxException ex) {
+            getLogger().log(Level.WARNING, "Cannot browse Dropbox", ex);
+        } 
+    }//GEN-LAST:event_dbxBrowseButtonActionPerformed
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
@@ -5422,7 +5510,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         dbxLogInButton.setEnabled(setDBLocationItem.isEnabled() && dbxUtils != null);
         dbxLogOutButton.setEnabled(setDBLocationItem.isEnabled());
-        dbxDbFileField.setEditable(dbFileField.isEditable() && dbxUtils != null);
+        dbxBrowseButton.setEnabled(dbxLogInButton.isEnabled());
+        dbxDbFileField.setEditable(dbxBrowseButton.isEnabled());
         dbxChunkSizeSpinner.setEnabled(dbxLogInButton.isEnabled());
         
         updateDBLocationButtons();
@@ -5602,10 +5691,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      * @param fc
      * @param title
+     * @param checkIfExists
+     * @return 
+     */
+    private File showSaveFileChooser(JFileChooser fc, String title, 
+            boolean checkIfExists){
+        return LinkManagerUtilities.showSaveFileChooser(fc, this, config,title,
+                checkIfExists);
+    }
+    /**
+     * 
+     * @param fc
+     * @param title
      * @return 
      */
     private File showSaveFileChooser(JFileChooser fc, String title){
-        return LinkManagerUtilities.showSaveFileChooser(fc, this, config,title);
+        return showSaveFileChooser(fc, title, true);
     }
     /**
      * This is the model used for the spinner to set the chunk size for 
@@ -5784,9 +5885,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem dbViewItem;
     private manager.database.DatabaseTableViewer dbViewer;
     private javax.swing.JLabel dbxAccountLabel;
+    private javax.swing.JButton dbxBrowseButton;
     private javax.swing.JSpinner dbxChunkSizeSpinner;
     private javax.swing.JPanel dbxDataPanel;
     private javax.swing.JTextField dbxDbFileField;
+    private javax.swing.JMenuItem dbxListFilesTestButton;
     private javax.swing.JButton dbxLogInButton;
     private javax.swing.JButton dbxLogOutButton;
     private components.JThumbnailLabel dbxPfpLabel;
@@ -5796,6 +5899,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenu debugMenu;
     private javax.swing.JCheckBoxMenuItem doubleNewLinesToggle;
     private javax.swing.JMenuItem downloadDBItem;
+    private manager.dropbox.JDropboxFileChooser dropboxFC;
     private javax.swing.JMenuItem dropboxRefreshTestButton;
     private manager.dropbox.DropboxSetupPanel dropboxSetupPanel;
     private javax.swing.JMenu dropboxTestMenu;
@@ -5945,13 +6049,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         LinksListModel oldModel = panel.getModel();
         if (model.listEquals(oldModel))
             return;
-        panel.setModel(model,true);
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
             for (LinksListPanel currentPanel : tabsPanel){
-                if (Objects.equals(oldModel, currentPanel.getModel()))
+                if (Objects.equals(oldModel, currentPanel.getModel()) && 
+                        !panel.equals(currentPanel))
                     currentPanel.setModel(model);
             }
         }
+        panel.setModel(model,true);
     }
     
     private void selectionHasChanged(LinksListModel model){
@@ -6267,6 +6372,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Make the search dialog's position relative to the 
                     // program's
                 searchDialog.setLocationRelativeTo(this);
+                // Go through the file choosers and load them
+            for (JFileChooser fc : config.getRegisteredFileChoosers()){
+                    // Load the file chooser
+                config.loadFileChooser(fc);
+            }
+                // Load the Dropbox file chooser
+            config.loadDropboxFileChooser(dropboxFC);
         }   // Set the show hidden lists property from the config
         showHiddenListsToggle.setSelected(config.getHiddenListsAreShown(
                 showHiddenListsToggle.isSelected()));
@@ -6285,21 +6397,22 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         Map<Integer,String> selMap = config.getSelectedLinkMap();
             // This maps the listIDs to whether the selected link is visible for 
             // that list
-        Map<Integer,Boolean> selVisMap = config.getSelectedLinkIsVisibleMap();
+        Map<Integer,Boolean> selVisMap = config.getSelectedLinkVisibleMap();
             // This maps the listIDs to the first visible index for that list
         Map<Integer,Integer> firstVisMap = config.getFirstVisibleIndexMap();
             // This maps the listIDs to the last visible index for that list
         Map<Integer,Integer> lastVisMap = config.getLastVisibleIndexMap();
             // This maps the tabs panel indexes to the listID of the selected 
             // list for that tabs panel
-        Map<Integer,Integer> selListIDMap = new HashMap<>(config.getCurrentTabListIDMap());
+        Map<Integer,Integer> selListIDMap = new HashMap<>(config.getSelectedListIDMap());
             // This maps the tabs panel indexes to the selected index of the 
             // tab for that tabs panel
-        Map<Integer,Integer> selListMap = config.getCurrentTabIndexMap();
+        Map<Integer,Integer> selListMap = config.getSelectedTabIndexMap();
             // This maps the listIDs to the visible rectangle for that list
         Map<Integer,Rectangle> visRectMap = config.getVisibleRectMap();
             // Go through the list tabs panels
         for (LinksListTabsPanel tabsPanel : listsTabPanels){
+            getLogger().log(Level.FINER, "Loading tabs for {0}", tabsPanel.getName());
                 // Go through the list panels in the current list tabs panel
             for (LinksListPanel panel : tabsPanel){
                     // If the current list panel does not have a listID
@@ -6307,20 +6420,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     continue;
                     // Get the current list panel's listID
                 int listID = panel.getListID();
+                getLogger().log(Level.FINER, "Loading selection for panel [{0}: {1}]", 
+                        new Object[]{listID,panel.getListName()});
                     // If the link selection map contains the listID for the list
                 if (selMap.containsKey(listID)){
                         // Get the selected link for the list
                     String selected = selMap.get(listID);
+                    getLogger().log(Level.FINER, "Selection: {0}", selected);
                         // If the list does not contain the selected link
-                    if (!panel.getModel().contains(selected))
+                    if (!panel.getModel().contains(selected)){
                             // No link will be selected for the list
                         selected = null;
-                        // Set the selected link for the list, scrolling to the 
+                        getLogger().finer("Selection not found in model");
+                    }   // Set the selected link for the list, scrolling to the 
                         // link if it is meant to be visible
                     panel.setSelectedValue(selected, 
                             selVisMap.getOrDefault(listID, false));
                 }   // Get the visible rectangle for the list
                 Rectangle rect = visRectMap.get(listID);
+                getLogger().log(Level.FINER, "Visible rectangle: {0}", rect);
                     // If there is a visible rectangle for the list
                 if (rect != null)
                         // Scroll the list to the visbile rectangle
@@ -6329,6 +6447,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // the last visible index if there isn't one
                 Integer visIndex = firstVisMap.getOrDefault(listID,
                         lastVisMap.get(listID));
+                getLogger().log(Level.FINER, "First visible index: {0}", firstVisMap.get(listID));
+                getLogger().log(Level.FINER, "Last visible index: {0}", lastVisMap.get(listID));
                     // If there is a visible index for the list
                 if (visIndex != null)
                         // Ensure the visible index is visible
@@ -6348,6 +6468,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         selListIDMap.values().removeIf((Integer t) -> t == null || t < 0);
             // Go through the tabs panel array
         for (int i = 0; i < listsTabPanels.length; i++){
+            getLogger().log(Level.FINER, "Setting selected list for [{0}: {1}]", 
+                    new Object[]{i, listsTabPanels[i].getName()});
                 // Get the index of the selected list, prioritizing the index 
                 // for the selected listID (since listIDs don't typically change 
                 // between instances of the program), then the index of the 
@@ -6478,20 +6600,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Add the program's user ID and program ID to the database.
         Integer progID = conn.getProgramUUIDMap(config.getUserID()).addIfAbsent(config.getProgramID());
         Map<Integer,LinksListPanel> panels = getPanelIDMap();
+        DatabaseLinksListSettings listSettings = conn.getListSettings(progID);
         progressBar.setMaximum(panels.size()+2);
         progressBar.setValue(0);
         progressBar.setIndeterminate(false);
             // Store the list ID of the selected list in the all lists panel
-        conn.setListTypeSelection(progID, LinkDatabaseConnection.LIST_OF_ALL_LISTS_TYPE, 
-                allListsTabsPanel.getSelectedListID());
+        listSettings.setSelectedTab(LinkDatabaseConnection.LIST_OF_ALL_LISTS_TYPE,
+                allListsTabsPanel);
         progressBar.setValue(1);
             // Store the list ID of the selected list in the shown lists panel
-        conn.setListTypeSelection(progID, LinkDatabaseConnection.LIST_OF_SHOWN_LISTS_TYPE, 
-                shownListsTabsPanel.getSelectedListID());
+        listSettings.setSelectedTab(LinkDatabaseConnection.LIST_OF_SHOWN_LISTS_TYPE, 
+                shownListsTabsPanel);
         progressBar.setValue(2);
             // Go through the panels
         for (LinksListPanel panel : panels.values()){
-            conn.setSelectionForList(progID, panel,linkIDMap);
+            listSettings.setListSettings(panel, linkIDMap);
             progressBar.setValue(progressBar.getValue()+1);
         }
         progressBar.setIndeterminate(true);
@@ -6517,7 +6640,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Remove any lists that have been removed
         conn.getListNameMap().keySet().removeAll(allListsTabsPanel.getRemovedListIDs());
             // Remove the preference nodes for the removed lists
-        config.removeListPreferences(allListsTabsPanel.getRemovedListIDs());
+        config.removeListSettings(allListsTabsPanel.getRemovedListIDs());
             // Clear the sets of removed ListIDs
         allListsTabsPanel.clearRemovedListIDs();
         shownListsTabsPanel.clearRemovedListIDs();
@@ -6951,6 +7074,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Get the file to save to
             File file = showSaveFileChooser(saveFC,
                     "Save "+panel.getListName()+" To File...");
+            config.setSelectedFile(saveFC, file);
             if (file != null){  // If the user selected a file
                 saver = new ListSaver(file,panel.getModel());
                 saver.execute();
@@ -6980,6 +7104,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Get the file to load from
             File file = showOpenFileChooser(openFC,
                     "Load "+panel.getListName()+" From File...");
+            config.setSelectedFile(openFC, file);
             if (file != null){  // If the user selected a file
                 loader = new ListLoader(file,panel);
                 loader.execute();
@@ -9181,6 +9306,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void done(){
                 // Configure the program
             configureProgram();
+            config.setSelectedFile(configFC,file);
                 // Wrap up the loading process
             super.done();
                 // Re-enable the hidden list toggle
@@ -9613,8 +9739,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         tabsModels.entrySet()){
                         // Get the tabs panel
                     LinksListTabsPanel tabsPanel = entry.getKey();
-                        // Set the models for the tabs panel
-                    tabsPanel.setModels(entry.getValue());
+                    try{    // Set the models for the tabs panel
+                        tabsPanel.setModels(entry.getValue());
+                    } catch (NullPointerException ex){
+                        getLogger().log(Level.WARNING,"Null encountered while setting models",ex);
+                    }
                         // Go through the lists for the tabs panel
                     for (LinksListPanel panel : tabsPanel){
                             // Set the read only toggle for the current list to 

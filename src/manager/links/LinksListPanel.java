@@ -129,6 +129,9 @@ public class LinksListPanel extends JPanel implements Comparable<LinksListPanel>
             return;
         LinkManager.getLogger().entering(this.getClass().getName(), 
                 "setModel", new Object[]{keepSelection,shouldScroll});
+        LinkManager.getLogger().log(Level.FINER, "Changing model to ID {0} -> {1}", 
+                new Object[]{(this.model!=null)?this.model.getListID():"null", 
+                    model.getListID()});
         String selected = list.getSelectedValue();
         LinksListModel old = this.model;
         this.model = model;
@@ -140,8 +143,10 @@ public class LinksListPanel extends JPanel implements Comparable<LinksListPanel>
         model.addChangeListener(handler);
         model.addPropertyChangeListener(handler);
         model.addListDataListener(handler);
-        list.setModel(model);
+        LinkManager.getLogger().finer("Setting list selection model");
         list.setSelectionModel(model);
+        LinkManager.getLogger().finer("Setting list model");
+        list.setModel(model);
         firePropertyChange(MODEL_PROPERTY_CHANGED,old,model);
         fireContentsChanged(0,(old!=null)?Math.max(old.size()-1,model.size()-1):
                 model.size()-1);
@@ -167,10 +172,13 @@ public class LinksListPanel extends JPanel implements Comparable<LinksListPanel>
         updateActionNames();
         fireStateChanged();
         if (keepSelection){
+            LinkManager.getLogger().log(Level.FINER, "Maintaining selected value {0}", selected);
             if (model.contains(selected))
                 list.setSelectedValue(selected, shouldScroll);
-            else
+            else{
                 list.clearSelection();
+                LinkManager.getLogger().finer("Selected value not found in model");
+            }
         }
         LinkManager.getLogger().exiting(this.getClass().getName(), 
                 "setModel");

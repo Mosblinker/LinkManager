@@ -510,13 +510,13 @@ public class LinkManagerUtilities {
                 option = fc.showOpenDialog(parent);
             fc.setPreferredSize(fc.getSize());
                 // Set the file chooser's size in the config if it's saved
-            config.setComponentSize(fc);
+            config.storeFileChooser(fc);
             if (option == JFileChooser.APPROVE_OPTION){
                 file = fc.getSelectedFile();
                 if (!file.exists()){
                     JOptionPane.showMessageDialog(parent, 
-                        "\""+file.getName()+"\"\nFile not found.\nCheck the "
-                                + "file name and try again.", 
+                        "\""+file.getName()+"\"\nFile not found.\n"
+                                + "Check the file name and try again.", 
                         "File Not Found", JOptionPane.WARNING_MESSAGE);
                     file = null;
                 }
@@ -544,27 +544,87 @@ public class LinkManagerUtilities {
      * @param parent
      * @param config
      * @param title
+     * @param checkIfExists
      * @return 
      */
     public static File showSaveFileChooser(JFileChooser fc, Component parent, 
-            LinkManagerConfig config, String title){
+            LinkManagerConfig config, String title, boolean checkIfExists){
         if (beepIfParentDisabled(parent))     // If input is disabled
             return null;
         if (title != null)
             fc.setDialogTitle(title);
         int option;     // This is used to store which button the user pressed
-        if (fc.getApproveButtonText() != null)
-            option = fc.showDialog(parent, fc.getApproveButtonText());
-        else
-            option = fc.showSaveDialog(parent);
-        fc.setPreferredSize(fc.getSize());
-            // Set the file chooser's size in the config if it's saved
-        config.setComponentSize(fc);
-            // If the user wants to save the file
-        if (option == JFileChooser.APPROVE_OPTION)
-            return fc.getSelectedFile();
-        else
-            return null;
+        File file = null;   // This is the selected file
+        do{
+            if (fc.getApproveButtonText() != null)
+                option = fc.showDialog(parent, fc.getApproveButtonText());
+            else
+                option = fc.showSaveDialog(parent);
+            fc.setPreferredSize(fc.getSize());
+                // Set the file chooser's size in the config if it's saved
+            config.storeFileChooser(fc);
+            if (option == JFileChooser.APPROVE_OPTION){
+                file = fc.getSelectedFile();
+                    // If the file already exists and this checks if the file exists
+                if (checkIfExists && file.exists()){
+                        // Beep at the user
+                    parent.getToolkit().beep();
+                        // Show the user a confirmation dialog asking if the 
+                        // user wants to overwrite the file
+                    int option2 = JOptionPane.showConfirmDialog(parent, 
+                            "There is already a file with that name.\n"+
+                                    "Should the file be overwritten?\n"+
+                                    "File: \""+file+"\"", "File Already Exists", 
+                                    JOptionPane.YES_NO_CANCEL_OPTION, 
+                                    JOptionPane.WARNING_MESSAGE);
+                        // Determine the action to perform based off the 
+                    switch(option2){ // user's choice
+                            // If the user selected No
+                        case(JOptionPane.NO_OPTION):
+                                // Set the file to null to run the loop 
+                            file = null;    // again
+                            // If the user selected Yes
+                        case(JOptionPane.YES_OPTION):
+                            break;
+                            // If the user selected Cancel or exited the 
+                        default:    // dialog
+                                // Cancel the operation, and show a prompt 
+                                // notifying that nothing was saved.
+                            JOptionPane.showMessageDialog(parent,
+                                    "No file was saved.", 
+                                    "File Already Exists", 
+                                    JOptionPane.INFORMATION_MESSAGE);
+                            return null;
+                    }
+                }
+            }
+        }
+        while(file == null && option == JFileChooser.APPROVE_OPTION);
+        return file;
+    }
+    /**
+     * 
+     * @param fc
+     * @param parent
+     * @param config
+     * @param checkIfExists
+     * @return 
+     */
+    public static File showSaveFileChooser(JFileChooser fc, Component parent, 
+            LinkManagerConfig config, boolean checkIfExists){
+        return showSaveFileChooser(fc,parent,config,null,checkIfExists);
+    }
+    /**
+     * 
+     * @param fc
+     * @param parent
+     * @param config
+     * @param title
+     * @return 
+     */
+    public static File showSaveFileChooser(JFileChooser fc, Component parent, 
+            LinkManagerConfig config, String title){
+        return showSaveFileChooser(fc,parent,config,title,true);
     }
     /**
      * 
