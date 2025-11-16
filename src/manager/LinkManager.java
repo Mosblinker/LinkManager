@@ -6957,6 +6957,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     getLogger().log(Level.WARNING, "Error extracting item: {0}", result);
                     throw new SevenZipException("Error extracting item: " + result.toString());
                 } else {
+                    java.util.Date lastMod = item.getLastWriteTime();
+                    if (lastMod == null)
+                        lastMod = item.getLastAccessTime();
+                    if (lastMod != null)
+                        target.setLastModified(lastMod.getTime());
                     break;
                 }
             }
