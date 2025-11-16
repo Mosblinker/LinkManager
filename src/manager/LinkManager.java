@@ -936,7 +936,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.gc();        // Run the garbage collector
             // Configure the program from the settings
         configureProgram();
-        if (!debugMode && checkUpdatesAtStartToggle.isSelected()){
+        if (!debugMode && updateCheckPanel.getCheckForUpdatesAtStartup()){
             updateWorker = new UpdateCheckWorker(true);
             updateWorker.execute();
         }
@@ -5217,9 +5217,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbxCompressionLevelComboActionPerformed
 
     private void updateCheckPanelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_updateCheckPanelPropertyChange
+        if (UpdateCheckPanel.CHECK_FOR_UPDATES_AT_STARTUP_PROPERTY_CHANGED.equals(evt.getPropertyName()))
+            config.setCheckForUpdateAtStartup(updateCheckPanel.getCheckForUpdatesAtStartup());
     }//GEN-LAST:event_updateCheckPanelPropertyChange
 
     private void updateCheckPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateCheckPanelActionPerformed
+        if (UpdateCheckPanel.OPEN_WEBSITE_COMMAND.equals(evt.getActionCommand())){
+                // Get the update URL
+            String url = updateChecker.getUpdateUrl();
+            try {   // Try to open the update URL in the user's web browser
+                Desktop.getDesktop().browse(new URL(url).toURI());
+            } catch (URISyntaxException | IOException ex) {
+                getLogger().log(Level.WARNING,"Could not open update URL "+url,ex);
+            }
+        }
     }//GEN-LAST:event_updateCheckPanelActionPerformed
     
     private int getDropboxFileCompressionLevel(){
@@ -6395,8 +6406,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Set the Dropbox chunk size multiplier
         dbxChunkSizeModel.setMultiplier(config.getDropboxChunkSizeMultiplier(
                 dbxChunkSizeModel.getMultiplier()));
-        checkUpdatesAtStartToggle.setSelected(config.getCheckForUpdateAtStartup(
-                checkUpdatesAtStartToggle.isSelected()));
+        updateCheckPanel.setCheckForUpdatesAtStartup(config.getCheckForUpdateAtStartup(
+                updateCheckPanel.getCheckForUpdatesAtStartup()));
         ExternalFileSettings dbxSettings = config.getExternalFileSettings(DatabaseSyncMode.DROPBOX);
         dbxCompressionToggle.setSelected(dbxSettings.isFileCompressionEnabled());
         dbxCompressionLevelCombo.setSelectedItem(dbxSettings.getFileCompressionLevel());
@@ -12393,7 +12404,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // If there's an update available, then set the text for the 
                     // latest version label to be the latest version for the 
                     // program. Otherwise, just state the current version
-                latestVersLabel.setText((updateAvailable) ? 
+                updateCheckPanel.setLatestVersion((updateAvailable) ? 
                         updateChecker.getLatestVersion() : 
                         updateChecker.getCurrentVersion());
             }
@@ -12404,11 +12415,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (updateAvailable){
                         // Log the update
                     updateChecker.logUpdateMessage(getLogger());
-                        // Set the update check dialog's location relative to 
-                        // this if at startup and relative to the about dialog 
-                        // if the check was initialized from there.
-                    updateCheckDialog.setLocationRelativeTo(getParentComponent());
-                    updateCheckDialog.setVisible(true);
+                    updateCheckPanel.showDialog(getParentComponent());
                 } else if (!isAtStart){
                     updateCheckPanel.showUpToDateDialog(aboutDialog);
                 }
