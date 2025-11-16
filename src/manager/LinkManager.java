@@ -9216,21 +9216,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return false;
         }
         /**
+         * 
+         * @param ifSuccessful
+         * @param file 
+         */
+        protected void deleteFile(boolean ifSuccessful, File file){
+            getLogger().entering("FileSaver", "deleteFile", 
+                    new Object[]{ifSuccessful, file});
+                // If the file was successfully saved and there is a backup file
+            if ((success || !ifSuccessful) && file != null){
+                getLogger().log(Level.FINER, "Deleting file {0}", file);
+                try{
+                    Files.deleteIfExists(file.toPath());
+                } catch (IOException ex){
+                    getLogger().log(Level.WARNING, "Failed to delete file", ex);
+                    file.delete();
+                }
+            }
+            getLogger().exiting("FileSaver", "deleteFile");
+        }
+        /**
          * This will delete the backup file if the program successfully saved 
          * the file.
          */
         protected void deleteBackupIfSuccessful(){
             getLogger().entering("FileSaver", "deleteBackupIfSuccessful");
-                // If the file was successfully saved and there is a backup file
-            if (success && backupFile != null){
-                getLogger().log(Level.FINER, "Deleting file {0}", backupFile);
-                try{
-                    Files.deleteIfExists(backupFile.toPath());
-                } catch (IOException ex){
-                    getLogger().log(Level.WARNING, "Failed to delete file", ex);
-                    backupFile.delete();
-                }
-            }
+            deleteFile(true,backupFile);
             getLogger().exiting("FileSaver", "deleteBackupIfSuccessful");
         }
         /**
@@ -11121,7 +11132,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.FINER, "Uploading file at path \"{0}\"",path);
             ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(true);
             do{     // The exception that was thrown, if any
-                Exception exc = null;
+                Exception exc;
                     // Set the progress to be zero
                 progressBar.setValue(0);
                     // Set the program to be indeterminate
@@ -11365,6 +11376,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }   // Return whether the user selected yes
             return option == JOptionPane.YES_OPTION;    
         }
+        
+        protected boolean will
         @Override
         protected void done(){
             ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
