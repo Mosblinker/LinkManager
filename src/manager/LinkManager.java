@@ -8432,6 +8432,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         protected File downloadedFile;
         
+        protected File extractedFile = null;
+        
         protected String filePath;
         
         protected DatabaseSyncMode syncMode;
@@ -8778,14 +8780,47 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         return true;
                     }
                     downloadedFile = downloadFile;
-                    ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+                    progressBar.setValue(0);
+                    progressBar.setIndeterminate(true);
+                }
+                if (isDownloadedFileCompressed())
+                    setStage(LoadingStage.EXTRACTING_FILE);
+                else
+                    setStage(LoadingStage.LOADING_FILE);
+            }
+            File loadFile = downloadedFile;
+            if (LoadingStage.EXTRACTING_FILE.equals(stage) && downloadedFile != null &&
+                    downloadedFile.exists()){
+                String archivePath = getArchiveFilePath();
+                if (archivePath != null){
+                    int retryOption;
+                    extractedFile = getExtractedFile(file,downloadedFile,archivePath);
+                    File extractFile = null;
+                    do{
+                        retryOption = JOptionPane.NO_OPTION;
+                        extractFile = extractFile(downloadedFile,archivePath,extractedFile);
+                        if (extractFile == null){
+                            retryOption = showExtractionFailurePrompt(downloadedFile,
+                                    archivePath,extractedFile,exc);
+                        }
+                    }
+                    while(extractFile == null && retryOption == JOptionPane.YES_OPTION);
+                    if (extractFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
+                            retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfExtractionFails())){
+                        loadSuccess = false;
+                        ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+                        getLogger().exiting("AbstractFileDownloader", "loadFile",true);
+                        return true;
+                    }
+                    extractedFile = extractFile;
+                    loadFile = extractedFile;
                     progressBar.setValue(0);
                     progressBar.setIndeterminate(true);
                 }
                 setStage(LoadingStage.LOADING_FILE);
             }
-            
-            boolean value = loadFile(file,downloadedFile);
+            ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+            boolean value = loadFile(file,loadFile);
             getLogger().exiting("AbstractFileDownloader", "loadFile",value);
             return value;
         }
