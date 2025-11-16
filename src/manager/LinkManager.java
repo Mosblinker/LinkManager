@@ -8776,8 +8776,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                             retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
                         loadSuccess = false;
                         ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
-                        getLogger().exiting("AbstractFileDownloader", "loadFile",true);
-                        return true;
+                        getLogger().exiting("AbstractFileDownloader", "loadFile",false);
+                        return false;
                     }
                     downloadedFile = downloadFile;
                     progressBar.setValue(0);
@@ -8809,8 +8809,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                             retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfExtractionFails())){
                         loadSuccess = false;
                         ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
-                        getLogger().exiting("AbstractFileDownloader", "loadFile",true);
-                        return true;
+                        getLogger().exiting("AbstractFileDownloader", "loadFile",false);
+                        return false;
                     }
                     extractedFile = extractFile;
                     loadFile = extractedFile;
@@ -8825,10 +8825,28 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return value;
         }
         @Override
-        protected Void backgroundAction() throws Exception {
-            super.backgroundAction();
-            success &= loadSuccess;
-            return null;
+        protected boolean processFile(File file){
+            boolean value = super.processFile(file);
+            return value & loadSuccess;
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected boolean showFailurePromptIfLoadFails(){
+            return false;
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        @Override
+        protected boolean showFailurePrompt(File file){
+            if (showFailurePromptIfLoadFails())
+                return super.showFailurePrompt(file);
+            else
+                return false;
         }
         /**
          * 
@@ -9752,8 +9770,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (downloadedFile == null){
                 getLogger().warning("Database failed to download");
                 loadSuccess = false;
-                getLogger().exiting("DatabaseDownloader", "loadFile", true);
-                return true;
+                getLogger().exiting("DatabaseDownloader", "loadFile", false);
+                return false;
             }
             exc = null;
             try {
@@ -12035,8 +12053,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 retry = LinkManager.this.showFailurePrompt(getFailureTitle(file), 
                         getFailureMessage(file,sqlExc), true, false) == JOptionPane.YES_OPTION;
             } while (!loadSuccess && retry);
-            getLogger().exiting("AbstractDatabaseLoader", "loadFile", true);
-            return true;
+            getLogger().exiting("AbstractDatabaseLoader", "loadFile", loadSuccess);
+            return loadSuccess;
         }
         /**
          * This attempts to load from the database using the given database 
