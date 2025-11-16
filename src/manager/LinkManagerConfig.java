@@ -1311,13 +1311,6 @@ public class LinkManagerConfig implements LinksListSettings{
         b = cProp.getBooleanProperty(HIDDEN_FILES_ARE_SHOWN_KEY);
         if (b != null)
             setHiddenFilesAreShown(b);
-            // Get the value for the Dropbox database file path from the 
-            // properties
-        str = cProp.getProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY);    
-            // If the properties has the Dropbox database file path
-        if (str != null)
-                // Set the Dropbox database file path from the properties
-            setDropboxDatabaseFileName(str);
         
         str = cProp.getProperty(DROPBOX_PROPERTY_KEY_PREFIX+DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY);
         if (str != null)
@@ -1330,16 +1323,11 @@ public class LinkManagerConfig implements LinksListSettings{
         b = cProp.getBooleanProperty(CHECK_FOR_UPDATES_AT_START_KEY);
         if (b != null)
             setCheckForUpdateAtStartup(b);
-        
-        b = cProp.getBooleanProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_ENABLED_KEY);
-        if (b != null)
-            setDropboxFileCompressionEnabled(b);
-        
-        i = cProp.getIntProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_LEVEL_KEY);
-        if (i != null)
-            setDropboxFileCompressionLevel(i);
-        
-            // Go through the entries in the component name map
+            // Go through the external file nodes
+        for (ExternalFileNode node : externalFileNodes.values()){
+                // Import the settings for the current node
+            node.importProperties(prop);
+        }   // Go through the entries in the component name map
         for (Map.Entry<Component,String> entry:getComponentNames().entrySet()){
                 // Get the dimension for the component from the properties
             Dimension dim = cProp.getDimensionProperty(entry.getValue()+
@@ -1520,15 +1508,12 @@ public class LinkManagerConfig implements LinksListSettings{
     public ConfigProperties exportProperties(){
         try{    // This gets the preference node as a properties object
             ConfigProperties prop = getPreferences().toProperties();
-                // If the Dropbox node exists
-            if (nodeExists(getPreferences(),DROPBOX_PREFERENCE_NODE_NAME)){
-                    // Set the value for the Dropbox database file path
-                prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY, 
-                        getDropboxDatabaseFileName());
-                prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_ENABLED_KEY, 
-                        isDropboxFileCompressionEnabled());
-                prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_LEVEL_KEY, 
-                        getDropboxFileCompressionLevel());
+                // Go through the external file nodes
+            for (ExternalFileNode node : externalFileNodes.values()){
+                    // Export the settings for the current node
+                node.exportProperties(prop);
+            }   // If the Dropbox node exists
+            if (externalFileNodes.get(DatabaseSyncMode.DROPBOX).nodeExists()){
                     // If the Dropbox file chooser preference node exists
                 if (nodeExists(getDropboxPreferences(),DROPBOX_FILE_CHOOSER_PREFERENCE_NODE)){
                     prop.setProperty(

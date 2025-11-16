@@ -5238,7 +5238,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbxCompressionToggleActionPerformed
 
     private void dbxCompressionLevelComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxCompressionLevelComboActionPerformed
-        config.setDropboxFileCompressionLevel(getDropboxFileCompressionLevel());
+        config.getExternalFileSettings(DatabaseSyncMode.DROPBOX)
+                .setFileCompressionLevel(getDropboxFileCompressionLevel());
     }//GEN-LAST:event_dbxCompressionLevelComboActionPerformed
     
     private int getDropboxFileCompressionLevel(){
