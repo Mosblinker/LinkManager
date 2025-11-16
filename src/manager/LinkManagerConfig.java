@@ -3356,6 +3356,12 @@ public class LinkManagerConfig implements LinksListSettings{
         public abstract String getNodePath();
         /**
          * 
+         */
+        public void clearNode(){
+            setNode((ConfigPreferences)null);
+        }
+        /**
+         * 
          * @return 
          */
         public abstract String getPropertiesPrefix();
