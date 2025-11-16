@@ -1155,20 +1155,28 @@ public class LinkManagerConfig implements LinksListSettings{
     }
     /**
      * 
-     * @param prop 
+     * @param prop
+     * @return 
      */
-    public void importProperties(Properties prop){
+    protected ConfigProperties getConfigProperties(Properties prop){
             // Make sure the Properties object is not null
         Objects.requireNonNull(prop);
-            // This will get a ConfigProperties version of the given Properties 
-        ConfigProperties cProp;     // object
             // If the given Properties object is already a ConfigProperties
         if (prop instanceof ConfigProperties)
-            cProp = (ConfigProperties) prop;
+            return (ConfigProperties) prop;
         else    // Create a new ConfigProperties with the given Properties 
                 // object as its defaults. This should be okay since we won't be 
                 // writing to it, only reading from it.
-            cProp = new ConfigProperties(prop);
+            return new ConfigProperties(prop);
+    }
+    /**
+     * 
+     * @param prop 
+     */
+    public void importProperties(Properties prop){
+            // This will get a ConfigProperties version of the given Properties 
+            // object
+        ConfigProperties cProp = getConfigProperties(prop);
             // Get the value for the database file path from the properties
         String str = cProp.getProperty(DATABASE_FILE_PATH_KEY);
             // If the properties has the database file path
