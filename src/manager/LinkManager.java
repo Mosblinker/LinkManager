@@ -6928,6 +6928,49 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param archive
      * @param targetPath
      * @param target
+     * @return
+     * @throws SevenZipException
+     * @throws IOException 
+     */
+    private File extractFile(IInArchive archive, String targetPath, 
+            File target) throws SevenZipException, IOException{
+        getLogger().entering(this.getClass().getName(), "extractDatabaseFile", 
+                new Object[]{archive,targetPath,target});
+        boolean found = false;
+            // Get a simple interface of the archive inArchive
+        ISimpleInArchive simpleInArchive = archive.getSimpleInterface();
+        for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()){
+            String path = item.getPath();
+            if (path == null || path.equals(targetPath)){
+                found = true;
+                ExtractOperationResult result;
+                progressObserver.setValue(0);
+                progressObserver.setValueLong(item.getSize());
+                try(OutputStreamSequentialOutStream output = 
+                        new OutputStreamSequentialOutStream(
+                                new BufferedOutputStream(
+                                        new FileOutputStream(target)),
+                                progressObserver)){
+                    result = item.extractSlow(output);
+                }
+                if (result != ExtractOperationResult.OK){
+                    getLogger().log(Level.WARNING, "Error extracting item: {0}", result);
+                    throw new SevenZipException("Error extracting item: " + result.toString());
+                } else {
+                    break;
+                }
+            }
+        }
+        if (!found)
+            target = null;
+        getLogger().exiting(this.getClass().getName(), "extractDatabaseFile", target);
+        return target;
+    }
+    /**
+     * 
+     * @param archive
+     * @param targetPath
+     * @param target
      * @return 
      * @throws SevenZipException
      * @throws IOException 
@@ -6936,37 +6979,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             File target) throws SevenZipException, IOException{
         getLogger().entering(this.getClass().getName(), "extractDatabaseFile", 
                 new Object[]{archive,targetPath,target});
-        boolean found = false;
         try(RandomAccessFile raf = new RandomAccessFile(archive,"r");
                 IInArchive inArchive = SevenZip.openInArchive(null, 
                         new RandomAccessFileInStream(raf))){
-                // Get a simple interface of the archive inArchive
-            ISimpleInArchive simpleInArchive = inArchive.getSimpleInterface();
-            for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()){
-                String path = item.getPath();
-                if (path == null || path.equals(targetPath)){
-                    found = true;
-                    ExtractOperationResult result;
-                    progressObserver.setValue(0);
-                    progressObserver.setValueLong(item.getSize());
-                    try(OutputStreamSequentialOutStream output = 
-                            new OutputStreamSequentialOutStream(
-                                    new BufferedOutputStream(
-                                            new FileOutputStream(target)),
-                                    progressObserver)){
-                        result = item.extractSlow(output);
-                    }
-                    if (result != ExtractOperationResult.OK){
-                        getLogger().log(Level.WARNING, "Error extracting item: {0}", result);
-                        throw new SevenZipException("Error extracting item: " + result.toString());
-                    } else {
-                        break;
-                    }
-                }
-            }
+            target = extractFile(inArchive,targetPath,target);
         }
-        if (!found)
-            target = null;
         getLogger().exiting(this.getClass().getName(), "extractDatabaseFile", target);
         return target;
     }
