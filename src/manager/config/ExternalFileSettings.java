@@ -4,6 +4,7 @@
  */
 package manager.config;
 
+import java.util.Properties;
 import manager.DatabaseSyncMode;
 import manager.LinkManager;
 
@@ -71,4 +72,14 @@ public interface ExternalFileSettings {
      * @param level 
      */
     public void setFileCompressionLevel(int level);
+    /**
+     * 
+     * @param prop 
+     */
+    public void importProperties(Properties prop);
+    /**
+     * 
+     * @param prop 
+     */
+    public void exportProperties(ConfigProperties prop);
 }
