@@ -11376,8 +11376,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }   // Return whether the user selected yes
             return option == JOptionPane.YES_OPTION;    
         }
-        
-        protected boolean will
         @Override
         protected void done(){
             ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
