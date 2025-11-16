@@ -6264,6 +6264,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return msg;
     }
     /**
+     * 
+     * @param msg
+     * @param showError
+     * @param ex
+     * @return 
+     */
+    private String get7ZipFailureMessage(String msg, boolean showError, Exception ex){
+            // If the program is either in debug mode or if details are to be 
+            // shown and there was an exception thrown
+        if ((isInDebug() || showError) && ex != null){
+            msg += "\nError: " + ex;
+            if (ex instanceof SevenZipException && ex.getCause() != null)
+                msg += "\nCause: " + ex.getCause();
+        }
+        return msg;
+    }
+    /**
      * This attempts to write the List of Strings to the given file.
      * @param file The file to write to.
      * @param list The list of String to write to the file.
