@@ -52,6 +52,7 @@ import manager.compress.FileCreateCallback7z;
 import manager.compress.OutputStreamSequentialOutStream;
 import manager.config.*;
 import manager.database.*;
+import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
 import manager.icons.LinkManagerIcon;
 import manager.links.*;
