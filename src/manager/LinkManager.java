@@ -6900,14 +6900,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param source
      * @param archive
      * @param targetPath
+     * @param level
      * @throws SevenZipException
      * @throws IOException 
      */
-    private void compressFile(File source, File archive, String targetPath) 
+    private void compressFile(File source, File archive, String targetPath, int level) 
             throws SevenZipException, IOException{
         getLogger().entering(this.getClass().getName(), "compressFile", 
-                new Object[]{source,archive,targetPath});
-        int level = getDropboxFileCompressionLevel();
+                new Object[]{source,archive,targetPath,level});
         getLogger().log(Level.FINER, "Using compression level {0}", level);
         try (RandomAccessFile raf = new RandomAccessFile(archive, "rw");
                 IOutCreateArchive7z outArchive = SevenZip.openOutArchive7z()){
