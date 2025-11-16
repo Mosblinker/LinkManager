@@ -4273,7 +4273,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
             loader = new TempDatabaseDownloader(file,
-                    config.getDatabaseFileSyncPath(getSyncMode()),getSyncMode(),
+                    config.getExternalFileSettings(getSyncMode()).getDatabaseFileName(),getSyncMode(),
                     loadFlags);
             loader.execute();
         } else {
@@ -4674,7 +4674,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (setLocationDialog.isLocationByPlatform())
             setLocationDialog.setLocationRelativeTo(this);
         setDatabaseFileFields(config.getDatabaseFileName());
-        setDropboxDatabaseFileFields(config.getDropboxDatabaseFileName());
+        setDropboxDatabaseFileFields(config
+                .getExternalFileSettings(DatabaseSyncMode.DROPBOX)
+                .getDatabaseFileName());
         loadExternalAccountData();
         updateDBLocationEnabled();
         setLocationDialog.setVisible(true);
@@ -4720,9 +4722,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Format the Dropbox database file name
             dbxFileName = DropboxUtilities.formatDropboxPath(dbxFileName);
                 // If the Dropbox database file name has changed
-            if (!Objects.equals(dbxFileName, config.getDropboxDatabaseFileName())){
+            if (!Objects.equals(dbxFileName, config
+                    .getExternalFileSettings(DatabaseSyncMode.DROPBOX)
+                    .getDatabaseFileName())){
                     // Set the Dropbox database file name
-                config.setDropboxDatabaseFileName(dbxFileName);
+                config.getExternalFileSettings(DatabaseSyncMode.DROPBOX)
+                        .setDatabaseFileName(dbxFileName);
                 setDropboxDatabaseFileFields(dbxFileName);
             }
         }
@@ -5121,7 +5126,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         loader = new TempDatabaseDownloader(getDatabaseFile(),
-                config.getDatabaseFileSyncPath(getSyncMode()),getSyncMode(),0);
+                config.getExternalFileSettings(getSyncMode()).getDatabaseFileName(),getSyncMode(),0);
         loader.execute();
     }//GEN-LAST:event_jMenuItem1ActionPerformed
     
@@ -5223,7 +5228,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void dbxCompressionToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxCompressionToggleActionPerformed
         updateDBLocationEnabled();
-        config.setDropboxFileCompressionEnabled(dbxCompressionToggle.isSelected());
+        config.getExternalFileSettings(DatabaseSyncMode.DROPBOX)
+                .setFileCompressionEnabled(dbxCompressionToggle.isSelected());
         String path = dbxDbFileField.getText();
         if (path.endsWith("."+SEVEN_ZIP_FILE_EXTENSION)){
             if (!dbxCompressionToggle.isSelected())
@@ -5238,7 +5244,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbxCompressionToggleActionPerformed
 
     private void dbxCompressionLevelComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxCompressionLevelComboActionPerformed
-        config.setDropboxFileCompressionLevel(getDropboxFileCompressionLevel());
+        config.getExternalFileSettings(DatabaseSyncMode.DROPBOX)
+                .setFileCompressionLevel(getDropboxFileCompressionLevel());
     }//GEN-LAST:event_dbxCompressionLevelComboActionPerformed
     
     private int getDropboxFileCompressionLevel(){
@@ -6415,8 +6422,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxChunkSizeModel.getMultiplier()));
         checkUpdatesAtStartToggle.setSelected(config.getCheckForUpdateAtStartup(
                 checkUpdatesAtStartToggle.isSelected()));
-        dbxCompressionToggle.setSelected(config.isDropboxFileCompressionEnabled());
-        dbxCompressionLevelCombo.setSelectedItem(config.getDropboxFileCompressionLevel());
+        ExternalFileSettings dbxSettings = config.getExternalFileSettings(DatabaseSyncMode.DROPBOX);
+        dbxCompressionToggle.setSelected(dbxSettings.isFileCompressionEnabled());
+        dbxCompressionLevelCombo.setSelectedItem(dbxSettings.getFileCompressionLevel());
             // If the program has fully loaded
         if (fullyLoaded){
             getLogger().finer("Program is fully loaded");
@@ -8504,7 +8512,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
                 LoadingStage stage, boolean showFileNotFound) {
-            this(file,config.getDatabaseFileSyncPath(mode),mode,stage,showFileNotFound);
+            this(file,config.getExternalFileSettings(mode).getDatabaseFileName(),
+                    mode,stage,showFileNotFound);
         }
         /**
          * 
@@ -8554,7 +8563,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
                 boolean showFileNotFound) {
-            this(file,config.getDatabaseFileSyncPath(mode),mode,showFileNotFound);
+            this(file,config.getExternalFileSettings(mode).getDatabaseFileName(),
+                    mode,showFileNotFound);
         }
         /**
          * 
@@ -10771,7 +10781,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         private AbstractDatabaseSaver(File file, DatabaseSyncMode mode, 
                 SavingStage stage, boolean exit){
-            this(file,config.getDatabaseFileSyncPath(mode),mode,stage,exit);
+            this(file,config.getExternalFileSettings(mode).getDatabaseFileName(),
+                    mode,stage,exit);
         }
         
         AbstractDatabaseSaver(File file, SavingStage stage, boolean exit){

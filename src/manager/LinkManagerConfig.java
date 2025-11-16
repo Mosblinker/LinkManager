@@ -395,15 +395,14 @@ public class LinkManagerConfig implements LinksListSettings{
      */
     private Map<Integer, Rectangle> visRectMap = null;
     /**
-     * This is the preference node that stores the settings and tokens for 
-     * Dropbox.
-     */
-    protected ConfigPreferences dropboxNode = null;
-    /**
      * This is the preference node that stores the settings for the file chooser 
      * for Dropbox.
      */
     protected ConfigPreferences dropboxFCNode = null;
+    /**
+     * This stores the nodes and settings used for external file settings.
+     */
+    private final Map<DatabaseSyncMode,ExternalFileNode> externalFileNodes;
     /**
      * This is used to handle the list type preference nodes.
      */
@@ -449,6 +448,21 @@ public class LinkManagerConfig implements LinksListSettings{
                 return LIST_ID_PREFERENCE_NODE_NAME;
             }
         };
+        externalFileNodes = new HashMap<>();
+        externalFileNodes.put(DatabaseSyncMode.DROPBOX, new ExternalFileNode(){
+            @Override
+            public DatabaseSyncMode getSyncMode() {
+                return DatabaseSyncMode.DROPBOX;
+            }
+            @Override
+            public String getNodePath() {
+                return DROPBOX_PREFERENCE_NODE_NAME;
+            }
+            @Override
+            public String getPropertiesPrefix() {
+                return DROPBOX_PROPERTY_KEY_PREFIX;
+            }
+        });
     }
     /**
      * 
@@ -509,14 +523,26 @@ public class LinkManagerConfig implements LinksListSettings{
         return localDefaults;
     }
     /**
+     * 
+     * @param mode
+     * @return 
+     */
+    public ExternalFileSettings getExternalFileSettings(DatabaseSyncMode mode){
+        return externalFileNodes.get(DatabaseSyncMode.DROPBOX);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Map<DatabaseSyncMode,ExternalFileSettings> getExternalFileSettingsMap(){
+        return Collections.unmodifiableMap(externalFileNodes);
+    }
+    /**
      * This returns the preference node used to store the Dropbox settings.
      * @return 
      */
     public ConfigPreferences getDropboxPreferences(){
-            // If the Dropbox node is currently null
-        if (dropboxNode == null)
-            dropboxNode = getLocalChild(DROPBOX_PREFERENCE_NODE_NAME);
-        return dropboxNode;
+        return externalFileNodes.get(DatabaseSyncMode.DROPBOX).getNode();
     }
     /**
      * 
@@ -760,8 +786,9 @@ public class LinkManagerConfig implements LinksListSettings{
         listIDNodes.setParentNode();
             // Clear the preference nodes for the file choosers
         fcNodes.clear();
-            // Reset the Dropbox node to null
-        dropboxNode = null;
+            // Reset the external file nodes to null
+        for (ExternalFileNode nodes : externalFileNodes.values())
+            nodes.clearNode();
             // Reset the Dropbox file chooser preference node to null
         dropboxFCNode = null;
             // Update the values in the preference nodes
@@ -1155,20 +1182,28 @@ public class LinkManagerConfig implements LinksListSettings{
     }
     /**
      * 
-     * @param prop 
+     * @param prop
+     * @return 
      */
-    public void importProperties(Properties prop){
+    protected ConfigProperties getConfigProperties(Properties prop){
             // Make sure the Properties object is not null
         Objects.requireNonNull(prop);
-            // This will get a ConfigProperties version of the given Properties 
-        ConfigProperties cProp;     // object
             // If the given Properties object is already a ConfigProperties
         if (prop instanceof ConfigProperties)
-            cProp = (ConfigProperties) prop;
+            return (ConfigProperties) prop;
         else    // Create a new ConfigProperties with the given Properties 
                 // object as its defaults. This should be okay since we won't be 
                 // writing to it, only reading from it.
-            cProp = new ConfigProperties(prop);
+            return new ConfigProperties(prop);
+    }
+    /**
+     * 
+     * @param prop 
+     */
+    public void importProperties(Properties prop){
+            // This will get a ConfigProperties version of the given Properties 
+            // object
+        ConfigProperties cProp = getConfigProperties(prop);
             // Get the value for the database file path from the properties
         String str = cProp.getProperty(DATABASE_FILE_PATH_KEY);
             // If the properties has the database file path
@@ -1283,13 +1318,6 @@ public class LinkManagerConfig implements LinksListSettings{
         b = cProp.getBooleanProperty(HIDDEN_FILES_ARE_SHOWN_KEY);
         if (b != null)
             setHiddenFilesAreShown(b);
-            // Get the value for the Dropbox database file path from the 
-            // properties
-        str = cProp.getProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY);    
-            // If the properties has the Dropbox database file path
-        if (str != null)
-                // Set the Dropbox database file path from the properties
-            setDropboxDatabaseFileName(str);
         
         str = cProp.getProperty(DROPBOX_PROPERTY_KEY_PREFIX+DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY);
         if (str != null)
@@ -1302,16 +1330,11 @@ public class LinkManagerConfig implements LinksListSettings{
         b = cProp.getBooleanProperty(CHECK_FOR_UPDATES_AT_START_KEY);
         if (b != null)
             setCheckForUpdateAtStartup(b);
-        
-        b = cProp.getBooleanProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_ENABLED_KEY);
-        if (b != null)
-            setDropboxFileCompressionEnabled(b);
-        
-        i = cProp.getIntProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_LEVEL_KEY);
-        if (i != null)
-            setDropboxFileCompressionLevel(i);
-        
-            // Go through the entries in the component name map
+            // Go through the external file nodes
+        for (ExternalFileNode node : externalFileNodes.values()){
+                // Import the settings for the current node
+            node.importProperties(prop);
+        }   // Go through the entries in the component name map
         for (Map.Entry<Component,String> entry:getComponentNames().entrySet()){
                 // Get the dimension for the component from the properties
             Dimension dim = cProp.getDimensionProperty(entry.getValue()+
@@ -1492,15 +1515,12 @@ public class LinkManagerConfig implements LinksListSettings{
     public ConfigProperties exportProperties(){
         try{    // This gets the preference node as a properties object
             ConfigProperties prop = getPreferences().toProperties();
-                // If the Dropbox node exists
-            if (nodeExists(getPreferences(),DROPBOX_PREFERENCE_NODE_NAME)){
-                    // Set the value for the Dropbox database file path
-                prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY, 
-                        getDropboxDatabaseFileName());
-                prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_ENABLED_KEY, 
-                        isDropboxFileCompressionEnabled());
-                prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_LEVEL_KEY, 
-                        getDropboxFileCompressionLevel());
+                // Go through the external file nodes
+            for (ExternalFileNode node : externalFileNodes.values()){
+                    // Export the settings for the current node
+                node.exportProperties(prop);
+            }   // If the Dropbox node exists
+            if (externalFileNodes.get(DatabaseSyncMode.DROPBOX).nodeExists()){
                     // If the Dropbox file chooser preference node exists
                 if (nodeExists(getDropboxPreferences(),DROPBOX_FILE_CHOOSER_PREFERENCE_NODE)){
                     prop.setProperty(
@@ -2502,22 +2522,6 @@ public class LinkManagerConfig implements LinksListSettings{
      * 
      * @param value 
      */
-    public void setDropboxDatabaseFileName(String value){
-        setFilePathPreference(DATABASE_FILE_PATH_KEY,value,
-                getDropboxPreferences());
-    }
-    /**
-     * 
-     * @return 
-     */
-    public String getDropboxDatabaseFileName(){
-        return getFilePathPreference(DATABASE_FILE_PATH_KEY,
-                LinkManager.LINK_DATABASE_FILE,getDropboxPreferences());
-    }
-    /**
-     * 
-     * @param value 
-     */
     public void setDropboxChunkSizeMultiplier(Integer value){
         getDropboxPreferences().putObject(CHUNK_SIZE_MULTIPLIER_KEY, value);
     }
@@ -2633,33 +2637,6 @@ public class LinkManagerConfig implements LinksListSettings{
         setDropboxRefreshToken(null);
             // Set the Dropbox token expiration time to null, clearing it
         setDropboxTokenExpiresAt(null);
-    }
-    /**
-     * 
-     * @param mode
-     * @return 
-     */
-    public String getDatabaseFileSyncPath(DatabaseSyncMode mode){
-        if (mode != null){
-            switch(mode){
-                case DROPBOX:
-                    return getDropboxDatabaseFileName();
-            }
-        }
-        return null;
-    }
-    /**
-     * 
-     * @param mode
-     * @param value 
-     */
-    public void setDatabaseFileSyncPath(DatabaseSyncMode mode, String value){
-        if (mode != null){
-            switch(mode){
-                case DROPBOX:
-                    setDropboxDatabaseFileName(value);
-            }
-        }
     }
     /**
      * 
@@ -2886,50 +2863,6 @@ public class LinkManagerConfig implements LinksListSettings{
             fc.setSelectedPath(file);
         }   // Load the file chooser's size from the preference node
         SwingExtendedUtilities.setComponentSize(fc,getDropboxFileChooserSize());
-    }
-    /**
-     * 
-     * @param defaultValue
-     * @return 
-     */
-    public boolean isDropboxFileCompressionEnabled(boolean defaultValue){
-        return getDropboxPreferences().getBoolean(FILE_COMPRESSION_ENABLED_KEY, defaultValue);
-    }
-    /**
-     * 
-     * @return 
-     */
-    public boolean isDropboxFileCompressionEnabled(){
-        return isDropboxFileCompressionEnabled(false);
-    }
-    /**
-     * 
-     * @param value 
-     */
-    public void setDropboxFileCompressionEnabled(boolean value){
-        getDropboxPreferences().putBoolean(FILE_COMPRESSION_ENABLED_KEY, value);
-    }
-    /**
-     * 
-     * @param defaultValue
-     * @return 
-     */
-    public int getDropboxFileCompressionLevel(int defaultValue){
-        return getDropboxPreferences().getInt(FILE_COMPRESSION_LEVEL_KEY, defaultValue);
-    }
-    /**
-     * 
-     * @return 
-     */
-    public int getDropboxFileCompressionLevel(){
-        return getDropboxFileCompressionLevel(5);
-    }
-    /**
-     * 
-     * @param value 
-     */
-    public void setDropboxFileCompressionLevel(int value){
-        getDropboxPreferences().putInt(FILE_COMPRESSION_LEVEL_KEY, value);
     }
     /**
      * 
@@ -3298,6 +3231,139 @@ public class LinkManagerConfig implements LinksListSettings{
                     return removeNode((Integer)o);
                 return false;
             }
+        }
+    }
+    /**
+     * 
+     */
+    protected abstract class ExternalFileNode implements ExternalFileSettings{
+        /**
+         * This is the preference node for the the settings for the external 
+         * file.
+         */
+        protected ConfigPreferences node = null;
+        @Override
+        public abstract DatabaseSyncMode getSyncMode();
+        /**
+         * 
+         * @return 
+         */
+        public ConfigPreferences getNode(){
+                // If the node is currently null
+            if (node == null)
+                setNode();
+            return node;
+        }
+        /**
+         * 
+         * @param node 
+         */
+        public void setNode(ConfigPreferences node){
+            this.node = node;
+        }
+        /**
+         * 
+         * @param path 
+         */
+        public void setNode(String path){
+            setNode(getLocalChild(path));
+        }
+        /**
+         * 
+         */
+        public void setNode(){
+            setNode(getNodePath());
+        }
+        /**
+         * 
+         * @return 
+         */
+        public abstract String getNodePath();
+        /**
+         * 
+         */
+        public void clearNode(){
+            setNode((ConfigPreferences)null);
+        }
+        /**
+         * 
+         * @return 
+         */
+        public abstract String getPropertiesPrefix();
+        /**
+         * 
+         * @return 
+         */
+        public ConfigPreferences getParentNode(){
+            return getPreferences();
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean nodeExists(){
+            return LinkManagerConfig.this.nodeExists(getParentNode(),getNodePath());
+        }
+        @Override
+        public String getDatabaseFileName(String defaultValue) {
+            return getFilePathPreference(DATABASE_FILE_PATH_KEY,defaultValue,
+                    getNode());
+        }
+        @Override
+        public void setDatabaseFileName(String value) {
+            setFilePathPreference(DATABASE_FILE_PATH_KEY,value,getNode());
+        }
+        @Override
+        public boolean isFileCompressionEnabled(boolean defaultValue) {
+            return getNode().getBoolean(FILE_COMPRESSION_ENABLED_KEY, defaultValue);
+        }
+        @Override
+        public void setFileCompressionEnabled(boolean enabled) {
+            getNode().putBoolean(FILE_COMPRESSION_ENABLED_KEY, enabled);
+        }
+        @Override
+        public int getFileCompressionLevel(int defaultValue) {
+            return getNode().getInt(FILE_COMPRESSION_LEVEL_KEY, defaultValue);
+        }
+        @Override
+        public void setFileCompressionLevel(int level) {
+            getNode().putInt(FILE_COMPRESSION_LEVEL_KEY, level);
+        }
+        @Override
+        public void importProperties(Properties prop) {
+                // This will get a ConfigProperties version of the given 
+                // Properties object
+            ConfigProperties cProp = getConfigProperties(prop);
+                // Get the value for the database file path from the properties
+            String str = cProp.getProperty(getPropertiesPrefix()+DATABASE_FILE_PATH_KEY);    
+                // If the properties has the database file path
+            if (str != null)
+                    // Set the database file path from the properties
+                setDatabaseFileName(str);
+                // Get the value for whether the database file is compressed
+            Boolean b = cProp.getBooleanProperty(getPropertiesPrefix()+FILE_COMPRESSION_ENABLED_KEY);
+                // If the properties has whether the file is compressed
+            if (b != null)
+                    // Set whether the database file is compressed
+                setFileCompressionEnabled(b);
+                // Get the compression level from the properties
+            Integer i = cProp.getIntProperty(getPropertiesPrefix()+FILE_COMPRESSION_LEVEL_KEY);
+                // If the properties has the compression level
+            if (i != null)
+                    // Set the compression level
+                setFileCompressionLevel(i);
+        }
+        @Override
+        public void exportProperties(ConfigProperties prop) {
+                // Set the value for the database file path
+            prop.setProperty(getPropertiesPrefix()+DATABASE_FILE_PATH_KEY, 
+                    getDatabaseFileName());
+                // Set the value for whether the database file is compressed
+            prop.setProperty(getPropertiesPrefix()+FILE_COMPRESSION_ENABLED_KEY, 
+                    isFileCompressionEnabled());
+                // Set the compression level
+            prop.setProperty(getPropertiesPrefix()+FILE_COMPRESSION_LEVEL_KEY, 
+                    getFileCompressionLevel());
         }
     }
 }
