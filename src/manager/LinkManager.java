@@ -8891,6 +8891,75 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 true, canLoadIfDownloadFails());
         }
         /**
+         * 
+         * @param ex
+         * @return 
+         */
+        protected boolean getExtractionFailureMessageStatesError(Exception ex){
+            return showDBErrorDetailsToggle.isSelected();
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected String getExtractionArchiveFileForFailureMessage(File file){
+            return "\""+file.getName()+"\"";
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param targetFile
+         * @param ex
+         * @return 
+         */
+        protected String getExtractionFailureMessage(File file, String path, 
+                File targetFile, Exception ex){
+            return get7ZipFailureMessage(
+                    String.format("The file \"%s\" could not be extracted from \"%s\"", 
+                            path,getExtractionArchiveFileForFailureMessage(file)),
+                    getDownloadFailureMessageStatesError(ex),ex);
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @param ex
+         * @return 
+         */
+        protected String getExtractionFileNotFoundMessage(File file, String path, 
+                File targetFile, Exception ex){
+            return "The file was not found in "+
+                    getExtractionArchiveFileForFailureMessage(file)
+                    +" at the path\n\""+path+"\"";
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected boolean canLoadIfExtractionFails(){
+            return true;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param targetFile
+         * @param ex
+         * @return 
+         */
+        protected int showExtractionFailurePrompt(File file, String path, 
+                File targetFile,Exception ex){
+            if (!fileFound && !showFilePathNotFound)
+                return JOptionPane.CANCEL_OPTION;
+            return LinkManager.this.showFailurePrompt("ERROR - File Failed To Extract", 
+                (fileFound)?getExtractionFailureMessage(file,path,targetFile,ex):
+                        getExtractionFileNotFoundMessage(file,path,targetFile,ex), 
+                true, canLoadIfExtractionFails());
+        }
+        /**
          * This returns the title for the dialog to display if the file is 
          * successfully loaded.
          * @param file The file that was successfully loaded.
