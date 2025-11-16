@@ -9771,8 +9771,39 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return "Downloading Database";
         }
         @Override
+        public String getExtractingProgressString(){
+            return "Extracting Database";
+        }
+        @Override
         protected boolean canLoadIfDownloadFails(){
             return false;
+        }
+        @Override
+        protected boolean canLoadIfExtractionFails(){
+            return false;
+        }
+        @Override
+        protected boolean isDownloadedFileCompressed(File downloadedFile){
+            return true;
+        }
+        @Override
+        protected String getExtractionArchiveFileForFailureMessage(File file){
+            return "downloaded file";
+        }
+        @Override
+        protected String getArchiveFilePath(){
+            return LINK_DATABASE_FILE;
+        }
+        @Override
+        protected File getExtractedFile(File file, File downloadedFile, String path){
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, 
+                        "."+DATABASE_FILE_EXTENSION);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temp extracted file",
+                        ex);
+            }
+            return file;
         }
         @Override
         protected File getDownloadFile(File file,String path){
@@ -9833,6 +9864,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             deleteDownloadedFile(false);
+            deleteExtractedFile(false);
             super.done();
         }
     }
