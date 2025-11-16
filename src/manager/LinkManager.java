@@ -8975,7 +8975,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected String getExtractionFailureMessage(File file, String path, 
                 File targetFile, Exception ex){
             return get7ZipFailureMessage(
-                    String.format("The file \"%s\" could not be extracted from \"%s\"", 
+                    String.format("The file \"%s\" could not be extracted from %s", 
                             path,getExtractionArchiveFileForFailureMessage(file)),
                     getDownloadFailureMessageStatesError(ex),ex);
         }
