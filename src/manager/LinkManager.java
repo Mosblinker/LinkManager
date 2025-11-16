@@ -8418,6 +8418,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         DOWNLOADING_FILE,
         
+        EXTRACTING_FILE,
+        
         LOADING_FILE;
         
     }
