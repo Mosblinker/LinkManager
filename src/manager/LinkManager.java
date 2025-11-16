@@ -6931,15 +6931,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 String path = item.getPath();
                 if (path == null || path.equals(targetPath)){
                     ExtractOperationResult result;
+                    progressObserver.setValue(0);
+                    progressObserver.setValueLong(item.getSize());
                     try(OutputStreamSequentialOutStream output = 
                             new OutputStreamSequentialOutStream(
                                     new BufferedOutputStream(
-                                            new FileOutputStream(target)))){
+                                            new FileOutputStream(target)),
+                                    progressObserver)){
                         result = item.extractSlow(output);
                     }
                     if (result != ExtractOperationResult.OK){
                         getLogger().log(Level.WARNING, "Error extracting item: {0}", result);
                         return null;
+                    } else {
+                        break;
                     }
                 }
             }
