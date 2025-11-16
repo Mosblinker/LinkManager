@@ -4,11 +4,13 @@
  */
 package manager;
 
+import com.dropbox.core.util.IOUtil.ProgressListener;
+
 /**
  *
  * @author Mosblinker
  */
-public interface ProgressObserver {
+public interface ProgressObserver extends ProgressListener{
     /**
      * 
      * @return 
@@ -128,4 +130,13 @@ public interface ProgressObserver {
      * @return  
      */
     public ProgressObserver setTextShown(boolean value);
+    /**
+     * 
+     * @param bytesWritten 
+     */
+    @Override
+    public default void onProgress(long bytesWritten){
+            // Update the progress with the amount of bytes written
+        setValueLong(bytesWritten);
+    }
 }

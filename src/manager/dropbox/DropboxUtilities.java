@@ -526,10 +526,7 @@ public class DropboxUtilities {
         l.setMaximumLong(fileSize);
             // Create and return a progress listener that will update the 
             // progress bar to reflect the bytes that have been written so far
-        return (long bytesWritten) -> {
-                // Update the progress with the amount of bytes written
-            l.setValueLong(fileSize);
-        };
+        return l;
     }
     /**
      * 
