@@ -5034,7 +5034,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         DatabaseSyncMode mode = getSyncMode();
         if (mode != null){
             SavingStage stage = SavingStage.SAVE_DATABASE;
-            if (getDatabaseFile().exists())
             if (getDatabaseFile().exists()){
                 if (dbxCompressionToggle.isSelected())
                     stage = SavingStage.COMPRESS_FILE;
