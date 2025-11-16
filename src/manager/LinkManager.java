@@ -8723,7 +8723,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @return 
          */
-        protected boolean isDownloadedFileCompressed(){
+        protected boolean isDownloadedFileCompressed(File downloadedFile){
             return false;
         }
         /**
@@ -8800,7 +8800,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     progressBar.setValue(0);
                     progressBar.setIndeterminate(true);
                 }
-                if (isDownloadedFileCompressed())
+                if (isDownloadedFileCompressed(downloadedFile))
                     setStage(LoadingStage.EXTRACTING_FILE);
                 else
                     setStage(LoadingStage.LOADING_FILE);
