@@ -3308,4 +3308,128 @@ public class LinkManagerConfig implements LinksListSettings{
             }
         }
     }
+    /**
+     * 
+     */
+    protected abstract class ExternalFileNode implements ExternalFileSettings{
+        /**
+         * This is the preference node for the the settings for the external 
+         * file.
+         */
+        protected ConfigPreferences node = null;
+        @Override
+        public abstract DatabaseSyncMode getSyncMode();
+        /**
+         * 
+         * @return 
+         */
+        public ConfigPreferences getNode(){
+            return node;
+        }
+        /**
+         * 
+         * @param node 
+         */
+        public void setNode(ConfigPreferences node){
+            this.node = node;
+        }
+        /**
+         * 
+         * @param path 
+         */
+        public void setNode(String path){
+            setNode(getLocalChild(path));
+        }
+        /**
+         * 
+         */
+        public void setNode(){
+            setNode(getNodePath());
+        }
+        /**
+         * 
+         * @return 
+         */
+        public abstract String getNodePath();
+        /**
+         * 
+         * @return 
+         */
+        public abstract String getPropertiesPrefix();
+        /**
+         * 
+         * @return 
+         */
+        public ConfigPreferences getParentNode(){
+            return getPreferences();
+        }
+        /**
+         * 
+         * @return 
+         */
+        public boolean nodeExists(){
+            return LinkManagerConfig.this.nodeExists(getParentNode(),getNodePath());
+        }
+        @Override
+        public String getDatabaseFileName(String defaultValue) {
+            return getFilePathPreference(DATABASE_FILE_PATH_KEY,defaultValue,
+                    getNode());
+        }
+        @Override
+        public void setDatabaseFileName(String value) {
+            setFilePathPreference(DATABASE_FILE_PATH_KEY,value,getNode());
+        }
+        @Override
+        public boolean isFileCompressionEnabled(boolean defaultValue) {
+            return getNode().getBoolean(FILE_COMPRESSION_ENABLED_KEY, defaultValue);
+        }
+        @Override
+        public void setFileCompressionEnabled(boolean enabled) {
+            getNode().putBoolean(FILE_COMPRESSION_ENABLED_KEY, enabled);
+        }
+        @Override
+        public int getFileCompressionLevel(int defaultValue) {
+            return getNode().getInt(FILE_COMPRESSION_LEVEL_KEY, defaultValue);
+        }
+        @Override
+        public void setFileCompressionLevel(int level) {
+            getNode().putInt(FILE_COMPRESSION_LEVEL_KEY, level);
+        }
+        @Override
+        public void importProperties(Properties prop) {
+                // This will get a ConfigProperties version of the given 
+                // Properties object
+            ConfigProperties cProp = getConfigProperties(prop);
+                // Get the value for the database file path from the properties
+            String str = cProp.getProperty(getPropertiesPrefix()+DATABASE_FILE_PATH_KEY);    
+                // If the properties has the database file path
+            if (str != null)
+                    // Set the database file path from the properties
+                setDatabaseFileName(str);
+                // Get the value for whether the database file is compressed
+            Boolean b = cProp.getBooleanProperty(getPropertiesPrefix()+FILE_COMPRESSION_ENABLED_KEY);
+                // If the properties has whether the file is compressed
+            if (b != null)
+                    // Set whether the database file is compressed
+                setFileCompressionEnabled(b);
+                // Get the compression level from the properties
+            Integer i = cProp.getIntProperty(getPropertiesPrefix()+FILE_COMPRESSION_LEVEL_KEY);
+                // If the properties has the compression level
+            if (i != null)
+                    // Set the compression level
+                setFileCompressionLevel(i);
+        }
+        @Override
+        public void exportProperties(ConfigProperties prop) {
+                // Set the value for the database file path
+            prop.setProperty(getPropertiesPrefix()+DATABASE_FILE_PATH_KEY, 
+                    getDatabaseFileName());
+                // Set the value for whether the database file is compressed
+            prop.setProperty(getPropertiesPrefix()+FILE_COMPRESSION_ENABLED_KEY, 
+                    isFileCompressionEnabled());
+                // Set the compression level
+            prop.setProperty(getPropertiesPrefix()+FILE_COMPRESSION_LEVEL_KEY, 
+                    getFileCompressionLevel());
+        }
+    }
 }
