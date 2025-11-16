@@ -62,6 +62,7 @@ public class UpdateCheckPanel extends AbstractDialogPanel {
      */
     public UpdateCheckPanel() {
         initComponents();
+        updateProgramName();
     }
 
     /**
@@ -268,6 +269,13 @@ public class UpdateCheckPanel extends AbstractDialogPanel {
     }
     /**
      * 
+     */
+    private void updateProgramName(){
+        updateTextLabel.setText(String.format(PROGRAM_UPDATE_TEXT_TEMPLATE, 
+                Objects.toString(programName,"the program")));
+    }
+    /**
+     * 
      * @param name 
      */
     public void setProgramName(String name){
@@ -275,8 +283,7 @@ public class UpdateCheckPanel extends AbstractDialogPanel {
             String old = programName;
             programName = name;
             firePropertyChange(PROGRAM_NAME_PROPERTY_CHANGED,old,name);
-            updateTextLabel.setText(String.format(PROGRAM_UPDATE_TEXT_TEMPLATE, 
-                    Objects.toString(programName)));
+            updateProgramName();
         }
     }
     /**
