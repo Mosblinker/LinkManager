@@ -8637,11 +8637,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public String getDownloadingProgressString(){
             return "Downloading File";
         }
+        /**
+         * 
+         * @return 
+         */
+        public String getExtractingProgressString(){
+            return "Extracting File";
+        }
         @Override
         public String getProgressString(){
             switch(stage){
                 case DOWNLOADING_FILE:
                     return getDownloadingProgressString();
+                case EXTRACTING_FILE:
+                    return getExtractingProgressString();
                 default:
                     return getLoadingProgressString();
             }
