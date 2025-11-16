@@ -5035,7 +5035,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (mode != null){
             SavingStage stage = SavingStage.SAVE_DATABASE;
             if (getDatabaseFile().exists())
-                stage = SavingStage.UPLOAD_FILE;
+            if (getDatabaseFile().exists()){
+                if (dbxCompressionToggle.isSelected())
+                    stage = SavingStage.COMPRESS_FILE;
+                else
+                    stage = SavingStage.UPLOAD_FILE;
+            }
             saver = new DatabaseSaver(stage){
                 @Override
                 public void setExitAfterSaving(boolean value){
@@ -6915,6 +6920,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             outArchive.setLevel(level);
             outArchive.setSolid(true);
             progressObserver.setValue(0);
+            progressObserver.setIndeterminate(false);
             FileCreateCallback7z callback = new FileCreateCallback7z(progressObserver,source);
             if (targetPath != null)
                 callback.getFilePathMap().put(source, targetPath);
@@ -10732,6 +10738,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         protected DatabaseSyncMode syncMode;
         
+        protected File compressedFile = null;
+        
         protected File configFile;
         
         protected boolean saveSuccess = true;
@@ -10977,6 +10985,57 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return true;
         }
         /**
+         * 
+         * @param mode
+         * @return 
+         */
+        protected boolean isUploadedFileCompressed(DatabaseSyncMode mode){
+            if (mode == null)
+                return false;
+            switch(mode){
+                case DROPBOX:
+                    return dbxCompressionToggle.isSelected();
+            }
+            return false;
+        }
+        /**
+         * 
+         * @param mode
+         * @return 
+         */
+        protected int getCompressionLevel(DatabaseSyncMode mode){
+            if (mode == null)
+                return 0;
+            switch(mode){
+                case DROPBOX:
+                    return getDropboxFileCompressionLevel();
+            }
+            return 5;
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected String getArchiveFilePath(){
+            return LINK_DATABASE_FILE;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @return 
+         */
+        protected File getCompressedFile(File file, String path){
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, 
+                        "."+SEVEN_ZIP_FILE_EXTENSION);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temp compressed file",
+                        ex);
+            }
+            return new File(file.getParentFile(),path);
+        }
+        /**
          * This attempts to save to the database using the given database 
          * connection and provided reusable statement.
          * @param conn The connection to the database.
@@ -11135,6 +11194,41 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().exiting("AbstractDatabaseSaver", "saveConfig", false);
             return false;
         }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param archiveFile
+         * @param level
+         * @return 
+         */
+        protected boolean compressFile(File file, File archiveFile, String path,
+                int level){
+            getLogger().entering("AbstractDatabaseSaver", "compressFile", 
+                    new Object[]{file,archiveFile,path,level});
+            boolean retry;
+            do{
+                progressBar.setValue(0);
+                progressBar.setIndeterminate(true);
+                Exception exc;
+                try{
+                    LinkManager.this.compressFile(file, archiveFile, path, level);
+                    getLogger().exiting("AbstractDatabaseSaver", "compressFile", true);
+                    return true;
+                } catch (IOException ex){
+                    getLogger().log(Level.WARNING,
+                                "Failed to compress database file", ex);
+                    exc = ex;
+                }
+                retry = showFailurePrompt("ERROR - Database Failed To Compress",
+                        get7ZipFailureMessage("The database file failed to be compressed.",
+                                showDBErrorDetailsToggle.isSelected(),exc),
+                        true);
+            }   // While the file failed to be processed and the user wants to 
+            while(retry);   // try again
+            getLogger().exiting("AbstractDatabaseSaver", "compressFile", false);
+            return false;
+        }
         @Override
         protected boolean saveFile(File file){
             getLogger().entering("AbstractDatabaseSaver", "saveFile", file);
@@ -11144,13 +11238,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Set the program to be indeterminate
                 progressBar.setIndeterminate(true);
                 if (saveSuccess && syncDBToggle.isSelected())
-                    setStage(SavingStage.UPLOAD_FILE);
+                    setStage(SavingStage.COMPRESS_FILE);
+            }
+            
+            boolean willUpload = syncMode != null && filePath != null;
+            File uploadFile = file;
+            
+            if (SavingStage.COMPRESS_FILE.equals(stage)){
+                if (saveSuccess && willUpload && isUploadedFileCompressed(syncMode)){
+                    progressDisplay.setString(getProgressString());
+                    String archivePath = getArchiveFilePath();
+                    compressedFile = getCompressedFile(file,archivePath);
+                    saveSuccess = compressFile(file,compressedFile,archivePath,
+                            getCompressionLevel(syncMode));
+                        // Set the program to be indeterminate
+                    progressBar.setIndeterminate(true);
+                    if (saveSuccess)
+                        uploadFile = compressedFile;
+                }
+                setStage(SavingStage.UPLOAD_FILE);
             }
             
             if (saveSuccess && SavingStage.UPLOAD_FILE.equals(stage) && 
-                    syncMode != null && filePath != null){
+                    willUpload){
                 progressDisplay.setString(getProgressString());
-                saveSuccess = uploadFile(file,filePath,syncMode);
+                saveSuccess = uploadFile(uploadFile,filePath,syncMode);
                 if (saveSuccess && showSuccess){
                     LinkManager.this.showSuccessPrompt(
                             "File Uploaded Successfully",
