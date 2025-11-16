@@ -10152,7 +10152,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // Get the tabs panel
                     LinksListTabsPanel tabsPanel = entry.getKey();
                     try{    // Set the models for the tabs panel
-                        tabsPanel.setModels(entry.getValue());
+                        tabsPanel.setModels(entry.getValue(), true);
                     } catch (NullPointerException ex){
                         getLogger().log(Level.WARNING,"Null encountered while setting models",ex);
                     }
