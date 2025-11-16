@@ -5901,12 +5901,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     // End of variables declaration//GEN-END:variables
     /**
      * 
-     */
-    protected void incrementProgressValue(){
-        progressBar.setValue(progressBar.getValue()+1);
-    }
-    /**
-     * 
      * @param model
      * @return 
      */
@@ -7934,7 +7928,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     boolean temp = model.removeAll(current.getModel());
                     modified |= temp;
                 }
-                incrementProgressValue();
+                progressObserver.incrementValue();
             }
             if (!isSource && modified)
                 models.put(panel, model);
@@ -10153,7 +10147,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
                 else
                     usedPrefixComboModel.add(entry.getKey() + " - " + entry.getValue());
-                incrementProgressValue();
+                progressObserver.incrementValue();
             }
             
             progressBar.setIndeterminate(true);
@@ -10208,7 +10202,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     list.getSizeLimit(),
                     list.size()
                 });
-                incrementProgressValue();
+                progressObserver.incrementValue();
             }
             
             progressBar.setIndeterminate(true);
@@ -10312,7 +10306,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 tableTableModel.addRow(new Object[]{
                     name,type,structMap.get(name)
                 });
-                incrementProgressValue();
+                progressObserver.incrementValue();
             }
         }
         /**
@@ -10385,7 +10379,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                                 (!setIfNotEqual || !Objects.equals(propValue, propDefault)),
                         propDefault
                 );
-                incrementProgressValue();
+                progressObserver.incrementValue();
             }
         }
         /**
@@ -11404,29 +11398,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Check to make sure the database contains all the links in the 
             if (!linkSet2.containsAll(linkSet1))    // program
                 return false;
-            incrementProgressValue();
+            progressObserver.incrementValue();
                 // Check to make sure the database contains all the lists and 
                 // their names in the program
             if (!listNames.equals(listNameMap))
                 return false;
-            incrementProgressValue();
+            progressObserver.incrementValue();
                 // Check to make sure the all listIDs list contains all the 
                 // listIDs of the lists shown by the all lists panel
             if (!allListsTabsPanel.getListIDs().equals(allListsList))
                 return false;
-            incrementProgressValue();
+            progressObserver.incrementValue();
                 // Check to make sure the shown listIDs list contains all the 
                 // listIDs of the shown lists
             if (!shownListsTabsPanel.getListIDs().equals(shownListsList))
                 return false;
-            incrementProgressValue();
+            progressObserver.incrementValue();
                 // Go through the listIDs of the lists in the database
             for (Integer listID : listDataMap.navigableKeySet()){
                     // Check to make sure the list in the database matches its 
                     // corresponding model
                 if (!listDataMap.get(listID).equalsModel(modelMap.get(listID)))
                     return false;
-                incrementProgressValue();
+                progressObserver.incrementValue();
             }
             return true;
         }
