@@ -3324,6 +3324,9 @@ public class LinkManagerConfig implements LinksListSettings{
          * @return 
          */
         public ConfigPreferences getNode(){
+                // If the node is currently null
+            if (node == null)
+                setNode();
             return node;
         }
         /**
