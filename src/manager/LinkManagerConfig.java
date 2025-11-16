@@ -2522,22 +2522,6 @@ public class LinkManagerConfig implements LinksListSettings{
      * 
      * @param value 
      */
-    public void setDropboxDatabaseFileName(String value){
-        setFilePathPreference(DATABASE_FILE_PATH_KEY,value,
-                getDropboxPreferences());
-    }
-    /**
-     * 
-     * @return 
-     */
-    public String getDropboxDatabaseFileName(){
-        return getFilePathPreference(DATABASE_FILE_PATH_KEY,
-                LinkManager.LINK_DATABASE_FILE,getDropboxPreferences());
-    }
-    /**
-     * 
-     * @param value 
-     */
     public void setDropboxChunkSizeMultiplier(Integer value){
         getDropboxPreferences().putObject(CHUNK_SIZE_MULTIPLIER_KEY, value);
     }
@@ -2653,33 +2637,6 @@ public class LinkManagerConfig implements LinksListSettings{
         setDropboxRefreshToken(null);
             // Set the Dropbox token expiration time to null, clearing it
         setDropboxTokenExpiresAt(null);
-    }
-    /**
-     * 
-     * @param mode
-     * @return 
-     */
-    public String getDatabaseFileSyncPath(DatabaseSyncMode mode){
-        if (mode != null){
-            switch(mode){
-                case DROPBOX:
-                    return getDropboxDatabaseFileName();
-            }
-        }
-        return null;
-    }
-    /**
-     * 
-     * @param mode
-     * @param value 
-     */
-    public void setDatabaseFileSyncPath(DatabaseSyncMode mode, String value){
-        if (mode != null){
-            switch(mode){
-                case DROPBOX:
-                    setDropboxDatabaseFileName(value);
-            }
-        }
     }
     /**
      * 
@@ -2906,50 +2863,6 @@ public class LinkManagerConfig implements LinksListSettings{
             fc.setSelectedPath(file);
         }   // Load the file chooser's size from the preference node
         SwingExtendedUtilities.setComponentSize(fc,getDropboxFileChooserSize());
-    }
-    /**
-     * 
-     * @param defaultValue
-     * @return 
-     */
-    public boolean isDropboxFileCompressionEnabled(boolean defaultValue){
-        return getDropboxPreferences().getBoolean(FILE_COMPRESSION_ENABLED_KEY, defaultValue);
-    }
-    /**
-     * 
-     * @return 
-     */
-    public boolean isDropboxFileCompressionEnabled(){
-        return isDropboxFileCompressionEnabled(false);
-    }
-    /**
-     * 
-     * @param value 
-     */
-    public void setDropboxFileCompressionEnabled(boolean value){
-        getDropboxPreferences().putBoolean(FILE_COMPRESSION_ENABLED_KEY, value);
-    }
-    /**
-     * 
-     * @param defaultValue
-     * @return 
-     */
-    public int getDropboxFileCompressionLevel(int defaultValue){
-        return getDropboxPreferences().getInt(FILE_COMPRESSION_LEVEL_KEY, defaultValue);
-    }
-    /**
-     * 
-     * @return 
-     */
-    public int getDropboxFileCompressionLevel(){
-        return getDropboxFileCompressionLevel(5);
-    }
-    /**
-     * 
-     * @param value 
-     */
-    public void setDropboxFileCompressionLevel(int value){
-        getDropboxPreferences().putInt(FILE_COMPRESSION_LEVEL_KEY, value);
     }
     /**
      * 
