@@ -81,7 +81,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This is the version of the program.
      */
-    public static final String PROGRAM_VERSION = "0.6.1";
+    public static final String PROGRAM_VERSION = "0.6.2";
     /**
      * The name of the author and main developer.
      */
@@ -867,7 +867,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         };
         
         aboutPanel.setProgramIcon(new LinkManagerIcon(128,iconPainter));
-        updateIconLabel.setIcon(new LinkManagerIcon(64,iconPainter));
         updateCheckPanel.setProgramIcon(new LinkManagerIcon(64,iconPainter));
         
             // Create a style to use to center the text on the text pane
@@ -1328,17 +1327,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         aboutDialog = new javax.swing.JDialog(this);
         aboutPanel = new components.JAboutPanel();
         updateCheckPanel = new manager.UpdateCheckPanel();
-        updateCheckDialog = new javax.swing.JDialog(this);
-        updatePanel = new javax.swing.JPanel();
-        updateIconLabel = new javax.swing.JLabel();
-        updateTextLabel = new javax.swing.JLabel();
-        currentVersTextLabel = new javax.swing.JLabel();
-        latestVersTextLabel = new javax.swing.JLabel();
-        checkUpdatesAtStartToggle = new javax.swing.JCheckBox();
-        currentVersLabel = new javax.swing.JLabel();
-        latestVersLabel = new javax.swing.JLabel();
-        updateContinueButton = new javax.swing.JButton();
-        updateOpenButton = new javax.swing.JButton();
         dropboxFC = new manager.dropbox.JDropboxFileChooser();
         progressBar = new javax.swing.JProgressBar();
         javax.swing.JLabel newLinkLabel = new javax.swing.JLabel();
@@ -2713,120 +2701,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 updateCheckPanelActionPerformed(evt);
             }
         });
-
-        updateCheckDialog.setTitle(PROGRAM_NAME+" Update Checker");
-        updateCheckDialog.setMinimumSize(new java.awt.Dimension(400, 196));
-        updateCheckDialog.setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
-        updateCheckDialog.setResizable(false);
-
-        updatePanel.setLayout(new java.awt.GridBagLayout());
-
-        updateIconLabel.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 18);
-        updatePanel.add(updateIconLabel, gridBagConstraints);
-
-        updateTextLabel.setText("A new version of "+PROGRAM_NAME+" is available.");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.weightx = 0.9;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 18, 0);
-        updatePanel.add(updateTextLabel, gridBagConstraints);
-
-        currentVersTextLabel.setText("Current Version:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 12);
-        updatePanel.add(currentVersTextLabel, gridBagConstraints);
-
-        latestVersTextLabel.setText("Latest Version:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 12);
-        updatePanel.add(latestVersTextLabel, gridBagConstraints);
-
-        checkUpdatesAtStartToggle.setSelected(true);
-        checkUpdatesAtStartToggle.setText("Check for Updates at startup");
-        checkUpdatesAtStartToggle.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkUpdatesAtStartToggleActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(13, 0, 0, 0);
-        updatePanel.add(checkUpdatesAtStartToggle, gridBagConstraints);
-
-        currentVersLabel.setText(PROGRAM_VERSION);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
-        updatePanel.add(currentVersLabel, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
-        updatePanel.add(latestVersLabel, gridBagConstraints);
-
-        updateContinueButton.setText("Continue");
-        updateContinueButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                updateContinueButtonActionPerformed(evt);
-            }
-        });
-
-        updateOpenButton.setText("Go to web page");
-        updateOpenButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                updateOpenButtonActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout updateCheckDialogLayout = new javax.swing.GroupLayout(updateCheckDialog.getContentPane());
-        updateCheckDialog.getContentPane().setLayout(updateCheckDialogLayout);
-        updateCheckDialogLayout.setHorizontalGroup(
-            updateCheckDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(updateCheckDialogLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(updateCheckDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(updatePanel, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, updateCheckDialogLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(updateOpenButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(updateContinueButton)))
-                .addContainerGap())
-        );
-        updateCheckDialogLayout.setVerticalGroup(
-            updateCheckDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(updateCheckDialogLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(updatePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(13, 13, 13)
-                .addGroup(updateCheckDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(updateContinueButton)
-                    .addComponent(updateOpenButton))
-                .addContainerGap())
-        );
 
         dropboxFC.setAcceptButtonToolTipText("Open selected file");
         dropboxFC.setDialogTitle("Set Database Location...");
@@ -5160,24 +5034,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }//GEN-LAST:event_aboutPanelActionPerformed
 
-    private void checkUpdatesAtStartToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkUpdatesAtStartToggleActionPerformed
-        config.setCheckForUpdateAtStartup(checkUpdatesAtStartToggle.isSelected());
-    }//GEN-LAST:event_checkUpdatesAtStartToggleActionPerformed
-
-    private void updateContinueButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateContinueButtonActionPerformed
-        updateCheckDialog.setVisible(false);
-    }//GEN-LAST:event_updateContinueButtonActionPerformed
-
-    private void updateOpenButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateOpenButtonActionPerformed
-        // Get the update URL
-        String url = updateChecker.getUpdateUrl();
-        try {   // Try to open the update URL in the user's web browser
-            Desktop.getDesktop().browse(new URL(url).toURI());
-        } catch (URISyntaxException | IOException ex) {
-            getLogger().log(Level.WARNING,"Could not open update URL "+url,ex);
-        }
-    }//GEN-LAST:event_updateOpenButtonActionPerformed
-
     private void dbxBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxBrowseButtonActionPerformed
         try{    // Get a client to communicate with Dropbox, refreshing the 
                 // Dropbox credentials if necessary
@@ -5535,7 +5391,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         listTabsManipulator.setEnabled(enabled);
         addLinksPanel.setEnabled(enabled);
         copyOrMoveListSelector.setEnabled(enabled);
-        updateOpenButton.setEnabled(enabled);
         updateCheckPanel.setEnabled(enabled);
         aboutPanel.setEnabled(enabled);
         updateButtons();
@@ -5869,7 +5724,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private manager.timermenu.AutoHideMenu autoHideMenu;
     private manager.timermenu.AutosaveMenu autosaveMenu;
     private javax.swing.JButton backupDBButton;
-    private javax.swing.JCheckBox checkUpdatesAtStartToggle;
     private javax.swing.JMenuItem clearListSelItem;
     private javax.swing.JMenuItem clearSelTabItem;
     private javax.swing.JFileChooser configFC;
@@ -5878,8 +5732,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton copyLinkButton;
     private components.JListSelector<String> copyOrMoveListSelector;
     private manager.SelectedItemCountPanel copyOrMoveSelCountPanel;
-    private javax.swing.JLabel currentVersLabel;
-    private javax.swing.JLabel currentVersTextLabel;
     private javax.swing.JDialog databaseDialog;
     private javax.swing.JFileChooser databaseFC;
     private javax.swing.JFileChooser databaseUpdateFC;
@@ -5967,8 +5819,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenu hideListsMenu;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JMenuItem jMenuItem1;
-    private javax.swing.JLabel latestVersLabel;
-    private javax.swing.JLabel latestVersTextLabel;
     private javax.swing.JLabel linkCountLabel;
     private javax.swing.JOptionPane linkEditPane;
     private javax.swing.JCheckBoxMenuItem linkOperationToggle;
@@ -6041,17 +5891,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private components.debug.SlowTestMenuItem slowTestToggle;
     private javax.swing.JCheckBoxMenuItem syncDBToggle;
     private javax.swing.JPanel tabsPanelDisplay;
-    private javax.swing.JDialog updateCheckDialog;
     private manager.UpdateCheckPanel updateCheckPanel;
-    private javax.swing.JButton updateContinueButton;
     private javax.swing.JButton updateDBFileButton;
     private javax.swing.JComboBox<String> updateDBFileCombo;
     private javax.swing.JMenuItem updateDatabaseItem;
-    private javax.swing.JLabel updateIconLabel;
     private javax.swing.JMenuItem updateListsItem;
-    private javax.swing.JButton updateOpenButton;
-    private javax.swing.JPanel updatePanel;
-    private javax.swing.JLabel updateTextLabel;
     private javax.swing.JMenuItem uploadDBItem;
     private javax.swing.JLabel userIDLabel;
     // End of variables declaration//GEN-END:variables
