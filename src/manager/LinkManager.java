@@ -6897,7 +6897,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Configure archive
             outArchive.setLevel(level);
             outArchive.setSolid(true);
-            
+            progressObserver.setValue(0);
             FileCreateCallback7z callback = new FileCreateCallback7z(progressObserver,source);
             if (targetPath != null)
                 callback.getFilePathMap().put(source, targetPath);
