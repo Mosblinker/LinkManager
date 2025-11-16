@@ -369,7 +369,19 @@ public class UpdateCheckPanel extends AbstractDialogPanel {
                 return null;
         }
     }
-    
+    /**
+     * 
+     * @param enabled 
+     */
+    @Override
+    public void setEnabled(boolean enabled){
+        super.setEnabled(enabled);
+        if (updateOpenButton != null)
+            updateOpenButton.setEnabled(enabled);
+    }
+    /**
+     * 
+     */
     private String programName = null;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox checkUpdatesAtStartToggle;
