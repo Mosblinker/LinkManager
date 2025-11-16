@@ -12410,11 +12410,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     updateCheckDialog.setLocationRelativeTo(getParentComponent());
                     updateCheckDialog.setVisible(true);
                 } else if (!isAtStart){
-                    JOptionPane.showMessageDialog(aboutDialog, 
-                            "This program is already up to date,",
-                            updateCheckDialog.getTitle(), 
-                            JOptionPane.INFORMATION_MESSAGE, 
-                            updateIconLabel.getIcon());
+                    updateCheckPanel.showUpToDateDialog(aboutDialog);
                 }
             }
             if (isAtStart && ENABLE_INITIAL_LOAD_AND_SAVE){
