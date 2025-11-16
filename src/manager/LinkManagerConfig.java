@@ -531,6 +531,13 @@ public class LinkManagerConfig implements LinksListSettings{
         return externalFileNodes.get(DatabaseSyncMode.DROPBOX);
     }
     /**
+     * 
+     * @return 
+     */
+    public Map<DatabaseSyncMode,ExternalFileSettings> getExternalFileSettingsMap(){
+        return Collections.unmodifiableMap(externalFileNodes);
+    }
+    /**
      * This returns the preference node used to store the Dropbox settings.
      * @return 
      */
