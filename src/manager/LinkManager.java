@@ -1407,7 +1407,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxPrintButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
-        dbxListFilesTestButton = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
 
         openFC.addActionListener(new java.awt.event.ActionListener() {
@@ -3293,14 +3292,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         });
         dropboxTestMenu.add(dropboxRefreshTestButton);
 
-        dbxListFilesTestButton.setText("List Files");
-        dbxListFilesTestButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dbxListFilesTestButtonActionPerformed(evt);
-            }
-        });
-        dropboxTestMenu.add(dbxListFilesTestButton);
-
         debugMenu.add(dropboxTestMenu);
 
         jMenuItem1.setText("New Download");
@@ -5171,45 +5162,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }//GEN-LAST:event_updateOpenButtonActionPerformed
 
-    private void dbxListFilesTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxListFilesTestButtonActionPerformed
-        try {   // Get a client to communicate with Dropbox, refreshing the 
-                // Dropbox credentials if necessary
-            DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
-            
-            
-            DefaultMutableTreeNode nodes = DropboxUtilities.listFolderTree(client, "");
-            Iterator<TreeNode> nodeItr = nodes.preorderEnumeration().asIterator();
-            
-            while (nodeItr.hasNext()){
-                TreeNode temp = nodeItr.next();
-                if (temp instanceof DefaultMutableTreeNode){
-                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)temp;
-                    Metadata metadata;
-                    if (node.getUserObject() instanceof Metadata)
-                        metadata = (Metadata) node.getUserObject();
-                    else
-                        continue;
-                    System.out.print("    ".repeat(node.getLevel()));
-                    if (metadata != null)
-                        System.out.print(metadata.getName());
-                    if (metadata instanceof FileMetadata){
-                        FileMetadata file = (FileMetadata) metadata;
-                        ExportInfo exportInfo = file.getExportInfo();
-                        System.out.printf(" (%d bytes, %s, %s", file.getSize(),
-                                file.getClientModified(), file.getServerModified());
-                        if (exportInfo != null)
-                            System.out.printf(", %s, %s",
-                                    exportInfo.getExportAs(),exportInfo.getExportOptions());
-                        System.out.print(")");
-                    }
-                    System.out.println();
-                }
-            }
-        } catch (DbxException ex) {
-            getLogger().log(Level.WARNING, "Failed to list files", ex);
-        }
-    }//GEN-LAST:event_dbxListFilesTestButtonActionPerformed
-
     private void dbxBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxBrowseButtonActionPerformed
         try{    // Get a client to communicate with Dropbox, refreshing the 
                 // Dropbox credentials if necessary
@@ -5957,7 +5909,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JCheckBox dbxCompressionToggle;
     private javax.swing.JPanel dbxDataPanel;
     private javax.swing.JTextField dbxDbFileField;
-    private javax.swing.JMenuItem dbxListFilesTestButton;
     private javax.swing.JButton dbxLogInButton;
     private javax.swing.JButton dbxLogOutButton;
     private components.JThumbnailLabel dbxPfpLabel;
