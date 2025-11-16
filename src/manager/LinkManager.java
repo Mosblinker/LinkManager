@@ -8726,6 +8726,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
+         * @param archiveFile
+         * @param targetPath
+         * @param targetFile
+         * @return 
+         */
+        protected File extractFile(File archiveFile, String targetPath, File targetFile){
+            getLogger().entering("AbstractFileDownloader", "extractFile", 
+                    new Object[]{archiveFile, targetPath, targetFile});
+            try{
+                targetFile = LinkManager.this.extractFile(archiveFile, targetPath, targetFile);
+                fileFound = targetFile != null;
+            } catch (IOException ex){
+                exc = ex;
+                getLogger().log(Level.WARNING, "Failed to extract file",ex);
+                targetFile = null;
+            }
+            getLogger().exiting("AbstractFileDownloader","extractFile",targetFile);
+            return targetFile;
+        }
+        /**
+         * 
          * @param file
          * @param downloadedFile
          * @return 
