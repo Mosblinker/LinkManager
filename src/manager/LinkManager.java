@@ -10712,6 +10712,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         VERIFY_DATABASE,
         
+        COMPRESS_FILE,
+        
         UPLOAD_FILE,
         
         SAVE_CONFIGURATION;
