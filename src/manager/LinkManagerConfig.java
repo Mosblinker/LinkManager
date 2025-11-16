@@ -528,6 +528,14 @@ public class LinkManagerConfig implements LinksListSettings{
         return localDefaults;
     }
     /**
+     * 
+     * @param mode
+     * @return 
+     */
+    public ExternalFileSettings getExternalFileSettings(DatabaseSyncMode mode){
+        return externalFileNodes.get(DatabaseSyncMode.DROPBOX);
+    }
+    /**
      * This returns the preference node used to store the Dropbox settings.
      * @return 
      */
