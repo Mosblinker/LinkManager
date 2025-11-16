@@ -65,6 +65,7 @@ public class UpdateCheckPanel extends AbstractDialogPanel {
     public UpdateCheckPanel() {
         initComponents();
         updateProgramName();
+        checkForUpdates = checkUpdatesAtStartToggle.isSelected();
     }
 
     /**
@@ -255,11 +256,11 @@ public class UpdateCheckPanel extends AbstractDialogPanel {
      * @param value 
      */
     public void setCheckForUpdatesAtStartup(boolean value){
-        boolean oldValue = getCheckForUpdatesAtStartup();
-        if (oldValue != value){
-            checkUpdatesAtStartToggle.setSelected(value);
+        if (checkForUpdates != value){
+            checkForUpdates = value;
             firePropertyChange(CHECK_FOR_UPDATES_AT_STARTUP_PROPERTY_CHANGED,
-                    oldValue,value);
+                    !value,value);
+            checkUpdatesAtStartToggle.setSelected(value);
         }
     }
     /**
@@ -267,7 +268,7 @@ public class UpdateCheckPanel extends AbstractDialogPanel {
      * @return 
      */
     public boolean getCheckForUpdatesAtStartup(){
-        return checkUpdatesAtStartToggle.isSelected();
+        return checkForUpdates;
     }
     /**
      * 
@@ -395,6 +396,10 @@ public class UpdateCheckPanel extends AbstractDialogPanel {
      * 
      */
     private String programName = null;
+    /**
+     * 
+     */
+    private boolean checkForUpdates;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox checkUpdatesAtStartToggle;
     private javax.swing.JLabel currentVersLabel;
