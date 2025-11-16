@@ -6,9 +6,11 @@ package manager;
 
 import components.AbstractDialogPanel;
 import static components.AbstractDialogPanel.ERROR_OPTION;
+import java.awt.Component;
 import java.util.Objects;
 import javax.swing.Icon;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -378,6 +380,16 @@ public class UpdateCheckPanel extends AbstractDialogPanel {
         super.setEnabled(enabled);
         if (updateOpenButton != null)
             updateOpenButton.setEnabled(enabled);
+    }
+    /**
+     * 
+     * @param parent 
+     */
+    public void showUpToDateDialog(Component parent){
+        JOptionPane.showMessageDialog(parent, 
+                "This program is already up to date,",
+                getDialogTitle(), JOptionPane.INFORMATION_MESSAGE, 
+                getProgramIcon());
     }
     /**
      * 
