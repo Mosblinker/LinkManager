@@ -9807,7 +9807,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return File.createTempFile(INTERNAL_PROGRAM_NAME, 
                         "."+DATABASE_FILE_EXTENSION);
             } catch (IOException ex) {
-                getLogger().log(Level.WARNING, "Failed to create temp extracted file",
+                getLogger().log(Level.WARNING, "Failed to create temporary extracted file",
                         ex);
             }
             return file;
@@ -9821,7 +9821,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             try {
                 return File.createTempFile(INTERNAL_PROGRAM_NAME, suffix);
             } catch (IOException ex) {
-                getLogger().log(Level.WARNING, "Failed to create temp download file",
+                getLogger().log(Level.WARNING, "Failed to create temporary download file",
                         ex);
             }
             return file;
@@ -11026,7 +11026,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return File.createTempFile(INTERNAL_PROGRAM_NAME, 
                         "."+SEVEN_ZIP_FILE_EXTENSION);
             } catch (IOException ex) {
-                getLogger().log(Level.WARNING, "Failed to create temp compressed file",
+                getLogger().log(Level.WARNING, "Failed to create temporary compressed file",
                         ex);
             }
             return new File(file.getParentFile(),path);
