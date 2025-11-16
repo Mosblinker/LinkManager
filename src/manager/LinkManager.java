@@ -436,20 +436,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // TODO: Deal with invalid access tokens
         return loadDbxUtils() != null && dbxUtils.getAccessToken() != null;
     }
-    /**
-     * 
-     * @return 
-     */
-    private static File createTempFile(String suffix) throws IOException{
-        return File.createTempFile("LinkManager", suffix);
-    }
-    /**
-     * 
-     * @return 
-     */
-    private static File createTempFile() throws IOException{
-        return createTempFile(null);
-    }
     
     private DropboxLinkUtils loadDbxUtils(){
             // Get the file containing the API keys
@@ -4280,7 +4266,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // If the local file should be checked for more up-to-date lists
         if (LinkManagerUtilities.getFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG)){
             try {   // Create a temporary file for the downloaded database
-                file = createTempFile();
+                file = File.createTempFile(INTERNAL_PROGRAM_NAME, null);
                     // Make sure the file is deleted on exit
                 file.deleteOnExit();
             } catch (IOException ex) {
