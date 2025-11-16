@@ -868,6 +868,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         aboutPanel.setProgramIcon(new LinkManagerIcon(128,iconPainter));
         updateIconLabel.setIcon(new LinkManagerIcon(64,iconPainter));
+        updateCheckPanel.setProgramIcon(new LinkManagerIcon(64,iconPainter));
         
             // Create a style to use to center the text on the text pane
         SimpleAttributeSet centeredText = new SimpleAttributeSet();
@@ -1326,6 +1327,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dropboxSetupPanel = new manager.dropbox.DropboxSetupPanel();
         aboutDialog = new javax.swing.JDialog(this);
         aboutPanel = new components.JAboutPanel();
+        updateCheckPanel = new manager.UpdateCheckPanel();
         updateCheckDialog = new javax.swing.JDialog(this);
         updatePanel = new javax.swing.JPanel();
         updateIconLabel = new javax.swing.JLabel();
@@ -2697,6 +2699,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         aboutDialog.getContentPane().add(aboutPanel, java.awt.BorderLayout.CENTER);
+
+        updateCheckPanel.setDialogTitle(PROGRAM_NAME+" Update Checker");
+        updateCheckPanel.setCurrentVersion(PROGRAM_VERSION);
+        updateCheckPanel.setProgramName(PROGRAM_NAME);
+        updateCheckPanel.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                updateCheckPanelPropertyChange(evt);
+            }
+        });
+        updateCheckPanel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                updateCheckPanelActionPerformed(evt);
+            }
+        });
 
         updateCheckDialog.setTitle(PROGRAM_NAME+" Update Checker");
         updateCheckDialog.setMinimumSize(new java.awt.Dimension(400, 196));
@@ -5199,6 +5215,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         config.getExternalFileSettings(DatabaseSyncMode.DROPBOX)
                 .setFileCompressionLevel(getDropboxFileCompressionLevel());
     }//GEN-LAST:event_dbxCompressionLevelComboActionPerformed
+
+    private void updateCheckPanelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_updateCheckPanelPropertyChange
+    }//GEN-LAST:event_updateCheckPanelPropertyChange
+
+    private void updateCheckPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateCheckPanelActionPerformed
+    }//GEN-LAST:event_updateCheckPanelActionPerformed
     
     private int getDropboxFileCompressionLevel(){
         return COMPRESSION_LEVELS[Math.max(dbxCompressionLevelCombo.getSelectedIndex(),0)];
@@ -5503,6 +5525,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         addLinksPanel.setEnabled(enabled);
         copyOrMoveListSelector.setEnabled(enabled);
         updateOpenButton.setEnabled(enabled);
+        updateCheckPanel.setEnabled(enabled);
         aboutPanel.setEnabled(enabled);
         updateButtons();
         
@@ -6008,6 +6031,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JCheckBoxMenuItem syncDBToggle;
     private javax.swing.JPanel tabsPanelDisplay;
     private javax.swing.JDialog updateCheckDialog;
+    private manager.UpdateCheckPanel updateCheckPanel;
     private javax.swing.JButton updateContinueButton;
     private javax.swing.JButton updateDBFileButton;
     private javax.swing.JComboBox<String> updateDBFileCombo;

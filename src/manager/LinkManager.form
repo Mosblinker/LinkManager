@@ -2135,6 +2135,23 @@
         </Component>
       </SubComponents>
     </Container>
+    <Component class="manager.UpdateCheckPanel" name="updateCheckPanel">
+      <Properties>
+        <Property name="dialogTitle" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="PROGRAM_NAME+&quot; Update Checker&quot;" type="code"/>
+        </Property>
+        <Property name="currentVersion" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="PROGRAM_VERSION" type="code"/>
+        </Property>
+        <Property name="programName" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="PROGRAM_NAME" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="updateCheckPanelPropertyChange"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="updateCheckPanelActionPerformed"/>
+      </Events>
+    </Component>
     <Container class="javax.swing.JDialog" name="updateCheckDialog">
       <Properties>
         <Property name="title" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
