@@ -11217,6 +11217,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().entering("AbstractDatabaseSaver", "compressFile", 
                     new Object[]{file,archiveFile,path,level});
             boolean retry;
+            ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(true);
             do{
                 progressBar.setValue(0);
                 progressBar.setIndeterminate(true);
