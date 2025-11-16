@@ -318,7 +318,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * These are the available compression levels for 7-Zip.
      */
-    public static final Integer[] COMPRESSION_LEVELS = {
+    private static final Integer[] COMPRESSION_LEVELS = {
         0, 1, 3, 5, 7, 9
     };
     /**
