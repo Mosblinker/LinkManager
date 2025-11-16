@@ -8832,40 +8832,63 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
-         * @param ifSuccessful 
+         * @param ifSuccessful
+         * @param file 
          */
-        protected void deleteDownloadedFile(boolean ifSuccessful){
+        protected void deleteFile(boolean ifSuccessful, File file){
             getLogger().entering("AbstractFileDownloader", 
-                    "deleteDownloadedFile", ifSuccessful);
+                    "deleteFile", new Object[]{ifSuccessful,file});
                 // If the program successfully loaded the file or this is to 
                 // ignore if the file was loaded successfully
             if (success || !ifSuccessful){
-                    // If there's a downloaded file, and the loaded file and 
-                    // downloaded file are not the same file (i.e. the 
-                    // downloaded file did not overwrite the loaded file)
-                if (downloadedFile != null && 
-                        !LinkManagerUtilities.isSameFile(file, downloadedFile)){
+                    // If there's a given file, and the loaded file and given 
+                    // file are not the same file (i.e. the given file did not 
+                    // overwrite the loaded file)
+                if (file != null && 
+                        !LinkManagerUtilities.isSameFile(this.file, file)){
                     /*
                     TODO: Figure out how to resolve a glitch where the file 
                     isn't being deleted if the process is cancelled during the 
                     download.
                     */
                     if (isCancelled() && exitIfCancelled){
-                        getLogger().log(Level.FINER, "Deleting file \"{0}\"", downloadedFile);
+                        getLogger().log(Level.FINER, "Deleting file \"{0}\"", file);
                         try{    
-                            Files.deleteIfExists(downloadedFile.toPath());
+                            Files.deleteIfExists(file.toPath());
                         } catch (IOException ex){
                             getLogger().log(Level.WARNING, "Failed to delete file", ex);
-                            downloadedFile.deleteOnExit();
+                            file.deleteOnExit();
                         }
                     } else {
-                        getLogger().log(Level.FINER, "Deleting on exit \"{0}\"", downloadedFile);
-                        downloadedFile.deleteOnExit();
+                        getLogger().log(Level.FINER, "Deleting on exit \"{0}\"", file);
+                        file.deleteOnExit();
                     }
                 }
             }
             getLogger().exiting("AbstractFileDownloader", 
+                    "deleteFile");
+        }
+        /**
+         * 
+         * @param ifSuccessful 
+         */
+        protected void deleteDownloadedFile(boolean ifSuccessful){
+            getLogger().entering("AbstractFileDownloader", 
+                    "deleteDownloadedFile", ifSuccessful);
+            deleteFile(ifSuccessful,downloadedFile);
+            getLogger().exiting("AbstractFileDownloader", 
                     "deleteDownloadedFile");
+        }
+        /**
+         * 
+         * @param ifSuccessful 
+         */
+        protected void deleteExtractedFile(boolean ifSuccessful){
+            getLogger().entering("AbstractFileDownloader", 
+                    "deleteExtractedFile", ifSuccessful);
+            deleteFile(ifSuccessful,extractedFile);
+            getLogger().exiting("AbstractFileDownloader", 
+                    "deleteExtractedFile");
         }
         /**
          * 
