@@ -67,7 +67,7 @@ public class OutputStreamSequentialOutStream implements ISequentialOutStream,
         }
         size += data.length;
         if (observer != null)
-            observer.setValueLong(size);
+            observer.setCompleted(size);
         return data.length;
     }
     @Override
