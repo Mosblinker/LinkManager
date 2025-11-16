@@ -405,6 +405,10 @@ public class LinkManagerConfig implements LinksListSettings{
      */
     protected ConfigPreferences dropboxFCNode = null;
     /**
+     * This stores the nodes and settings used for external file settings.
+     */
+    private final Map<DatabaseSyncMode,ExternalFileNode> externalFileNodes;
+    /**
      * This is used to handle the list type preference nodes.
      */
     protected final ListConfigNodeParent listTypeNodes;
@@ -449,6 +453,21 @@ public class LinkManagerConfig implements LinksListSettings{
                 return LIST_ID_PREFERENCE_NODE_NAME;
             }
         };
+        externalFileNodes = new HashMap<>();
+        externalFileNodes.put(DatabaseSyncMode.DROPBOX, new ExternalFileNode(){
+            @Override
+            public DatabaseSyncMode getSyncMode() {
+                return DatabaseSyncMode.DROPBOX;
+            }
+            @Override
+            public String getNodePath() {
+                return DROPBOX_PREFERENCE_NODE_NAME;
+            }
+            @Override
+            public String getPropertiesPrefix() {
+                return DROPBOX_PROPERTY_KEY_PREFIX;
+            }
+        });
     }
     /**
      * 
