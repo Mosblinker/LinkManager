@@ -18,6 +18,10 @@ public class DefaultProgressObserver implements ProgressObserver{
     protected JProgressBar progressBar;
     /**
      * 
+     */
+    protected double divisor = 1;
+    /**
+     * 
      * @param progressBar 
      */
     public DefaultProgressObserver(JProgressBar progressBar){
@@ -68,6 +72,18 @@ public class DefaultProgressObserver implements ProgressObserver{
         progressBar.setMinimum(min);
         return this;
     }
+    @Override
+    public DefaultProgressObserver setMaximumLong(long max){
+            // Get the value needed to divide the file length to get it back 
+            // into the range of integers
+        divisor = LinkManagerUtilities.getFileSizeDivider(max);
+        return setMaximum((int)Math.ceil(max / divisor));
+    }
+    @Override
+    public DefaultProgressObserver setValueLong(long value){
+            // Update the progress with the amount of bytes written
+        return setValue((int)Math.ceil(value / divisor));
+    }
     /**
      * 
      * @return 
@@ -78,7 +94,8 @@ public class DefaultProgressObserver implements ProgressObserver{
                 ",minimum="+getMinimum()+
                 ",maximum="+getMaximum()+
                 ",text="+Objects.toString(getText(),"")+
-                ",textShown="+isTextShown();
+                ",textShown="+isTextShown()+
+                ",divisor="+divisor;
     }
     @Override
     public String toString(){

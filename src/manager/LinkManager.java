@@ -46,15 +46,10 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
 import javax.swing.table.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.Position;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
-import javax.swing.text.StyledDocument;
+import javax.swing.text.*;
 import javax.swing.tree.*;
+import manager.compress.FileCreateCallback7z;
+import manager.compress.OutputStreamSequentialOutStream;
 import manager.config.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
@@ -66,6 +61,10 @@ import manager.renderer.*;
 import manager.security.*;
 import manager.timermenu.*;
 import measure.format.binary.ByteUnitFormat;
+import net.sf.sevenzipjbinding.*;
+import net.sf.sevenzipjbinding.impl.*;
+import net.sf.sevenzipjbinding.simple.ISimpleInArchive;
+import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
 import org.sqlite.*;
 import org.sqlite.core.*;
 import sql.*;
@@ -122,7 +121,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         {"jackson-core","FasterXML","https://github.com/FasterXML/jackson-core"},
         {"dropbox-core-sdk","Dropbox","https://github.com/dropbox/dropbox-sdk-java"},
         {"ListAction.java","Rob Camick","https://tips4java.wordpress.com/2008/10/14/list-action/"},
-        {"EditListAction.java","Rob Camick","https://tips4java.wordpress.com/2008/10/19/list-editor/"}
+        {"EditListAction.java","Rob Camick","https://tips4java.wordpress.com/2008/10/19/list-editor/"},
+        {"7-Zip-JBinding",null,"https://sevenzipjbind.sourceforge.net/"}
     };
     /**
      * This is the pattern for the file handler to use for the log files of this 
@@ -162,6 +162,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * The file extension for database files.
      */
     public static final String DATABASE_FILE_EXTENSION = "db";
+    /**
+     * The file extension for 7Zip compressed files.
+     */
+    public static final String SEVEN_ZIP_FILE_EXTENSION = "7z";
     /**
      * This holds the abstract path to the default database file storing the 
      * tables containing the links.
@@ -317,6 +321,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String MAKE_LIST_READ_ONLY_ACTION_KEY = "MakeListReadOnly";
     /**
+     * These are the available compression levels for 7-Zip.
+     */
+    public static final Integer[] COMPRESSION_LEVELS = {
+        0, 1, 3, 5, 7, 9
+    };
+    /**
      * This is used to enable or disable the initial loading of the database and 
      * saving the database when the program closes.
      */
@@ -332,7 +342,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * up-to-date than the downloaded version.
      */
     private static final int DATABASE_LOADER_CHECK_LOCAL_FLAG = 0x02;
-    
+    /**
+     * 
+     */
     protected static final SimpleDateFormat DEBUG_DATE_FORMAT = 
             new SimpleDateFormat("M/d/yyyy h:mm:ss a");
     /**
@@ -1206,6 +1218,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxChunkSizeSpinner = new javax.swing.JSpinner();
         javax.swing.JLabel jLabel11 = new javax.swing.JLabel();
         dbxBrowseButton = new javax.swing.JButton();
+        dbxCompressionToggle = new javax.swing.JCheckBox();
+        jLabel3 = new javax.swing.JLabel();
+        dbxCompressionLevelCombo = new javax.swing.JComboBox<>();
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
@@ -1462,7 +1477,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         databaseFC.setFileSelectionMode(javax.swing.JFileChooser.FILES_AND_DIRECTORIES);
 
         setLocationDialog.setTitle("Set Database Location");
-        setLocationDialog.setMinimumSize(new java.awt.Dimension(480, 380));
+        setLocationDialog.setMinimumSize(new java.awt.Dimension(480, 415));
         setLocationDialog.addComponentListener(new java.awt.event.ComponentAdapter() {
             public void componentMoved(java.awt.event.ComponentEvent evt) {
                 setLocationDialogComponentMoved(evt);
@@ -1498,7 +1513,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             .addGroup(setExternalCardLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(dbxLogInButton)
-                .addContainerGap(158, Short.MAX_VALUE))
+                .addContainerGap(188, Short.MAX_VALUE))
         );
 
         setLocationPanel.add(setExternalCard, "logInCard");
@@ -1602,6 +1617,25 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
 
+        dbxCompressionToggle.setText("Compressed");
+        dbxCompressionToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbxCompressionToggleActionPerformed(evt);
+            }
+        });
+
+        jLabel3.setLabelFor(dbxCompressionLevelCombo);
+        jLabel3.setText("Compression Level:");
+
+        dbxCompressionLevelCombo.setModel(new javax.swing.DefaultComboBoxModel<>(COMPRESSION_LEVELS));
+        dbxCompressionLevelCombo.setEnabled(false);
+        dbxCompressionLevelCombo.setRenderer(new CompressionLevelListCellRenderer());
+        dbxCompressionLevelCombo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbxCompressionLevelComboActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout setDropboxCardLayout = new javax.swing.GroupLayout(setDropboxCard);
         setDropboxCard.setLayout(setDropboxCardLayout);
         setDropboxCardLayout.setHorizontalGroup(
@@ -1613,16 +1647,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     .addGroup(setDropboxCardLayout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbxDbFileField, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE)
+                        .addComponent(dbxDbFileField)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(dbxBrowseButton))
                     .addGroup(setDropboxCardLayout.createSequentialGroup()
-                        .addComponent(jLabel7)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbxChunkSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel11)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(setDropboxCardLayout.createSequentialGroup()
+                                .addComponent(jLabel7)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(dbxChunkSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel11)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(dbxCompressionToggle))
+                            .addGroup(setDropboxCardLayout.createSequentialGroup()
+                                .addComponent(jLabel3)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(dbxCompressionLevelCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 160, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         setDropboxCardLayout.setVerticalGroup(
@@ -1639,7 +1681,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
                     .addComponent(dbxChunkSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel11))
+                    .addComponent(jLabel11)
+                    .addComponent(dbxCompressionToggle))
+                .addGap(7, 7, 7)
+                .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(dbxCompressionLevelCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -4987,8 +5034,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         DatabaseSyncMode mode = getSyncMode();
         if (mode != null){
             SavingStage stage = SavingStage.SAVE_DATABASE;
-            if (getDatabaseFile().exists())
-                stage = SavingStage.UPLOAD_FILE;
+            if (getDatabaseFile().exists()){
+                if (dbxCompressionToggle.isSelected())
+                    stage = SavingStage.COMPRESS_FILE;
+                else
+                    stage = SavingStage.UPLOAD_FILE;
+            }
             saver = new DatabaseSaver(stage){
                 @Override
                 public void setExitAfterSaving(boolean value){
@@ -5187,6 +5238,30 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.WARNING, "Cannot browse Dropbox", ex);
         } 
     }//GEN-LAST:event_dbxBrowseButtonActionPerformed
+
+    private void dbxCompressionToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxCompressionToggleActionPerformed
+        updateDBLocationEnabled();
+        config.setDropboxFileCompressionEnabled(dbxCompressionToggle.isSelected());
+        String path = dbxDbFileField.getText();
+        if (path.endsWith("."+SEVEN_ZIP_FILE_EXTENSION)){
+            if (!dbxCompressionToggle.isSelected())
+                path = path.substring(0,path.length()-(SEVEN_ZIP_FILE_EXTENSION.length()+1));
+        } else if (dbxCompressionToggle.isSelected())
+            path += "."+SEVEN_ZIP_FILE_EXTENSION;
+        if (dbxDbFileField.getText().equals(dropboxFC.getSelectedPath())){
+            dropboxFC.setSelectedPath(path);
+            config.setSelectedDropboxPath(path);
+        }
+        dbxDbFileField.setText(path);
+    }//GEN-LAST:event_dbxCompressionToggleActionPerformed
+
+    private void dbxCompressionLevelComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxCompressionLevelComboActionPerformed
+        config.setDropboxFileCompressionLevel(getDropboxFileCompressionLevel());
+    }//GEN-LAST:event_dbxCompressionLevelComboActionPerformed
+    
+    private int getDropboxFileCompressionLevel(){
+        return COMPRESSION_LEVELS[Math.max(dbxCompressionLevelCombo.getSelectedIndex(),0)];
+    }
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
@@ -5513,6 +5588,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxBrowseButton.setEnabled(dbxLogInButton.isEnabled());
         dbxDbFileField.setEditable(dbxBrowseButton.isEnabled());
         dbxChunkSizeSpinner.setEnabled(dbxLogInButton.isEnabled());
+        dbxCompressionToggle.setEnabled(dbxLogInButton.isEnabled());
+        dbxCompressionLevelCombo.setEnabled(dbxCompressionToggle.isEnabled()&&dbxCompressionToggle.isSelected());
         
         updateDBLocationButtons();
     }
@@ -5887,6 +5964,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JLabel dbxAccountLabel;
     private javax.swing.JButton dbxBrowseButton;
     private javax.swing.JSpinner dbxChunkSizeSpinner;
+    private javax.swing.JComboBox<Integer> dbxCompressionLevelCombo;
+    private javax.swing.JCheckBox dbxCompressionToggle;
     private javax.swing.JPanel dbxDataPanel;
     private javax.swing.JTextField dbxDbFileField;
     private javax.swing.JMenuItem dbxListFilesTestButton;
@@ -5912,6 +5991,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JCheckBoxMenuItem hiddenLinkOperationToggle;
     private javax.swing.JMenuItem hideAllListsItem;
     private javax.swing.JMenu hideListsMenu;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JLabel latestVersLabel;
     private javax.swing.JLabel latestVersTextLabel;
@@ -6188,6 +6268,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return msg;
     }
     /**
+     * 
+     * @param msg
+     * @param showError
+     * @param ex
+     * @return 
+     */
+    private String get7ZipFailureMessage(String msg, boolean showError, Exception ex){
+            // If the program is either in debug mode or if details are to be 
+            // shown and there was an exception thrown
+        if ((isInDebug() || showError) && ex != null){
+            msg += "\nError: " + ex;
+            if (ex instanceof SevenZipException && ex.getCause() != null)
+                msg += "\nCause: " + ex.getCause();
+        }
+        return msg;
+    }
+    /**
      * This attempts to write the List of Strings to the given file.
      * @param file The file to write to.
      * @param list The list of String to write to the file.
@@ -6336,6 +6433,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxChunkSizeModel.getMultiplier()));
         checkUpdatesAtStartToggle.setSelected(config.getCheckForUpdateAtStartup(
                 checkUpdatesAtStartToggle.isSelected()));
+        dbxCompressionToggle.setSelected(config.isDropboxFileCompressionEnabled());
+        dbxCompressionLevelCombo.setSelectedItem(config.getDropboxFileCompressionLevel());
             // If the program has fully loaded
         if (fullyLoaded){
             getLogger().finer("Program is fully loaded");
@@ -6799,6 +6898,104 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         getLogger().exiting(this.getClass().getName(), "loadDatabase");
         return tabsModels;
+    }
+    /**
+     * 
+     * @param source
+     * @param archive
+     * @param targetPath
+     * @param level
+     * @throws SevenZipException
+     * @throws IOException 
+     */
+    private void compressFile(File source, File archive, String targetPath, int level) 
+            throws SevenZipException, IOException{
+        getLogger().entering(this.getClass().getName(), "compressFile", 
+                new Object[]{source,archive,targetPath,level});
+        getLogger().log(Level.FINER, "Using compression level {0}", level);
+        try (RandomAccessFile raf = new RandomAccessFile(archive, "rw");
+                IOutCreateArchive7z outArchive = SevenZip.openOutArchive7z()){
+                // Configure archive
+            outArchive.setLevel(level);
+            outArchive.setSolid(true);
+            progressObserver.setValue(0);
+            progressObserver.setIndeterminate(false);
+            FileCreateCallback7z callback = new FileCreateCallback7z(progressObserver,source);
+            if (targetPath != null)
+                callback.getFilePathMap().put(source, targetPath);
+                // Create the archive
+            outArchive.createArchive(new RandomAccessFileOutStream(raf),1,callback);
+        }
+        getLogger().exiting(this.getClass().getName(), "compressFile");
+    }
+    /**
+     * 
+     * @param archive
+     * @param targetPath
+     * @param target
+     * @return
+     * @throws SevenZipException
+     * @throws IOException 
+     */
+    private File extractFile(IInArchive archive, String targetPath, 
+            File target) throws SevenZipException, IOException{
+        getLogger().entering(this.getClass().getName(), "extractDatabaseFile", 
+                new Object[]{archive,targetPath,target});
+        boolean found = false;
+            // Get a simple interface of the archive inArchive
+        ISimpleInArchive simpleInArchive = archive.getSimpleInterface();
+        for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()){
+            String path = item.getPath();
+            if (path == null || path.equals(targetPath)){
+                found = true;
+                ExtractOperationResult result;
+                progressObserver.setValue(0);
+                progressObserver.setValueLong(item.getSize());
+                try(OutputStreamSequentialOutStream output = 
+                        new OutputStreamSequentialOutStream(
+                                new BufferedOutputStream(
+                                        new FileOutputStream(target)),
+                                progressObserver)){
+                    result = item.extractSlow(output);
+                }
+                if (result != ExtractOperationResult.OK){
+                    getLogger().log(Level.WARNING, "Error extracting item: {0}", result);
+                    throw new SevenZipException("Error extracting item: " + result.toString());
+                } else {
+                    java.util.Date lastMod = item.getLastWriteTime();
+                    if (lastMod == null)
+                        lastMod = item.getLastAccessTime();
+                    if (lastMod != null)
+                        target.setLastModified(lastMod.getTime());
+                    break;
+                }
+            }
+        }
+        if (!found)
+            target = null;
+        getLogger().exiting(this.getClass().getName(), "extractDatabaseFile", target);
+        return target;
+    }
+    /**
+     * 
+     * @param archive
+     * @param targetPath
+     * @param target
+     * @return 
+     * @throws SevenZipException
+     * @throws IOException 
+     */
+    private File extractFile(File archive, String targetPath, 
+            File target) throws SevenZipException, IOException{
+        getLogger().entering(this.getClass().getName(), "extractDatabaseFile", 
+                new Object[]{archive,targetPath,target});
+        try(RandomAccessFile raf = new RandomAccessFile(archive,"r");
+                IInArchive inArchive = SevenZip.openInArchive(null, 
+                        new RandomAccessFileInStream(raf))){
+            target = extractFile(inArchive,targetPath,target);
+        }
+        getLogger().exiting(this.getClass().getName(), "extractDatabaseFile", target);
+        return target;
     }
     /**
      * 
@@ -8248,6 +8445,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         DOWNLOADING_FILE,
         
+        EXTRACTING_FILE,
+        
         LOADING_FILE;
         
     }
@@ -8259,6 +8458,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected LoadingStage stage;
         
         protected File downloadedFile;
+        
+        protected File extractedFile = null;
         
         protected String filePath;
         
@@ -8465,11 +8666,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public String getDownloadingProgressString(){
             return "Downloading File";
         }
+        /**
+         * 
+         * @return 
+         */
+        public String getExtractingProgressString(){
+            return "Extracting File";
+        }
         @Override
         public String getProgressString(){
             switch(stage){
                 case DOWNLOADING_FILE:
                     return getDownloadingProgressString();
+                case EXTRACTING_FILE:
+                    return getExtractingProgressString();
                 default:
                     return getLoadingProgressString();
             }
@@ -8478,7 +8688,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @return 
          */
-        protected File getDownloadFile(File file){
+        protected File getDownloadFile(File file, String path){
             return file;
         }
         /**
@@ -8521,6 +8731,59 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
+         * @return 
+         */
+        protected boolean isDownloadedFileCompressed(File downloadedFile){
+            return false;
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected String getArchiveFilePath(){
+            return null;
+        }
+        /**
+         * 
+         * @param file
+         * @param downloadedFile
+         * @param path
+         * @return 
+         */
+        protected File getExtractedFile(File file, File downloadedFile, String path){
+            return new File(downloadedFile.getParentFile(),path);
+        }
+        /**
+         * 
+         * @param archiveFile
+         * @param targetPath
+         * @param targetFile
+         * @return 
+         */
+        protected File extractFile(File archiveFile, String targetPath, File targetFile){
+            getLogger().entering("AbstractFileDownloader", "extractFile", 
+                    new Object[]{archiveFile, targetPath, targetFile});
+            try(RandomAccessFile raf = new RandomAccessFile(archiveFile,"r");
+                        IInArchive archive = SevenZip.openInArchive(null, 
+                                new RandomAccessFileInStream(raf))){
+                try{
+                    targetFile = LinkManager.this.extractFile(archive, targetPath, targetFile);
+                    fileFound = targetFile != null;
+                } catch (IOException ex){
+                    exc = ex;
+                    getLogger().log(Level.WARNING, "Failed to extract file",ex);
+                    targetFile = null;
+                }
+            } catch (IOException ex){
+                exc = ex;
+                getLogger().log(Level.INFO, "Failed to extract file, file may not be archive",ex);
+                targetFile = archiveFile;
+            }
+            getLogger().exiting("AbstractFileDownloader","extractFile",targetFile);
+            return targetFile;
+        }
+        /**
+         * 
          * @param file
          * @param downloadedFile
          * @return 
@@ -8532,7 +8795,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (LoadingStage.DOWNLOADING_FILE.equals(stage) && syncMode != null 
                     && filePath != null){
                 int retryOption;
-                downloadedFile = getDownloadFile(file);
+                downloadedFile = getDownloadFile(file,filePath);
                 if (downloadedFile != null){
                     File downloadFile = null;
                     do{
@@ -8548,26 +8811,115 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                             retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
                         loadSuccess = false;
                         ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
-                        getLogger().exiting("AbstractFileDownloader", "loadFile",true);
-                        return true;
+                        getLogger().exiting("AbstractFileDownloader", "loadFile",false);
+                        return false;
                     }
                     downloadedFile = downloadFile;
-                    ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+                    progressBar.setValue(0);
+                    progressBar.setIndeterminate(true);
+                }
+                if (isDownloadedFileCompressed(downloadedFile))
+                    setStage(LoadingStage.EXTRACTING_FILE);
+                else
+                    setStage(LoadingStage.LOADING_FILE);
+            }
+            File loadFile = downloadedFile;
+            if (LoadingStage.EXTRACTING_FILE.equals(stage) && downloadedFile != null &&
+                    downloadedFile.exists()){
+                String archivePath = getArchiveFilePath();
+                if (archivePath != null){
+                    int retryOption;
+                    extractedFile = getExtractedFile(file,downloadedFile,archivePath);
+                    File extractFile = null;
+                    do{
+                        retryOption = JOptionPane.NO_OPTION;
+                        extractFile = extractFile(downloadedFile,archivePath,extractedFile);
+                        if (extractFile == null){
+                            retryOption = showExtractionFailurePrompt(downloadedFile,
+                                    archivePath,extractedFile,exc);
+                        }
+                    }
+                    while(extractFile == null && retryOption == JOptionPane.YES_OPTION);
+                    if (extractFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
+                            retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfExtractionFails())){
+                        loadSuccess = false;
+                        ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+                        getLogger().exiting("AbstractFileDownloader", "loadFile",false);
+                        return false;
+                    }
+                    extractedFile = extractFile;
+                    loadFile = extractedFile;
                     progressBar.setValue(0);
                     progressBar.setIndeterminate(true);
                 }
                 setStage(LoadingStage.LOADING_FILE);
             }
-            
-            boolean value = loadFile(file,downloadedFile);
+            ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+            boolean value = loadFile(file,loadFile);
             getLogger().exiting("AbstractFileDownloader", "loadFile",value);
             return value;
         }
         @Override
-        protected Void backgroundAction() throws Exception {
-            super.backgroundAction();
-            success &= loadSuccess;
-            return null;
+        protected boolean processFile(File file){
+            boolean value = super.processFile(file);
+            return value & loadSuccess;
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected boolean showFailurePromptIfLoadFails(){
+            return false;
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        @Override
+        protected boolean showFailurePrompt(File file){
+            if (showFailurePromptIfLoadFails())
+                return super.showFailurePrompt(file);
+            else
+                return false;
+        }
+        /**
+         * 
+         * @param ifSuccessful
+         * @param file 
+         */
+        protected void deleteFile(boolean ifSuccessful, File file){
+            getLogger().entering("AbstractFileDownloader", 
+                    "deleteFile", new Object[]{ifSuccessful,file});
+                // If the program successfully loaded the file or this is to 
+                // ignore if the file was loaded successfully
+            if (success || !ifSuccessful){
+                    // If there's a given file, and the loaded file and given 
+                    // file are not the same file (i.e. the given file did not 
+                    // overwrite the loaded file)
+                if (file != null && 
+                        !LinkManagerUtilities.isSameFile(this.file, file)){
+                    /*
+                    TODO: Figure out how to resolve a glitch where the file 
+                    isn't being deleted if the process is cancelled during the 
+                    download.
+                    */
+                    if (isCancelled() && exitIfCancelled){
+                        getLogger().log(Level.FINER, "Deleting file \"{0}\"", file);
+                        try{    
+                            Files.deleteIfExists(file.toPath());
+                        } catch (IOException ex){
+                            getLogger().log(Level.WARNING, "Failed to delete file", ex);
+                            file.deleteOnExit();
+                        }
+                    } else {
+                        getLogger().log(Level.FINER, "Deleting on exit \"{0}\"", file);
+                        file.deleteOnExit();
+                    }
+                }
+            }
+            getLogger().exiting("AbstractFileDownloader", 
+                    "deleteFile");
         }
         /**
          * 
@@ -8576,35 +8928,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void deleteDownloadedFile(boolean ifSuccessful){
             getLogger().entering("AbstractFileDownloader", 
                     "deleteDownloadedFile", ifSuccessful);
-                // If the program successfully loaded the file or this is to 
-                // ignore if the file was loaded successfully
-            if (success || !ifSuccessful){
-                    // If there's a downloaded file, and the loaded file and 
-                    // downloaded file are not the same file (i.e. the 
-                    // downloaded file did not overwrite the loaded file)
-                if (downloadedFile != null && 
-                        !LinkManagerUtilities.isSameFile(file, downloadedFile)){
-                    /*
-                    TODO: Figure out how to resolve a glitch where the file 
-                    isn't being deleted if the process is cancelled during the 
-                    download.
-                    */
-                    if (isCancelled() && exitIfCancelled){
-                        getLogger().log(Level.FINER, "Deleting file \"{0}\"", downloadedFile);
-                        try{    
-                            Files.deleteIfExists(downloadedFile.toPath());
-                        } catch (IOException ex){
-                            getLogger().log(Level.WARNING, "Failed to delete file", ex);
-                            downloadedFile.deleteOnExit();
-                        }
-                    } else {
-                        getLogger().log(Level.FINER, "Deleting on exit \"{0}\"", downloadedFile);
-                        downloadedFile.deleteOnExit();
-                    }
-                }
-            }
+            deleteFile(ifSuccessful,downloadedFile);
             getLogger().exiting("AbstractFileDownloader", 
                     "deleteDownloadedFile");
+        }
+        /**
+         * 
+         * @param ifSuccessful 
+         */
+        protected void deleteExtractedFile(boolean ifSuccessful){
+            getLogger().entering("AbstractFileDownloader", 
+                    "deleteExtractedFile", ifSuccessful);
+            deleteFile(ifSuccessful,extractedFile);
+            getLogger().exiting("AbstractFileDownloader", 
+                    "deleteExtractedFile");
         }
         /**
          * 
@@ -8663,6 +9000,75 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 (fileFound)?getDownloadFailureMessage(file,path,mode,ex):
                         getDownloadFileNotFoundMessage(file,path,mode,ex), 
                 true, canLoadIfDownloadFails());
+        }
+        /**
+         * 
+         * @param ex
+         * @return 
+         */
+        protected boolean getExtractionFailureMessageStatesError(Exception ex){
+            return showDBErrorDetailsToggle.isSelected();
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected String getExtractionArchiveFileForFailureMessage(File file){
+            return "\""+file.getName()+"\"";
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param targetFile
+         * @param ex
+         * @return 
+         */
+        protected String getExtractionFailureMessage(File file, String path, 
+                File targetFile, Exception ex){
+            return get7ZipFailureMessage(
+                    String.format("The file \"%s\" could not be extracted from %s", 
+                            path,getExtractionArchiveFileForFailureMessage(file)),
+                    getDownloadFailureMessageStatesError(ex),ex);
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @param ex
+         * @return 
+         */
+        protected String getExtractionFileNotFoundMessage(File file, String path, 
+                File targetFile, Exception ex){
+            return "The file was not found in "+
+                    getExtractionArchiveFileForFailureMessage(file)
+                    +" at the path\n\""+path+"\"";
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected boolean canLoadIfExtractionFails(){
+            return true;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param targetFile
+         * @param ex
+         * @return 
+         */
+        protected int showExtractionFailurePrompt(File file, String path, 
+                File targetFile,Exception ex){
+            if (!fileFound && !showFilePathNotFound)
+                return JOptionPane.CANCEL_OPTION;
+            return LinkManager.this.showFailurePrompt("ERROR - File Failed To Extract", 
+                (fileFound)?getExtractionFailureMessage(file,path,targetFile,ex):
+                        getExtractionFileNotFoundMessage(file,path,targetFile,ex), 
+                true, canLoadIfExtractionFails());
         }
         /**
          * This returns the title for the dialog to display if the file is 
@@ -8810,21 +9216,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return false;
         }
         /**
+         * 
+         * @param ifSuccessful
+         * @param file 
+         */
+        protected void deleteFile(boolean ifSuccessful, File file){
+            getLogger().entering("FileSaver", "deleteFile", 
+                    new Object[]{ifSuccessful, file});
+                // If the file was successfully saved and there is a backup file
+            if ((success || !ifSuccessful) && file != null){
+                getLogger().log(Level.FINER, "Deleting file {0}", file);
+                try{
+                    Files.deleteIfExists(file.toPath());
+                } catch (IOException ex){
+                    getLogger().log(Level.WARNING, "Failed to delete file", ex);
+                    file.delete();
+                }
+            }
+            getLogger().exiting("FileSaver", "deleteFile");
+        }
+        /**
          * This will delete the backup file if the program successfully saved 
          * the file.
          */
         protected void deleteBackupIfSuccessful(){
             getLogger().entering("FileSaver", "deleteBackupIfSuccessful");
-                // If the file was successfully saved and there is a backup file
-            if (success && backupFile != null){
-                getLogger().log(Level.FINER, "Deleting file {0}", backupFile);
-                try{
-                    Files.deleteIfExists(backupFile.toPath());
-                } catch (IOException ex){
-                    getLogger().log(Level.WARNING, "Failed to delete file", ex);
-                    backupFile.delete();
-                }
-            }
+            deleteFile(true,backupFile);
             getLogger().exiting("FileSaver", "deleteBackupIfSuccessful");
         }
         /**
@@ -9375,14 +9792,48 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return "Downloading Database";
         }
         @Override
+        public String getExtractingProgressString(){
+            return "Extracting Database";
+        }
+        @Override
         protected boolean canLoadIfDownloadFails(){
             return false;
         }
         @Override
-        protected File getDownloadFile(File file){
+        protected boolean canLoadIfExtractionFails(){
+            return false;
+        }
+        @Override
+        protected boolean isDownloadedFileCompressed(File downloadedFile){
+            return true;
+        }
+        @Override
+        protected String getExtractionArchiveFileForFailureMessage(File file){
+            return "downloaded file";
+        }
+        @Override
+        protected String getArchiveFilePath(){
+            return LINK_DATABASE_FILE;
+        }
+        @Override
+        protected File getExtractedFile(File file, File downloadedFile, String path){
             try {
                 return File.createTempFile(INTERNAL_PROGRAM_NAME, 
                         "."+DATABASE_FILE_EXTENSION);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temp extracted file",
+                        ex);
+            }
+            return file;
+        }
+        @Override
+        protected File getDownloadFile(File file,String path){
+            String suffix = "."+DATABASE_FILE_EXTENSION;
+            int index = path.lastIndexOf(".");
+            if (index >= 0 && index > path.lastIndexOf("/") && index > path.lastIndexOf("\\"))
+                suffix = path.substring(index);
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, suffix);
             } catch (IOException ex) {
                 getLogger().log(Level.WARNING, "Failed to create temp download file",
                         ex);
@@ -9396,8 +9847,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (downloadedFile == null){
                 getLogger().warning("Database failed to download");
                 loadSuccess = false;
-                getLogger().exiting("DatabaseDownloader", "loadFile", true);
-                return true;
+                getLogger().exiting("DatabaseDownloader", "loadFile", false);
+                return false;
             }
             exc = null;
             try {
@@ -9434,6 +9885,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             deleteDownloadedFile(false);
+            deleteExtractedFile(false);
             super.done();
         }
     }
@@ -10276,6 +10728,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         VERIFY_DATABASE,
         
+        COMPRESS_FILE,
+        
         UPLOAD_FILE,
         
         SAVE_CONFIGURATION;
@@ -10293,6 +10747,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected String filePath;
         
         protected DatabaseSyncMode syncMode;
+        
+        protected File compressedFile = null;
         
         protected File configFile;
         
@@ -10486,6 +10942,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public String getUploadingProgressString(){
             return "Uploading Database";
         }
+        /**
+         * 
+         * @return 
+         */
+        public String getCompressingProgressString(){
+            return "Compressing Database";
+        }
         @Override
         public String getProgressString(){
             switch(stage){
@@ -10496,6 +10959,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     return getUploadingProgressString();
                 case SAVE_CONFIGURATION:
                     return "Saving Configuration";
+                case COMPRESS_FILE:
+                    return getCompressingProgressString();
                 default:
                     return getNormalProgressString();
             }
@@ -10528,6 +10993,57 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             getLogger().exiting(this.getClass().getName(), "createBackupFile", true);
             return true;
+        }
+        /**
+         * 
+         * @param mode
+         * @return 
+         */
+        protected boolean isUploadedFileCompressed(DatabaseSyncMode mode){
+            if (mode == null)
+                return false;
+            switch(mode){
+                case DROPBOX:
+                    return dbxCompressionToggle.isSelected();
+            }
+            return false;
+        }
+        /**
+         * 
+         * @param mode
+         * @return 
+         */
+        protected int getCompressionLevel(DatabaseSyncMode mode){
+            if (mode == null)
+                return 0;
+            switch(mode){
+                case DROPBOX:
+                    return getDropboxFileCompressionLevel();
+            }
+            return 5;
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected String getArchiveFilePath(){
+            return LINK_DATABASE_FILE;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @return 
+         */
+        protected File getCompressedFile(File file, String path){
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, 
+                        "."+SEVEN_ZIP_FILE_EXTENSION);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temp compressed file",
+                        ex);
+            }
+            return new File(file.getParentFile(),path);
         }
         /**
          * This attempts to save to the database using the given database 
@@ -10616,7 +11132,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.FINER, "Uploading file at path \"{0}\"",path);
             ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(true);
             do{     // The exception that was thrown, if any
-                Exception exc = null;
+                Exception exc;
                     // Set the progress to be zero
                 progressBar.setValue(0);
                     // Set the program to be indeterminate
@@ -10688,6 +11204,42 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().exiting("AbstractDatabaseSaver", "saveConfig", false);
             return false;
         }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param archiveFile
+         * @param level
+         * @return 
+         */
+        protected boolean compressFile(File file, File archiveFile, String path,
+                int level){
+            getLogger().entering("AbstractDatabaseSaver", "compressFile", 
+                    new Object[]{file,archiveFile,path,level});
+            boolean retry;
+            ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(true);
+            do{
+                progressBar.setValue(0);
+                progressBar.setIndeterminate(true);
+                Exception exc;
+                try{
+                    LinkManager.this.compressFile(file, archiveFile, path, level);
+                    getLogger().exiting("AbstractDatabaseSaver", "compressFile", true);
+                    return true;
+                } catch (IOException ex){
+                    getLogger().log(Level.WARNING,
+                                "Failed to compress database file", ex);
+                    exc = ex;
+                }
+                retry = showFailurePrompt("ERROR - Database Failed To Compress",
+                        get7ZipFailureMessage("The database file failed to be compressed.",
+                                showDBErrorDetailsToggle.isSelected(),exc),
+                        true);
+            }   // While the file failed to be processed and the user wants to 
+            while(retry);   // try again
+            getLogger().exiting("AbstractDatabaseSaver", "compressFile", false);
+            return false;
+        }
         @Override
         protected boolean saveFile(File file){
             getLogger().entering("AbstractDatabaseSaver", "saveFile", file);
@@ -10697,13 +11249,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Set the program to be indeterminate
                 progressBar.setIndeterminate(true);
                 if (saveSuccess && syncDBToggle.isSelected())
-                    setStage(SavingStage.UPLOAD_FILE);
+                    setStage(SavingStage.COMPRESS_FILE);
+            }
+            
+            boolean willUpload = syncMode != null && filePath != null;
+            File uploadFile = file;
+            
+            if (SavingStage.COMPRESS_FILE.equals(stage)){
+                if (saveSuccess && willUpload && isUploadedFileCompressed(syncMode)){
+                    progressDisplay.setString(getProgressString());
+                    String archivePath = getArchiveFilePath();
+                    compressedFile = getCompressedFile(file,archivePath);
+                    saveSuccess = compressFile(file,compressedFile,archivePath,
+                            getCompressionLevel(syncMode));
+                        // Set the program to be indeterminate
+                    progressBar.setIndeterminate(true);
+                    if (saveSuccess)
+                        uploadFile = compressedFile;
+                }
+                setStage(SavingStage.UPLOAD_FILE);
             }
             
             if (saveSuccess && SavingStage.UPLOAD_FILE.equals(stage) && 
-                    syncMode != null && filePath != null){
+                    willUpload){
                 progressDisplay.setString(getProgressString());
-                saveSuccess = uploadFile(file,filePath,syncMode);
+                saveSuccess = uploadFile(uploadFile,filePath,syncMode);
                 if (saveSuccess && showSuccess){
                     LinkManager.this.showSuccessPrompt(
                             "File Uploaded Successfully",
@@ -10810,6 +11380,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+                // Delete the compressed file
+            deleteFile(false,compressedFile);
             if (success){   // If this was successful
                 allListsTabsPanel.clearEdited();
                 shownListsTabsPanel.clearEdited();
@@ -11679,8 +12251,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 retry = LinkManager.this.showFailurePrompt(getFailureTitle(file), 
                         getFailureMessage(file,sqlExc), true, false) == JOptionPane.YES_OPTION;
             } while (!loadSuccess && retry);
-            getLogger().exiting("AbstractDatabaseLoader", "loadFile", true);
-            return true;
+            getLogger().exiting("AbstractDatabaseLoader", "loadFile", loadSuccess);
+            return loadSuccess;
         }
         /**
          * This attempts to load from the database using the given database 

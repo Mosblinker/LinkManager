@@ -221,6 +221,14 @@ public class LinkManagerConfig implements LinksListSettings{
      */
     public static final String DROPBOX_FILE_CHOOSER_SELECTED_PATH_KEY = "SelectedPath";
     /**
+     * 
+     */
+    public static final String FILE_COMPRESSION_ENABLED_KEY = "FileCompressionEnabled";
+    /**
+     * 
+     */
+    public static final String FILE_COMPRESSION_LEVEL_KEY = "FileCompressionLevel";
+    /**
      * This is the suffix for the configuration keys for the size of a 
      * component.
      */
@@ -1294,6 +1302,15 @@ public class LinkManagerConfig implements LinksListSettings{
         b = cProp.getBooleanProperty(CHECK_FOR_UPDATES_AT_START_KEY);
         if (b != null)
             setCheckForUpdateAtStartup(b);
+        
+        b = cProp.getBooleanProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_ENABLED_KEY);
+        if (b != null)
+            setDropboxFileCompressionEnabled(b);
+        
+        i = cProp.getIntProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_LEVEL_KEY);
+        if (i != null)
+            setDropboxFileCompressionLevel(i);
+        
             // Go through the entries in the component name map
         for (Map.Entry<Component,String> entry:getComponentNames().entrySet()){
                 // Get the dimension for the component from the properties
@@ -1480,6 +1497,10 @@ public class LinkManagerConfig implements LinksListSettings{
                     // Set the value for the Dropbox database file path
                 prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+DATABASE_FILE_PATH_KEY, 
                         getDropboxDatabaseFileName());
+                prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_ENABLED_KEY, 
+                        isDropboxFileCompressionEnabled());
+                prop.setProperty(DROPBOX_PROPERTY_KEY_PREFIX+FILE_COMPRESSION_LEVEL_KEY, 
+                        getDropboxFileCompressionLevel());
                     // If the Dropbox file chooser preference node exists
                 if (nodeExists(getDropboxPreferences(),DROPBOX_FILE_CHOOSER_PREFERENCE_NODE)){
                     prop.setProperty(
@@ -2865,6 +2886,50 @@ public class LinkManagerConfig implements LinksListSettings{
             fc.setSelectedPath(file);
         }   // Load the file chooser's size from the preference node
         SwingExtendedUtilities.setComponentSize(fc,getDropboxFileChooserSize());
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public boolean isDropboxFileCompressionEnabled(boolean defaultValue){
+        return getDropboxPreferences().getBoolean(FILE_COMPRESSION_ENABLED_KEY, defaultValue);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public boolean isDropboxFileCompressionEnabled(){
+        return isDropboxFileCompressionEnabled(false);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setDropboxFileCompressionEnabled(boolean value){
+        getDropboxPreferences().putBoolean(FILE_COMPRESSION_ENABLED_KEY, value);
+    }
+    /**
+     * 
+     * @param defaultValue
+     * @return 
+     */
+    public int getDropboxFileCompressionLevel(int defaultValue){
+        return getDropboxPreferences().getInt(FILE_COMPRESSION_LEVEL_KEY, defaultValue);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public int getDropboxFileCompressionLevel(){
+        return getDropboxFileCompressionLevel(5);
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setDropboxFileCompressionLevel(int value){
+        getDropboxPreferences().putInt(FILE_COMPRESSION_LEVEL_KEY, value);
     }
     /**
      * 
