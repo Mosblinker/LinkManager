@@ -8702,6 +8702,30 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
+         * @return 
+         */
+        protected boolean isDownloadedFileCompressed(){
+            return false;
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected String getArchiveFilePath(){
+            return null;
+        }
+        /**
+         * 
+         * @param file
+         * @param downloadedFile
+         * @param path
+         * @return 
+         */
+        protected File getExtractedFile(File file, File downloadedFile, String path){
+            return new File(downloadedFile.getParentFile(),path);
+        }
+        /**
+         * 
          * @param file
          * @param downloadedFile
          * @return 
