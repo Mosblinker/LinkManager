@@ -238,11 +238,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public static final String LOG_FILE_EXTENSION = "log";
     /**
-     * This contains the file filter for log files.
-     */
-    public static final FileNameExtensionFilter LOG_FILE_FILTER = 
-            generateExtensionFilter("Log File",LOG_FILE_EXTENSION);
-    /**
      * This contains the file filter for Internet Shortcut files.
      */
     public static final FileNameExtensionFilter SHORTCUT_FILE_FILTER = 
