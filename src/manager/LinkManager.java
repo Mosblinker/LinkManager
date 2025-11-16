@@ -52,7 +52,6 @@ import manager.compress.FileCreateCallback7z;
 import manager.compress.OutputStreamSequentialOutStream;
 import manager.config.*;
 import manager.database.*;
-import static manager.database.LinkDatabaseConnection.*;
 import manager.dropbox.*;
 import manager.icons.LinkManagerIcon;
 import manager.links.*;
@@ -1604,7 +1603,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
 
-        dbxCompressionToggle.setText("Compressed");
+        dbxCompressionToggle.setText("Compress File");
         dbxCompressionToggle.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 dbxCompressionToggleActionPerformed(evt);
@@ -1651,7 +1650,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(dbxCompressionLevelCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 160, Short.MAX_VALUE)))
+                        .addGap(0, 152, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         setDropboxCardLayout.setVerticalGroup(

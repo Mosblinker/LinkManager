@@ -231,7 +231,7 @@
                                           <Component id="dbxCompressionLevelCombo" min="-2" pref="113" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
-                                  <EmptySpace min="0" pref="160" max="32767" attributes="0"/>
+                                  <EmptySpace min="0" pref="152" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
@@ -436,7 +436,7 @@
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="dbxCompressionToggle">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Compressed"/>
+                    <Property name="text" type="java.lang.String" value="Compress File"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dbxCompressionToggleActionPerformed"/>
