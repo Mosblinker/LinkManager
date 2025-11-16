@@ -9733,9 +9733,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected File getDownloadFile(File file,String path){
+            String suffix = "."+DATABASE_FILE_EXTENSION;
+            int index = path.lastIndexOf(".");
+            if (index >= 0 && index > path.lastIndexOf("/") && index > path.lastIndexOf("\\"))
+                suffix = path.substring(index);
             try {
-                return File.createTempFile(INTERNAL_PROGRAM_NAME, 
-                        "."+DATABASE_FILE_EXTENSION);
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, suffix);
             } catch (IOException ex) {
                 getLogger().log(Level.WARNING, "Failed to create temp download file",
                         ex);
