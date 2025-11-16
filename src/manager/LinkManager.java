@@ -10924,6 +10924,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public String getUploadingProgressString(){
             return "Uploading Database";
         }
+        /**
+         * 
+         * @return 
+         */
+        public String getCompressingProgressString(){
+            return "Compressing Database";
+        }
         @Override
         public String getProgressString(){
             switch(stage){
@@ -10934,6 +10941,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     return getUploadingProgressString();
                 case SAVE_CONFIGURATION:
                     return "Saving Configuration";
+                case COMPRESS_FILE:
+                    return getCompressingProgressString();
                 default:
                     return getNormalProgressString();
             }
