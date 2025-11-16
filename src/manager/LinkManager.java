@@ -8661,7 +8661,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @return 
          */
-        protected File getDownloadFile(File file){
+        protected File getDownloadFile(File file, String path){
             return file;
         }
         /**
@@ -8760,7 +8760,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (LoadingStage.DOWNLOADING_FILE.equals(stage) && syncMode != null 
                     && filePath != null){
                 int retryOption;
-                downloadedFile = getDownloadFile(file);
+                downloadedFile = getDownloadFile(file,filePath);
                 if (downloadedFile != null){
                     File downloadFile = null;
                     do{
@@ -9732,7 +9732,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return false;
         }
         @Override
-        protected File getDownloadFile(File file){
+        protected File getDownloadFile(File file,String path){
             try {
                 return File.createTempFile(INTERNAL_PROGRAM_NAME, 
                         "."+DATABASE_FILE_EXTENSION);
