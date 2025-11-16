@@ -11380,6 +11380,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+                // Delete the compressed file
+            deleteFile(false,compressedFile);
             if (success){   // If this was successful
                 allListsTabsPanel.clearEdited();
                 shownListsTabsPanel.clearEdited();
