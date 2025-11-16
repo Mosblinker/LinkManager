@@ -395,11 +395,6 @@ public class LinkManagerConfig implements LinksListSettings{
      */
     private Map<Integer, Rectangle> visRectMap = null;
     /**
-     * This is the preference node that stores the settings and tokens for 
-     * Dropbox.
-     */
-    protected ConfigPreferences dropboxNode = null;
-    /**
      * This is the preference node that stores the settings for the file chooser 
      * for Dropbox.
      */
@@ -540,10 +535,7 @@ public class LinkManagerConfig implements LinksListSettings{
      * @return 
      */
     public ConfigPreferences getDropboxPreferences(){
-            // If the Dropbox node is currently null
-        if (dropboxNode == null)
-            dropboxNode = getLocalChild(DROPBOX_PREFERENCE_NODE_NAME);
-        return dropboxNode;
+        return externalFileNodes.get(DatabaseSyncMode.DROPBOX).getNode();
     }
     /**
      * 
@@ -787,8 +779,9 @@ public class LinkManagerConfig implements LinksListSettings{
         listIDNodes.setParentNode();
             // Clear the preference nodes for the file choosers
         fcNodes.clear();
-            // Reset the Dropbox node to null
-        dropboxNode = null;
+            // Reset the external file nodes to null
+        for (ExternalFileNode nodes : externalFileNodes.values())
+            nodes.clearNode();
             // Reset the Dropbox file chooser preference node to null
         dropboxFCNode = null;
             // Update the values in the preference nodes
