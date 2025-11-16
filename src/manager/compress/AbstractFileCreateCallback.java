@@ -111,13 +111,13 @@ public abstract class AbstractFileCreateCallback<T extends IOutItemBase>
     public void setTotal(long total) throws SevenZipException {
         if (observer == null)
             return;
-        observer.setMaximumLong(total);
+        observer.setTotal(total);
     }
     @Override
     public void setCompleted(long complete) throws SevenZipException {
         if (observer == null)
             return;
             // Update the progress with the amount of bytes written
-        observer.setValueLong(complete);
+        observer.setCompleted(complete);
     }
 }

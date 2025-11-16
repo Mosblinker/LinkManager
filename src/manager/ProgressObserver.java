@@ -5,12 +5,13 @@
 package manager;
 
 import com.dropbox.core.util.IOUtil.ProgressListener;
+import net.sf.sevenzipjbinding.*;
 
 /**
  *
  * @author Mosblinker
  */
-public interface ProgressObserver extends ProgressListener{
+public interface ProgressObserver extends ProgressListener, IProgress{
     /**
      * 
      * @return 
@@ -138,5 +139,23 @@ public interface ProgressObserver extends ProgressListener{
     public default void onProgress(long bytesWritten){
             // Update the progress with the amount of bytes written
         setValueLong(bytesWritten);
+    }
+    /**
+     * 
+     * @param total
+     * @throws SevenZipException 
+     */
+    @Override
+    public default void setTotal(long total) throws SevenZipException {
+        setMaximumLong(total);
+    }
+    /**
+     * 
+     * @param complete
+     * @throws SevenZipException 
+     */
+    @Override
+    public default void setCompleted(long complete) throws SevenZipException {
+        setValueLong(complete);
     }
 }
