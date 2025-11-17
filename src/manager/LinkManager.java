@@ -6038,7 +6038,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxChunkSizeModel.getMultiplier()));
         updateCheckPanel.setCheckForUpdatesAtStartup(config.getCheckForUpdateAtStartup(
                 updateCheckPanel.getCheckForUpdatesAtStartup()));
-        ExternalFileSettings dbxSettings = config.getExternalFileSettings(DatabaseSyncMode.DROPBOX);
+        SyncLocationSettings dbxSettings = config.getExternalFileSettings(DatabaseSyncMode.DROPBOX);
         dbxLocationPanel.setFileCompressionEnabled(dbxSettings.isFileCompressionEnabled());
         dbxLocationPanel.setFileCompressionLevel(dbxSettings.getFileCompressionLevel());
             // If the program has fully loaded

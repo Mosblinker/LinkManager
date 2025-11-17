@@ -12,7 +12,7 @@ import manager.LinkManager;
  *
  * @author Mosblinker
  */
-public interface ExternalFileSettings {
+public interface SyncLocationSettings {
     /**
      * 
      * @return 

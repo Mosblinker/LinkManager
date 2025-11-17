@@ -528,14 +528,14 @@ public class LinkManagerConfig implements LinksListSettings{
      * @param mode
      * @return 
      */
-    public ExternalFileSettings getExternalFileSettings(DatabaseSyncMode mode){
+    public SyncLocationSettings getExternalFileSettings(DatabaseSyncMode mode){
         return externalFileNodes.get(DatabaseSyncMode.DROPBOX);
     }
     /**
      * 
      * @return 
      */
-    public Map<DatabaseSyncMode,ExternalFileSettings> getExternalFileSettingsMap(){
+    public Map<DatabaseSyncMode,SyncLocationSettings> getExternalFileSettingsMap(){
         return Collections.unmodifiableMap(externalFileNodes);
     }
     /**
@@ -3237,7 +3237,7 @@ public class LinkManagerConfig implements LinksListSettings{
     /**
      * 
      */
-    protected abstract class ExternalFileNode implements ExternalFileSettings{
+    protected abstract class ExternalFileNode implements SyncLocationSettings{
         /**
          * This is the preference node for the the settings for the external 
          * file.
