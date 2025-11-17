@@ -164,6 +164,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
         dataPanel.add(spaceFreeLabel, gridBagConstraints);
 
         logOutButton.setText("Log Out");
