@@ -403,7 +403,7 @@ public class LinkManagerConfig implements LinksListSettings{
     /**
      * This stores the nodes and settings used for external file settings.
      */
-    private final Map<DatabaseSyncMode,ExternalFileNode> externalFileNodes;
+    private final Map<DatabaseSyncMode,SyncLocationNode> syncNodes;
     /**
      * This is used to handle the list type preference nodes.
      */
@@ -449,8 +449,8 @@ public class LinkManagerConfig implements LinksListSettings{
                 return LIST_ID_PREFERENCE_NODE_NAME;
             }
         };
-        externalFileNodes = new HashMap<>();
-        externalFileNodes.put(DatabaseSyncMode.DROPBOX, new ExternalFileNode(){
+        syncNodes = new HashMap<>();
+        syncNodes.put(DatabaseSyncMode.DROPBOX, new SyncLocationNode(){
             @Override
             public DatabaseSyncMode getSyncMode() {
                 return DatabaseSyncMode.DROPBOX;
@@ -528,22 +528,22 @@ public class LinkManagerConfig implements LinksListSettings{
      * @param mode
      * @return 
      */
-    public SyncLocationSettings getExternalFileSettings(DatabaseSyncMode mode){
-        return externalFileNodes.get(DatabaseSyncMode.DROPBOX);
+    public SyncLocationSettings getSyncLocationSettings(DatabaseSyncMode mode){
+        return syncNodes.get(DatabaseSyncMode.DROPBOX);
     }
     /**
      * 
      * @return 
      */
-    public Map<DatabaseSyncMode,SyncLocationSettings> getExternalFileSettingsMap(){
-        return Collections.unmodifiableMap(externalFileNodes);
+    public Map<DatabaseSyncMode,SyncLocationSettings> getSyncLocationSettingsMap(){
+        return Collections.unmodifiableMap(syncNodes);
     }
     /**
      * This returns the preference node used to store the Dropbox settings.
      * @return 
      */
     public ConfigPreferences getDropboxPreferences(){
-        return externalFileNodes.get(DatabaseSyncMode.DROPBOX).getNode();
+        return syncNodes.get(DatabaseSyncMode.DROPBOX).getNode();
     }
     /**
      * 
@@ -788,7 +788,7 @@ public class LinkManagerConfig implements LinksListSettings{
             // Clear the preference nodes for the file choosers
         fcNodes.clear();
             // Reset the external file nodes to null
-        for (ExternalFileNode nodes : externalFileNodes.values())
+        for (SyncLocationNode nodes : syncNodes.values())
             nodes.clearNode();
             // Reset the Dropbox file chooser preference node to null
         dropboxFCNode = null;
@@ -1332,7 +1332,7 @@ public class LinkManagerConfig implements LinksListSettings{
         if (b != null)
             setCheckForUpdateAtStartup(b);
             // Go through the external file nodes
-        for (ExternalFileNode node : externalFileNodes.values()){
+        for (SyncLocationNode node : syncNodes.values()){
                 // Import the settings for the current node
             node.importProperties(prop);
         }   // Go through the entries in the component name map
@@ -1517,11 +1517,11 @@ public class LinkManagerConfig implements LinksListSettings{
         try{    // This gets the preference node as a properties object
             ConfigProperties prop = getPreferences().toProperties();
                 // Go through the external file nodes
-            for (ExternalFileNode node : externalFileNodes.values()){
+            for (SyncLocationNode node : syncNodes.values()){
                     // Export the settings for the current node
                 node.exportProperties(prop);
             }   // If the Dropbox node exists
-            if (externalFileNodes.get(DatabaseSyncMode.DROPBOX).nodeExists()){
+            if (syncNodes.get(DatabaseSyncMode.DROPBOX).nodeExists()){
                     // If the Dropbox file chooser preference node exists
                 if (nodeExists(getDropboxPreferences(),DROPBOX_FILE_CHOOSER_PREFERENCE_NODE)){
                     prop.setProperty(
@@ -3237,7 +3237,7 @@ public class LinkManagerConfig implements LinksListSettings{
     /**
      * 
      */
-    protected abstract class ExternalFileNode implements SyncLocationSettings{
+    protected abstract class SyncLocationNode implements SyncLocationSettings{
         /**
          * This is the preference node for the the settings for the external 
          * file.

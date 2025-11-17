@@ -4031,7 +4031,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
             loader = new TempDatabaseDownloader(file,
-                    config.getExternalFileSettings(getSyncMode()).getDatabaseFileName(),getSyncMode(),
+                    config.getSyncLocationSettings(getSyncMode()).getDatabaseFileName(),getSyncMode(),
                     loadFlags);
             loader.execute();
         } else {
@@ -4378,7 +4378,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             setLocationDialog.setLocationRelativeTo(this);
         setDatabaseFileFields(config.getDatabaseFileName());
         setDropboxDatabaseFileFields(config
-                .getExternalFileSettings(DatabaseSyncMode.DROPBOX)
+                .getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
                 .getDatabaseFileName());
         loadExternalAccountData();
         updateDBLocationEnabled();
@@ -4426,10 +4426,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             dbxFileName = DropboxUtilities.formatDropboxPath(dbxFileName);
                 // If the Dropbox database file name has changed
             if (!Objects.equals(dbxFileName, config
-                    .getExternalFileSettings(DatabaseSyncMode.DROPBOX)
+                    .getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
                     .getDatabaseFileName())){
                     // Set the Dropbox database file name
-                config.getExternalFileSettings(DatabaseSyncMode.DROPBOX)
+                config.getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
                         .setDatabaseFileName(dbxFileName);
                 setDropboxDatabaseFileFields(dbxFileName);
             }
@@ -4805,7 +4805,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         loader = new TempDatabaseDownloader(getDatabaseFile(),
-                config.getExternalFileSettings(getSyncMode()).getDatabaseFileName(),getSyncMode(),0);
+                config.getSyncLocationSettings(getSyncMode()).getDatabaseFileName(),getSyncMode(),0);
         loader.execute();
     }//GEN-LAST:event_jMenuItem1ActionPerformed
     
@@ -4883,7 +4883,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void dbxLocationPanelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dbxLocationPanelPropertyChange
         switch(evt.getPropertyName()){
             case(SyncLocationPanel.FILE_COMPRESSION_ENABLED_PROPERTY_CHANGED):
-                config.getExternalFileSettings(DatabaseSyncMode.DROPBOX)
+                config.getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
                         .setFileCompressionEnabled(dbxLocationPanel.isFileCompressionEnabled());
                 String path = dbxLocationPanel.getFileText();
                 if (path.endsWith("."+SEVEN_ZIP_FILE_EXTENSION)){
@@ -4898,7 +4898,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxLocationPanel.setFileText(path);
                 break;
             case (SyncLocationPanel.FILE_COMPRESSION_LEVEL_PROPERTY_CHANGED):
-                config.getExternalFileSettings(DatabaseSyncMode.DROPBOX)
+                config.getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
                         .setFileCompressionLevel(dbxLocationPanel.getFileCompressionLevel());
         }
     }//GEN-LAST:event_dbxLocationPanelPropertyChange
@@ -6038,7 +6038,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxChunkSizeModel.getMultiplier()));
         updateCheckPanel.setCheckForUpdatesAtStartup(config.getCheckForUpdateAtStartup(
                 updateCheckPanel.getCheckForUpdatesAtStartup()));
-        SyncLocationSettings dbxSettings = config.getExternalFileSettings(DatabaseSyncMode.DROPBOX);
+        SyncLocationSettings dbxSettings = config.getSyncLocationSettings(DatabaseSyncMode.DROPBOX);
         dbxLocationPanel.setFileCompressionEnabled(dbxSettings.isFileCompressionEnabled());
         dbxLocationPanel.setFileCompressionLevel(dbxSettings.getFileCompressionLevel());
             // If the program has fully loaded
@@ -8128,7 +8128,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
                 LoadingStage stage, boolean showFileNotFound) {
-            this(file,config.getExternalFileSettings(mode).getDatabaseFileName(),
+            this(file,config.getSyncLocationSettings(mode).getDatabaseFileName(),
                     mode,stage,showFileNotFound);
         }
         /**
@@ -8179,7 +8179,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
                 boolean showFileNotFound) {
-            this(file,config.getExternalFileSettings(mode).getDatabaseFileName(),
+            this(file,config.getSyncLocationSettings(mode).getDatabaseFileName(),
                     mode,showFileNotFound);
         }
         /**
@@ -10397,7 +10397,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         private AbstractDatabaseSaver(File file, DatabaseSyncMode mode, 
                 SavingStage stage, boolean exit){
-            this(file,config.getExternalFileSettings(mode).getDatabaseFileName(),
+            this(file,config.getSyncLocationSettings(mode).getDatabaseFileName(),
                     mode,stage,exit);
         }
         
