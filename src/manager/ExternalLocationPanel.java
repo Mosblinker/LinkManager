@@ -494,6 +494,17 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     public DocumentListener[] getDocumentListeners(){
         return listenerList.getListeners(DocumentListener.class);
     }
+    @Override
+    public void setEnabled(boolean enabled){
+        super.setEnabled(enabled);
+        try{
+            logOutButton.setEnabled(enabled);
+            browseButton.setEnabled(enabled);
+            dbFileField.setEnabled(enabled);
+            compressionToggle.setEnabled(enabled);
+            compressionLevelCombo.setEnabled(enabled&&isFileCompressionEnabled());
+        } catch (NullPointerException ex) {}
+    }
     /**
      * This is used to format file sizes when displaying the size of a file.
      */
