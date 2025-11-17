@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Objects;
 import javax.swing.Icon;
+import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import manager.renderer.CompressionLevelListCellRenderer;
@@ -499,6 +500,13 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     protected void fireActionEvent(String actionCommand){
         fireActionEvent(new ActionEvent(this,ActionEvent.ACTION_PERFORMED,
                 actionCommand));
+    }
+    /**
+     * 
+     * @return 
+     */
+    public JTextField getFileTextField(){
+        return dbFileField;
     }
     /**
      * 
