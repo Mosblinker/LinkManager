@@ -4557,7 +4557,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void setDBResetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBResetButtonActionPerformed
         setDatabaseFileFields(LINK_DATABASE_FILE);
-        setDropboxDatabaseFileFields(LINK_DATABASE_FILE);
+        setDropboxDatabaseFileFields((dbxLocationPanel.isFileCompressionEnabled())?
+                COMPRESSED_LINK_DATABASE_FILE:LINK_DATABASE_FILE);
     }//GEN-LAST:event_setDBResetButtonActionPerformed
     
     private void dbFileBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileBrowseButtonActionPerformed
