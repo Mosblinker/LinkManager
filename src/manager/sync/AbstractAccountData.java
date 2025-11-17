@@ -6,6 +6,7 @@ package manager.sync;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.Objects;
 
 /**
  *
@@ -168,5 +169,20 @@ public abstract class AbstractAccountData implements AccountData{
             double newValue){
         firePropertyChange(propertyName,Double.valueOf(oldValue),
                 Double.valueOf(newValue));
+    }
+    /**
+     * 
+     * @return 
+     */
+    protected String paramString(){
+        return "syncMode="+Objects.toString(getSyncMode(),"")+
+                ",accountName="+Objects.toString(getAccountName(),"")+
+                ",profilePictureIcon="+Objects.toString(getProfilePictureIcon(),"")+
+                ",spaceUsed="+Objects.toString(getSpaceUsed(), "")+
+                ",allocatedSpace="+Objects.toString(getAllocatedSpace(),"");
+    }
+    @Override
+    public String toString(){
+        return getClass().getName()+"["+paramString()+"]";
     }
 }
