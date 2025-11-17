@@ -18,19 +18,19 @@ public class DefaultAccountData extends AbstractAccountData implements MutableAc
     public static final String SYNC_MODE_PROPERTY_CHANGED = 
             "SyncModePropertyChanged";
     /**
-     * 
+     * The account's user name.
      */
     private String accountName;
     /**
-     * 
+     * The account's profile picture.
      */
     private Icon pfpIcon;
     /**
-     * 
+     * The amount of space that the user has used in their account.
      */
     private Long spaceUsed;
     /**
-     * 
+     * The amount of space allocated to the user's account.
      */
     private Long allocatedSpace;
     /**
