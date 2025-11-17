@@ -4847,7 +4847,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (mode != null){
             SavingStage stage = SavingStage.SAVE_DATABASE;
             if (getDatabaseFile().exists()){
-                if (dbxCompressionToggle.isSelected())
+                if (dbxLocationPanel.isFileCompressionEnabled())
                     stage = SavingStage.COMPRESS_FILE;
                 else
                     stage = SavingStage.UPLOAD_FILE;
@@ -6238,6 +6238,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         ExternalFileSettings dbxSettings = config.getExternalFileSettings(DatabaseSyncMode.DROPBOX);
         dbxCompressionToggle.setSelected(dbxSettings.isFileCompressionEnabled());
         dbxCompressionLevelCombo.setSelectedItem(dbxSettings.getFileCompressionLevel());
+        dbxLocationPanel.setFileCompressionEnabled(dbxSettings.isFileCompressionEnabled());
+        dbxLocationPanel.setFileCompressionLevel(dbxSettings.getFileCompressionLevel());
             // If the program has fully loaded
         if (fullyLoaded){
             getLogger().finer("Program is fully loaded");
@@ -10810,7 +10812,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return false;
             switch(mode){
                 case DROPBOX:
-                    return dbxCompressionToggle.isSelected();
+                    return dbxLocationPanel.isFileCompressionEnabled();
             }
             return false;
         }
