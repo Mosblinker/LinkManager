@@ -95,6 +95,8 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         spaceFreeLabel = new javax.swing.JLabel();
         logOutButton = new javax.swing.JButton();
         javax.swing.Box.Filler filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
+        jLabel4 = new javax.swing.JLabel();
+        capacityLabel = new javax.swing.JLabel();
         compressionToggle = new javax.swing.JCheckBox();
         jLabel3 = new javax.swing.JLabel();
         compressionLevelCombo = new javax.swing.JComboBox<>();
@@ -117,7 +119,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 5;
+        gridBagConstraints.gridheight = 6;
         gridBagConstraints.ipadx = 100;
         gridBagConstraints.ipady = 100;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
@@ -180,16 +182,32 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         dataPanel.add(logOutButton, gridBagConstraints);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
         gridBagConstraints.weightx = 0.75;
         dataPanel.add(filler1, gridBagConstraints);
+
+        jLabel4.setLabelFor(capacityLabel);
+        jLabel4.setText("Capacity:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 12);
+        dataPanel.add(jLabel4, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
+        dataPanel.add(capacityLabel, gridBagConstraints);
 
         compressionToggle.setText("Compress File");
         compressionToggle.addActionListener(new java.awt.event.ActionListener() {
@@ -248,8 +266,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addComponent(dataPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(dataPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(filePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -257,7 +274,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
                     .addComponent(jLabel3)
                     .addComponent(compressionLevelCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(compressionToggle))
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGap(0, 6, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -578,6 +595,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel accountNameLabel;
     private javax.swing.JButton browseButton;
+    private javax.swing.JLabel capacityLabel;
     private javax.swing.JComboBox<Integer> compressionLevelCombo;
     private javax.swing.JCheckBox compressionToggle;
     private javax.swing.JPanel dataPanel;
@@ -585,6 +603,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     private javax.swing.JTextField dbFileField;
     private javax.swing.JPanel filePanel;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JButton logOutButton;
     private components.JThumbnailLabel pfpLabel;
     private javax.swing.JLabel spaceFreeLabel;
