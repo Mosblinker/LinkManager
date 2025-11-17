@@ -5002,7 +5002,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void dbxCompressionLevelComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxCompressionLevelComboActionPerformed
         config.getExternalFileSettings(DatabaseSyncMode.DROPBOX)
-                .setFileCompressionLevel(getDropboxFileCompressionLevel());
+                .setFileCompressionLevel(dbxLocationPanel.getFileCompressionLevel());
     }//GEN-LAST:event_dbxCompressionLevelComboActionPerformed
 
     private void updateCheckPanelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_updateCheckPanelPropertyChange
@@ -5057,9 +5057,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.out.println(evt);
     }//GEN-LAST:event_dbxLocationPanelPropertyChange
     
-    private int getDropboxFileCompressionLevel(){
-        return COMPRESSION_LEVELS[Math.max(dbxCompressionLevelCombo.getSelectedIndex(),0)];
-    }
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
@@ -10808,7 +10805,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 return 0;
             switch(mode){
                 case DROPBOX:
-                    return getDropboxFileCompressionLevel();
+                    return dbxLocationPanel.getFileCompressionLevel();
             }
             return 5;
         }
