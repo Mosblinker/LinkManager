@@ -6546,7 +6546,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private File extractFile(IInArchive archive, String targetPath, 
             File target) throws SevenZipException, IOException{
-        getLogger().entering(this.getClass().getName(), "extractDatabaseFile", 
+        getLogger().entering(this.getClass().getName(), "extractFile", 
                 new Object[]{archive,targetPath,target});
         boolean found = false;
             // Get a simple interface of the archive inArchive
@@ -6580,7 +6580,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         if (!found)
             target = null;
-        getLogger().exiting(this.getClass().getName(), "extractDatabaseFile", target);
+        getLogger().exiting(this.getClass().getName(), "extractFile", target);
         return target;
     }
     /**
