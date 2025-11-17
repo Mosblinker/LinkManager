@@ -35,5 +35,16 @@ public interface AccountData {
      * 
      * @return 
      */
+    public default Long getSpaceFree(){
+        if (getAllocatedSpace() == null)
+            return null;
+        if (getSpaceUsed() == null)
+            return getAllocatedSpace();
+        return getAllocatedSpace() - getSpaceUsed();
+    }
+    /**
+     * 
+     * @return 
+     */
     public DatabaseSyncMode getSyncMode();
 }
