@@ -6,8 +6,9 @@ package manager.sync;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Objects;
-import javax.swing.Icon;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -22,23 +23,8 @@ public class SyncLocationPanel extends javax.swing.JPanel {
     /**
      * 
      */
-    public static final String PROFILE_PICTURE_ICON_PROPERTY_CHANGED = 
-            "ProfileIconPropertyChanged";
-    /**
-     * 
-     */
-    public static final String ACCOUNT_NAME_PROPERTY_CHANGED = 
-            "AccountNamePropertyChanged";
-    /**
-     * 
-     */
-    public static final String SPACE_USED_PROPERTY_CHANGED = 
-            "SpaceUsedPropertyChanged";
-    /**
-     * 
-     */
-    public static final String CAPACITY_PROPERTY_CHANGED = 
-            "CapacityPropertyChanged";
+    public static final String ACCOUNT_DATA_PROPERTY_CHANGED = 
+            "AccountDataPropertyChanged";
     /**
      * 
      */
@@ -73,7 +59,8 @@ public class SyncLocationPanel extends javax.swing.JPanel {
      */
     public SyncLocationPanel() {
         initComponents();
-        dbFileField.getDocument().addDocumentListener(new Handler());
+        handler = new Handler();
+        dbFileField.getDocument().addDocumentListener(handler);
         compressionLevelCombo.setSelectedItem(compressionLevel);
     }
     /**
@@ -111,11 +98,6 @@ public class SyncLocationPanel extends javax.swing.JPanel {
 
         pfpLabel.setImageScaleMode(components.JThumbnailLabel.ALWAYS_SCALE_MAINTAIN_ASPECT_RATIO);
         pfpLabel.setThumbnailBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        pfpLabel.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                pfpLabelPropertyChange(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -128,11 +110,6 @@ public class SyncLocationPanel extends javax.swing.JPanel {
 
         accountNameLabel.setFont(accountNameLabel.getFont().deriveFont(accountNameLabel.getFont().getStyle() | java.awt.Font.BOLD));
         accountNameLabel.setText("N/A");
-        accountNameLabel.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                accountNameLabelPropertyChange(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -295,45 +272,44 @@ public class SyncLocationPanel extends javax.swing.JPanel {
         int index = Math.max(compressionLevelCombo.getSelectedIndex(),0);
         setFileCompressionLevel(COMPRESSION_LEVELS[index]);
     }//GEN-LAST:event_compressionLevelComboActionPerformed
-
-    private void pfpLabelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_pfpLabelPropertyChange
-        if ("icon".equals(evt.getPropertyName()))
-            firePropertyChange(PROFILE_PICTURE_ICON_PROPERTY_CHANGED,evt.getOldValue(),
-                    evt.getNewValue());
-    }//GEN-LAST:event_pfpLabelPropertyChange
-
-    private void accountNameLabelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_accountNameLabelPropertyChange
-        if ("text".equals(evt.getPropertyName()))
-            firePropertyChange(ACCOUNT_NAME_PROPERTY_CHANGED,evt.getOldValue(),
-                    evt.getNewValue());
-    }//GEN-LAST:event_accountNameLabelPropertyChange
     /**
      * 
      * @return 
      */
-    public Icon getProfilePictureIcon(){
-        return pfpLabel.getIcon();
+    public AccountData getAccountData(){
+        return accountData;
     }
     /**
      * 
-     * @param icon 
+     * @param data 
      */
-    public void setProfilePictureIcon(Icon icon){
-        pfpLabel.setIcon(icon);
-    }
-    /**
-     * 
-     * @return 
-     */
-    public String getAccountName(){
-        return accountNameLabel.getText();
-    }
-    /**
-     * 
-     * @param name 
-     */
-    public void setAccountName(String name){
-        accountNameLabel.setText(name);
+    public void setAccountData(AccountData data){
+        if (!Objects.equals(data, accountData)){
+            AccountData old = accountData;
+            accountData = data;
+            if (old != null)
+                old.removePropertyChangeListener(handler);
+            if (data != null)
+                data.addPropertyChangeListener(handler);
+            firePropertyChange(ACCOUNT_DATA_PROPERTY_CHANGED,old,data);
+            Long used, allocated, free;
+            used = allocated = free = null;
+            String accountName = null;
+            if (data == null){
+                pfpLabel.setIcon(null);
+                accountNameLabel.setText(null);
+            } else {
+                pfpLabel.setIcon(data.getProfilePictureIcon());
+                accountName = data.getAccountName();
+                used = data.getSpaceUsed();
+                allocated = data.getAllocatedSpace();
+                free = data.getSpaceFree();
+            }
+            accountNameLabel.setText(accountName);
+            spaceUsedLabel.setText(getSizeText(used));
+            capacityLabel.setText(getSizeText(allocated));
+            spaceFreeLabel.setText(getSizeText(free));
+        }
     }
     /**
      * 
@@ -344,63 +320,6 @@ public class SyncLocationPanel extends javax.swing.JPanel {
         if (value == null)
             return "";
         return String.format("%s (%,d Bytes)", byteFormatter.format(value),value);
-    }
-    /**
-     * 
-     * @return 
-     */
-    public Long getSpaceUsed(){
-        return spaceUsed;
-    }
-    /**
-     * 
-     * @param value 
-     */
-    public void setSpaceUsed(Long value){
-        if (!Objects.equals(value, spaceUsed)){
-            Long old = spaceUsed;
-            spaceUsed = value;
-            firePropertyChange(SPACE_USED_PROPERTY_CHANGED,old,value);
-            spaceUsedLabel.setText(getSizeText(value));
-            updateSpaceFreeText();
-        }
-    }
-    /**
-     * 
-     * @return 
-     */
-    public Long getCapacity(){
-        return capacity;
-    }
-    /**
-     * 
-     * @param value 
-     */
-    public void setCapacity(Long value){
-        if (!Objects.equals(value, capacity)){
-            Long old = capacity;
-            capacity = value;
-            firePropertyChange(CAPACITY_PROPERTY_CHANGED,old,value);
-            capacityLabel.setText(getSizeText(value));
-            updateSpaceFreeText();
-        }
-    }
-    /**
-     * 
-     * @return 
-     */
-    public Long getSpaceFree(){
-        if (getCapacity() == null)
-            return null;
-        if (getSpaceUsed() == null)
-            return getCapacity();
-        return getCapacity() - getSpaceUsed();
-    }
-    /**
-     * 
-     */
-    protected void updateSpaceFreeText(){
-        spaceFreeLabel.setText(getSizeText(getSpaceFree()));
     }
     /**
      * 
@@ -563,10 +482,7 @@ public class SyncLocationPanel extends javax.swing.JPanel {
     @Override
     protected String paramString(){
         return super.paramString()+
-                ",accountName="+Objects.toString(getAccountName(),"")+
-                ",profilePictureIcon="+Objects.toString(getProfilePictureIcon(),"")+
-                ",spaceUsed="+Objects.toString(getSpaceUsed(), "")+
-                ",spaceAllocated="+Objects.toString(getCapacity(),"")+
+                ",accountData="+Objects.toString(getAccountData(),"")+
                 ",fileText="+Objects.toString(getFileText(), "")+
                 ((isFileCompressionEnabled())?",fileCompressionEnabled":"")+
                 ",fileCompressionLevel="+getFileCompressionLevel()+
@@ -576,6 +492,10 @@ public class SyncLocationPanel extends javax.swing.JPanel {
      * This is used to format file sizes when displaying the size of a file.
      */
     private ByteUnitFormat byteFormatter = new ByteUnitFormat(true);
+    /**
+     * 
+     */
+    private AccountData accountData = null;
     /**
      * 
      */
@@ -592,8 +512,14 @@ public class SyncLocationPanel extends javax.swing.JPanel {
      * 
      */
     private boolean compressionEnabled = false;
-    
+    /**
+     * 
+     */
     private int compressionLevel = 5;
+    /**
+     * 
+     */
+    private Handler handler;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel accountNameLabel;
     private javax.swing.JButton browseButton;
@@ -614,7 +540,7 @@ public class SyncLocationPanel extends javax.swing.JPanel {
     /**
      * 
      */
-    private class Handler implements DocumentListener{
+    private class Handler implements DocumentListener, PropertyChangeListener{
         @Override
         public void insertUpdate(DocumentEvent evt) {
             for (DocumentListener l : getDocumentListeners()){
@@ -634,6 +560,24 @@ public class SyncLocationPanel extends javax.swing.JPanel {
             for (DocumentListener l : getDocumentListeners()){
                 if (l != null)
                     l.changedUpdate(evt);
+            }
+        }
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+            switch (evt.getPropertyName()){
+                case (AccountData.ACCOUNT_NAME_PROPERTY_CHANGED):
+                    accountNameLabel.setText(getAccountData().getAccountName());
+                    break;
+                case (AccountData.PROFILE_PICTURE_ICON_PROPERTY_CHANGED):
+                    pfpLabel.setIcon(getAccountData().getProfilePictureIcon());
+                    break;
+                case (AccountData.SPACE_USED_PROPERTY_CHANGED):
+                    spaceUsedLabel.setText(getSizeText(getAccountData().getSpaceUsed()));
+                    spaceFreeLabel.setText(getSizeText(getAccountData().getSpaceFree()));
+                    break;
+                case (AccountData.ALLOCATED_SPACE_PROPERTY_CHANGED):
+                    capacityLabel.setText(getSizeText(getAccountData().getAllocatedSpace()));
+                    spaceFreeLabel.setText(getSizeText(getAccountData().getSpaceFree()));
             }
         }
     }

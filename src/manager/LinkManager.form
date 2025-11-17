@@ -269,9 +269,6 @@
                   </AuxValues>
                 </Component>
                 <Component class="manager.sync.SyncLocationPanel" name="dbxLocationPanel">
-                  <Properties>
-                    <Property name="accountName" type="java.lang.String" value="N/A"/>
-                  </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dbxLocationPanelActionPerformed"/>
                     <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="dbxLocationPanelPropertyChange"/>

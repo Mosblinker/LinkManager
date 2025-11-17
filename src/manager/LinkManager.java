@@ -1485,7 +1485,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         jLabel11.setText("MiB");
 
-        dbxLocationPanel.setAccountName("N/A");
         dbxLocationPanel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 dbxLocationPanelActionPerformed(evt);
@@ -11687,10 +11686,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
                 switch (syncMode){
                     case DROPBOX:
-                        dbxLocationPanel.setAccountName(accountData.getAccountName());
-                        dbxLocationPanel.setProfilePictureIcon(accountData.getProfilePictureIcon());
-                        dbxLocationPanel.setSpaceUsed(accountData.getSpaceUsed());
-                        dbxLocationPanel.setCapacity(accountData.getAllocatedSpace());
+                        dbxLocationPanel.setAccountData(accountData);
                         LinkManagerUtilities.setCard(setLocationPanel,setDropboxCard);
                 }
             } else if (!validAccount){
