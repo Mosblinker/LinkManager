@@ -247,11 +247,11 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void logOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logOutButtonActionPerformed
-        
+        fireActionEvent(evt);
     }//GEN-LAST:event_logOutButtonActionPerformed
 
     private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseButtonActionPerformed
-        
+        fireActionEvent(evt);
     }//GEN-LAST:event_browseButtonActionPerformed
 
     private void compressionToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compressionToggleActionPerformed
