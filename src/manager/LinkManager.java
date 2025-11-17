@@ -5022,7 +5022,34 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_updateCheckPanelActionPerformed
 
     private void dbxLocationPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLocationPanelActionPerformed
-        System.out.println(evt);
+        switch(evt.getActionCommand()){
+            case (ExternalLocationPanel.BROWSE_COMMAND):
+                try{    // Get a client to communicate with Dropbox, refreshing the 
+                        // Dropbox credentials if necessary
+                    DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
+                    int option = dropboxFC.showOpenDialog(this,client);
+                    config.storeDropboxFileChooser(dropboxFC);
+                    String path = dropboxFC.getSelectedPath();
+                    config.setSelectedDropboxPath(path);
+                    if (option == JDropboxFileChooser.ACCEPT_OPTION){
+                        dbxDbFileField.setText(path);
+                    }
+                } catch (DbxException | UncheckedDbxException ex) {
+                    getLogger().log(Level.WARNING, "Cannot browse Dropbox", ex);
+                }
+                return;
+            case (ExternalLocationPanel.LOG_OUT_COMMAND):
+                // TODO: Figure out how to properly deal with logging out of dropbox
+                // Clear the account credentials
+                dbxUtils.clearCredentials();
+                // Load the external account data
+                loadExternalAccountData();
+                // Remind the user that this program is still connected to their
+                // Dropbox account, and that they've only logged out on this end
+                JOptionPane.showMessageDialog(setLocationDialog,
+                    "Don't forget to disconnect this app from your Dropbox account.",
+                    "Dropbox Log out",JOptionPane.INFORMATION_MESSAGE);
+        }
     }//GEN-LAST:event_dbxLocationPanelActionPerformed
 
     private void dbxLocationPanelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dbxLocationPanelPropertyChange
