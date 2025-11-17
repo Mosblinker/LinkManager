@@ -8,6 +8,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Objects;
 import javax.swing.Icon;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import manager.renderer.CompressionLevelListCellRenderer;
 import measure.format.binary.ByteUnitFormat;
 
@@ -70,6 +72,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
      */
     public ExternalLocationPanel() {
         initComponents();
+        dbFileField.getDocument().addDocumentListener(new Handler());
     }
 
     /**
@@ -357,7 +360,8 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
      * @param l 
      */
     public void addActionListener(ActionListener l){
-        listenerList.add(ActionListener.class, l);
+        if (l != null)
+            listenerList.add(ActionListener.class, l);
     }
     /**
      * 
@@ -396,8 +400,28 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         fireActionEvent(new ActionEvent(this,ActionEvent.ACTION_PERFORMED,
                 actionCommand));
     }
-    
-    
+    /**
+     * 
+     * @param l 
+     */
+    public void addDocumentListener(DocumentListener l){
+        if (l != null)
+            listenerList.add(DocumentListener.class, l);
+    }
+    /**
+     * 
+     * @param l 
+     */
+    public void removeDocumentListener(DocumentListener l){
+        listenerList.remove(DocumentListener.class, l);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public DocumentListener[] getDocumentListeners(){
+        return listenerList.getListeners(DocumentListener.class);
+    }
     /**
      * This is used to format file sizes when displaying the size of a file.
      */
@@ -425,4 +449,30 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     private javax.swing.JLabel spaceFreeLabel;
     private javax.swing.JLabel spaceUsedLabel;
     // End of variables declaration//GEN-END:variables
+    /**
+     * 
+     */
+    private class Handler implements DocumentListener{
+        @Override
+        public void insertUpdate(DocumentEvent evt) {
+            for (DocumentListener l : getDocumentListeners()){
+                if (l != null)
+                    l.insertUpdate(evt);
+            }
+        }
+        @Override
+        public void removeUpdate(DocumentEvent evt) {
+            for (DocumentListener l : getDocumentListeners()){
+                if (l != null)
+                    l.removeUpdate(evt);
+            }
+        }
+        @Override
+        public void changedUpdate(DocumentEvent evt) {
+            for (DocumentListener l : getDocumentListeners()){
+                if (l != null)
+                    l.changedUpdate(evt);
+            }
+        }
+    }
 }
