@@ -36,8 +36,8 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     /**
      * 
      */
-    public static final String SPACE_FREE_PROPERTY_CHANGED = 
-            "SpaceFreePropertyChanged";
+    public static final String CAPACITY_PROPERTY_CHANGED = 
+            "CapacityPropertyChanged";
     /**
      * 
      */
@@ -318,6 +318,16 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     }
     /**
      * 
+     * @param value
+     * @return 
+     */
+    protected String getSizeText(Long value){
+        if (value == null)
+            return "";
+        return String.format("%s (%,d Bytes)", byteFormatter.format(value),value);
+    }
+    /**
+     * 
      * @return 
      */
     public Long getSpaceUsed(){
@@ -332,7 +342,27 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
             Long old = spaceUsed;
             spaceUsed = value;
             firePropertyChange(SPACE_USED_PROPERTY_CHANGED,old,value);
-            spaceUsedLabel.setText((value!=null)?byteFormatter.format(value):null);
+            spaceUsedLabel.setText(getSizeText(value));
+            updateSpaceFreeText();
+        }
+    }
+    /**
+     * 
+     * @return 
+     */
+    public Long getCapacity(){
+        return capacity;
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setCapacity(Long value){
+        if (!Objects.equals(value, capacity)){
+            Long old = capacity;
+            capacity = value;
+            firePropertyChange(CAPACITY_PROPERTY_CHANGED,old,value);
+            updateSpaceFreeText();
         }
     }
     /**
@@ -340,19 +370,17 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
      * @return 
      */
     public Long getSpaceFree(){
-        return spaceFree;
+        if (getCapacity() == null)
+            return null;
+        if (getSpaceUsed() == null)
+            return getCapacity();
+        return getCapacity() - getSpaceUsed();
     }
     /**
      * 
-     * @param value 
      */
-    public void setSpaceFree(Long value){
-        if (!Objects.equals(value, spaceFree)){
-            Long old = spaceFree;
-            spaceFree = value;
-            firePropertyChange(SPACE_FREE_PROPERTY_CHANGED,old,value);
-            spaceFreeLabel.setText((value!=null)?byteFormatter.format(value):null);
-        }
+    protected void updateSpaceFreeText(){
+        spaceFreeLabel.setText(getSizeText(getSpaceFree()));
     }
     /**
      * 
@@ -511,7 +539,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
                 ",accountName="+Objects.toString(getAccountName(),"")+
                 ",profilePictureIcon="+Objects.toString(getProfilePictureIcon(),"")+
                 ",spaceUsed="+Objects.toString(getSpaceUsed(), "")+
-                ",spaceFree="+Objects.toString(getSpaceFree(),"")+
+                ",spaceAllocated="+Objects.toString(getCapacity(),"")+
                 ",fileText="+Objects.toString(getFileText(), "")+
                 ((isFileCompressionEnabled())?",fileCompressionEnabled":"")+
                 ",fileCompressionLevel="+getFileCompressionLevel()+
@@ -528,7 +556,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     /**
      * 
      */
-    private Long spaceFree = null;
+    private Long capacity = null;
     /**
      * 
      */
