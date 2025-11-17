@@ -12,6 +12,10 @@ import manager.renderer.CompressionLevelListCellRenderer;
  */
 public class ExternalLocationPanel extends javax.swing.JPanel {
     /**
+     * 
+     */
+    public static final String BROWSE_COMMAND = "Browse";
+    /**
      * These are the available compression levels for 7-Zip.
      */
     private static final Integer[] COMPRESSION_LEVELS = {
@@ -157,6 +161,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         filePanel.add(dbBrowseFiller);
 
         browseButton.setText("Browse");
+        browseButton.setActionCommand(BROWSE_COMMAND);
         browseButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 browseButtonActionPerformed(evt);
