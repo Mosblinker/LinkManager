@@ -4,11 +4,19 @@
  */
 package manager;
 
+import manager.renderer.CompressionLevelListCellRenderer;
+
 /**
  *
  * @author Mosblinker
  */
 public class ExternalLocationPanel extends javax.swing.JPanel {
+    /**
+     * These are the available compression levels for 7-Zip.
+     */
+    private static final Integer[] COMPRESSION_LEVELS = {
+        0, 1, 3, 5, 7, 9
+    };
 
     /**
      * Creates new form ExternalLocationPanel
