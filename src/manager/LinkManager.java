@@ -10,7 +10,6 @@ import com.dropbox.core.oauth.*;
 import com.dropbox.core.util.IOUtil.ProgressListener;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
-import com.dropbox.core.v2.users.*;
 import com.technicjelle.UpdateChecker;
 import components.*;
 import components.debug.DebugCapable;
@@ -11542,29 +11541,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private class AccountLoader extends LinkManagerWorker<Void>{
         /**
-         * Whether this successfully loaded the account information.
+         * The account data that was loaded for the user.
          */
-        private boolean success = false;
+        private AccountData accountData;
         /**
          * Whether the account is a valid account.
          */
         private boolean validAccount = true;
-        /**
-         * The account's user name.
-         */
-        private String accountName = null;
-        /**
-         * The account's profile picture.
-         */
-        private Icon pfpIcon = null;
-        /**
-         * The amount of space that the user has used in their account.
-         */
-        private long used = 0;
-        /**
-         * The amount of space allocated to the user's account.
-         */
-        private long allocated = 0;
         /**
          * 
          */
@@ -11630,27 +11613,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @throws DbxException 
          * @return 
          */
-        protected boolean loadDropboxAccount(){
+        protected AccountData loadDropboxAccount(){
             getLogger().entering(this.getClass().getName(), "loadDropboxAccount");
             try{    // Get a client to communicate with Dropbox, refreshing the 
                     // Dropbox credentials if necessary
                 DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
-                    // Get the request for the user
-                DbxUserUsersRequests users = client.users();
-                    // Get the account details for the user
-                FullAccount account = users.getCurrentAccount();
-                    // Get the user's account name
-                accountName = account.getName().getDisplayName();
-                    // Load the profile picture for the user
-                pfpIcon = DropboxUtilities.getProfilePicture(account, accountName);
-                    // Get the space usage for the user
-                SpaceUsage spaceUsage = users.getSpaceUsage();
-                    // Get the amount of space used by the user
-                used = spaceUsage.getUsed();
-                    // Get the amount of space allocated to the user
-                allocated = DropboxUtilities.getAllocatedSpace(spaceUsage);
-                getLogger().exiting(this.getClass().getName(), "loadDropboxAccount",true);
-                return true;
+                    // Try to load the account data for the user
+                AccountData data = new DropboxAccountData(client);
+                getLogger().exiting(this.getClass().getName(), "loadDropboxAccount",data);
+                return data;
             } catch (InvalidAccessTokenException ex){
                 getLogger().log(Level.INFO, "Dropbox account token has expired", 
                         ex);
@@ -11659,55 +11630,67 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 getLogger().log(Level.INFO,"Failed to load Dropbox account",ex);
                 exc = ex;
             }
-            getLogger().exiting(this.getClass().getName(), "loadDropboxAccount",false);
-            return false;
+            getLogger().exiting(this.getClass().getName(), "loadDropboxAccount",null);
+            return null;
         }
         /**
          * 
          * @param mode
          * @return 
          */
-        protected boolean loadAccount(DatabaseSyncMode mode){
+        protected AccountData loadAccount(DatabaseSyncMode mode){
             getLogger().entering(this.getClass().getName(), "loadAccount", mode);
                 // Reset the exceptions
             exc = null;
-                // This will get if the account was successfully loaded
-            boolean result = false;
+            AccountData data = null;
             switch(mode){
                 case DROPBOX:
-                    result = loadDropboxAccount();
+                    data = loadDropboxAccount();
             }
-            getLogger().exiting(this.getClass().getName(), "loadAccount",result);
-            return result;
+            getLogger().exiting(this.getClass().getName(), "loadAccount",data);
+            return data;
         }
         @Override
         protected Void backgroundAction() throws Exception {
                 // Whether the user wants this to try loading the account again 
             boolean retry = false;  // if unsuccessful
             do{
-                success = loadAccount(syncMode);    // Try to load the account
-                if (!success)    // If the acount failed to load
+                accountData = loadAccount(syncMode);    // Try to load the account
+                    // If the acount failed to load
+                if (accountData == null)
                         // Show the failure prompt and get if the user wants to 
                     retry = showFailurePrompt();    // try again
+                else    // Clone the account data to prevent accidental 
+                        // modifications
+                    accountData = new DefaultAccountData(accountData);
             }   // While the account failed to load and the user wants to try 
-            while(!success && retry);   // again
+            while(accountData == null && retry);   // again
             return null;
         }
         @Override
         protected void done(){
-            if (success){
-                if (pfpIcon == null){
-                    if (accountName != null)
-                        pfpIcon = new DefaultPfpIcon(new Color(accountName.hashCode()));
-                    else
-                        pfpIcon = new DefaultPfpIcon();
+            if (accountData != null){
+                if (accountData instanceof MutableAccountData){
+                    if (accountData.getProfilePictureIcon() == null){
+                        Icon pfpIcon;
+                        if (accountData.getAccountName() != null)
+                            pfpIcon = new DefaultPfpIcon(new Color(accountData.getAccountName().hashCode()));
+                        else
+                            pfpIcon = new DefaultPfpIcon();
+                        try {
+                            ((MutableAccountData)accountData).setProfilePictureIcon(pfpIcon);
+                        } catch (Exception ex) {
+                            getLogger().log(Level.WARNING, 
+                                    "Could not set default pfp icon", ex);
+                        }
+                    }
                 }
                 switch (syncMode){
                     case DROPBOX:
-                        dbxLocationPanel.setAccountName(accountName);
-                        dbxLocationPanel.setProfilePictureIcon(pfpIcon);
-                        dbxLocationPanel.setSpaceUsed(used);
-                        dbxLocationPanel.setCapacity(allocated);
+                        dbxLocationPanel.setAccountName(accountData.getAccountName());
+                        dbxLocationPanel.setProfilePictureIcon(accountData.getProfilePictureIcon());
+                        dbxLocationPanel.setSpaceUsed(accountData.getSpaceUsed());
+                        dbxLocationPanel.setCapacity(accountData.getAllocatedSpace());
                         LinkManagerUtilities.setCard(setLocationPanel,setDropboxCard);
                 }
             } else if (!validAccount){
