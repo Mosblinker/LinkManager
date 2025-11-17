@@ -4,8 +4,6 @@
  */
 package manager;
 
-import manager.sync.SyncLocationPanel;
-import manager.sync.DatabaseSyncMode;
 import com.dropbox.core.*;
 import com.dropbox.core.json.JsonReader;
 import com.dropbox.core.oauth.*;
@@ -63,6 +61,7 @@ import manager.links.*;
 import manager.painters.LinkManagerIconPainter;
 import manager.renderer.*;
 import manager.security.*;
+import manager.sync.*;
 import manager.timermenu.*;
 import measure.format.binary.ByteUnitFormat;
 import net.sf.sevenzipjbinding.*;
