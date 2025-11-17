@@ -14,21 +14,25 @@ public interface MutableAccountData extends AccountData{
     /**
      * 
      * @param name 
+     * @throws java.lang.Exception 
      */
-    public void setAccountName(String name);
+    public void setAccountName(String name) throws Exception;
     /**
      * 
      * @param icon 
+     * @throws java.lang.Exception 
      */
-    public void setProfilePictureIcon(Icon icon);
+    public void setProfilePictureIcon(Icon icon) throws Exception;
     /**
      * 
      * @param value 
+     * @throws java.lang.Exception 
      */
-    public void setSpaceUsed(Long value);
+    public void setSpaceUsed(Long value) throws Exception;
     /**
      * 
      * @param value 
+     * @throws java.lang.Exception 
      */
-    public void setAllocatedSpace(Long value);
+    public void setAllocatedSpace(Long value) throws Exception;
 }
