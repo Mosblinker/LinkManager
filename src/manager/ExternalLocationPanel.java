@@ -73,8 +73,8 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     public ExternalLocationPanel() {
         initComponents();
         dbFileField.getDocument().addDocumentListener(new Handler());
+        compressionLevelCombo.setSelectedItem(compressionLevel);
     }
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -275,7 +275,8 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_compressionToggleActionPerformed
 
     private void compressionLevelComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compressionLevelComboActionPerformed
-        
+        int index = Math.max(compressionLevelCombo.getSelectedIndex(),0);
+        setFileCompressionLevel(COMPRESSION_LEVELS[index]);
     }//GEN-LAST:event_compressionLevelComboActionPerformed
 
     private void pfpLabelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_pfpLabelPropertyChange
@@ -410,6 +411,26 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     }
     /**
      * 
+     * @return 
+     */
+    public int getFileCompressionLevel(){
+        return compressionLevel;
+    }
+    /**
+     * 
+     * @param level 
+     */
+    public void setFileCompressionLevel(int level){
+        if (compressionLevel != level){
+            int old = compressionLevel;
+            compressionLevel = level;
+            firePropertyChange(FILE_COMPRESSION_LEVEL_PROPERTY_CHANGED,old,level);
+            if (!Objects.equals(compressionLevelCombo.getSelectedItem(), level))
+                compressionLevelCombo.setSelectedItem(level);
+        }
+    }
+    /**
+     * 
      * @param l 
      */
     public void addActionListener(ActionListener l){
@@ -495,6 +516,8 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
      * 
      */
     private boolean compressionEnabled = false;
+    
+    private int compressionLevel = 5;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel accountNameLabel;
     private javax.swing.JButton browseButton;
