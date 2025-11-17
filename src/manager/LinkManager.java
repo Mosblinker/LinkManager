@@ -4,6 +4,7 @@
  */
 package manager;
 
+import manager.sync.DatabaseSyncMode;
 import com.dropbox.core.*;
 import com.dropbox.core.json.JsonReader;
 import com.dropbox.core.oauth.*;

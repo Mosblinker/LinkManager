@@ -4,6 +4,7 @@
  */
 package manager;
 
+import manager.sync.DatabaseSyncMode;
 import config.ConfigUtilities;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -17,7 +18,7 @@ import java.util.prefs.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import javax.swing.JFileChooser;
-import static manager.DatabaseSyncMode.DROPBOX;
+import static manager.sync.DatabaseSyncMode.DROPBOX;
 import manager.config.*;
 import manager.database.CacheSetIterator;
 import manager.dropbox.DropboxLinkUtils;

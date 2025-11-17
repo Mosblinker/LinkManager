@@ -4,6 +4,7 @@
  */
 package manager;
 
+import manager.sync.DatabaseSyncMode;
 import components.disable.DisableInput;
 import components.text.action.commands.*;
 import files.FilesExtended;

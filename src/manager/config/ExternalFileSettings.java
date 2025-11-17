@@ -5,7 +5,7 @@
 package manager.config;
 
 import java.util.Properties;
-import manager.DatabaseSyncMode;
+import manager.sync.DatabaseSyncMode;
 import manager.LinkManager;
 
 /**
