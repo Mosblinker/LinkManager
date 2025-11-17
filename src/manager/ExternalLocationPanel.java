@@ -49,6 +49,10 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     /**
      * 
      */
+    public static final String LOG_OUT_COMMAND = "LogOut";
+    /**
+     * 
+     */
     public static final String BROWSE_COMMAND = "Browse";
     /**
      * These are the available compression levels for 7-Zip.
@@ -149,6 +153,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         dataPanel.add(spaceFreeLabel, gridBagConstraints);
 
         logOutButton.setText("Log Out");
+        logOutButton.setActionCommand(LOG_OUT_COMMAND);
         logOutButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 logOutButtonActionPerformed(evt);
