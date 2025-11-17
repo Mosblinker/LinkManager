@@ -5054,7 +5054,26 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbxLocationPanelActionPerformed
 
     private void dbxLocationPanelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dbxLocationPanelPropertyChange
-        System.out.println(evt);
+        switch(evt.getPropertyName()){
+            case(ExternalLocationPanel.FILE_COMPRESSION_ENABLED_PROPERTY_CHANGED):
+                config.getExternalFileSettings(DatabaseSyncMode.DROPBOX)
+                        .setFileCompressionEnabled(dbxLocationPanel.isFileCompressionEnabled());
+                String path = dbxLocationPanel.getFileText();
+                if (path.endsWith("."+SEVEN_ZIP_FILE_EXTENSION)){
+                    if (!dbxLocationPanel.isFileCompressionEnabled())
+                        path = path.substring(0,path.length()-(SEVEN_ZIP_FILE_EXTENSION.length()+1));
+                } else if (dbxLocationPanel.isFileCompressionEnabled())
+                    path += "."+SEVEN_ZIP_FILE_EXTENSION;
+                if (dbxLocationPanel.getFileText().equals(dropboxFC.getSelectedPath())){
+                    dropboxFC.setSelectedPath(path);
+                    config.setSelectedDropboxPath(path);
+                }
+                dbxLocationPanel.setFileText(path);
+                break;
+            case (ExternalLocationPanel.FILE_COMPRESSION_LEVEL_PROPERTY_CHANGED):
+                config.getExternalFileSettings(DatabaseSyncMode.DROPBOX)
+                        .setFileCompressionLevel(dbxLocationPanel.getFileCompressionLevel());
+        }
     }//GEN-LAST:event_dbxLocationPanelPropertyChange
     
     
