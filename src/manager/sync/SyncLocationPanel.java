@@ -4,11 +4,14 @@
  */
 package manager.sync;
 
+import icons.DefaultPfpIcon;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Objects;
+import javax.swing.Icon;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -298,7 +301,7 @@ public class SyncLocationPanel extends javax.swing.JPanel {
                 pfpLabel.setIcon(null);
                 accountNameLabel.setText(null);
             } else {
-                pfpLabel.setIcon(data.getProfilePictureIcon());
+                pfpLabel.setIcon(getProfilePictureIcon(data));
                 accountNameLabel.setText(Objects.toString(data.getAccountName(), "N/A"));
                 used = data.getSpaceUsed();
                 allocated = data.getAllocatedSpace();
@@ -318,6 +321,23 @@ public class SyncLocationPanel extends javax.swing.JPanel {
         if (value == null)
             return "";
         return String.format("%s (%,d Bytes)", byteFormatter.format(value),value);
+    }
+    /**
+     * 
+     * @param data
+     * @return 
+     */
+    protected Icon getProfilePictureIcon(AccountData data){
+        if (data == null)
+            return null;
+        if (data.getProfilePictureIcon() != null)
+            return data.getProfilePictureIcon();
+        int rgb;
+        if (data.getAccountName() != null)
+            rgb = data.getAccountName().hashCode();
+        else
+            rgb = data.hashCode();
+        return new DefaultPfpIcon(new Color(rgb));
     }
     /**
      * 
@@ -568,7 +588,7 @@ public class SyncLocationPanel extends javax.swing.JPanel {
                             getAccountData().getAccountName(), "N/A"));
                     break;
                 case (AccountData.PROFILE_PICTURE_ICON_PROPERTY_CHANGED):
-                    pfpLabel.setIcon(getAccountData().getProfilePictureIcon());
+                    pfpLabel.setIcon(getProfilePictureIcon(getAccountData()));
                     break;
                 case (AccountData.SPACE_USED_PROPERTY_CHANGED):
                     spaceUsedLabel.setText(getSizeText(getAccountData().getSpaceUsed()));
