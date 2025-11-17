@@ -357,6 +357,20 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     }
     /**
      * 
+     * @return 
+     */
+    public String getFileText(){
+        return dbFileField.getText();
+    }
+    /**
+     * 
+     * @param text 
+     */
+    public void setFileText(String text){
+        dbFileField.setText(text);
+    }
+    /**
+     * 
      * @param l 
      */
     public void addActionListener(ActionListener l){
