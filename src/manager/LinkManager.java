@@ -1184,24 +1184,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setExternalCard = new javax.swing.JPanel();
         dbxLogInButton = new javax.swing.JButton();
         setDropboxCard = new javax.swing.JPanel();
-        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
-        dbxDbFileField = new javax.swing.JTextField();
-        dbxDataPanel = new javax.swing.JPanel();
-        dbxPfpLabel = new components.JThumbnailLabel();
-        dbxAccountLabel = new javax.swing.JLabel();
-        javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
-        dbxSpaceUsedLabel = new javax.swing.JLabel();
-        javax.swing.JLabel jLabel5 = new javax.swing.JLabel();
-        dbxSpaceFreeLabel = new javax.swing.JLabel();
-        dbxLogOutButton = new javax.swing.JButton();
-        javax.swing.Box.Filler filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
         javax.swing.JLabel jLabel7 = new javax.swing.JLabel();
         dbxChunkSizeSpinner = new javax.swing.JSpinner();
         javax.swing.JLabel jLabel11 = new javax.swing.JLabel();
-        dbxBrowseButton = new javax.swing.JButton();
-        dbxCompressionToggle = new javax.swing.JCheckBox();
-        jLabel3 = new javax.swing.JLabel();
-        dbxCompressionLevelCombo = new javax.swing.JComboBox<>();
+        dbxLocationPanel = new manager.ExternalLocationPanel();
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
@@ -1328,6 +1314,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         aboutPanel = new components.JAboutPanel();
         updateCheckPanel = new manager.UpdateCheckPanel();
         dropboxFC = new manager.dropbox.JDropboxFileChooser();
+        dbxDataPanel = new javax.swing.JPanel();
+        dbxPfpLabel = new components.JThumbnailLabel();
+        dbxAccountLabel = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        dbxSpaceUsedLabel = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        dbxSpaceFreeLabel = new javax.swing.JLabel();
+        dbxLogOutButton = new javax.swing.JButton();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
+        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
+        dbxDbFileField = new javax.swing.JTextField();
+        dbxBrowseButton = new javax.swing.JButton();
+        dbxCompressionToggle = new javax.swing.JCheckBox();
+        jLabel3 = new javax.swing.JLabel();
+        dbxCompressionLevelCombo = new javax.swing.JComboBox<>();
         progressBar = new javax.swing.JProgressBar();
         javax.swing.JLabel newLinkLabel = new javax.swing.JLabel();
         linkTextField = new javax.swing.JTextField();
@@ -1483,91 +1484,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             .addGroup(setExternalCardLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(dbxLogInButton)
-                .addContainerGap(188, Short.MAX_VALUE))
+                .addContainerGap(187, Short.MAX_VALUE))
         );
 
         setLocationPanel.add(setExternalCard, "logInCard");
 
         setDropboxCard.setBorder(javax.swing.BorderFactory.createTitledBorder("Dropbox"));
         setDropboxCard.setName("setDropbox"); // NOI18N
-
-        jLabel2.setLabelFor(dbxDbFileField);
-        jLabel2.setText("File:");
-
-        dbxDataPanel.setLayout(new java.awt.GridBagLayout());
-
-        dbxPfpLabel.setImageScaleMode(components.JThumbnailLabel.ALWAYS_SCALE_MAINTAIN_ASPECT_RATIO);
-        dbxPfpLabel.setThumbnailBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 5;
-        gridBagConstraints.ipadx = 100;
-        gridBagConstraints.ipady = 100;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 12);
-        dbxDataPanel.add(dbxPfpLabel, gridBagConstraints);
-
-        dbxAccountLabel.setFont(dbxAccountLabel.getFont().deriveFont(dbxAccountLabel.getFont().getStyle() | java.awt.Font.BOLD));
-        dbxAccountLabel.setText("N/A");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
-        dbxDataPanel.add(dbxAccountLabel, gridBagConstraints);
-
-        jLabel1.setLabelFor(dbxSpaceUsedLabel);
-        jLabel1.setText("Space Used:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 12);
-        dbxDataPanel.add(jLabel1, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 0.9;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
-        dbxDataPanel.add(dbxSpaceUsedLabel, gridBagConstraints);
-
-        jLabel5.setLabelFor(dbxSpaceFreeLabel);
-        jLabel5.setText("Space Free:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 12);
-        dbxDataPanel.add(jLabel5, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        dbxDataPanel.add(dbxSpaceFreeLabel, gridBagConstraints);
-
-        dbxLogOutButton.setText("Log Out");
-        dbxLogOutButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dbxLogOutButtonActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        dbxDataPanel.add(dbxLogOutButton, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
-        gridBagConstraints.weightx = 0.75;
-        dbxDataPanel.add(filler1, gridBagConstraints);
 
         jLabel7.setLabelFor(dbxChunkSizeSpinner);
         jLabel7.setText("Chunk Size:");
@@ -1581,29 +1504,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         jLabel11.setText("MiB");
 
-        dbxBrowseButton.setText("Browse");
-        dbxBrowseButton.addActionListener(new java.awt.event.ActionListener() {
+        dbxLocationPanel.setAccountName("N/A");
+        dbxLocationPanel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dbxBrowseButtonActionPerformed(evt);
+                dbxLocationPanelActionPerformed(evt);
             }
         });
-
-        dbxCompressionToggle.setText("Compress File");
-        dbxCompressionToggle.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dbxCompressionToggleActionPerformed(evt);
-            }
-        });
-
-        jLabel3.setLabelFor(dbxCompressionLevelCombo);
-        jLabel3.setText("Compression Level:");
-
-        dbxCompressionLevelCombo.setModel(new javax.swing.DefaultComboBoxModel<>(COMPRESSION_LEVELS));
-        dbxCompressionLevelCombo.setEnabled(false);
-        dbxCompressionLevelCombo.setRenderer(new CompressionLevelListCellRenderer());
-        dbxCompressionLevelCombo.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dbxCompressionLevelComboActionPerformed(evt);
+        dbxLocationPanel.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                dbxLocationPanelPropertyChange(evt);
             }
         });
 
@@ -1614,50 +1523,26 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             .addGroup(setDropboxCardLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(dbxDataPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(dbxLocationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 415, Short.MAX_VALUE)
                     .addGroup(setDropboxCardLayout.createSequentialGroup()
-                        .addComponent(jLabel2)
+                        .addComponent(jLabel7)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbxDbFileField)
+                        .addComponent(dbxChunkSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbxBrowseButton))
-                    .addGroup(setDropboxCardLayout.createSequentialGroup()
-                        .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(setDropboxCardLayout.createSequentialGroup()
-                                .addComponent(jLabel7)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(dbxChunkSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel11)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(dbxCompressionToggle))
-                            .addGroup(setDropboxCardLayout.createSequentialGroup()
-                                .addComponent(jLabel3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(dbxCompressionLevelCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 152, Short.MAX_VALUE)))
+                        .addComponent(jLabel11)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         setDropboxCardLayout.setVerticalGroup(
             setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, setDropboxCardLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(dbxDataPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(dbxDbFileField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(dbxBrowseButton))
+                .addComponent(dbxLocationPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
                     .addComponent(dbxChunkSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel11)
-                    .addComponent(dbxCompressionToggle))
-                .addGap(7, 7, 7)
-                .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(dbxCompressionLevelCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel11))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -2704,6 +2589,110 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         dropboxFC.setAcceptButtonToolTipText("Open selected file");
         dropboxFC.setDialogTitle("Set Database Location...");
+
+        dbxDataPanel.setLayout(new java.awt.GridBagLayout());
+
+        dbxPfpLabel.setImageScaleMode(components.JThumbnailLabel.ALWAYS_SCALE_MAINTAIN_ASPECT_RATIO);
+        dbxPfpLabel.setThumbnailBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 5;
+        gridBagConstraints.ipadx = 100;
+        gridBagConstraints.ipady = 100;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 12);
+        dbxDataPanel.add(dbxPfpLabel, gridBagConstraints);
+
+        dbxAccountLabel.setFont(dbxAccountLabel.getFont().deriveFont(dbxAccountLabel.getFont().getStyle() | java.awt.Font.BOLD));
+        dbxAccountLabel.setText("N/A");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
+        dbxDataPanel.add(dbxAccountLabel, gridBagConstraints);
+
+        jLabel1.setLabelFor(dbxSpaceUsedLabel);
+        jLabel1.setText("Space Used:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 12);
+        dbxDataPanel.add(jLabel1, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 0.9;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
+        dbxDataPanel.add(dbxSpaceUsedLabel, gridBagConstraints);
+
+        jLabel5.setLabelFor(dbxSpaceFreeLabel);
+        jLabel5.setText("Space Free:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 12);
+        dbxDataPanel.add(jLabel5, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        dbxDataPanel.add(dbxSpaceFreeLabel, gridBagConstraints);
+
+        dbxLogOutButton.setText("Log Out");
+        dbxLogOutButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbxLogOutButtonActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        dbxDataPanel.add(dbxLogOutButton, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        gridBagConstraints.weightx = 0.75;
+        dbxDataPanel.add(filler1, gridBagConstraints);
+
+        jLabel2.setLabelFor(dbxDbFileField);
+        jLabel2.setText("File:");
+
+        dbxBrowseButton.setText("Browse");
+        dbxBrowseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbxBrowseButtonActionPerformed(evt);
+            }
+        });
+
+        dbxCompressionToggle.setText("Compress File");
+        dbxCompressionToggle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbxCompressionToggleActionPerformed(evt);
+            }
+        });
+
+        jLabel3.setLabelFor(dbxCompressionLevelCombo);
+        jLabel3.setText("Compression Level:");
+
+        dbxCompressionLevelCombo.setModel(new javax.swing.DefaultComboBoxModel<>(COMPRESSION_LEVELS));
+        dbxCompressionLevelCombo.setEnabled(false);
+        dbxCompressionLevelCombo.setRenderer(new CompressionLevelListCellRenderer());
+        dbxCompressionLevelCombo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dbxCompressionLevelComboActionPerformed(evt);
+            }
+        });
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle(PROGRAM_NAME);
@@ -5031,6 +5020,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
     }//GEN-LAST:event_updateCheckPanelActionPerformed
+
+    private void dbxLocationPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLocationPanelActionPerformed
+        System.out.println(evt);
+    }//GEN-LAST:event_dbxLocationPanelActionPerformed
+
+    private void dbxLocationPanelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dbxLocationPanelPropertyChange
+        System.out.println(evt);
+    }//GEN-LAST:event_dbxLocationPanelPropertyChange
     
     private int getDropboxFileCompressionLevel(){
         return COMPRESSION_LEVELS[Math.max(dbxCompressionLevelCombo.getSelectedIndex(),0)];
@@ -5738,6 +5735,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JCheckBox dbxCompressionToggle;
     private javax.swing.JPanel dbxDataPanel;
     private javax.swing.JTextField dbxDbFileField;
+    private manager.ExternalLocationPanel dbxLocationPanel;
     private javax.swing.JButton dbxLogInButton;
     private javax.swing.JButton dbxLogOutButton;
     private components.JThumbnailLabel dbxPfpLabel;
@@ -5756,11 +5754,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JFileChooser exportFC;
     private javax.swing.JMenuItem exportListsItem;
     private javax.swing.JMenu fileMenu;
+    private javax.swing.Box.Filler filler1;
     private javax.swing.JCheckBox foreignKeysToggle;
     private javax.swing.JCheckBoxMenuItem hiddenLinkOperationToggle;
     private javax.swing.JMenuItem hideAllListsItem;
     private javax.swing.JMenu hideListsMenu;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JLabel linkCountLabel;
     private javax.swing.JOptionPane linkEditPane;
