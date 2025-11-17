@@ -294,18 +294,16 @@ public class SyncLocationPanel extends javax.swing.JPanel {
             firePropertyChange(ACCOUNT_DATA_PROPERTY_CHANGED,old,data);
             Long used, allocated, free;
             used = allocated = free = null;
-            String accountName = null;
             if (data == null){
                 pfpLabel.setIcon(null);
                 accountNameLabel.setText(null);
             } else {
                 pfpLabel.setIcon(data.getProfilePictureIcon());
-                accountName = data.getAccountName();
+                accountNameLabel.setText(Objects.toString(data.getAccountName(), "N/A"));
                 used = data.getSpaceUsed();
                 allocated = data.getAllocatedSpace();
                 free = data.getSpaceFree();
             }
-            accountNameLabel.setText(accountName);
             spaceUsedLabel.setText(getSizeText(used));
             capacityLabel.setText(getSizeText(allocated));
             spaceFreeLabel.setText(getSizeText(free));
@@ -566,7 +564,8 @@ public class SyncLocationPanel extends javax.swing.JPanel {
         public void propertyChange(PropertyChangeEvent evt) {
             switch (evt.getPropertyName()){
                 case (AccountData.ACCOUNT_NAME_PROPERTY_CHANGED):
-                    accountNameLabel.setText(getAccountData().getAccountName());
+                    accountNameLabel.setText(Objects.toString(
+                            getAccountData().getAccountName(), "N/A"));
                     break;
                 case (AccountData.PROFILE_PICTURE_ICON_PROPERTY_CHANGED):
                     pfpLabel.setIcon(getAccountData().getProfilePictureIcon());
