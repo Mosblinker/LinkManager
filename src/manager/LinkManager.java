@@ -4969,12 +4969,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (mode == null){
             LinkManagerUtilities.setCard(setLocationPanel,setExternalCard);
             updateExternalDBButtons();
-            return;
-        }
-        switch (mode){
-            case DROPBOX:
-                dbxLoader = new DbxAccountLoader();
-                dbxLoader.execute();
+        } else {
+            accountLoader = new AccountLoader(mode);
+            accountLoader.execute();
         }
     }
     
@@ -5448,9 +5445,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private LinksListWorker linksWorker = null;
     /**
-     * This is used to load the account details for the user's Dropbox account.
+     * This is used to load the account details for the user's account.
      */
-    private DbxAccountLoader dbxLoader = null;
+    private AccountLoader accountLoader = null;
     /**
      * This is a progress observer used to observe the progress, particularly 
      * when loading and saving lists.
@@ -11540,69 +11537,88 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private class DbxAccountLoader extends LinkManagerWorker<Void>{
-        /**
-         * This gets any Dropbox exceptions that get thrown while loading the 
-         * Dropbox account.
-         */
-        private DbxException dbxEx = null;
+    private class AccountLoader extends LinkManagerWorker<Void>{
         /**
          * Whether this successfully loaded the account information.
          */
         private boolean success = false;
         /**
-         * Whether the account is a valid Dropbox account.
+         * Whether the account is a valid account.
          */
         private boolean validAccount = true;
         /**
-         * The Dropbox account's user name.
+         * The account's user name.
          */
         private String accountName = null;
         /**
-         * The Dropbox account's profile picture.
+         * The account's profile picture.
          */
         private Icon pfpIcon = null;
         /**
-         * The amount of space that the user has used in their Dropbox account.
+         * The amount of space that the user has used in their account.
          */
         private long used = 0;
         /**
-         * The amount of space allocated to the user's Dropbox account.
+         * The amount of space allocated to the user's account.
          */
         private long allocated = 0;
-        @Override
-        public String getProgressString() {
-            return "Loading Dropbox Account";
+        /**
+         * 
+         */
+        private DatabaseSyncMode syncMode;
+        /**
+         * This gets any exceptions that get thrown while loading the user's 
+         * account.
+         */
+        private Exception exc = null;
+        /**
+         * 
+         * @param mode 
+         */
+        AccountLoader(DatabaseSyncMode mode){
+            this.syncMode = Objects.requireNonNull(mode);
         }
         /**
-         * This is used to display a failure prompt to the user when the dropbox 
-         * account fails to load. If the failure prompt is a retry prompt, then 
-         * this method should return whether to try load the account again. 
+         * 
+         * @return 
+         */
+        public DatabaseSyncMode getSyncMode(){
+            return syncMode;
+        }
+        @Override
+        public String getProgressString() {
+            return String.format("Loading %s Account", syncMode.toString());
+        }
+        /**
+         * This is used to display a failure prompt to the user when the account 
+         * fails to load. If the failure prompt is a retry prompt, then this 
+         * method should return whether to try load the account again. 
          * Otherwise, this method should return {@code false}.
          * @return {@code true} if this should attempt to load the account 
          * again, {@code false} otherwise.
          */
         protected boolean showFailurePrompt(){
+            String syncName = syncMode.toString();
             if (!validAccount){
                 JOptionPane.showMessageDialog(setLocationDialog, 
-                        "Dropbox failed to load due to the account being invalid.",
-                        "ERROR - Dropbox Account Load Failed",
+                        String.format("%s failed to load due to the account being invalid.",syncName),
+                        String.format("ERROR - %s Account Load Failed",syncName),
                         JOptionPane.ERROR_MESSAGE);
                 return false;
             }
                 // The message to return
-            String msg = "An error occurred loading the information for your "
-                    + "Dropbox account.";
+            String msg = String.format("An error occurred loading the information for your "
+                    + "%s account.",syncName);
                 // If the program is either in debug mode or if details are to 
                 // be shown
             if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
-                if (dbxEx != null)
-                    msg += "\nError: " + dbxEx;
+                if (exc != null)
+                    msg += "\nError: " + exc;
             }
                // Ask the user if they would like to try loading the account
             return JOptionPane.showConfirmDialog(LinkManager.this, // again
                     msg+"\nWould you like to try again?",
-                    "ERROR - Dropbox Account Load Failed",
+                    String.format("ERROR - %s Account Load Failed",syncName),
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
         }
@@ -11613,8 +11629,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected boolean loadDropboxAccount(){
             getLogger().entering(this.getClass().getName(), "loadDropboxAccount");
-                // Reset the exceptions
-            dbxEx = null;
             try{    // Get a client to communicate with Dropbox, refreshing the 
                     // Dropbox credentials if necessary
                 DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
@@ -11640,17 +11654,35 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 validAccount = false;
             } catch(DbxException ex){
                 getLogger().log(Level.INFO,"Failed to load Dropbox account",ex);
-                dbxEx = ex;
+                exc = ex;
             }
             getLogger().exiting(this.getClass().getName(), "loadDropboxAccount",false);
             return false;
+        }
+        /**
+         * 
+         * @param mode
+         * @return 
+         */
+        protected boolean loadAccount(DatabaseSyncMode mode){
+            getLogger().entering(this.getClass().getName(), "loadAccount", mode);
+                // Reset the exceptions
+            exc = null;
+                // This will get if the account was successfully loaded
+            boolean result = false;
+            switch(mode){
+                case DROPBOX:
+                    result = loadDropboxAccount();
+            }
+            getLogger().exiting(this.getClass().getName(), "loadAccount",result);
+            return result;
         }
         @Override
         protected Void backgroundAction() throws Exception {
                 // Whether the user wants this to try loading the account again 
             boolean retry = false;  // if unsuccessful
             do{
-                success = loadDropboxAccount();    // Try to load the account
+                success = loadAccount(syncMode);    // Try to load the account
                 if (!success)    // If the acount failed to load
                         // Show the failure prompt and get if the user wants to 
                     retry = showFailurePrompt();    // try again
@@ -11661,13 +11693,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             if (success){
-                dbxLocationPanel.setAccountName(accountName);
-                dbxLocationPanel.setProfilePictureIcon(pfpIcon);
-                dbxLocationPanel.setSpaceUsed(used);
-                dbxLocationPanel.setCapacity(allocated);
-                LinkManagerUtilities.setCard(setLocationPanel,setDropboxCard);
+                switch (syncMode){
+                    case DROPBOX:
+                        dbxLocationPanel.setAccountName(accountName);
+                        dbxLocationPanel.setProfilePictureIcon(pfpIcon);
+                        dbxLocationPanel.setSpaceUsed(used);
+                        dbxLocationPanel.setCapacity(allocated);
+                        LinkManagerUtilities.setCard(setLocationPanel,setDropboxCard);
+                }
             } else if (!validAccount){
-                dbxUtils.clearCredentials();
+                switch (syncMode){
+                    case DROPBOX:
+                        dbxUtils.clearCredentials();
+                }
             } else {
                 LinkManagerUtilities.setCard(setLocationPanel,setExternalCard);
             }
