@@ -29,7 +29,7 @@ public interface SyncLocationSettings {
      * @return 
      */
     public default String getDatabaseFileName(){
-        return getDatabaseFileName(LinkManager.LINK_DATABASE_FILE);
+        return getDatabaseFileName(LinkManager.COMPRESSED_LINK_DATABASE_FILE);
     }
     /**
      * 

@@ -172,6 +172,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public static final String LINK_DATABASE_FILE = "LinkManager."+DATABASE_FILE_EXTENSION;
     /**
+     * 
+     */
+    public static final String COMPRESSED_LINK_DATABASE_FILE = LINK_DATABASE_FILE+
+            "."+SEVEN_ZIP_FILE_EXTENSION;
+    /**
      * This is the name of the preference node used to store the settings for 
      * this program.
      */
