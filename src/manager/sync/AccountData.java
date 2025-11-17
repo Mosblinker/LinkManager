@@ -35,33 +35,28 @@ public interface AccountData {
     /**
      * 
      * @return 
-     * @throws java.lang.Exception 
      */
-    public String getAccountName() throws Exception;
+    public String getAccountName();
     /**
      * 
      * @return 
-     * @throws java.lang.Exception 
      */
-    public Icon getProfilePictureIcon() throws Exception;
+    public Icon getProfilePictureIcon();
     /**
      * 
      * @return 
-     * @throws java.lang.Exception 
      */
-    public Long getSpaceUsed() throws Exception;
+    public Long getSpaceUsed();
     /**
      * 
      * @return 
-     * @throws java.lang.Exception 
      */
-    public Long getAllocatedSpace() throws Exception;
+    public Long getAllocatedSpace();
     /**
      * 
      * @return 
-     * @throws java.lang.Exception 
      */
-    public default Long getSpaceFree() throws Exception{
+    public default Long getSpaceFree(){
         if (getAllocatedSpace() == null)
             return null;
         if (getSpaceUsed() == null)
