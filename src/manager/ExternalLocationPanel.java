@@ -6,6 +6,7 @@ package manager;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Objects;
 import javax.swing.Icon;
 import manager.renderer.CompressionLevelListCellRenderer;
 import measure.format.binary.ByteUnitFormat;
@@ -312,6 +313,25 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     public void setAccountName(String name){
         accountNameLabel.setText(name);
     }
+    /**
+     * 
+     * @return 
+     */
+    public Long getSpaceUsed(){
+        return spaceUsed;
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setSpaceUsed(Long value){
+        if (!Objects.equals(value, spaceUsed)){
+            Long old = spaceUsed;
+            spaceUsed = value;
+            firePropertyChange(SPACE_USED_PROPERTY_CHANGED,old,value);
+            spaceUsedLabel.setText((value!=null)?byteFormatter.format(value):null);
+        }
+    }
     
     
     /**
@@ -364,6 +384,10 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
      * This is used to format file sizes when displaying the size of a file.
      */
     private ByteUnitFormat byteFormatter = new ByteUnitFormat(true);
+    /**
+     * 
+     */
+    private Long spaceUsed = null;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel accountNameLabel;
     private javax.swing.JButton browseButton;
