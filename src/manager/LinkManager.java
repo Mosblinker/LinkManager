@@ -3452,7 +3452,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         saver = new ResetDatabaseIDs();
         saver.execute();
     }//GEN-LAST:event_dbResetIDsButtonActionPerformed
-
+    /**
+     * 
+     * @param dialogMsg
+     * @param logMsg
+     * @param ex 
+     */
+    private void processDatabaseError(String dialogMsg, String logMsg, Exception ex){
+        String errMsg = "Database Error: " + ex;
+        getLogger().log(Level.WARNING, logMsg, ex);
+        if (ex instanceof UncheckedSQLException){
+            getLogger().log(Level.WARNING,logMsg + " cause", ex.getCause());
+            errMsg += "\nCause: " + ex.getCause();
+        }
+        JOptionPane.showMessageDialog(this, dialogMsg+".\n"+errMsg,"Database Error",
+                JOptionPane.ERROR_MESSAGE);
+    }
+    /**
+     * 
+     * @param msg
+     * @param ex 
+     */
+    private void processDatabaseError(String msg, Exception ex){
+        processDatabaseError(msg,msg,ex);
+    }
+    
     @SuppressWarnings("unchecked")
     private void addPrefixButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPrefixButtonActionPerformed
             // If the add prefix button is disabled
@@ -3488,15 +3512,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 //            searchUsedPrefixes(conn,key);
         }
         catch (SQLException | UncheckedSQLException ex) {
-            String msg = "Could not add prefix \""+prefixField.getText()+"\"";
-            String errMsg = "Database Error: " + ex;
-            getLogger().log(Level.WARNING, msg, ex);
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,msg + " cause", ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, msg+".\n"+errMsg,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Could not add prefix \""+prefixField.getText()+"\"",
+                    ex);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -3519,17 +3536,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             ((DefaultTableModel)dbPrefixTable.getModel()).removeRow(selRow);
         }
         catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
-            String msg = String.format("Could not remove prefix %d: \"%s\"",
+            processDatabaseError(String.format("Could not remove prefix %d: \"%s\"",
                     dbPrefixTable.getValueAt(selRow, 0),
-                    dbPrefixTable.getValueAt(selRow, 1));
-            String errMsg = "Database Error: " + ex;
-            getLogger().log(Level.WARNING,msg, ex);
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,msg + " cause", ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, msg + ".\n"+ errMsg,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+                    dbPrefixTable.getValueAt(selRow, 1)),ex);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -4237,14 +4246,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                // Ensure that the database last modified time is updated
             conn.setDatabaseLastModified();
         } catch (SQLException | UncheckedSQLException ex) {
-            getLogger().log(Level.WARNING, "Error removing unused data", ex);
-            String errMsg = "Database Error: " + ex;
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,"Error removing unused data cause", ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, "Error removing unused data.\n"+errMsg,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Error removing unused data",ex);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -4296,14 +4298,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                // Ensure that the database last modified time is updated
             setDBLastModLabelText(conn.setDatabaseLastModified());
         } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
-            getLogger().log(Level.WARNING,"Error applying prefix settings", ex);
-            String errMsg = "Database Error: " + ex;
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,"Error applying prefix settings cause", ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, "Error applying prefix settings.\n"+errMsg,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Error applying prefix settings",ex);
         }
     }//GEN-LAST:event_prefixApplyButtonActionPerformed
     /**
@@ -4371,15 +4366,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             setListEditSettings(conn,listID);
         } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
-            String msg = "Error loading settings for list " + listID;
-            getLogger().log(Level.WARNING,msg, ex);
-            String errMsg = "Database Error: " + ex;
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,msg+" cause", ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, msg+".\n"+errMsg,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Error loading settings for list " + listID,ex);
         }
     }//GEN-LAST:event_dbListIDComboActionPerformed
 
@@ -4415,15 +4402,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                    // Ensure that the database last modified time is updated
                 setDBLastModLabelText(conn.setDatabaseLastModified());
             } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
-                String msg = "Error changing settings for list " + listID;
-                getLogger().log(Level.WARNING,msg, ex);
-                String errMsg = "Database Error: " + ex;
-                if (ex instanceof UncheckedSQLException){
-                    getLogger().log(Level.WARNING,msg+" cause", ex.getCause());
-                    errMsg += "\nCause: " + ex.getCause();
-                }
-                JOptionPane.showMessageDialog(this, msg+".\n"+errMsg,
-                        "Database Error", JOptionPane.ERROR_MESSAGE);
+                processDatabaseError("Error changing settings for list " + listID,ex);
             }
         }
     }//GEN-LAST:event_dbListEditApplyButtonActionPerformed
@@ -4437,18 +4416,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             searchUsedPrefixes(conn,getSearchPrefix(prefixStr));
         } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
-            getLogger().log(Level.WARNING, "Error searching for prefix " + 
-                    prefixStr, ex);
-            String msg = "Error searching for prefix " + prefixStr;
-                getLogger().log(Level.WARNING,msg, ex);
-                String errMsg = "Database Error: " + ex;
-                if (ex instanceof UncheckedSQLException){
-                    getLogger().log(Level.WARNING,msg+" cause", ex.getCause());
-                    errMsg += "\nCause: " + ex.getCause();
-                }
-                JOptionPane.showMessageDialog(this, 
-                        "Could Not Search For Prefix \""+prefixStr+"\".\n"+errMsg,
-                        "Database Error", JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Could Not Search For Prefix \""+prefixStr+"\"",
+                    "Error searching for prefix " + prefixStr,ex);
         }
     }//GEN-LAST:event_dbUsedPrefixSearchButtonActionPerformed
 
@@ -4470,14 +4439,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                // Ensure that the database last modified time is updated
             conn.setDatabaseLastModified();
         } catch (SQLException | UncheckedSQLException ex) {
-            getLogger().log(Level.WARNING,"Error removing duplicate data", ex);
-            String errMsg = "Database Error: " + ex;
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,"Error removing duplicate data cause", ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, "Error removing duplicate data.\n"+errMsg,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Error removing duplicate data",ex);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -4514,16 +4476,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     getSearchPrefix(prefixStr) : null;
             searchListContents(conn,dbSearchField.getText(),prefixID);
         } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
-            String msg = "Error searching for prefix " + prefixStr;
-            getLogger().log(Level.WARNING,msg, ex);
-            String errMsg = "Database Error: " + ex;
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,msg+" cause", ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, 
-                    "Could Not Search For Prefix \""+prefixStr+"\".\n"+errMsg,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Could Not Search For Prefix \""+prefixStr+"\"",
+                    "Error searching for prefix " + prefixStr,ex);
         }
     }//GEN-LAST:event_dbSearchButtonActionPerformed
     
@@ -4985,18 +4939,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         } catch (SQLException | UncheckedSQLException ex) {
             dbQueryPanel.setExecutionTime(0);
             dbQueryPanel.showError(ex);
-            getLogger().log(Level.WARNING,
-                    "Failed to run query (code: "+dbQueryPanel.getErrorCode()+")",
-                    ex);
-            String errMsg = "Database Error: " + ex;
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,
-                        "Failed to run query cause (code: "+dbQueryPanel.getErrorCode()+")",
-                        ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, errMsg, "Database Error",
-                    JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Failed to run query (code: "+dbQueryPanel.getErrorCode()+")",ex);
         }
         System.gc();
         if (updated){   // Update the database view if there were changes
