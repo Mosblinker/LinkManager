@@ -5384,6 +5384,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxLogOutButton.setEnabled(setDBLocationItem.isEnabled());
         dbxBrowseButton.setEnabled(dbxLogInButton.isEnabled());
         dbxDbFileField.setEditable(dbxBrowseButton.isEnabled());
+        dbxLocationPanel.setEnabled(dbxLogInButton.isEnabled());
         dbxChunkSizeSpinner.setEnabled(dbxLogInButton.isEnabled());
         dbxCompressionToggle.setEnabled(dbxLogInButton.isEnabled());
         dbxCompressionLevelCombo.setEnabled(dbxCompressionToggle.isEnabled()&&dbxCompressionToggle.isSelected());
