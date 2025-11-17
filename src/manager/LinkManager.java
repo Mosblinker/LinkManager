@@ -4965,15 +4965,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private void loadExternalAccountData(){
-        if (isLoggedInToDropbox()){
-            dbxLoader = new DbxAccountLoader();
-            dbxLoader.execute();
-        }
-        else {
+    private void loadExternalAccountData(DatabaseSyncMode mode){
+        if (mode == null){
             LinkManagerUtilities.setCard(setLocationPanel,setExternalCard);
             updateExternalDBButtons();
+            return;
         }
+        switch (mode){
+            case DROPBOX:
+                dbxLoader = new DbxAccountLoader();
+                dbxLoader.execute();
+        }
+    }
+    
+    private void loadExternalAccountData(){
+        loadExternalAccountData(getSyncMode());
     }
     
     private void setDBLastModLabelText(Long lastMod){
