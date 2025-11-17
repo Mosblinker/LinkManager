@@ -23,6 +23,8 @@ import files.FilesExtended;
 import static files.FilesExtended.generateExtensionFilter;
 import files.extensions.ConfigExtensions;
 import static files.extensions.TextDocumentExtensions.TEXT_FILTER;
+import icons.DefaultPfpIcon;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Desktop;
@@ -11693,6 +11695,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             if (success){
+                if (pfpIcon == null){
+                    if (accountName != null)
+                        pfpIcon = new DefaultPfpIcon(new Color(accountName.hashCode()));
+                    else
+                        pfpIcon = new DefaultPfpIcon();
+                }
                 switch (syncMode){
                     case DROPBOX:
                         dbxLocationPanel.setAccountName(accountName);
