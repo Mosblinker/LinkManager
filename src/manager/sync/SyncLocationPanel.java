@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
-package manager;
+package manager.sync;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,7 +18,7 @@ import measure.format.binary.ByteUnitFormat;
  *
  * @author Mosblinker
  */
-public class ExternalLocationPanel extends javax.swing.JPanel {
+public class SyncLocationPanel extends javax.swing.JPanel {
     /**
      * 
      */
@@ -71,7 +71,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     /**
      * Creates new form ExternalLocationPanel
      */
-    public ExternalLocationPanel() {
+    public SyncLocationPanel() {
         initComponents();
         dbFileField.getDocument().addDocumentListener(new Handler());
         compressionLevelCombo.setSelectedItem(compressionLevel);

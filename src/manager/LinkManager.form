@@ -268,7 +268,7 @@
                     <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
                   </AuxValues>
                 </Component>
-                <Component class="manager.ExternalLocationPanel" name="dbxLocationPanel">
+                <Component class="manager.sync.SyncLocationPanel" name="dbxLocationPanel">
                   <Properties>
                     <Property name="accountName" type="java.lang.String" value="N/A"/>
                   </Properties>

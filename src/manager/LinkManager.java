@@ -4,6 +4,7 @@
  */
 package manager;
 
+import manager.sync.SyncLocationPanel;
 import manager.sync.DatabaseSyncMode;
 import com.dropbox.core.*;
 import com.dropbox.core.json.JsonReader;
@@ -1184,7 +1185,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         javax.swing.JLabel jLabel7 = new javax.swing.JLabel();
         dbxChunkSizeSpinner = new javax.swing.JSpinner();
         javax.swing.JLabel jLabel11 = new javax.swing.JLabel();
-        dbxLocationPanel = new manager.ExternalLocationPanel();
+        dbxLocationPanel = new manager.sync.SyncLocationPanel();
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
@@ -4850,7 +4851,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void dbxLocationPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLocationPanelActionPerformed
         switch(evt.getActionCommand()){
-            case (ExternalLocationPanel.BROWSE_COMMAND):
+            case (SyncLocationPanel.BROWSE_COMMAND):
                 try{    // Get a client to communicate with Dropbox, refreshing the 
                         // Dropbox credentials if necessary
                     DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
@@ -4865,7 +4866,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     getLogger().log(Level.WARNING, "Cannot browse Dropbox", ex);
                 }
                 return;
-            case (ExternalLocationPanel.LOG_OUT_COMMAND):
+            case (SyncLocationPanel.LOG_OUT_COMMAND):
                 // TODO: Figure out how to properly deal with logging out of dropbox
                 // Clear the account credentials
                 dbxUtils.clearCredentials();
@@ -4881,7 +4882,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void dbxLocationPanelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dbxLocationPanelPropertyChange
         switch(evt.getPropertyName()){
-            case(ExternalLocationPanel.FILE_COMPRESSION_ENABLED_PROPERTY_CHANGED):
+            case(SyncLocationPanel.FILE_COMPRESSION_ENABLED_PROPERTY_CHANGED):
                 config.getExternalFileSettings(DatabaseSyncMode.DROPBOX)
                         .setFileCompressionEnabled(dbxLocationPanel.isFileCompressionEnabled());
                 String path = dbxLocationPanel.getFileText();
@@ -4896,7 +4897,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
                 dbxLocationPanel.setFileText(path);
                 break;
-            case (ExternalLocationPanel.FILE_COMPRESSION_LEVEL_PROPERTY_CHANGED):
+            case (SyncLocationPanel.FILE_COMPRESSION_LEVEL_PROPERTY_CHANGED):
                 config.getExternalFileSettings(DatabaseSyncMode.DROPBOX)
                         .setFileCompressionLevel(dbxLocationPanel.getFileCompressionLevel());
         }
@@ -5590,7 +5591,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem dbViewItem;
     private manager.database.DatabaseTableViewer dbViewer;
     private javax.swing.JSpinner dbxChunkSizeSpinner;
-    private manager.ExternalLocationPanel dbxLocationPanel;
+    private manager.sync.SyncLocationPanel dbxLocationPanel;
     private javax.swing.JButton dbxLogInButton;
     private javax.swing.JMenuItem dbxPrintButton;
     private javax.swing.JMenu debugMenu;
