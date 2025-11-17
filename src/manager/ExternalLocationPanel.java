@@ -271,7 +271,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_browseButtonActionPerformed
 
     private void compressionToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compressionToggleActionPerformed
-        
+        setFileCompressionEnabled(compressionToggle.isSelected());
     }//GEN-LAST:event_compressionToggleActionPerformed
 
     private void compressionLevelComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compressionLevelComboActionPerformed
@@ -390,6 +390,26 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     }
     /**
      * 
+     * @return 
+     */
+    public boolean isFileCompressionEnabled(){
+        return compressionEnabled;
+    }
+    /**
+     * 
+     * @param enabled 
+     */
+    public void setFileCompressionEnabled(boolean enabled){
+        if (enabled != compressionEnabled){
+            compressionEnabled = enabled;
+            firePropertyChange(FILE_COMPRESSION_ENABLED_PROPERTY_CHANGED,
+                    !enabled,enabled);
+            compressionToggle.setSelected(enabled);
+            compressionLevelCombo.setEnabled(enabled&&isEnabled());
+        }
+    }
+    /**
+     * 
      * @param l 
      */
     public void addActionListener(ActionListener l){
@@ -471,6 +491,10 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
      * 
      */
     private boolean showBrowse = true;
+    /**
+     * 
+     */
+    private boolean compressionEnabled = false;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel accountNameLabel;
     private javax.swing.JButton browseButton;
