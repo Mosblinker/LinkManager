@@ -5,8 +5,8 @@
 package manager.config;
 
 import java.util.Properties;
-import manager.sync.DatabaseSyncMode;
 import manager.LinkManager;
+import manager.sync.DatabaseSyncMode;
 
 /**
  *
@@ -47,7 +47,7 @@ public interface SyncLocationSettings {
      * @return 
      */
     public default boolean isFileCompressionEnabled(){
-        return isFileCompressionEnabled(false);
+        return isFileCompressionEnabled(true);
     }
     /**
      * 
