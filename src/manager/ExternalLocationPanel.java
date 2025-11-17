@@ -505,6 +505,18 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
             compressionLevelCombo.setEnabled(enabled&&isFileCompressionEnabled());
         } catch (NullPointerException ex) {}
     }
+    @Override
+    protected String paramString(){
+        return super.paramString()+
+                ",accountName="+Objects.toString(getAccountName(),"")+
+                ",profilePictureIcon="+Objects.toString(getProfilePictureIcon(),"")+
+                ",spaceUsed="+Objects.toString(getSpaceUsed(), "")+
+                ",spaceFree="+Objects.toString(getSpaceFree(),"")+
+                ",fileText="+Objects.toString(getFileText(), "")+
+                ((isFileCompressionEnabled())?",fileCompressionEnabled":"")+
+                ",fileCompressionLevel="+getFileCompressionLevel()+
+                ((isBrowseButtonShown())?",browseButtonIsShown":"");
+    }
     /**
      * This is used to format file sizes when displaying the size of a file.
      */
