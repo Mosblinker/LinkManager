@@ -371,6 +371,25 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     }
     /**
      * 
+     * @return 
+     */
+    public boolean isBrowseButtonShown(){
+        return showBrowse;
+    }
+    /**
+     * 
+     * @param shown 
+     */
+    public void setBrowseButtonShown(boolean shown){
+        if (shown != showBrowse){
+            showBrowse = shown;
+            firePropertyChange(BROWSE_BUTTON_SHOWN_PROPERTY_CHANGED,!shown,shown);
+            browseButton.setVisible(shown);
+            dbBrowseFiller.setVisible(shown);
+        }
+    }
+    /**
+     * 
      * @param l 
      */
     public void addActionListener(ActionListener l){
@@ -448,6 +467,10 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
      * 
      */
     private Long spaceFree = null;
+    /**
+     * 
+     */
+    private boolean showBrowse = true;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel accountNameLabel;
     private javax.swing.JButton browseButton;
