@@ -22,8 +22,6 @@ import files.FilesExtended;
 import static files.FilesExtended.generateExtensionFilter;
 import files.extensions.ConfigExtensions;
 import static files.extensions.TextDocumentExtensions.TEXT_FILTER;
-import icons.DefaultPfpIcon;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Desktop;
@@ -11669,21 +11667,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             if (accountData != null){
-                if (accountData instanceof MutableAccountData){
-                    if (accountData.getProfilePictureIcon() == null){
-                        Icon pfpIcon;
-                        if (accountData.getAccountName() != null)
-                            pfpIcon = new DefaultPfpIcon(new Color(accountData.getAccountName().hashCode()));
-                        else
-                            pfpIcon = new DefaultPfpIcon();
-                        try {
-                            ((MutableAccountData)accountData).setProfilePictureIcon(pfpIcon);
-                        } catch (Exception ex) {
-                            getLogger().log(Level.WARNING, 
-                                    "Could not set default pfp icon", ex);
-                        }
-                    }
-                }
                 switch (syncMode){
                     case DROPBOX:
                         dbxLocationPanel.setAccountData(accountData);
