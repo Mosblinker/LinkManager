@@ -11850,6 +11850,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 long free = allocated - used;
                 dbxSpaceFreeLabel.setText(String.format("%s (%,d Bytes)", 
                         byteFormatter.format(free),free));
+                dbxLocationPanel.setAccountName(accountName);
+                dbxLocationPanel.setProfilePictureIcon(pfpIcon);
+                dbxLocationPanel.setSpaceUsed(used);
+                dbxLocationPanel.setCapacity(allocated);
                 LinkManagerUtilities.setCard(setLocationPanel,setDropboxCard);
             } else if (!validAccount){
                 dbxUtils.clearCredentials();
