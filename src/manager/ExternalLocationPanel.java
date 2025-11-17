@@ -14,6 +14,41 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     /**
      * 
      */
+    public static final String PROFILE_ICON_PROPERTY_CHANGED = 
+            "ProfileIconPropertyChanged";
+    /**
+     * 
+     */
+    public static final String ACCOUNT_NAME_PROPERTY_CHANGED = 
+            "AccountNamePropertyChanged";
+    /**
+     * 
+     */
+    public static final String SPACE_USED_PROPERTY_CHANGED = 
+            "SpaceUsedPropertyChanged";
+    /**
+     * 
+     */
+    public static final String SPACE_FREE_PROPERTY_CHANGED = 
+            "SpaceFreePropertyChanged";
+    /**
+     * 
+     */
+    public static final String BROWSE_BUTTON_SHOWN_PROPERTY_CHANGED = 
+            "BrowseButtonShownPropertyChanged";
+    /**
+     * 
+     */
+    public static final String FILE_COMPRESSION_ENABLED_PROPERTY_CHANGED = 
+            "FileCompressionEnabledPropertyChanged";
+    /**
+     * 
+     */
+    public static final String FILE_COMPRESSION_LEVEL_PROPERTY_CHANGED = 
+            "FileCompressionLevelPropertyChanged";
+    /**
+     * 
+     */
     public static final String BROWSE_COMMAND = "Browse";
     /**
      * These are the available compression levels for 7-Zip.
