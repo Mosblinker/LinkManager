@@ -6585,27 +6585,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
-     * @param archive
-     * @param targetPath
-     * @param target
-     * @return 
-     * @throws SevenZipException
-     * @throws IOException 
-     */
-    private File extractFile(File archive, String targetPath, 
-            File target) throws SevenZipException, IOException{
-        getLogger().entering(this.getClass().getName(), "extractDatabaseFile", 
-                new Object[]{archive,targetPath,target});
-        try(RandomAccessFile raf = new RandomAccessFile(archive,"r");
-                IInArchive inArchive = SevenZip.openInArchive(null, 
-                        new RandomAccessFileInStream(raf))){
-            target = extractFile(inArchive,targetPath,target);
-        }
-        getLogger().exiting(this.getClass().getName(), "extractDatabaseFile", target);
-        return target;
-    }
-    /**
-     * 
      * @param file
      * @param path
      * @return
