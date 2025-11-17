@@ -16,7 +16,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     /**
      * 
      */
-    public static final String PROFILE_ICON_PROPERTY_CHANGED = 
+    public static final String PROFILE_PICTURE_ICON_PROPERTY_CHANGED = 
             "ProfileIconPropertyChanged";
     /**
      * 
