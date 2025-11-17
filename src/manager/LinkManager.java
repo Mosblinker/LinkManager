@@ -5331,14 +5331,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setCursor((isWaiting)?Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR):null);
     }
     /**
-     * 
-     * @param panel 
-     */
-    private void repaintIfSelected(LinksListPanel panel){
-        if (panel == getSelectedList())
-            panel.repaint();
-    }
-    /**
      * This returns whether the program is currently saving a file.
      * @return Whether the program is currently saving a file.
      */
