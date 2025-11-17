@@ -119,7 +119,6 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         dataPanel.add(pfpLabel, gridBagConstraints);
 
         accountNameLabel.setFont(accountNameLabel.getFont().deriveFont(accountNameLabel.getFont().getStyle() | java.awt.Font.BOLD));
-        accountNameLabel.setText("N/A");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
