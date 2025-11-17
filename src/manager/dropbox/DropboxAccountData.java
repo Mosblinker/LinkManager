@@ -17,74 +17,66 @@ import manager.sync.*;
  */
 public class DropboxAccountData extends AbstractAccountData{
     /**
-     * 
-     */
-    protected DbxUserUsersRequests users;
-    /**
      * The account details for the user
      */
-    private FullAccount account = null;
+    private FullAccount account;
     /**
      * The space usage for the user
      */
-    private SpaceUsage spaceUsage = null;
+    private SpaceUsage spaceUsage;
+    /**
+     * 
+     * @param account
+     * @param spaceUsage 
+     */
+    public DropboxAccountData(FullAccount account, SpaceUsage spaceUsage){
+        this.account = Objects.requireNonNull(account);
+        this.spaceUsage = Objects.requireNonNull(spaceUsage);
+    }
     /**
      * 
      * @param users 
+     * @throws com.dropbox.core.DbxException 
      */
-    public DropboxAccountData(DbxUserUsersRequests users){
-        this.users = Objects.requireNonNull(users);
+    public DropboxAccountData(DbxUserUsersRequests users) throws DbxException{
+        this(users.getCurrentAccount(),users.getSpaceUsage());
     }
     /**
      * 
      * @param client 
+     * @throws com.dropbox.core.DbxException 
      */
-    public DropboxAccountData(DbxClientV2 client){
+    public DropboxAccountData(DbxClientV2 client) throws DbxException{
         this(client.users());
-    }
-    /**
-     * 
-     * @return 
-     */
-    public DbxUserUsersRequests getUserRequest(){
-        return users;
     }
     /**
      * Get the account details for the user
      * @return 
-     * @throws com.dropbox.core.DbxException 
      */
-    protected FullAccount getAccount() throws DbxException{
-        if (account == null)
-                // Get the account details for the user
-            account = getUserRequest().getCurrentAccount();
+    public FullAccount getAccount(){
         return account;
     }
     /**
      * Get the space usage for the user
      * @return
-     * @throws DbxException 
      */
-    protected SpaceUsage getSpaceUsage() throws DbxException{
-        if (spaceUsage == null)
-                // Get the space usage for the user
-            spaceUsage = users.getSpaceUsage();
+    public SpaceUsage getSpaceUsage(){
         return spaceUsage;
     }
     @Override
-    public String getAccountName() throws DbxException {
+    public String getAccountName() {
         return getAccount().getName().getDisplayName();
     }
     @Override
-    public Icon getProfilePictureIcon() throws DbxException {
+    public Icon getProfilePictureIcon() {
         return DropboxUtilities.getProfilePicture(account, getAccountName());
     }
     @Override
-    public Long getSpaceUsed() throws DbxException {
+    public Long getSpaceUsed() {
         return getSpaceUsage().getUsed();
     }
     @Override
-    public Long getAllocatedSpace() throws DbxException {
+    public Long getAllocatedSpace() {
         return DropboxUtilities.getAllocatedSpace(getSpaceUsage());
     }
     @Override
