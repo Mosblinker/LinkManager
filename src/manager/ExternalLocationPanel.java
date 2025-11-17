@@ -6,6 +6,7 @@ package manager;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.Icon;
 import manager.renderer.CompressionLevelListCellRenderer;
 
 /**
@@ -102,6 +103,11 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
 
         pfpLabel.setImageScaleMode(components.JThumbnailLabel.ALWAYS_SCALE_MAINTAIN_ASPECT_RATIO);
         pfpLabel.setThumbnailBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        pfpLabel.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                pfpLabelPropertyChange(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -262,6 +268,25 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         
     }//GEN-LAST:event_compressionLevelComboActionPerformed
 
+    private void pfpLabelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_pfpLabelPropertyChange
+        if ("icon".equals(evt.getPropertyName()))
+            firePropertyChange(PROFILE_PICTURE_ICON_PROPERTY_CHANGED,evt.getOldValue(),
+                    evt.getNewValue());
+    }//GEN-LAST:event_pfpLabelPropertyChange
+    /**
+     * 
+     * @return 
+     */
+    public Icon getProfilePictureIcon(){
+        return pfpLabel.getIcon();
+    }
+    /**
+     * 
+     * @param icon 
+     */
+    public void setProfilePictureIcon(Icon icon){
+        pfpLabel.setIcon(icon);
+    }
     
     
     /**
@@ -308,6 +333,8 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         fireActionEvent(new ActionEvent(this,ActionEvent.ACTION_PERFORMED,
                 actionCommand));
     }
+    
+    
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
