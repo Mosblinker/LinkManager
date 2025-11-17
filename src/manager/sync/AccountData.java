@@ -4,6 +4,7 @@
  */
 package manager.sync;
 
+import java.beans.PropertyChangeListener;
 import javax.swing.Icon;
 
 /**
@@ -11,6 +12,26 @@ import javax.swing.Icon;
  * @author Mosblinker
  */
 public interface AccountData {
+    /**
+     * 
+     */
+    public static final String PROFILE_PICTURE_ICON_PROPERTY_CHANGED = 
+            "ProfileIconPropertyChanged";
+    /**
+     * 
+     */
+    public static final String ACCOUNT_NAME_PROPERTY_CHANGED = 
+            "AccountNamePropertyChanged";
+    /**
+     * 
+     */
+    public static final String SPACE_USED_PROPERTY_CHANGED = 
+            "SpaceUsedPropertyChanged";
+    /**
+     * 
+     */
+    public static final String ALLOCATED_SPACE_PROPERTY_CHANGED = 
+            "AllocatedSpacePropertyChanged";
     /**
      * 
      * @return 
@@ -47,4 +68,37 @@ public interface AccountData {
      * @return 
      */
     public DatabaseSyncMode getSyncMode();
+    /**
+     * 
+     * @param l 
+     */
+    public void addPropertyChangeListener(PropertyChangeListener l);
+    /**
+     * 
+     * @param propertyName
+     * @param l 
+     */
+    public void addPropertyChangeListener(String propertyName, PropertyChangeListener l);
+    /**
+     * 
+     * @param l 
+     */
+    public void removePropertyChangeListener(PropertyChangeListener l);
+    /**
+     * 
+     * @param propertyName
+     * @param l 
+     */
+    public void removePropertyChangeListener(String propertyName, PropertyChangeListener l);
+    /**
+     * 
+     * @return 
+     */
+    public PropertyChangeListener[] getPropertyChangeListeners();
+    /**
+     * 
+     * @param propertyName
+     * @return 
+     */
+    public PropertyChangeListener[] getPropertyChangeListeners(String propertyName);
 }
