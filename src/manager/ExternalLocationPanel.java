@@ -120,13 +120,14 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridheight = 6;
-        gridBagConstraints.ipadx = 100;
-        gridBagConstraints.ipady = 100;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.ipadx = 115;
+        gridBagConstraints.ipady = 115;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 12);
         dataPanel.add(pfpLabel, gridBagConstraints);
 
         accountNameLabel.setFont(accountNameLabel.getFont().deriveFont(accountNameLabel.getFont().getStyle() | java.awt.Font.BOLD));
+        accountNameLabel.setText("N/A");
         accountNameLabel.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
             public void propertyChange(java.beans.PropertyChangeEvent evt) {
                 accountNameLabelPropertyChange(evt);
