@@ -380,6 +380,7 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
             Long old = capacity;
             capacity = value;
             firePropertyChange(CAPACITY_PROPERTY_CHANGED,old,value);
+            capacityLabel.setText(getSizeText(value));
             updateSpaceFreeText();
         }
     }
