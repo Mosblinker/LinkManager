@@ -707,6 +707,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         textPopupMenus.put(dropboxSetupPanel.getAuthorizationCodeField(), 
                 dropboxSetupPanel.getAuthorizationCodePopupMenu());
         textPopupMenus.put(dbxDbFileField, new JPopupMenu());
+        textPopupMenus.put(dbxLocationPanel.getFileTextField(), new JPopupMenu());
         
         pasteAndAddAction = new PasteAndAddAction(){
             @Override
@@ -4514,7 +4515,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private void setDropboxDatabaseFileFields(String fileName){
-        dbxDbFileField.setText(DropboxUtilities.formatDropboxPath(fileName));
+        dbxLocationPanel.setFileText(DropboxUtilities.formatDropboxPath(fileName));
     }
     
     private void setDBCancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBCancelButtonActionPerformed
@@ -4538,7 +4539,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // a browse dialog and make it more robust
             
                 // Get the database file name for Dropbox
-            String dbxFileName = dbxDbFileField.getText().trim();
+            String dbxFileName = dbxLocationPanel.getFileText().trim();
                 // If the Dropbox database file name is empty  or ends with a 
             if (dbxFileName.isEmpty() || dbxFileName.endsWith("/")) // slash
                     // Add the database file name to the path
@@ -4986,17 +4987,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         updateDBLocationEnabled();
         config.getExternalFileSettings(DatabaseSyncMode.DROPBOX)
                 .setFileCompressionEnabled(dbxCompressionToggle.isSelected());
-        String path = dbxDbFileField.getText();
+        String path = dbxLocationPanel.getFileText();
         if (path.endsWith("."+SEVEN_ZIP_FILE_EXTENSION)){
             if (!dbxCompressionToggle.isSelected())
                 path = path.substring(0,path.length()-(SEVEN_ZIP_FILE_EXTENSION.length()+1));
         } else if (dbxCompressionToggle.isSelected())
             path += "."+SEVEN_ZIP_FILE_EXTENSION;
-        if (dbxDbFileField.getText().equals(dropboxFC.getSelectedPath())){
+        if (dbxLocationPanel.getFileText().equals(dropboxFC.getSelectedPath())){
             dropboxFC.setSelectedPath(path);
             config.setSelectedDropboxPath(path);
         }
-        dbxDbFileField.setText(path);
+        dbxLocationPanel.setFileText(path);
     }//GEN-LAST:event_dbxCompressionToggleActionPerformed
 
     private void dbxCompressionLevelComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxCompressionLevelComboActionPerformed
@@ -5032,7 +5033,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     String path = dropboxFC.getSelectedPath();
                     config.setSelectedDropboxPath(path);
                     if (option == JDropboxFileChooser.ACCEPT_OPTION){
-                        dbxDbFileField.setText(path);
+                        dbxLocationPanel.setFileText(path);
                     }
                 } catch (DbxException | UncheckedDbxException ex) {
                     getLogger().log(Level.WARNING, "Cannot browse Dropbox", ex);
