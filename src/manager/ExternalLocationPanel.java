@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Icon;
 import manager.renderer.CompressionLevelListCellRenderer;
+import measure.format.binary.ByteUnitFormat;
 
 /**
  *
@@ -359,8 +360,10 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     }
     
     
-    
-    
+    /**
+     * This is used to format file sizes when displaying the size of a file.
+     */
+    private ByteUnitFormat byteFormatter = new ByteUnitFormat(true);
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel accountNameLabel;
     private javax.swing.JButton browseButton;
