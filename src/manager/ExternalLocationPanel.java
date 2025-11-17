@@ -119,6 +119,11 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         dataPanel.add(pfpLabel, gridBagConstraints);
 
         accountNameLabel.setFont(accountNameLabel.getFont().deriveFont(accountNameLabel.getFont().getStyle() | java.awt.Font.BOLD));
+        accountNameLabel.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                accountNameLabelPropertyChange(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -272,6 +277,12 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
             firePropertyChange(PROFILE_PICTURE_ICON_PROPERTY_CHANGED,evt.getOldValue(),
                     evt.getNewValue());
     }//GEN-LAST:event_pfpLabelPropertyChange
+
+    private void accountNameLabelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_accountNameLabelPropertyChange
+        if ("text".equals(evt.getPropertyName()))
+            firePropertyChange(ACCOUNT_NAME_PROPERTY_CHANGED,evt.getOldValue(),
+                    evt.getNewValue());
+    }//GEN-LAST:event_accountNameLabelPropertyChange
     /**
      * 
      * @return 
@@ -285,6 +296,20 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
      */
     public void setProfilePictureIcon(Icon icon){
         pfpLabel.setIcon(icon);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public String getAccountName(){
+        return accountNameLabel.getText();
+    }
+    /**
+     * 
+     * @param name 
+     */
+    public void setAccountName(String name){
+        accountNameLabel.setText(name);
     }
     
     
