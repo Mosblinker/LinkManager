@@ -4,6 +4,8 @@
  */
 package manager;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import manager.renderer.CompressionLevelListCellRenderer;
 
 /**
@@ -260,7 +262,54 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         
     }//GEN-LAST:event_compressionLevelComboActionPerformed
 
-
+    
+    
+    /**
+     * 
+     * @param l 
+     */
+    public void addActionListener(ActionListener l){
+        listenerList.add(ActionListener.class, l);
+    }
+    /**
+     * 
+     * @param l 
+     */
+    public void removeActionListener(ActionListener l){
+        listenerList.remove(ActionListener.class, l);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public ActionListener[] getActionListeners(){
+        return listenerList.getListeners(ActionListener.class);
+    }
+    /**
+     * 
+     * @param evt 
+     */
+    protected void fireActionEvent(ActionEvent evt){
+        if (evt == null)
+            return;
+        if (evt.getSource() != this)
+            evt = new ActionEvent(this,evt.getID(),evt.getActionCommand(),
+                    evt.getWhen(),evt.getModifiers());
+        for (ActionListener l : getActionListeners()){
+            if (l != null)
+                l.actionPerformed(evt);
+        }
+    }
+    /**
+     * 
+     * @param actionCommand 
+     */
+    protected void fireActionEvent(String actionCommand){
+        fireActionEvent(new ActionEvent(this,ActionEvent.ACTION_PERFORMED,
+                actionCommand));
+    }
+    
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel accountNameLabel;
     private javax.swing.JButton browseButton;
