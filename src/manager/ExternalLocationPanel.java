@@ -333,8 +333,25 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
             spaceUsedLabel.setText((value!=null)?byteFormatter.format(value):null);
         }
     }
-    
-    
+    /**
+     * 
+     * @return 
+     */
+    public Long getSpaceFree(){
+        return spaceFree;
+    }
+    /**
+     * 
+     * @param value 
+     */
+    public void setSpaceFree(Long value){
+        if (!Objects.equals(value, spaceFree)){
+            Long old = spaceFree;
+            spaceFree = value;
+            firePropertyChange(SPACE_FREE_PROPERTY_CHANGED,old,value);
+            spaceFreeLabel.setText((value!=null)?byteFormatter.format(value):null);
+        }
+    }
     /**
      * 
      * @param l 
@@ -389,6 +406,10 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
      * 
      */
     private Long spaceUsed = null;
+    /**
+     * 
+     */
+    private Long spaceFree = null;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel accountNameLabel;
     private javax.swing.JButton browseButton;
