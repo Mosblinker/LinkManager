@@ -17,7 +17,6 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     private static final Integer[] COMPRESSION_LEVELS = {
         0, 1, 3, 5, 7, 9
     };
-
     /**
      * Creates new form ExternalLocationPanel
      */
@@ -44,12 +43,15 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         spaceFreeLabel = new javax.swing.JLabel();
         logOutButton = new javax.swing.JButton();
         javax.swing.Box.Filler filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
-        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
-        dbFileField = new javax.swing.JTextField();
-        browseButton = new javax.swing.JButton();
         compressionToggle = new javax.swing.JCheckBox();
         jLabel3 = new javax.swing.JLabel();
         compressionLevelCombo = new javax.swing.JComboBox<>();
+        filePanel = new javax.swing.JPanel();
+        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
+        javax.swing.Box.Filler filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
+        dbFileField = new javax.swing.JTextField();
+        dbBrowseFiller = new javax.swing.Box.Filler(new java.awt.Dimension(7, 0), new java.awt.Dimension(7, 0), new java.awt.Dimension(7, 32767));
+        browseButton = new javax.swing.JButton();
 
         dataPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -126,16 +128,6 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
         gridBagConstraints.weightx = 0.75;
         dataPanel.add(filler1, gridBagConstraints);
 
-        jLabel2.setLabelFor(dbFileField);
-        jLabel2.setText("File:");
-
-        browseButton.setText("Browse");
-        browseButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                browseButtonActionPerformed(evt);
-            }
-        });
-
         compressionToggle.setText("Compress File");
         compressionToggle.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -155,6 +147,23 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
             }
         });
 
+        filePanel.setLayout(new javax.swing.BoxLayout(filePanel, javax.swing.BoxLayout.X_AXIS));
+
+        jLabel2.setLabelFor(dbFileField);
+        jLabel2.setText("File:");
+        filePanel.add(jLabel2);
+        filePanel.add(filler2);
+        filePanel.add(dbFileField);
+        filePanel.add(dbBrowseFiller);
+
+        browseButton.setText("Browse");
+        browseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                browseButtonActionPerformed(evt);
+            }
+        });
+        filePanel.add(browseButton);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -162,13 +171,8 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(filePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(dataPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbFileField)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(browseButton))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(compressionToggle)
                         .addGap(15, 15, 15)
@@ -184,17 +188,14 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
                 .addContainerGap()
                 .addComponent(dataPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(dbFileField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(browseButton))
+                .addComponent(filePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(compressionToggle)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel3)
-                        .addComponent(compressionLevelCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(117, Short.MAX_VALUE))
+                        .addComponent(compressionLevelCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(compressionToggle))
+                .addContainerGap(119, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -221,7 +222,9 @@ public class ExternalLocationPanel extends javax.swing.JPanel {
     private javax.swing.JComboBox<Integer> compressionLevelCombo;
     private javax.swing.JCheckBox compressionToggle;
     private javax.swing.JPanel dataPanel;
+    private javax.swing.Box.Filler dbBrowseFiller;
     private javax.swing.JTextField dbFileField;
+    private javax.swing.JPanel filePanel;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JButton logOutButton;
     private components.JThumbnailLabel pfpLabel;
