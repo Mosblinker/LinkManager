@@ -392,6 +392,15 @@ public class UpdateCheckPanel extends AbstractDialogPanel {
                 getDialogTitle(), JOptionPane.INFORMATION_MESSAGE, 
                 getProgramIcon());
     }
+    @Override
+    protected String paramString(){
+        return super.paramString() + 
+                ",programName="+Objects.toString(getProgramName(), "")+
+                ",currentVersion="+Objects.toString(getCurrentVersion(),"")+
+                ",latestVersion="+Objects.toString(getLatestVersion(), "")+
+                ",programIcon="+Objects.toString(getProgramIcon(), "")+
+                ((getCheckForUpdatesAtStartup()) ? ",checksForUpdatesAtStartup":"");
+    }
     /**
      * 
      */
