@@ -6560,8 +6560,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 try(OutputStreamSequentialOutStream output = 
                         new OutputStreamSequentialOutStream(
                                 new BufferedOutputStream(
-                                        new FileOutputStream(target)),
-                                progressObserver)){
+                                        new FileOutputStream(target)))){
                     result = item.extractSlow(output);
                 }
                 if (result != ExtractOperationResult.OK){
@@ -8352,7 +8351,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     new Object[]{archiveFile, targetPath, targetFile});
             try(RandomAccessFile raf = new RandomAccessFile(archiveFile,"r");
                         IInArchive archive = SevenZip.openInArchive(null, 
-                                new RandomAccessFileInStream(raf))){
+                                new RandomAccessFileInStream(raf),
+                                new ExtractItemProgressOpenCallback(progressObserver))){
                 try{
                     targetFile = LinkManager.this.extractFile(archive, targetPath, targetFile);
                     fileFound = targetFile != null;
