@@ -4064,8 +4064,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     loadFlags);
             loader.execute();
         } else {
-            loader = new DatabaseLoader(LinkManagerUtilities.setFlag(loadFlags,
-                    DATABASE_LOADER_CHECK_LOCAL_FLAG,false));
+            loader = new DatabaseLoader(getDatabaseFile(),
+                    LinkManagerUtilities.setFlag(loadFlags,
+                            DATABASE_LOADER_CHECK_LOCAL_FLAG,false));
             loader.execute();
         }
     }
@@ -9615,26 +9616,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (!fullyLoaded)
                 this.loadFlags |= DATABASE_LOADER_LOAD_ALL_FLAG;
         }
-        
-        DatabaseLoader(File file, boolean loadAll){
-            this(file,(loadAll) ? DATABASE_LOADER_LOAD_ALL_FLAG : 0);
-        }
-        
-        DatabaseLoader(File file){
-            this(DATABASE_LOADER_LOAD_ALL_FLAG);
-        }
-        
-        DatabaseLoader(int loadFlags){
-            this(getDatabaseFile(),loadFlags);
-        }
-        
-        DatabaseLoader(boolean loadAll){
-            this(getDatabaseFile(),loadAll);
-        }
-        
-        DatabaseLoader(){
-            this(DATABASE_LOADER_LOAD_ALL_FLAG);
-        }
         /**
          * This returns if all the lists will be loaded from the database of 
          * if only or only the lists that are outdated.
@@ -9770,8 +9751,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // lists and the file that was loaded is not the local file
             if (LinkManagerUtilities.getFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG) && 
                     !file.equals(getDatabaseFile())){
-                loader = new DatabaseLoader(LinkManagerUtilities.setFlag(loadFlags,
-                        DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG, false));
+                loader = new DatabaseLoader(getDatabaseFile(),
+                        LinkManagerUtilities.setFlag(loadFlags,
+                                DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG, false));
                 loader.execute();
             }
         }
