@@ -3380,8 +3380,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             ((DefaultTableModel)dbPrefixTable.getModel()).addRow(
                     new Object[]{key,prefixMap.get(key)});
             String selValue = key+" - "+prefix;
-            ((List)dbUsedPrefixCombo.getModel()).add(selValue);
-            ((List)dbSearchPrefixCombo.getModel()).add(selValue);
+            ((List<String>)dbUsedPrefixCombo.getModel()).add(selValue);
+            ((List<String>)dbSearchPrefixCombo.getModel()).add(selValue);
             LinkMap linkMap = conn.getLinkMap();
                 // Turn off the connection's auto-commit to group the following 
                 // database transactions to improve performance
