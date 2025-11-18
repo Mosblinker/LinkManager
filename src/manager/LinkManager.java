@@ -508,6 +508,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return null;
     }
     /**
+     * 
+     * @param exit
+     * @return 
+     */
+    private DatabaseSaver createDatabaseSaver(boolean exit){
+        return new DatabaseSaver(getDatabaseFile(),exit);
+    }
+    /**
+     * 
+     * @return 
+     */
+    private DatabaseSaver createDatabaseSaver(){
+        return createDatabaseSaver(false);
+    }
+    /**
      * This constructs a new LinkManager with the given value determining if it 
      * is in debug mode and the given program ID.
      * @param debugMode Whether the program is in debug mode.
@@ -3831,7 +3846,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().finer("Exiting and saving program");
             exitButton.setEnabled(false);
                 // Save the database and close the program
-            saver = new DatabaseSaver(true);
+            saver = createDatabaseSaver(true);
             saver.execute();
         }
         else if (!(loader instanceof AbstractFileDownloader) || 
@@ -3857,7 +3872,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (AutosaveMenu.AUTOSAVE_COMMAND.equals(evt.getActionCommand()) && 
                 isEdited() && !isSavingFiles()){
             getLogger().finer("Automatically saving database");
-            saver = new DatabaseSaver();
+            saver = createDatabaseSaver();
             saver.execute();
         }
     }//GEN-LAST:event_autosaveMenuActionPerformed
@@ -4037,7 +4052,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void updateDatabaseItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateDatabaseItemActionPerformed
-        saver = new DatabaseSaver();
+        saver = createDatabaseSaver();
         saver.execute();
     }//GEN-LAST:event_updateDatabaseItemActionPerformed
     /**
