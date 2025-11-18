@@ -11980,7 +11980,33 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * This stores the UUID of the database being loaded.
          */
         private String dbUUID = null;
-
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
+         */
+        DatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
+                LoadingStage stage, int loadFlags, boolean showFileNotFound) {
+            super(file,filePath,mode,stage,showFileNotFound);
+            this.loadFlags = loadFlags;
+            if (!fullyLoaded)
+                this.loadFlags |= DATABASE_LOADER_LOAD_ALL_FLAG;
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage
+         * @param loadFlags 
+         */
+        DatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
+                LoadingStage stage, int loadFlags) {
+            this(file,filePath,mode,stage,loadFlags,fullyLoaded);
+        }
         @Override
         protected boolean loadDatabase(LinkDatabaseConnection conn, Statement stmt) throws SQLException {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
