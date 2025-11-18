@@ -11245,7 +11245,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         private int mode;
         
         UpdateDatabase(File file, int updateType){
-            super(file,null,null,SavingStage.SAVE_DATABASE);
+            super(file,null,null,getConfigFile(),SavingStage.SAVE_DATABASE);
             this.mode = updateType;
         }
         @Override
