@@ -606,6 +606,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         
         loadDbxUtils();
+        try{
+            initializeSevenZip();
+        } catch (SevenZipNativeInitializationException ex){
+            getLogger().log(Level.WARNING, "Failed to initialize 7-Zip bindings", ex);
+        }
         
         dbxChunkSizeModel = new DbxChunkSizeSpinnerModel();
         initComponents();
