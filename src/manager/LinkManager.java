@@ -11858,8 +11858,54 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this(true);
         }
         @Override
+        public String getDownloadingProgressString(){
+            return "Downloading Database";
+        }
+        @Override
+        public String getExtractingProgressString(){
+            return "Extracting Database";
+        }
+        @Override
+        protected boolean isDownloadedFileCompressed(File downloadedFile){
+            return true;
+        }
+        @Override
+        protected String getExtractionArchiveFileForFailureMessage(File file){
+            return "downloaded file";
+        }
+        @Override
+        protected String getArchiveFilePath(){
+            return LINK_DATABASE_FILE;
+        }
+        @Override
+        protected File getExtractedFile(File file, File downloadedFile, String path){
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, 
+                        "."+DATABASE_FILE_EXTENSION);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temporary extracted file",
+                        ex);
+            }
+            return file;
+        }
+        @Override
+        protected File getDownloadFile(File file,String path){
+            String suffix = "."+DATABASE_FILE_EXTENSION;
+            int index = path.lastIndexOf(".");
+            if (index >= 0 && index > path.lastIndexOf("/") && index > path.lastIndexOf("\\"))
+                suffix = path.substring(index);
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, suffix);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temporary download file",
+                        ex);
+            }
+            return file;
+        }
+        @Override
         protected boolean loadFile(File file, File downloadedFile) {
-            getLogger().entering("AbstractDatabaseLoader", "loadFile", new Object[]{file,downloadedFile});
+            getLogger().entering("AbstractDatabaseLoader", "loadFile", 
+                    new Object[]{file,downloadedFile});
             if (!file.exists()){    // If the file doesn't exist
                 getLogger().exiting("AbstractDatabaseLoader", "loadFile", false);
                 return false;
@@ -11972,6 +12018,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected String getFileNotFoundMessage(File file){
             return "The database file does not exist.";
+        }
+        @Override
+        protected void done(){
+            deleteDownloadedFile(false);
+            deleteExtractedFile(false);
+            super.done();
         }
     }
     /**
