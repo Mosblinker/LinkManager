@@ -4,7 +4,6 @@
  */
 package manager;
 
-import manager.sync.DatabaseSyncMode;
 import components.disable.DisableInput;
 import components.text.action.commands.*;
 import files.FilesExtended;
@@ -20,7 +19,9 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.logging.Level;
 import javax.swing.*;
-import manager.dropbox.DropboxUtilities;
+import manager.dropbox.*;
+import manager.links.*;
+import manager.sync.*;
 
 /**
  *
@@ -669,5 +670,19 @@ public class LinkManagerUtilities {
                             + "as the loaded file",ex);
         }
         return file1.equals(file2);
+    }
+    /**
+     * 
+     * @param c
+     * @return 
+     */
+    public static String toString(Collection<? extends LinksListModel> c){
+        if (c.isEmpty())
+            return "[]";
+        String str = "";
+        for (LinksListModel model : c){
+            str += ((model!=null)?(model.getListID()+": "+model.getListName()):"null")+",";
+        }
+        return "["+str.substring(0, str.length()-1)+"]";
     }
 }

@@ -5779,16 +5779,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Set the selected link for the list
             config.setSelectedLink(model.getListID(), selValue);
     }
-    
-    private String toString(Collection<? extends LinksListModel> c){
-        if (c.isEmpty())
-            return "[]";
-        String str = "";
-        for (LinksListModel model : c){
-            str += ((model!=null)?(model.getListID()+": "+model.getListName()):"null")+",";
-        }
-        return "["+str.substring(0, str.length()-1)+"]";
-    }
     /**
      * 
      * @return 
@@ -5801,7 +5791,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         models.addAll(shownListsTabsPanel.getModels());
         if (!models.equals(listModels)){
             getLogger().log(Level.WARNING, "Discrepancy in model sets ({0} != {1})", 
-                    new Object[]{toString(listModels), toString(models)});
+                    new Object[]{LinkManagerUtilities.toString(listModels), 
+                        LinkManagerUtilities.toString(models)});
         }
         return models;
     }
