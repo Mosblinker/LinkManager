@@ -12007,6 +12007,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 LoadingStage stage, int loadFlags) {
             this(file,filePath,mode,stage,loadFlags,fullyLoaded);
         }
+        /**
+         * 
+         * @return 
+         */
+        public int getDatabaseLoaderFlags(){
+            return loadFlags;
+        }
+        
         @Override
         protected boolean loadDatabase(LinkDatabaseConnection conn, Statement stmt) throws SQLException {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
