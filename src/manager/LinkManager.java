@@ -11981,9 +11981,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         /**
          * This stores the flags for this DatabaseLoader, which indicate things 
          * such as whether this will be loading all the lists from the database 
-         * or only the lists that are outdated.
+         * or only the lists that are outdated. If this is null, then the 
+         * database will not be loaded after this.
          */
-        private int loadFlags;
+        private Integer loadFlags = null;
         /**
          * This stores whether this failed to load the database due to the 
          * database being an incompatible version that cannot be updated 
