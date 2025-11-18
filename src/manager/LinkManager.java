@@ -9636,6 +9636,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         dbVersion);
                 return false;
             }
+            config.setLastAccessedDatabaseID(conn.getDatabaseUUID());
             tabsModels = LinkManager.this.loadDatabase(conn, getLoadsAll());
             return true;
         }
@@ -10245,6 +10246,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             setTabEnabled(dbCreatePrefixScrollPane,createPrefixTestNode != null);
             if (createPrefixTestNode != null)
                 dbCreatePrefixTree.setModel(new DefaultTreeModel(createPrefixTestNode,true));
+            config.setLastAccessedDatabaseID(dbUUID);
             
             super.done();
         }
@@ -10433,8 +10435,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected boolean prepareDatabase(File file, LinkDatabaseConnection conn, 
                 Statement stmt) throws SQLException{
+            getLogger().entering("AbstractDatabaseSaver", "prepareDatabase", 
+                    new Object[]{file,conn,stmt});
             conn.createTables(stmt);
-            return conn.updateDatabaseDefinitions(stmt,progressObserver);
+            boolean updated = conn.updateDatabaseDefinitions(stmt,progressObserver);
+            config.setLastAccessedDatabaseID(conn.setDatabaseUUIDIfAbsent());
+            getLogger().exiting("AbstractDatabaseSaver", "prepareDatabase", updated);
+            return updated;
         }
         /**
          * 
