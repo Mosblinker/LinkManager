@@ -422,6 +422,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return connect(file.toString());
     }
     /**
+     * 
+     */
+    private static void initializeSevenZip() throws SevenZipNativeInitializationException{
+        getLogger().entering("LinkManager", "initializeSevenZip");
+        if (SevenZip.isInitializedSuccessfully()){
+            getLogger().exiting("LinkManager", "initializeSevenZip");
+            return;
+        }
+        try{
+            SevenZip.initSevenZipFromPlatformJAR();
+        } catch (SevenZipNativeInitializationException | RuntimeException ex){
+            getLogger().log(Level.INFO, "Could not load 7-Zip library in default location", ex);
+            File tempDir;
+            try {
+                tempDir = Files.createTempDirectory("SevenZipJBinding-").toFile();
+            } catch (IOException exc){
+                getLogger().log(Level.WARNING, "Could not create temp directory", ex);
+                tempDir = new File(LinkManagerUtilities.getProgramDirectory());
+            }
+            getLogger().log(Level.FINER, "Initializing 7-Zip from directory {0}", tempDir);
+            SevenZip.initSevenZipFromPlatformJAR(tempDir);
+        }
+        getLogger().exiting("LinkManager", "initializeSevenZip");
+    }
+    /**
      * This returns whether the program is logged in to Dropbox.
      * @return Whether the program is logged in to Dropbox.
      */
