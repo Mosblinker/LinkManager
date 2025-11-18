@@ -11992,6 +11992,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             deleteDownloadedFile(false);
             deleteExtractedFile(false);
             super.done();
+                // Update the program configuration
+            updateProgramConfig();
         }
     }
     /**
