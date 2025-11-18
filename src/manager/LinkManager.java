@@ -1035,9 +1035,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             switch(command){
                     // If this is the remove from list action
                 case(REMOVE_FROM_LIST_ACTION_KEY):
-                    return new RemoveFromListsAction(tabsPanel,panel);
+                    return new RemoveFromListsAction(tabsPanel,panel,true,false);
                 case(REMOVE_OTHER_LISTS_ACTION_KEY):
-                    return new RemoveFromListsAction(tabsPanel,panel,false);
+                    return new RemoveFromListsAction(tabsPanel,panel,false,false);
                 case(REMOVE_FROM_HIDDEN_LISTS_ACTION_KEY):
                     return new RemoveFromListsAction(tabsPanel,panel,true,true);
                 case(REMOVE_OTHER_HIDDEN_LISTS_ACTION_KEY):
@@ -7072,28 +7072,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             updateActionName();
         }
         /**
-         * 
-         * @param tabsPanel
-         * @param panel
-         * @param removeFromOtherLists Whether this action will remove the 
-         * currently selected list from the other lists ({@code true} if this 
-         * will remove the currently selected list from the other lists, {@code 
-         * false} if this removes the other lists from the currently selected 
-         * list).
-         */
-        RemoveFromListsAction(LinksListTabsPanel tabsPanel, LinksListPanel panel, 
-                boolean removeFromOtherLists) {
-            this(tabsPanel,panel,removeFromOtherLists,false);
-        }
-        /**
-         * 
-         * @param tabsPanel
-         * @param panel 
-         */
-        RemoveFromListsAction(LinksListTabsPanel tabsPanel, LinksListPanel panel){
-            this(tabsPanel,panel,true);
-        }
-        /**
          * This returns whether this action will will remove the currently 
          * selected list from the other lists.
          * @return {@code true} if this will remove the currently selected list 
@@ -7654,16 +7632,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this.isSource = isSource;
             this.tabsPanel = Objects.requireNonNull(tabsPanel);
             this.hiddenOnly = hiddenOnly;
-        }
-        /**
-         * 
-         * @param panel
-         * @param tabsPanel
-         * @param isSource 
-         */
-        RemoveLinksWorker2(LinksListPanel panel, LinksListTabsPanel tabsPanel, 
-                boolean isSource){
-            this(panel,tabsPanel,isSource,false);
         }
         /**
          * 
