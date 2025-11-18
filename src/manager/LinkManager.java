@@ -422,6 +422,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return connect(file.toString());
     }
     /**
+     * 
+     */
+    private static void initializeSevenZip() throws SevenZipNativeInitializationException{
+        getLogger().entering("LinkManager", "initializeSevenZip");
+        if (SevenZip.isInitializedSuccessfully()){
+            getLogger().exiting("LinkManager", "initializeSevenZip");
+            return;
+        }
+        try{
+            SevenZip.initSevenZipFromPlatformJAR();
+        } catch (SevenZipNativeInitializationException | RuntimeException ex){
+            getLogger().log(Level.INFO, "Could not load 7-Zip library in default location", ex);
+            File tempDir;
+            try {
+                tempDir = Files.createTempDirectory("SevenZipJBinding-").toFile();
+            } catch (IOException exc){
+                getLogger().log(Level.WARNING, "Could not create temp directory", ex);
+                tempDir = new File(LinkManagerUtilities.getProgramDirectory());
+            }
+            getLogger().log(Level.FINER, "Initializing 7-Zip from directory {0}", tempDir);
+            SevenZip.initSevenZipFromPlatformJAR(tempDir);
+        }
+        getLogger().exiting("LinkManager", "initializeSevenZip");
+    }
+    /**
      * This returns whether the program is logged in to Dropbox.
      * @return Whether the program is logged in to Dropbox.
      */
@@ -8349,6 +8374,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected File extractFile(File archiveFile, String targetPath, File targetFile){
             getLogger().entering("AbstractFileDownloader", "extractFile", 
                     new Object[]{archiveFile, targetPath, targetFile});
+            try{
+                initializeSevenZip();
+            } catch (SevenZipNativeInitializationException ex){
+                exc = ex;
+                getLogger().log(Level.WARNING, "Failed to initialize 7-Zip bindings", ex);
+                getLogger().exiting("AbstractFileDownloader","extractFile",null);
+                return null;
+            }
             try(RandomAccessFile raf = new RandomAccessFile(archiveFile,"r");
                         IInArchive archive = SevenZip.openInArchive(null, 
                                 new RandomAccessFileInStream(raf),
@@ -10811,9 +10844,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 progressBar.setIndeterminate(true);
                 Exception exc;
                 try{
+                    initializeSevenZip();
                     LinkManager.this.compressFile(file, archiveFile, path, level);
                     getLogger().exiting("AbstractDatabaseSaver", "compressFile", true);
                     return true;
+                } catch (SevenZipNativeInitializationException ex){
+                    getLogger().log(Level.WARNING, "Failed to initialize 7-Zip bindings", ex);
+                    exc = ex;
                 } catch (IOException ex){
                     getLogger().log(Level.WARNING,
                                 "Failed to compress database file", ex);
