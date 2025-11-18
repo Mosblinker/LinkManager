@@ -4,11 +4,14 @@
  */
 package manager;
 
+import com.dropbox.core.util.IOUtil.ProgressListener;
+import net.sf.sevenzipjbinding.*;
+
 /**
  *
  * @author Mosblinker
  */
-public interface ProgressObserver {
+public interface ProgressObserver extends ProgressListener, IProgress{
     /**
      * 
      * @return 
@@ -31,6 +34,14 @@ public interface ProgressObserver {
      * @return 
      */
     public ProgressObserver setValue(int value);
+    /**
+     * 
+     * @param value
+     * @return 
+     */
+    public default ProgressObserver setValueLong(long value){
+        return setValue((int)value);
+    }
     /**
      * 
      * @param offset
@@ -81,6 +92,14 @@ public interface ProgressObserver {
     public ProgressObserver setMaximum(int max);
     /**
      * 
+     * @param max
+     * @return 
+     */
+    public default ProgressObserver setMaximumLong(long max){
+        return setMaximum((int)max);
+    }
+    /**
+     * 
      * @return 
      */
     public int getMinimum();
@@ -112,4 +131,31 @@ public interface ProgressObserver {
      * @return  
      */
     public ProgressObserver setTextShown(boolean value);
+    /**
+     * 
+     * @param bytesWritten 
+     */
+    @Override
+    public default void onProgress(long bytesWritten){
+            // Update the progress with the amount of bytes written
+        setValueLong(bytesWritten);
+    }
+    /**
+     * 
+     * @param total
+     * @throws SevenZipException 
+     */
+    @Override
+    public default void setTotal(long total) throws SevenZipException {
+        setMaximumLong(total);
+    }
+    /**
+     * 
+     * @param complete
+     * @throws SevenZipException 
+     */
+    @Override
+    public default void setCompleted(long complete) throws SevenZipException {
+        setValueLong(complete);
+    }
 }

@@ -862,14 +862,22 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
             newFolderAction.setEnabled(enabled);
             refreshItem.setEnabled(enabled);
             homeFolderButton.setEnabled(enabled);
-            renameItem.setEnabled(enabled && getSelectedIndex() >= 0);
             lookInComboBox.setEnabled(enabled);
             fileListList.setEnabled(enabled);
             fileDetailsTable.setEnabled(enabled);
+            updateRenameEnabled();
         } catch (NullPointerException ex){
             LinkManager.getLogger().log(Level.WARNING, 
                     "Null encountered while setting enable value", ex);
         }
+    }
+    /**
+     * 
+     */
+    protected void updateRenameEnabled(){
+        if (renameItem != null)
+            renameItem.setEnabled(isEnabled() && getDropboxClient() != null && 
+                    getSelectedIndex() >= 0);
     }
     /**
      * 
@@ -1000,6 +1008,7 @@ public class JDropboxFileChooser extends AbstractConfirmDialogPanel {
                 renameItem.setVisible(true);
             else
                 renameItem.setVisible(false);
+            updateRenameEnabled();
         }
     }
     /**

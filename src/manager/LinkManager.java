@@ -10,7 +10,6 @@ import com.dropbox.core.oauth.*;
 import com.dropbox.core.util.IOUtil.ProgressListener;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
-import com.dropbox.core.v2.users.*;
 import com.technicjelle.UpdateChecker;
 import components.*;
 import components.debug.DebugCapable;
@@ -46,15 +45,9 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.*;
 import javax.swing.table.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.Position;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
-import javax.swing.text.StyledDocument;
+import javax.swing.text.*;
 import javax.swing.tree.*;
+import manager.compress.*;
 import manager.config.*;
 import manager.database.*;
 import static manager.database.LinkDatabaseConnection.*;
@@ -64,8 +57,13 @@ import manager.links.*;
 import manager.painters.LinkManagerIconPainter;
 import manager.renderer.*;
 import manager.security.*;
+import manager.sync.*;
 import manager.timermenu.*;
 import measure.format.binary.ByteUnitFormat;
+import net.sf.sevenzipjbinding.*;
+import net.sf.sevenzipjbinding.impl.*;
+import net.sf.sevenzipjbinding.simple.ISimpleInArchive;
+import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
 import org.sqlite.*;
 import org.sqlite.core.*;
 import sql.*;
@@ -82,7 +80,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This is the version of the program.
      */
-    public static final String PROGRAM_VERSION = "0.5.0";
+    public static final String PROGRAM_VERSION = "0.8.0";
     /**
      * The name of the author and main developer.
      */
@@ -122,7 +120,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         {"jackson-core","FasterXML","https://github.com/FasterXML/jackson-core"},
         {"dropbox-core-sdk","Dropbox","https://github.com/dropbox/dropbox-sdk-java"},
         {"ListAction.java","Rob Camick","https://tips4java.wordpress.com/2008/10/14/list-action/"},
-        {"EditListAction.java","Rob Camick","https://tips4java.wordpress.com/2008/10/19/list-editor/"}
+        {"EditListAction.java","Rob Camick","https://tips4java.wordpress.com/2008/10/19/list-editor/"},
+        {"7-Zip-JBinding",null,"https://sevenzipjbind.sourceforge.net/"}
     };
     /**
      * This is the pattern for the file handler to use for the log files of this 
@@ -163,10 +162,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     public static final String DATABASE_FILE_EXTENSION = "db";
     /**
+     * The file extension for 7Zip compressed files.
+     */
+    public static final String SEVEN_ZIP_FILE_EXTENSION = "7z";
+    /**
      * This holds the abstract path to the default database file storing the 
      * tables containing the links.
      */
     public static final String LINK_DATABASE_FILE = "LinkManager."+DATABASE_FILE_EXTENSION;
+    /**
+     * 
+     */
+    public static final String COMPRESSED_LINK_DATABASE_FILE = LINK_DATABASE_FILE+
+            "."+SEVEN_ZIP_FILE_EXTENSION;
     /**
      * This is the name of the preference node used to store the settings for 
      * this program.
@@ -233,11 +241,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is the file extension for log files.
      */
     public static final String LOG_FILE_EXTENSION = "log";
-    /**
-     * This contains the file filter for log files.
-     */
-    public static final FileNameExtensionFilter LOG_FILE_FILTER = 
-            generateExtensionFilter("Log File",LOG_FILE_EXTENSION);
     /**
      * This contains the file filter for Internet Shortcut files.
      */
@@ -332,7 +335,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * up-to-date than the downloaded version.
      */
     private static final int DATABASE_LOADER_CHECK_LOCAL_FLAG = 0x02;
-    
+    /**
+     * 
+     */
     protected static final SimpleDateFormat DEBUG_DATE_FORMAT = 
             new SimpleDateFormat("M/d/yyyy h:mm:ss a");
     /**
@@ -417,26 +422,37 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return connect(file.toString());
     }
     /**
+     * 
+     */
+    private static void initializeSevenZip() throws SevenZipNativeInitializationException{
+        getLogger().entering("LinkManager", "initializeSevenZip");
+        if (SevenZip.isInitializedSuccessfully()){
+            getLogger().exiting("LinkManager", "initializeSevenZip");
+            return;
+        }
+        try{
+            SevenZip.initSevenZipFromPlatformJAR();
+        } catch (SevenZipNativeInitializationException | RuntimeException ex){
+            getLogger().log(Level.INFO, "Could not load 7-Zip library in default location", ex);
+            File tempDir;
+            try {
+                tempDir = Files.createTempDirectory("SevenZipJBinding-").toFile();
+            } catch (IOException exc){
+                getLogger().log(Level.WARNING, "Could not create temp directory", ex);
+                tempDir = new File(LinkManagerUtilities.getProgramDirectory());
+            }
+            getLogger().log(Level.FINER, "Initializing 7-Zip from directory {0}", tempDir);
+            SevenZip.initSevenZipFromPlatformJAR(tempDir);
+        }
+        getLogger().exiting("LinkManager", "initializeSevenZip");
+    }
+    /**
      * This returns whether the program is logged in to Dropbox.
      * @return Whether the program is logged in to Dropbox.
      */
     private boolean isLoggedInToDropbox(){
             // TODO: Deal with invalid access tokens
         return loadDbxUtils() != null && dbxUtils.getAccessToken() != null;
-    }
-    /**
-     * 
-     * @return 
-     */
-    private static File createTempFile(String suffix) throws IOException{
-        return File.createTempFile("LinkManager", suffix);
-    }
-    /**
-     * 
-     * @return 
-     */
-    private static File createTempFile() throws IOException{
-        return createTempFile(null);
     }
     
     private DropboxLinkUtils loadDbxUtils(){
@@ -590,6 +606,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         
         loadDbxUtils();
+        try{
+            initializeSevenZip();
+        } catch (SevenZipNativeInitializationException ex){
+            getLogger().log(Level.WARNING, "Failed to initialize 7-Zip bindings", ex);
+        }
         
         dbxChunkSizeModel = new DbxChunkSizeSpinnerModel();
         initComponents();
@@ -713,7 +734,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         textPopupMenus.put(addLinksPanel.getTextArea(), addLinksPanel.getTextPopupMenu());
         textPopupMenus.put(dropboxSetupPanel.getAuthorizationCodeField(), 
                 dropboxSetupPanel.getAuthorizationCodePopupMenu());
-        textPopupMenus.put(dbxDbFileField, new JPopupMenu());
+        textPopupMenus.put(dbxLocationPanel.getFileTextField(), new JPopupMenu());
         
         pasteAndAddAction = new PasteAndAddAction(){
             @Override
@@ -874,7 +895,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         };
         
         aboutPanel.setProgramIcon(new LinkManagerIcon(128,iconPainter));
-        updateIconLabel.setIcon(new LinkManagerIcon(64,iconPainter));
+        updateCheckPanel.setProgramIcon(new LinkManagerIcon(64,iconPainter));
         
             // Create a style to use to center the text on the text pane
         SimpleAttributeSet centeredText = new SimpleAttributeSet();
@@ -942,7 +963,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.gc();        // Run the garbage collector
             // Configure the program from the settings
         configureProgram();
-        if (!debugMode && checkUpdatesAtStartToggle.isSelected()){
+        if (!debugMode && updateCheckPanel.getCheckForUpdatesAtStartup()){
             updateWorker = new UpdateCheckWorker(true);
             updateWorker.execute();
         }
@@ -1191,21 +1212,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setExternalCard = new javax.swing.JPanel();
         dbxLogInButton = new javax.swing.JButton();
         setDropboxCard = new javax.swing.JPanel();
-        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
-        dbxDbFileField = new javax.swing.JTextField();
-        dbxDataPanel = new javax.swing.JPanel();
-        dbxPfpLabel = new components.JThumbnailLabel();
-        dbxAccountLabel = new javax.swing.JLabel();
-        javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
-        dbxSpaceUsedLabel = new javax.swing.JLabel();
-        javax.swing.JLabel jLabel5 = new javax.swing.JLabel();
-        dbxSpaceFreeLabel = new javax.swing.JLabel();
-        dbxLogOutButton = new javax.swing.JButton();
-        javax.swing.Box.Filler filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
         javax.swing.JLabel jLabel7 = new javax.swing.JLabel();
         dbxChunkSizeSpinner = new javax.swing.JSpinner();
         javax.swing.JLabel jLabel11 = new javax.swing.JLabel();
-        dbxBrowseButton = new javax.swing.JButton();
+        dbxLocationPanel = new manager.sync.SyncLocationPanel();
         javax.swing.JLabel dbFileChangeLabel = new javax.swing.JLabel();
         dbFileChangeCombo = new javax.swing.JComboBox<>();
         locationControlPanel = new javax.swing.JPanel();
@@ -1330,17 +1340,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dropboxSetupPanel = new manager.dropbox.DropboxSetupPanel();
         aboutDialog = new javax.swing.JDialog(this);
         aboutPanel = new components.JAboutPanel();
-        updateCheckDialog = new javax.swing.JDialog(this);
-        updatePanel = new javax.swing.JPanel();
-        updateIconLabel = new javax.swing.JLabel();
-        updateTextLabel = new javax.swing.JLabel();
-        currentVersTextLabel = new javax.swing.JLabel();
-        latestVersTextLabel = new javax.swing.JLabel();
-        checkUpdatesAtStartToggle = new javax.swing.JCheckBox();
-        currentVersLabel = new javax.swing.JLabel();
-        latestVersLabel = new javax.swing.JLabel();
-        updateContinueButton = new javax.swing.JButton();
-        updateOpenButton = new javax.swing.JButton();
+        updateCheckPanel = new manager.UpdateCheckPanel();
         dropboxFC = new manager.dropbox.JDropboxFileChooser();
         progressBar = new javax.swing.JProgressBar();
         javax.swing.JLabel newLinkLabel = new javax.swing.JLabel();
@@ -1411,7 +1411,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbxPrintButton = new javax.swing.JMenuItem();
         setDropboxTestButton = new javax.swing.JMenuItem();
         dropboxRefreshTestButton = new javax.swing.JMenuItem();
-        dbxListFilesTestButton = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
 
         openFC.addActionListener(new java.awt.event.ActionListener() {
@@ -1462,7 +1461,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         databaseFC.setFileSelectionMode(javax.swing.JFileChooser.FILES_AND_DIRECTORIES);
 
         setLocationDialog.setTitle("Set Database Location");
-        setLocationDialog.setMinimumSize(new java.awt.Dimension(480, 380));
+        setLocationDialog.setMinimumSize(new java.awt.Dimension(480, 430));
         setLocationDialog.addComponentListener(new java.awt.event.ComponentAdapter() {
             public void componentMoved(java.awt.event.ComponentEvent evt) {
                 setLocationDialogComponentMoved(evt);
@@ -1498,90 +1497,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             .addGroup(setExternalCardLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(dbxLogInButton)
-                .addContainerGap(158, Short.MAX_VALUE))
+                .addContainerGap(187, Short.MAX_VALUE))
         );
 
         setLocationPanel.add(setExternalCard, "logInCard");
 
         setDropboxCard.setBorder(javax.swing.BorderFactory.createTitledBorder("Dropbox"));
         setDropboxCard.setName("setDropbox"); // NOI18N
-
-        jLabel2.setLabelFor(dbxDbFileField);
-        jLabel2.setText("File:");
-
-        dbxDataPanel.setLayout(new java.awt.GridBagLayout());
-
-        dbxPfpLabel.setImageScaleMode(components.JThumbnailLabel.ALWAYS_SCALE_MAINTAIN_ASPECT_RATIO);
-        dbxPfpLabel.setThumbnailBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 5;
-        gridBagConstraints.ipadx = 100;
-        gridBagConstraints.ipady = 100;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 12);
-        dbxDataPanel.add(dbxPfpLabel, gridBagConstraints);
-
-        dbxAccountLabel.setFont(dbxAccountLabel.getFont().deriveFont(dbxAccountLabel.getFont().getStyle() | java.awt.Font.BOLD));
-        dbxAccountLabel.setText("N/A");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
-        dbxDataPanel.add(dbxAccountLabel, gridBagConstraints);
-
-        jLabel1.setLabelFor(dbxSpaceUsedLabel);
-        jLabel1.setText("Space Used:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 12);
-        dbxDataPanel.add(jLabel1, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 0.9;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 7, 0);
-        dbxDataPanel.add(dbxSpaceUsedLabel, gridBagConstraints);
-
-        jLabel5.setLabelFor(dbxSpaceFreeLabel);
-        jLabel5.setText("Space Free:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 12);
-        dbxDataPanel.add(jLabel5, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        dbxDataPanel.add(dbxSpaceFreeLabel, gridBagConstraints);
-
-        dbxLogOutButton.setText("Log Out");
-        dbxLogOutButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dbxLogOutButtonActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
-        dbxDataPanel.add(dbxLogOutButton, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
-        gridBagConstraints.weightx = 0.75;
-        dbxDataPanel.add(filler1, gridBagConstraints);
 
         jLabel7.setLabelFor(dbxChunkSizeSpinner);
         jLabel7.setText("Chunk Size:");
@@ -1595,10 +1517,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         jLabel11.setText("MiB");
 
-        dbxBrowseButton.setText("Browse");
-        dbxBrowseButton.addActionListener(new java.awt.event.ActionListener() {
+        dbxLocationPanel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dbxBrowseButtonActionPerformed(evt);
+                dbxLocationPanelActionPerformed(evt);
+            }
+        });
+        dbxLocationPanel.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                dbxLocationPanelPropertyChange(evt);
             }
         });
 
@@ -1609,13 +1535,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             .addGroup(setDropboxCardLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(dbxDataPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(setDropboxCardLayout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbxDbFileField, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dbxBrowseButton))
+                    .addComponent(dbxLocationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 415, Short.MAX_VALUE)
                     .addGroup(setDropboxCardLayout.createSequentialGroup()
                         .addComponent(jLabel7)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1629,12 +1549,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, setDropboxCardLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(dbxDataPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(dbxDbFileField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(dbxBrowseButton))
+                .addComponent(dbxLocationPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(setDropboxCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
@@ -2670,119 +2585,19 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         });
         aboutDialog.getContentPane().add(aboutPanel, java.awt.BorderLayout.CENTER);
 
-        updateCheckDialog.setTitle(PROGRAM_NAME+" Update Checker");
-        updateCheckDialog.setMinimumSize(new java.awt.Dimension(400, 196));
-        updateCheckDialog.setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
-        updateCheckDialog.setResizable(false);
-
-        updatePanel.setLayout(new java.awt.GridBagLayout());
-
-        updateIconLabel.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 18);
-        updatePanel.add(updateIconLabel, gridBagConstraints);
-
-        updateTextLabel.setText("A new version of "+PROGRAM_NAME+" is available.");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.weightx = 0.9;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 18, 0);
-        updatePanel.add(updateTextLabel, gridBagConstraints);
-
-        currentVersTextLabel.setText("Current Version:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 12);
-        updatePanel.add(currentVersTextLabel, gridBagConstraints);
-
-        latestVersTextLabel.setText("Latest Version:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 12);
-        updatePanel.add(latestVersTextLabel, gridBagConstraints);
-
-        checkUpdatesAtStartToggle.setSelected(true);
-        checkUpdatesAtStartToggle.setText("Check for Updates at startup");
-        checkUpdatesAtStartToggle.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                checkUpdatesAtStartToggleActionPerformed(evt);
+        updateCheckPanel.setDialogTitle(PROGRAM_NAME+" Update Checker");
+        updateCheckPanel.setCurrentVersion(PROGRAM_VERSION);
+        updateCheckPanel.setProgramName(PROGRAM_NAME);
+        updateCheckPanel.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                updateCheckPanelPropertyChange(evt);
             }
         });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(13, 0, 0, 0);
-        updatePanel.add(checkUpdatesAtStartToggle, gridBagConstraints);
-
-        currentVersLabel.setText(PROGRAM_VERSION);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 6, 0);
-        updatePanel.add(currentVersLabel, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHWEST;
-        updatePanel.add(latestVersLabel, gridBagConstraints);
-
-        updateContinueButton.setText("Continue");
-        updateContinueButton.addActionListener(new java.awt.event.ActionListener() {
+        updateCheckPanel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                updateContinueButtonActionPerformed(evt);
+                updateCheckPanelActionPerformed(evt);
             }
         });
-
-        updateOpenButton.setText("Go to web page");
-        updateOpenButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                updateOpenButtonActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout updateCheckDialogLayout = new javax.swing.GroupLayout(updateCheckDialog.getContentPane());
-        updateCheckDialog.getContentPane().setLayout(updateCheckDialogLayout);
-        updateCheckDialogLayout.setHorizontalGroup(
-            updateCheckDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(updateCheckDialogLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(updateCheckDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(updatePanel, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, updateCheckDialogLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(updateOpenButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(updateContinueButton)))
-                .addContainerGap())
-        );
-        updateCheckDialogLayout.setVerticalGroup(
-            updateCheckDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(updateCheckDialogLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(updatePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(13, 13, 13)
-                .addGroup(updateCheckDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(updateContinueButton)
-                    .addComponent(updateOpenButton))
-                .addContainerGap())
-        );
 
         dropboxFC.setAcceptButtonToolTipText("Open selected file");
         dropboxFC.setDialogTitle("Set Database Location...");
@@ -3264,14 +3079,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         });
         dropboxTestMenu.add(dropboxRefreshTestButton);
 
-        dbxListFilesTestButton.setText("List Files");
-        dbxListFilesTestButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dbxListFilesTestButtonActionPerformed(evt);
-            }
-        });
-        dropboxTestMenu.add(dbxListFilesTestButton);
-
         debugMenu.add(dropboxTestMenu);
 
         jMenuItem1.setText("New Download");
@@ -3542,7 +3349,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         saver = new ResetDatabaseIDs();
         saver.execute();
     }//GEN-LAST:event_dbResetIDsButtonActionPerformed
-
+    /**
+     * 
+     * @param dialogMsg
+     * @param logMsg
+     * @param ex 
+     */
+    private void processDatabaseError(String dialogMsg, String logMsg, Exception ex){
+        String errMsg = "Database Error: " + ex;
+        getLogger().log(Level.WARNING, logMsg, ex);
+        if (ex instanceof UncheckedSQLException){
+            getLogger().log(Level.WARNING,logMsg + " cause", ex.getCause());
+            errMsg += "\nCause: " + ex.getCause();
+        }
+        JOptionPane.showMessageDialog(this, dialogMsg+".\n"+errMsg,"Database Error",
+                JOptionPane.ERROR_MESSAGE);
+    }
+    /**
+     * 
+     * @param msg
+     * @param ex 
+     */
+    private void processDatabaseError(String msg, Exception ex){
+        processDatabaseError(msg,msg,ex);
+    }
+    
     @SuppressWarnings("unchecked")
     private void addPrefixButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPrefixButtonActionPerformed
             // If the add prefix button is disabled
@@ -3578,15 +3409,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 //            searchUsedPrefixes(conn,key);
         }
         catch (SQLException | UncheckedSQLException ex) {
-            String msg = "Could not add prefix \""+prefixField.getText()+"\"";
-            String errMsg = "Database Error: " + ex;
-            getLogger().log(Level.WARNING, msg, ex);
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,msg + " cause", ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, msg+".\n"+errMsg,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Could not add prefix \""+prefixField.getText()+"\"",
+                    ex);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -3609,17 +3433,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             ((DefaultTableModel)dbPrefixTable.getModel()).removeRow(selRow);
         }
         catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
-            String msg = String.format("Could not remove prefix %d: \"%s\"",
+            processDatabaseError(String.format("Could not remove prefix %d: \"%s\"",
                     dbPrefixTable.getValueAt(selRow, 0),
-                    dbPrefixTable.getValueAt(selRow, 1));
-            String errMsg = "Database Error: " + ex;
-            getLogger().log(Level.WARNING,msg, ex);
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,msg + " cause", ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, msg + ".\n"+ errMsg,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+                    dbPrefixTable.getValueAt(selRow, 1)),ex);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -4233,7 +4049,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // If the local file should be checked for more up-to-date lists
         if (LinkManagerUtilities.getFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG)){
             try {   // Create a temporary file for the downloaded database
-                file = createTempFile();
+                file = File.createTempFile(INTERNAL_PROGRAM_NAME, null);
                     // Make sure the file is deleted on exit
                 file.deleteOnExit();
             } catch (IOException ex) {
@@ -4244,7 +4060,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
             loader = new TempDatabaseDownloader(file,
-                    config.getDatabaseFileSyncPath(getSyncMode()),getSyncMode(),
+                    config.getSyncLocationSettings(getSyncMode()).getDatabaseFileName(),getSyncMode(),
                     loadFlags);
             loader.execute();
         } else {
@@ -4327,14 +4143,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                // Ensure that the database last modified time is updated
             conn.setDatabaseLastModified();
         } catch (SQLException | UncheckedSQLException ex) {
-            getLogger().log(Level.WARNING, "Error removing unused data", ex);
-            String errMsg = "Database Error: " + ex;
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,"Error removing unused data cause", ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, "Error removing unused data.\n"+errMsg,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Error removing unused data",ex);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -4386,14 +4195,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                // Ensure that the database last modified time is updated
             setDBLastModLabelText(conn.setDatabaseLastModified());
         } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
-            getLogger().log(Level.WARNING,"Error applying prefix settings", ex);
-            String errMsg = "Database Error: " + ex;
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,"Error applying prefix settings cause", ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, "Error applying prefix settings.\n"+errMsg,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Error applying prefix settings",ex);
         }
     }//GEN-LAST:event_prefixApplyButtonActionPerformed
     /**
@@ -4461,15 +4263,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             setListEditSettings(conn,listID);
         } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
-            String msg = "Error loading settings for list " + listID;
-            getLogger().log(Level.WARNING,msg, ex);
-            String errMsg = "Database Error: " + ex;
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,msg+" cause", ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, msg+".\n"+errMsg,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Error loading settings for list " + listID,ex);
         }
     }//GEN-LAST:event_dbListIDComboActionPerformed
 
@@ -4505,15 +4299,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                    // Ensure that the database last modified time is updated
                 setDBLastModLabelText(conn.setDatabaseLastModified());
             } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
-                String msg = "Error changing settings for list " + listID;
-                getLogger().log(Level.WARNING,msg, ex);
-                String errMsg = "Database Error: " + ex;
-                if (ex instanceof UncheckedSQLException){
-                    getLogger().log(Level.WARNING,msg+" cause", ex.getCause());
-                    errMsg += "\nCause: " + ex.getCause();
-                }
-                JOptionPane.showMessageDialog(this, msg+".\n"+errMsg,
-                        "Database Error", JOptionPane.ERROR_MESSAGE);
+                processDatabaseError("Error changing settings for list " + listID,ex);
             }
         }
     }//GEN-LAST:event_dbListEditApplyButtonActionPerformed
@@ -4527,18 +4313,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         try(LinkDatabaseConnection conn = connect(getDatabaseFile())){
             searchUsedPrefixes(conn,getSearchPrefix(prefixStr));
         } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
-            getLogger().log(Level.WARNING, "Error searching for prefix " + 
-                    prefixStr, ex);
-            String msg = "Error searching for prefix " + prefixStr;
-                getLogger().log(Level.WARNING,msg, ex);
-                String errMsg = "Database Error: " + ex;
-                if (ex instanceof UncheckedSQLException){
-                    getLogger().log(Level.WARNING,msg+" cause", ex.getCause());
-                    errMsg += "\nCause: " + ex.getCause();
-                }
-                JOptionPane.showMessageDialog(this, 
-                        "Could Not Search For Prefix \""+prefixStr+"\".\n"+errMsg,
-                        "Database Error", JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Could Not Search For Prefix \""+prefixStr+"\"",
+                    "Error searching for prefix " + prefixStr,ex);
         }
     }//GEN-LAST:event_dbUsedPrefixSearchButtonActionPerformed
 
@@ -4560,14 +4336,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                // Ensure that the database last modified time is updated
             conn.setDatabaseLastModified();
         } catch (SQLException | UncheckedSQLException ex) {
-            getLogger().log(Level.WARNING,"Error removing duplicate data", ex);
-            String errMsg = "Database Error: " + ex;
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,"Error removing duplicate data cause", ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, "Error removing duplicate data.\n"+errMsg,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Error removing duplicate data",ex);
         }
         loader = new LoadDatabaseViewer(true);
         loader.execute();
@@ -4604,16 +4373,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     getSearchPrefix(prefixStr) : null;
             searchListContents(conn,dbSearchField.getText(),prefixID);
         } catch (SQLException | UncheckedSQLException | IllegalArgumentException ex) {
-            String msg = "Error searching for prefix " + prefixStr;
-            getLogger().log(Level.WARNING,msg, ex);
-            String errMsg = "Database Error: " + ex;
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,msg+" cause", ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, 
-                    "Could Not Search For Prefix \""+prefixStr+"\".\n"+errMsg,
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Could Not Search For Prefix \""+prefixStr+"\"",
+                    "Error searching for prefix " + prefixStr,ex);
         }
     }//GEN-LAST:event_dbSearchButtonActionPerformed
     
@@ -4645,7 +4406,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (setLocationDialog.isLocationByPlatform())
             setLocationDialog.setLocationRelativeTo(this);
         setDatabaseFileFields(config.getDatabaseFileName());
-        setDropboxDatabaseFileFields(config.getDropboxDatabaseFileName());
+        setDropboxDatabaseFileFields(config
+                .getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
+                .getDatabaseFileName());
         loadExternalAccountData();
         updateDBLocationEnabled();
         setLocationDialog.setVisible(true);
@@ -4659,7 +4422,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private void setDropboxDatabaseFileFields(String fileName){
-        dbxDbFileField.setText(DropboxUtilities.formatDropboxPath(fileName));
+        dbxLocationPanel.setFileText(DropboxUtilities.formatDropboxPath(fileName));
     }
     
     private void setDBCancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBCancelButtonActionPerformed
@@ -4683,7 +4446,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // a browse dialog and make it more robust
             
                 // Get the database file name for Dropbox
-            String dbxFileName = dbxDbFileField.getText().trim();
+            String dbxFileName = dbxLocationPanel.getFileText().trim();
                 // If the Dropbox database file name is empty  or ends with a 
             if (dbxFileName.isEmpty() || dbxFileName.endsWith("/")) // slash
                     // Add the database file name to the path
@@ -4691,9 +4454,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Format the Dropbox database file name
             dbxFileName = DropboxUtilities.formatDropboxPath(dbxFileName);
                 // If the Dropbox database file name has changed
-            if (!Objects.equals(dbxFileName, config.getDropboxDatabaseFileName())){
+            if (!Objects.equals(dbxFileName, config
+                    .getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
+                    .getDatabaseFileName())){
                     // Set the Dropbox database file name
-                config.setDropboxDatabaseFileName(dbxFileName);
+                config.getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
+                        .setDatabaseFileName(dbxFileName);
                 setDropboxDatabaseFileFields(dbxFileName);
             }
         }
@@ -4820,7 +4586,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void setDBResetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBResetButtonActionPerformed
         setDatabaseFileFields(LINK_DATABASE_FILE);
-        setDropboxDatabaseFileFields(LINK_DATABASE_FILE);
+        setDropboxDatabaseFileFields((dbxLocationPanel.isFileCompressionEnabled())?
+                COMPRESSED_LINK_DATABASE_FILE:LINK_DATABASE_FILE);
     }//GEN-LAST:event_setDBResetButtonActionPerformed
     
     private void dbFileBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbFileBrowseButtonActionPerformed
@@ -4902,19 +4669,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         System.out.println("Dropbox Expires At: " + dbxUtils.getTokenExpiresAtDate());
     }//GEN-LAST:event_dbxPrintButtonActionPerformed
 
-    private void dbxLogOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogOutButtonActionPerformed
-        // TODO: Figure out how to properly deal with logging out of dropbox
-            // Clear the account credentials
-        dbxUtils.clearCredentials();
-            // Load the external account data
-        loadExternalAccountData();
-            // Remind the user that this program is still connected to their 
-            // Dropbox account, and that they've only logged out on this end
-        JOptionPane.showMessageDialog(setLocationDialog, 
-                "Don't forget to disconnect this app from your Dropbox account.",
-                "Dropbox Log out",JOptionPane.INFORMATION_MESSAGE);
-    }//GEN-LAST:event_dbxLogOutButtonActionPerformed
-
     private void dbxLogInButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLogInButtonActionPerformed
         if (loadDbxUtils() == null){
             JOptionPane.showMessageDialog(setLocationDialog,
@@ -4987,8 +4741,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         DatabaseSyncMode mode = getSyncMode();
         if (mode != null){
             SavingStage stage = SavingStage.SAVE_DATABASE;
-            if (getDatabaseFile().exists())
-                stage = SavingStage.UPLOAD_FILE;
+            if (getDatabaseFile().exists()){
+                if (dbxLocationPanel.isFileCompressionEnabled())
+                    stage = SavingStage.COMPRESS_FILE;
+                else
+                    stage = SavingStage.UPLOAD_FILE;
+            }
             saver = new DatabaseSaver(stage){
                 @Override
                 public void setExitAfterSaving(boolean value){
@@ -5066,18 +4824,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         } catch (SQLException | UncheckedSQLException ex) {
             dbQueryPanel.setExecutionTime(0);
             dbQueryPanel.showError(ex);
-            getLogger().log(Level.WARNING,
-                    "Failed to run query (code: "+dbQueryPanel.getErrorCode()+")",
-                    ex);
-            String errMsg = "Database Error: " + ex;
-            if (ex instanceof UncheckedSQLException){
-                getLogger().log(Level.WARNING,
-                        "Failed to run query cause (code: "+dbQueryPanel.getErrorCode()+")",
-                        ex.getCause());
-                errMsg += "\nCause: " + ex.getCause();
-            }
-            JOptionPane.showMessageDialog(this, errMsg, "Database Error",
-                    JOptionPane.ERROR_MESSAGE);
+            processDatabaseError("Failed to run query (code: "+dbQueryPanel.getErrorCode()+")",ex);
         }
         System.gc();
         if (updated){   // Update the database view if there were changes
@@ -5088,7 +4835,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         loader = new TempDatabaseDownloader(getDatabaseFile(),
-                config.getDatabaseFileSyncPath(getSyncMode()),getSyncMode(),0);
+                config.getSyncLocationSettings(getSyncMode()).getDatabaseFileName(),getSyncMode(),0);
         loader.execute();
     }//GEN-LAST:event_jMenuItem1ActionPerformed
     
@@ -5115,78 +4862,77 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }//GEN-LAST:event_aboutPanelActionPerformed
 
-    private void checkUpdatesAtStartToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkUpdatesAtStartToggleActionPerformed
-        config.setCheckForUpdateAtStartup(checkUpdatesAtStartToggle.isSelected());
-    }//GEN-LAST:event_checkUpdatesAtStartToggleActionPerformed
+    private void updateCheckPanelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_updateCheckPanelPropertyChange
+        if (UpdateCheckPanel.CHECK_FOR_UPDATES_AT_STARTUP_PROPERTY_CHANGED.equals(evt.getPropertyName()))
+            config.setCheckForUpdateAtStartup(updateCheckPanel.getCheckForUpdatesAtStartup());
+    }//GEN-LAST:event_updateCheckPanelPropertyChange
 
-    private void updateContinueButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateContinueButtonActionPerformed
-        updateCheckDialog.setVisible(false);
-    }//GEN-LAST:event_updateContinueButtonActionPerformed
-
-    private void updateOpenButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateOpenButtonActionPerformed
-        // Get the update URL
-        String url = updateChecker.getUpdateUrl();
-        try {   // Try to open the update URL in the user's web browser
-            Desktop.getDesktop().browse(new URL(url).toURI());
-        } catch (URISyntaxException | IOException ex) {
-            getLogger().log(Level.WARNING,"Could not open update URL "+url,ex);
+    private void updateCheckPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateCheckPanelActionPerformed
+        if (UpdateCheckPanel.OPEN_WEBSITE_COMMAND.equals(evt.getActionCommand())){
+                // Get the update URL
+            String url = updateChecker.getUpdateUrl();
+            try {   // Try to open the update URL in the user's web browser
+                Desktop.getDesktop().browse(new URL(url).toURI());
+            } catch (URISyntaxException | IOException ex) {
+                getLogger().log(Level.WARNING,"Could not open update URL "+url,ex);
+            }
         }
-    }//GEN-LAST:event_updateOpenButtonActionPerformed
+    }//GEN-LAST:event_updateCheckPanelActionPerformed
 
-    private void dbxListFilesTestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxListFilesTestButtonActionPerformed
-        try {   // Get a client to communicate with Dropbox, refreshing the 
-                // Dropbox credentials if necessary
-            DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
-            
-            
-            DefaultMutableTreeNode nodes = DropboxUtilities.listFolderTree(client, "");
-            Iterator<TreeNode> nodeItr = nodes.preorderEnumeration().asIterator();
-            
-            while (nodeItr.hasNext()){
-                TreeNode temp = nodeItr.next();
-                if (temp instanceof DefaultMutableTreeNode){
-                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)temp;
-                    Metadata metadata;
-                    if (node.getUserObject() instanceof Metadata)
-                        metadata = (Metadata) node.getUserObject();
-                    else
-                        continue;
-                    System.out.print("    ".repeat(node.getLevel()));
-                    if (metadata != null)
-                        System.out.print(metadata.getName());
-                    if (metadata instanceof FileMetadata){
-                        FileMetadata file = (FileMetadata) metadata;
-                        ExportInfo exportInfo = file.getExportInfo();
-                        System.out.printf(" (%d bytes, %s, %s", file.getSize(),
-                                file.getClientModified(), file.getServerModified());
-                        if (exportInfo != null)
-                            System.out.printf(", %s, %s",
-                                    exportInfo.getExportAs(),exportInfo.getExportOptions());
-                        System.out.print(")");
+    private void dbxLocationPanelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxLocationPanelActionPerformed
+        switch(evt.getActionCommand()){
+            case (SyncLocationPanel.BROWSE_COMMAND):
+                try{    // Get a client to communicate with Dropbox, refreshing the 
+                        // Dropbox credentials if necessary
+                    DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
+                    int option = dropboxFC.showOpenDialog(this,client);
+                    config.storeDropboxFileChooser(dropboxFC);
+                    String path = dropboxFC.getSelectedPath();
+                    config.setSelectedDropboxPath(path);
+                    if (option == JDropboxFileChooser.ACCEPT_OPTION){
+                        dbxLocationPanel.setFileText(path);
                     }
-                    System.out.println();
+                } catch (DbxException | UncheckedDbxException ex) {
+                    getLogger().log(Level.WARNING, "Cannot browse Dropbox", ex);
                 }
-            }
-        } catch (DbxException ex) {
-            getLogger().log(Level.WARNING, "Failed to list files", ex);
+                return;
+            case (SyncLocationPanel.LOG_OUT_COMMAND):
+                // TODO: Figure out how to properly deal with logging out of dropbox
+                // Clear the account credentials
+                dbxUtils.clearCredentials();
+                // Load the external account data
+                loadExternalAccountData();
+                // Remind the user that this program is still connected to their
+                // Dropbox account, and that they've only logged out on this end
+                JOptionPane.showMessageDialog(setLocationDialog,
+                    "Don't forget to disconnect this app from your Dropbox account.",
+                    "Dropbox Log out",JOptionPane.INFORMATION_MESSAGE);
         }
-    }//GEN-LAST:event_dbxListFilesTestButtonActionPerformed
+    }//GEN-LAST:event_dbxLocationPanelActionPerformed
 
-    private void dbxBrowseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbxBrowseButtonActionPerformed
-        try{    // Get a client to communicate with Dropbox, refreshing the 
-                // Dropbox credentials if necessary
-            DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
-            int option = dropboxFC.showOpenDialog(this,client);
-            config.storeDropboxFileChooser(dropboxFC);
-            String path = dropboxFC.getSelectedPath();
-            config.setSelectedDropboxPath(path);
-            if (option == JDropboxFileChooser.ACCEPT_OPTION){
-                dbxDbFileField.setText(path);
-            }
-        } catch (DbxException | UncheckedDbxException ex) {
-            getLogger().log(Level.WARNING, "Cannot browse Dropbox", ex);
-        } 
-    }//GEN-LAST:event_dbxBrowseButtonActionPerformed
+    private void dbxLocationPanelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dbxLocationPanelPropertyChange
+        switch(evt.getPropertyName()){
+            case(SyncLocationPanel.FILE_COMPRESSION_ENABLED_PROPERTY_CHANGED):
+                config.getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
+                        .setFileCompressionEnabled(dbxLocationPanel.isFileCompressionEnabled());
+                String path = dbxLocationPanel.getFileText();
+                if (path.endsWith("."+SEVEN_ZIP_FILE_EXTENSION)){
+                    if (!dbxLocationPanel.isFileCompressionEnabled())
+                        path = path.substring(0,path.length()-(SEVEN_ZIP_FILE_EXTENSION.length()+1));
+                } else if (dbxLocationPanel.isFileCompressionEnabled())
+                    path += "."+SEVEN_ZIP_FILE_EXTENSION;
+                if (dbxLocationPanel.getFileText().equals(dropboxFC.getSelectedPath())){
+                    dropboxFC.setSelectedPath(path);
+                    config.setSelectedDropboxPath(path);
+                }
+                dbxLocationPanel.setFileText(path);
+                break;
+            case (SyncLocationPanel.FILE_COMPRESSION_LEVEL_PROPERTY_CHANGED):
+                config.getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
+                        .setFileCompressionLevel(dbxLocationPanel.getFileCompressionLevel());
+        }
+    }//GEN-LAST:event_dbxLocationPanelPropertyChange
+    
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
@@ -5253,15 +4999,18 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private void loadExternalAccountData(){
-        if (isLoggedInToDropbox()){
-            dbxLoader = new DbxAccountLoader();
-            dbxLoader.execute();
-        }
-        else {
+    private void loadExternalAccountData(DatabaseSyncMode mode){
+        if (mode == null){
             LinkManagerUtilities.setCard(setLocationPanel,setExternalCard);
             updateExternalDBButtons();
+        } else {
+            accountLoader = new AccountLoader(mode);
+            accountLoader.execute();
         }
+    }
+    
+    private void loadExternalAccountData(){
+        loadExternalAccountData(getSyncMode());
     }
     
     private void setDBLastModLabelText(Long lastMod){
@@ -5486,7 +5235,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         listTabsManipulator.setEnabled(enabled);
         addLinksPanel.setEnabled(enabled);
         copyOrMoveListSelector.setEnabled(enabled);
-        updateOpenButton.setEnabled(enabled);
+        updateCheckPanel.setEnabled(enabled);
         aboutPanel.setEnabled(enabled);
         updateButtons();
         
@@ -5509,9 +5258,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         dbFileField.setEditable(dbFileBrowseButton.isEnabled());
         
         dbxLogInButton.setEnabled(setDBLocationItem.isEnabled() && dbxUtils != null);
-        dbxLogOutButton.setEnabled(setDBLocationItem.isEnabled());
-        dbxBrowseButton.setEnabled(dbxLogInButton.isEnabled());
-        dbxDbFileField.setEditable(dbxBrowseButton.isEnabled());
+        dbxLocationPanel.setEnabled(dbxLogInButton.isEnabled());
         dbxChunkSizeSpinner.setEnabled(dbxLogInButton.isEnabled());
         
         updateDBLocationButtons();
@@ -5619,14 +5366,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     @Override
     public void useWaitCursor(boolean isWaiting) {
         setCursor((isWaiting)?Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR):null);
-    }
-    /**
-     * 
-     * @param panel 
-     */
-    private void repaintIfSelected(LinksListPanel panel){
-        if (panel == getSelectedList())
-            panel.repaint();
     }
     /**
      * This returns whether the program is currently saving a file.
@@ -5740,9 +5479,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private LinksListWorker linksWorker = null;
     /**
-     * This is used to load the account details for the user's Dropbox account.
+     * This is used to load the account details for the user's account.
      */
-    private DbxAccountLoader dbxLoader = null;
+    private AccountLoader accountLoader = null;
     /**
      * This is a progress observer used to observe the progress, particularly 
      * when loading and saving lists.
@@ -5817,7 +5556,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private manager.timermenu.AutoHideMenu autoHideMenu;
     private manager.timermenu.AutosaveMenu autosaveMenu;
     private javax.swing.JButton backupDBButton;
-    private javax.swing.JCheckBox checkUpdatesAtStartToggle;
     private javax.swing.JMenuItem clearListSelItem;
     private javax.swing.JMenuItem clearSelTabItem;
     private javax.swing.JFileChooser configFC;
@@ -5826,8 +5564,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton copyLinkButton;
     private components.JListSelector<String> copyOrMoveListSelector;
     private manager.SelectedItemCountPanel copyOrMoveSelCountPanel;
-    private javax.swing.JLabel currentVersLabel;
-    private javax.swing.JLabel currentVersTextLabel;
     private javax.swing.JDialog databaseDialog;
     private javax.swing.JFileChooser databaseFC;
     private javax.swing.JFileChooser databaseUpdateFC;
@@ -5884,18 +5620,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JLabel dbVersionLabel;
     private javax.swing.JMenuItem dbViewItem;
     private manager.database.DatabaseTableViewer dbViewer;
-    private javax.swing.JLabel dbxAccountLabel;
-    private javax.swing.JButton dbxBrowseButton;
     private javax.swing.JSpinner dbxChunkSizeSpinner;
-    private javax.swing.JPanel dbxDataPanel;
-    private javax.swing.JTextField dbxDbFileField;
-    private javax.swing.JMenuItem dbxListFilesTestButton;
+    private manager.sync.SyncLocationPanel dbxLocationPanel;
     private javax.swing.JButton dbxLogInButton;
-    private javax.swing.JButton dbxLogOutButton;
-    private components.JThumbnailLabel dbxPfpLabel;
     private javax.swing.JMenuItem dbxPrintButton;
-    private javax.swing.JLabel dbxSpaceFreeLabel;
-    private javax.swing.JLabel dbxSpaceUsedLabel;
     private javax.swing.JMenu debugMenu;
     private javax.swing.JCheckBoxMenuItem doubleNewLinesToggle;
     private javax.swing.JMenuItem downloadDBItem;
@@ -5913,8 +5641,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem hideAllListsItem;
     private javax.swing.JMenu hideListsMenu;
     private javax.swing.JMenuItem jMenuItem1;
-    private javax.swing.JLabel latestVersLabel;
-    private javax.swing.JLabel latestVersTextLabel;
     private javax.swing.JLabel linkCountLabel;
     private javax.swing.JOptionPane linkEditPane;
     private javax.swing.JCheckBoxMenuItem linkOperationToggle;
@@ -5987,25 +5713,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private components.debug.SlowTestMenuItem slowTestToggle;
     private javax.swing.JCheckBoxMenuItem syncDBToggle;
     private javax.swing.JPanel tabsPanelDisplay;
-    private javax.swing.JDialog updateCheckDialog;
-    private javax.swing.JButton updateContinueButton;
+    private manager.UpdateCheckPanel updateCheckPanel;
     private javax.swing.JButton updateDBFileButton;
     private javax.swing.JComboBox<String> updateDBFileCombo;
     private javax.swing.JMenuItem updateDatabaseItem;
-    private javax.swing.JLabel updateIconLabel;
     private javax.swing.JMenuItem updateListsItem;
-    private javax.swing.JButton updateOpenButton;
-    private javax.swing.JPanel updatePanel;
-    private javax.swing.JLabel updateTextLabel;
     private javax.swing.JMenuItem uploadDBItem;
     private javax.swing.JLabel userIDLabel;
     // End of variables declaration//GEN-END:variables
-    /**
-     * 
-     */
-    protected void incrementProgressValue(){
-        progressBar.setValue(progressBar.getValue()+1);
-    }
     /**
      * 
      * @param model
@@ -6188,6 +5903,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return msg;
     }
     /**
+     * 
+     * @param msg
+     * @param showError
+     * @param ex
+     * @return 
+     */
+    private String get7ZipFailureMessage(String msg, boolean showError, Exception ex){
+            // If the program is either in debug mode or if details are to be 
+            // shown and there was an exception thrown
+        if ((isInDebug() || showError) && ex != null){
+            msg += "\nError: " + ex;
+            if (ex instanceof SevenZipException && ex.getCause() != null)
+                msg += "\nCause: " + ex.getCause();
+        }
+        return msg;
+    }
+    /**
      * This attempts to write the List of Strings to the given file.
      * @param file The file to write to.
      * @param list The list of String to write to the file.
@@ -6334,8 +6066,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // Set the Dropbox chunk size multiplier
         dbxChunkSizeModel.setMultiplier(config.getDropboxChunkSizeMultiplier(
                 dbxChunkSizeModel.getMultiplier()));
-        checkUpdatesAtStartToggle.setSelected(config.getCheckForUpdateAtStartup(
-                checkUpdatesAtStartToggle.isSelected()));
+        updateCheckPanel.setCheckForUpdatesAtStartup(config.getCheckForUpdateAtStartup(
+                updateCheckPanel.getCheckForUpdatesAtStartup()));
+        SyncLocationSettings dbxSettings = config.getSyncLocationSettings(DatabaseSyncMode.DROPBOX);
+        dbxLocationPanel.setFileCompressionEnabled(dbxSettings.isFileCompressionEnabled());
+        dbxLocationPanel.setFileCompressionLevel(dbxSettings.getFileCompressionLevel());
             // If the program has fully loaded
         if (fullyLoaded){
             getLogger().finer("Program is fully loaded");
@@ -6799,6 +6534,82 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         getLogger().exiting(this.getClass().getName(), "loadDatabase");
         return tabsModels;
+    }
+    /**
+     * 
+     * @param source
+     * @param archive
+     * @param targetPath
+     * @param level
+     * @throws SevenZipException
+     * @throws IOException 
+     */
+    private void compressFile(File source, File archive, String targetPath, int level) 
+            throws SevenZipException, IOException{
+        getLogger().entering(this.getClass().getName(), "compressFile", 
+                new Object[]{source,archive,targetPath,level});
+        getLogger().log(Level.FINER, "Using compression level {0}", level);
+        try (RandomAccessFile raf = new RandomAccessFile(archive, "rw");
+                IOutCreateArchive7z outArchive = SevenZip.openOutArchive7z()){
+                // Configure archive
+            outArchive.setLevel(level);
+            outArchive.setSolid(true);
+            progressObserver.setValue(0);
+            progressObserver.setIndeterminate(false);
+            FileCreateCallback7z callback = new FileCreateCallback7z(progressObserver,source);
+            if (targetPath != null)
+                callback.getFilePathMap().put(source, targetPath);
+                // Create the archive
+            outArchive.createArchive(new RandomAccessFileOutStream(raf),1,callback);
+        }
+        getLogger().exiting(this.getClass().getName(), "compressFile");
+    }
+    /**
+     * 
+     * @param archive
+     * @param targetPath
+     * @param target
+     * @return
+     * @throws SevenZipException
+     * @throws IOException 
+     */
+    private File extractFile(IInArchive archive, String targetPath, 
+            File target) throws SevenZipException, IOException{
+        getLogger().entering(this.getClass().getName(), "extractFile", 
+                new Object[]{archive,targetPath,target});
+        boolean found = false;
+            // Get a simple interface of the archive inArchive
+        ISimpleInArchive simpleInArchive = archive.getSimpleInterface();
+        for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()){
+            String path = item.getPath();
+            if (path == null || path.equals(targetPath)){
+                found = true;
+                ExtractOperationResult result;
+                progressObserver.setValue(0);
+                progressObserver.setValueLong(item.getSize());
+                try(OutputStreamSequentialOutStream output = 
+                        new OutputStreamSequentialOutStream(
+                                new BufferedOutputStream(
+                                        new FileOutputStream(target)))){
+                    result = item.extractSlow(output);
+                }
+                if (result != ExtractOperationResult.OK){
+                    getLogger().log(Level.WARNING, "Error extracting item: {0}", result);
+                    throw new SevenZipException("Error extracting item: " + result.toString());
+                } else {
+                    java.util.Date lastMod = item.getLastWriteTime();
+                    if (lastMod == null)
+                        lastMod = item.getLastAccessTime();
+                    if (lastMod != null)
+                        target.setLastModified(lastMod.getTime());
+                    break;
+                }
+            }
+        }
+        if (!found)
+            target = null;
+        getLogger().exiting(this.getClass().getName(), "extractFile", target);
+        return target;
     }
     /**
      * 
@@ -7957,7 +7768,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     boolean temp = model.removeAll(current.getModel());
                     modified |= temp;
                 }
-                incrementProgressValue();
+                progressObserver.incrementValue();
             }
             if (!isSource && modified)
                 models.put(panel, model);
@@ -8288,6 +8099,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         DOWNLOADING_FILE,
         
+        EXTRACTING_FILE,
+        
         LOADING_FILE;
         
     }
@@ -8299,6 +8112,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected LoadingStage stage;
         
         protected File downloadedFile;
+        
+        protected File extractedFile = null;
         
         protected String filePath;
         
@@ -8361,7 +8176,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
                 LoadingStage stage, boolean showFileNotFound) {
-            this(file,config.getDatabaseFileSyncPath(mode),mode,stage,showFileNotFound);
+            this(file,config.getSyncLocationSettings(mode).getDatabaseFileName(),
+                    mode,stage,showFileNotFound);
         }
         /**
          * 
@@ -8411,7 +8227,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
                 boolean showFileNotFound) {
-            this(file,config.getDatabaseFileSyncPath(mode),mode,showFileNotFound);
+            this(file,config.getSyncLocationSettings(mode).getDatabaseFileName(),
+                    mode,showFileNotFound);
         }
         /**
          * 
@@ -8505,11 +8322,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public String getDownloadingProgressString(){
             return "Downloading File";
         }
+        /**
+         * 
+         * @return 
+         */
+        public String getExtractingProgressString(){
+            return "Extracting File";
+        }
         @Override
         public String getProgressString(){
             switch(stage){
                 case DOWNLOADING_FILE:
                     return getDownloadingProgressString();
+                case EXTRACTING_FILE:
+                    return getExtractingProgressString();
                 default:
                     return getLoadingProgressString();
             }
@@ -8518,7 +8344,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @return 
          */
-        protected File getDownloadFile(File file){
+        protected File getDownloadFile(File file, String path){
             return file;
         }
         /**
@@ -8561,6 +8387,68 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
+         * @return 
+         */
+        protected boolean isDownloadedFileCompressed(File downloadedFile){
+            return false;
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected String getArchiveFilePath(){
+            return null;
+        }
+        /**
+         * 
+         * @param file
+         * @param downloadedFile
+         * @param path
+         * @return 
+         */
+        protected File getExtractedFile(File file, File downloadedFile, String path){
+            return new File(downloadedFile.getParentFile(),path);
+        }
+        /**
+         * 
+         * @param archiveFile
+         * @param targetPath
+         * @param targetFile
+         * @return 
+         */
+        protected File extractFile(File archiveFile, String targetPath, File targetFile){
+            getLogger().entering("AbstractFileDownloader", "extractFile", 
+                    new Object[]{archiveFile, targetPath, targetFile});
+            try{
+                initializeSevenZip();
+            } catch (SevenZipNativeInitializationException ex){
+                exc = ex;
+                getLogger().log(Level.WARNING, "Failed to initialize 7-Zip bindings", ex);
+                getLogger().exiting("AbstractFileDownloader","extractFile",null);
+                return null;
+            }
+            try(RandomAccessFile raf = new RandomAccessFile(archiveFile,"r");
+                        IInArchive archive = SevenZip.openInArchive(null, 
+                                new RandomAccessFileInStream(raf),
+                                new ExtractItemProgressOpenCallback(progressObserver))){
+                try{
+                    targetFile = LinkManager.this.extractFile(archive, targetPath, targetFile);
+                    fileFound = targetFile != null;
+                } catch (IOException ex){
+                    exc = ex;
+                    getLogger().log(Level.WARNING, "Failed to extract file",ex);
+                    targetFile = null;
+                }
+            } catch (IOException ex){
+                exc = ex;
+                getLogger().log(Level.INFO, "Failed to extract file, file may not be archive",ex);
+                targetFile = archiveFile;
+            }
+            getLogger().exiting("AbstractFileDownloader","extractFile",targetFile);
+            return targetFile;
+        }
+        /**
+         * 
          * @param file
          * @param downloadedFile
          * @return 
@@ -8572,7 +8460,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (LoadingStage.DOWNLOADING_FILE.equals(stage) && syncMode != null 
                     && filePath != null){
                 int retryOption;
-                downloadedFile = getDownloadFile(file);
+                downloadedFile = getDownloadFile(file,filePath);
                 if (downloadedFile != null){
                     File downloadFile = null;
                     do{
@@ -8588,26 +8476,115 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                             retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfDownloadFails())){
                         loadSuccess = false;
                         ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
-                        getLogger().exiting("AbstractFileDownloader", "loadFile",true);
-                        return true;
+                        getLogger().exiting("AbstractFileDownloader", "loadFile",false);
+                        return false;
                     }
                     downloadedFile = downloadFile;
-                    ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+                    progressBar.setValue(0);
+                    progressBar.setIndeterminate(true);
+                }
+                if (isDownloadedFileCompressed(downloadedFile))
+                    setStage(LoadingStage.EXTRACTING_FILE);
+                else
+                    setStage(LoadingStage.LOADING_FILE);
+            }
+            File loadFile = downloadedFile;
+            if (LoadingStage.EXTRACTING_FILE.equals(stage) && downloadedFile != null &&
+                    downloadedFile.exists()){
+                String archivePath = getArchiveFilePath();
+                if (archivePath != null){
+                    int retryOption;
+                    extractedFile = getExtractedFile(file,downloadedFile,archivePath);
+                    File extractFile = null;
+                    do{
+                        retryOption = JOptionPane.NO_OPTION;
+                        extractFile = extractFile(downloadedFile,archivePath,extractedFile);
+                        if (extractFile == null){
+                            retryOption = showExtractionFailurePrompt(downloadedFile,
+                                    archivePath,extractedFile,exc);
+                        }
+                    }
+                    while(extractFile == null && retryOption == JOptionPane.YES_OPTION);
+                    if (extractFile == null && (retryOption == JOptionPane.CLOSED_OPTION || 
+                            retryOption == JOptionPane.CANCEL_OPTION || !canLoadIfExtractionFails())){
+                        loadSuccess = false;
+                        ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+                        getLogger().exiting("AbstractFileDownloader", "loadFile",false);
+                        return false;
+                    }
+                    extractedFile = extractFile;
+                    loadFile = extractedFile;
                     progressBar.setValue(0);
                     progressBar.setIndeterminate(true);
                 }
                 setStage(LoadingStage.LOADING_FILE);
             }
-            
-            boolean value = loadFile(file,downloadedFile);
+            ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+            boolean value = loadFile(file,loadFile);
             getLogger().exiting("AbstractFileDownloader", "loadFile",value);
             return value;
         }
         @Override
-        protected Void backgroundAction() throws Exception {
-            super.backgroundAction();
-            success &= loadSuccess;
-            return null;
+        protected boolean processFile(File file){
+            boolean value = super.processFile(file);
+            return value & loadSuccess;
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected boolean showFailurePromptIfLoadFails(){
+            return false;
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        @Override
+        protected boolean showFailurePrompt(File file){
+            if (showFailurePromptIfLoadFails())
+                return super.showFailurePrompt(file);
+            else
+                return false;
+        }
+        /**
+         * 
+         * @param ifSuccessful
+         * @param file 
+         */
+        protected void deleteFile(boolean ifSuccessful, File file){
+            getLogger().entering("AbstractFileDownloader", 
+                    "deleteFile", new Object[]{ifSuccessful,file});
+                // If the program successfully loaded the file or this is to 
+                // ignore if the file was loaded successfully
+            if (success || !ifSuccessful){
+                    // If there's a given file, and the loaded file and given 
+                    // file are not the same file (i.e. the given file did not 
+                    // overwrite the loaded file)
+                if (file != null && 
+                        !LinkManagerUtilities.isSameFile(this.file, file)){
+                    /*
+                    TODO: Figure out how to resolve a glitch where the file 
+                    isn't being deleted if the process is cancelled during the 
+                    download.
+                    */
+                    if (isCancelled() && exitIfCancelled){
+                        getLogger().log(Level.FINER, "Deleting file \"{0}\"", file);
+                        try{    
+                            Files.deleteIfExists(file.toPath());
+                        } catch (IOException ex){
+                            getLogger().log(Level.WARNING, "Failed to delete file", ex);
+                            file.deleteOnExit();
+                        }
+                    } else {
+                        getLogger().log(Level.FINER, "Deleting on exit \"{0}\"", file);
+                        file.deleteOnExit();
+                    }
+                }
+            }
+            getLogger().exiting("AbstractFileDownloader", 
+                    "deleteFile");
         }
         /**
          * 
@@ -8616,35 +8593,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void deleteDownloadedFile(boolean ifSuccessful){
             getLogger().entering("AbstractFileDownloader", 
                     "deleteDownloadedFile", ifSuccessful);
-                // If the program successfully loaded the file or this is to 
-                // ignore if the file was loaded successfully
-            if (success || !ifSuccessful){
-                    // If there's a downloaded file, and the loaded file and 
-                    // downloaded file are not the same file (i.e. the 
-                    // downloaded file did not overwrite the loaded file)
-                if (downloadedFile != null && 
-                        !LinkManagerUtilities.isSameFile(file, downloadedFile)){
-                    /*
-                    TODO: Figure out how to resolve a glitch where the file 
-                    isn't being deleted if the process is cancelled during the 
-                    download.
-                    */
-                    if (isCancelled() && exitIfCancelled){
-                        getLogger().log(Level.FINER, "Deleting file \"{0}\"", downloadedFile);
-                        try{    
-                            Files.deleteIfExists(downloadedFile.toPath());
-                        } catch (IOException ex){
-                            getLogger().log(Level.WARNING, "Failed to delete file", ex);
-                            downloadedFile.deleteOnExit();
-                        }
-                    } else {
-                        getLogger().log(Level.FINER, "Deleting on exit \"{0}\"", downloadedFile);
-                        downloadedFile.deleteOnExit();
-                    }
-                }
-            }
+            deleteFile(ifSuccessful,downloadedFile);
             getLogger().exiting("AbstractFileDownloader", 
                     "deleteDownloadedFile");
+        }
+        /**
+         * 
+         * @param ifSuccessful 
+         */
+        protected void deleteExtractedFile(boolean ifSuccessful){
+            getLogger().entering("AbstractFileDownloader", 
+                    "deleteExtractedFile", ifSuccessful);
+            deleteFile(ifSuccessful,extractedFile);
+            getLogger().exiting("AbstractFileDownloader", 
+                    "deleteExtractedFile");
         }
         /**
          * 
@@ -8703,6 +8665,75 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 (fileFound)?getDownloadFailureMessage(file,path,mode,ex):
                         getDownloadFileNotFoundMessage(file,path,mode,ex), 
                 true, canLoadIfDownloadFails());
+        }
+        /**
+         * 
+         * @param ex
+         * @return 
+         */
+        protected boolean getExtractionFailureMessageStatesError(Exception ex){
+            return showDBErrorDetailsToggle.isSelected();
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected String getExtractionArchiveFileForFailureMessage(File file){
+            return "\""+file.getName()+"\"";
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param targetFile
+         * @param ex
+         * @return 
+         */
+        protected String getExtractionFailureMessage(File file, String path, 
+                File targetFile, Exception ex){
+            return get7ZipFailureMessage(
+                    String.format("The file \"%s\" could not be extracted from %s", 
+                            path,getExtractionArchiveFileForFailureMessage(file)),
+                    getDownloadFailureMessageStatesError(ex),ex);
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param mode
+         * @param ex
+         * @return 
+         */
+        protected String getExtractionFileNotFoundMessage(File file, String path, 
+                File targetFile, Exception ex){
+            return "The file was not found in "+
+                    getExtractionArchiveFileForFailureMessage(file)
+                    +" at the path\n\""+path+"\"";
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected boolean canLoadIfExtractionFails(){
+            return true;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param targetFile
+         * @param ex
+         * @return 
+         */
+        protected int showExtractionFailurePrompt(File file, String path, 
+                File targetFile,Exception ex){
+            if (!fileFound && !showFilePathNotFound)
+                return JOptionPane.CANCEL_OPTION;
+            return LinkManager.this.showFailurePrompt("ERROR - File Failed To Extract", 
+                (fileFound)?getExtractionFailureMessage(file,path,targetFile,ex):
+                        getExtractionFileNotFoundMessage(file,path,targetFile,ex), 
+                true, canLoadIfExtractionFails());
         }
         /**
          * This returns the title for the dialog to display if the file is 
@@ -8850,21 +8881,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return false;
         }
         /**
+         * 
+         * @param ifSuccessful
+         * @param file 
+         */
+        protected void deleteFile(boolean ifSuccessful, File file){
+            getLogger().entering("FileSaver", "deleteFile", 
+                    new Object[]{ifSuccessful, file});
+                // If the file was successfully saved and there is a backup file
+            if ((success || !ifSuccessful) && file != null){
+                getLogger().log(Level.FINER, "Deleting file {0}", file);
+                try{
+                    Files.deleteIfExists(file.toPath());
+                } catch (IOException ex){
+                    getLogger().log(Level.WARNING, "Failed to delete file", ex);
+                    file.delete();
+                }
+            }
+            getLogger().exiting("FileSaver", "deleteFile");
+        }
+        /**
          * This will delete the backup file if the program successfully saved 
          * the file.
          */
         protected void deleteBackupIfSuccessful(){
             getLogger().entering("FileSaver", "deleteBackupIfSuccessful");
-                // If the file was successfully saved and there is a backup file
-            if (success && backupFile != null){
-                getLogger().log(Level.FINER, "Deleting file {0}", backupFile);
-                try{
-                    Files.deleteIfExists(backupFile.toPath());
-                } catch (IOException ex){
-                    getLogger().log(Level.WARNING, "Failed to delete file", ex);
-                    backupFile.delete();
-                }
-            }
+            deleteFile(true,backupFile);
             getLogger().exiting("FileSaver", "deleteBackupIfSuccessful");
         }
         /**
@@ -9415,16 +9457,50 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             return "Downloading Database";
         }
         @Override
+        public String getExtractingProgressString(){
+            return "Extracting Database";
+        }
+        @Override
         protected boolean canLoadIfDownloadFails(){
             return false;
         }
         @Override
-        protected File getDownloadFile(File file){
+        protected boolean canLoadIfExtractionFails(){
+            return false;
+        }
+        @Override
+        protected boolean isDownloadedFileCompressed(File downloadedFile){
+            return true;
+        }
+        @Override
+        protected String getExtractionArchiveFileForFailureMessage(File file){
+            return "downloaded file";
+        }
+        @Override
+        protected String getArchiveFilePath(){
+            return LINK_DATABASE_FILE;
+        }
+        @Override
+        protected File getExtractedFile(File file, File downloadedFile, String path){
             try {
                 return File.createTempFile(INTERNAL_PROGRAM_NAME, 
                         "."+DATABASE_FILE_EXTENSION);
             } catch (IOException ex) {
-                getLogger().log(Level.WARNING, "Failed to create temp download file",
+                getLogger().log(Level.WARNING, "Failed to create temporary extracted file",
+                        ex);
+            }
+            return file;
+        }
+        @Override
+        protected File getDownloadFile(File file,String path){
+            String suffix = "."+DATABASE_FILE_EXTENSION;
+            int index = path.lastIndexOf(".");
+            if (index >= 0 && index > path.lastIndexOf("/") && index > path.lastIndexOf("\\"))
+                suffix = path.substring(index);
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, suffix);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temporary download file",
                         ex);
             }
             return file;
@@ -9436,8 +9512,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (downloadedFile == null){
                 getLogger().warning("Database failed to download");
                 loadSuccess = false;
-                getLogger().exiting("DatabaseDownloader", "loadFile", true);
-                return true;
+                getLogger().exiting("DatabaseDownloader", "loadFile", false);
+                return false;
             }
             exc = null;
             try {
@@ -9474,6 +9550,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             deleteDownloadedFile(false);
+            deleteExtractedFile(false);
             super.done();
         }
     }
@@ -9740,7 +9817,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         // Get the tabs panel
                     LinksListTabsPanel tabsPanel = entry.getKey();
                     try{    // Set the models for the tabs panel
-                        tabsPanel.setModels(entry.getValue());
+                        tabsPanel.setModels(entry.getValue(), true);
                     } catch (NullPointerException ex){
                         getLogger().log(Level.WARNING,"Null encountered while setting models",ex);
                     }
@@ -9919,7 +9996,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 }
                 else
                     usedPrefixComboModel.add(entry.getKey() + " - " + entry.getValue());
-                incrementProgressValue();
+                progressObserver.incrementValue();
             }
             
             progressBar.setIndeterminate(true);
@@ -9974,7 +10051,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     list.getSizeLimit(),
                     list.size()
                 });
-                incrementProgressValue();
+                progressObserver.incrementValue();
             }
             
             progressBar.setIndeterminate(true);
@@ -10078,7 +10155,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 tableTableModel.addRow(new Object[]{
                     name,type,structMap.get(name)
                 });
-                incrementProgressValue();
+                progressObserver.incrementValue();
             }
         }
         /**
@@ -10151,7 +10228,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                                 (!setIfNotEqual || !Objects.equals(propValue, propDefault)),
                         propDefault
                 );
-                incrementProgressValue();
+                progressObserver.incrementValue();
             }
         }
         /**
@@ -10316,6 +10393,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         VERIFY_DATABASE,
         
+        COMPRESS_FILE,
+        
         UPLOAD_FILE,
         
         SAVE_CONFIGURATION;
@@ -10333,6 +10412,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected String filePath;
         
         protected DatabaseSyncMode syncMode;
+        
+        protected File compressedFile = null;
         
         protected File configFile;
         
@@ -10373,7 +10454,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         private AbstractDatabaseSaver(File file, DatabaseSyncMode mode, 
                 SavingStage stage, boolean exit){
-            this(file,config.getDatabaseFileSyncPath(mode),mode,stage,exit);
+            this(file,config.getSyncLocationSettings(mode).getDatabaseFileName(),
+                    mode,stage,exit);
         }
         
         AbstractDatabaseSaver(File file, SavingStage stage, boolean exit){
@@ -10526,6 +10608,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public String getUploadingProgressString(){
             return "Uploading Database";
         }
+        /**
+         * 
+         * @return 
+         */
+        public String getCompressingProgressString(){
+            return "Compressing Database";
+        }
         @Override
         public String getProgressString(){
             switch(stage){
@@ -10536,6 +10625,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     return getUploadingProgressString();
                 case SAVE_CONFIGURATION:
                     return "Saving Configuration";
+                case COMPRESS_FILE:
+                    return getCompressingProgressString();
                 default:
                     return getNormalProgressString();
             }
@@ -10568,6 +10659,57 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             getLogger().exiting(this.getClass().getName(), "createBackupFile", true);
             return true;
+        }
+        /**
+         * 
+         * @param mode
+         * @return 
+         */
+        protected boolean isUploadedFileCompressed(DatabaseSyncMode mode){
+            if (mode == null)
+                return false;
+            switch(mode){
+                case DROPBOX:
+                    return dbxLocationPanel.isFileCompressionEnabled();
+            }
+            return false;
+        }
+        /**
+         * 
+         * @param mode
+         * @return 
+         */
+        protected int getCompressionLevel(DatabaseSyncMode mode){
+            if (mode == null)
+                return 0;
+            switch(mode){
+                case DROPBOX:
+                    return dbxLocationPanel.getFileCompressionLevel();
+            }
+            return 5;
+        }
+        /**
+         * 
+         * @return 
+         */
+        protected String getArchiveFilePath(){
+            return LINK_DATABASE_FILE;
+        }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @return 
+         */
+        protected File getCompressedFile(File file, String path){
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, 
+                        "."+SEVEN_ZIP_FILE_EXTENSION);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temporary compressed file",
+                        ex);
+            }
+            return new File(file.getParentFile(),path);
         }
         /**
          * This attempts to save to the database using the given database 
@@ -10656,7 +10798,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.FINER, "Uploading file at path \"{0}\"",path);
             ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(true);
             do{     // The exception that was thrown, if any
-                Exception exc = null;
+                Exception exc;
                     // Set the progress to be zero
                 progressBar.setValue(0);
                     // Set the program to be indeterminate
@@ -10728,6 +10870,46 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().exiting("AbstractDatabaseSaver", "saveConfig", false);
             return false;
         }
+        /**
+         * 
+         * @param file
+         * @param path
+         * @param archiveFile
+         * @param level
+         * @return 
+         */
+        protected boolean compressFile(File file, File archiveFile, String path,
+                int level){
+            getLogger().entering("AbstractDatabaseSaver", "compressFile", 
+                    new Object[]{file,archiveFile,path,level});
+            boolean retry;
+            ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(true);
+            do{
+                progressBar.setValue(0);
+                progressBar.setIndeterminate(true);
+                Exception exc;
+                try{
+                    initializeSevenZip();
+                    LinkManager.this.compressFile(file, archiveFile, path, level);
+                    getLogger().exiting("AbstractDatabaseSaver", "compressFile", true);
+                    return true;
+                } catch (SevenZipNativeInitializationException ex){
+                    getLogger().log(Level.WARNING, "Failed to initialize 7-Zip bindings", ex);
+                    exc = ex;
+                } catch (IOException ex){
+                    getLogger().log(Level.WARNING,
+                                "Failed to compress database file", ex);
+                    exc = ex;
+                }
+                retry = showFailurePrompt("ERROR - Database Failed To Compress",
+                        get7ZipFailureMessage("The database file failed to be compressed.",
+                                showDBErrorDetailsToggle.isSelected(),exc),
+                        true);
+            }   // While the file failed to be processed and the user wants to 
+            while(retry);   // try again
+            getLogger().exiting("AbstractDatabaseSaver", "compressFile", false);
+            return false;
+        }
         @Override
         protected boolean saveFile(File file){
             getLogger().entering("AbstractDatabaseSaver", "saveFile", file);
@@ -10737,13 +10919,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // Set the program to be indeterminate
                 progressBar.setIndeterminate(true);
                 if (saveSuccess && syncDBToggle.isSelected())
-                    setStage(SavingStage.UPLOAD_FILE);
+                    setStage(SavingStage.COMPRESS_FILE);
+            }
+            
+            boolean willUpload = syncMode != null && filePath != null;
+            File uploadFile = file;
+            
+            if (SavingStage.COMPRESS_FILE.equals(stage)){
+                if (saveSuccess && willUpload && isUploadedFileCompressed(syncMode)){
+                    progressDisplay.setString(getProgressString());
+                    String archivePath = getArchiveFilePath();
+                    compressedFile = getCompressedFile(file,archivePath);
+                    saveSuccess = compressFile(file,compressedFile,archivePath,
+                            getCompressionLevel(syncMode));
+                        // Set the program to be indeterminate
+                    progressBar.setIndeterminate(true);
+                    if (saveSuccess)
+                        uploadFile = compressedFile;
+                }
+                setStage(SavingStage.UPLOAD_FILE);
             }
             
             if (saveSuccess && SavingStage.UPLOAD_FILE.equals(stage) && 
-                    syncMode != null && filePath != null){
+                    willUpload){
                 progressDisplay.setString(getProgressString());
-                saveSuccess = uploadFile(file,filePath,syncMode);
+                saveSuccess = uploadFile(uploadFile,filePath,syncMode);
                 if (saveSuccess && showSuccess){
                     LinkManager.this.showSuccessPrompt(
                             "File Uploaded Successfully",
@@ -10850,6 +11050,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected void done(){
             ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(false);
+                // Delete the compressed file
+            deleteFile(false,compressedFile);
             if (success){   // If this was successful
                 allListsTabsPanel.clearEdited();
                 shownListsTabsPanel.clearEdited();
@@ -11049,29 +11251,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Check to make sure the database contains all the links in the 
             if (!linkSet2.containsAll(linkSet1))    // program
                 return false;
-            incrementProgressValue();
+            progressObserver.incrementValue();
                 // Check to make sure the database contains all the lists and 
                 // their names in the program
             if (!listNames.equals(listNameMap))
                 return false;
-            incrementProgressValue();
+            progressObserver.incrementValue();
                 // Check to make sure the all listIDs list contains all the 
                 // listIDs of the lists shown by the all lists panel
             if (!allListsTabsPanel.getListIDs().equals(allListsList))
                 return false;
-            incrementProgressValue();
+            progressObserver.incrementValue();
                 // Check to make sure the shown listIDs list contains all the 
                 // listIDs of the shown lists
             if (!shownListsTabsPanel.getListIDs().equals(shownListsList))
                 return false;
-            incrementProgressValue();
+            progressObserver.incrementValue();
                 // Go through the listIDs of the lists in the database
             for (Integer listID : listDataMap.navigableKeySet()){
                     // Check to make sure the list in the database matches its 
                     // corresponding model
                 if (!listDataMap.get(listID).equalsModel(modelMap.get(listID)))
                     return false;
-                incrementProgressValue();
+                progressObserver.incrementValue();
             }
             return true;
         }
@@ -11400,69 +11602,72 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private class DbxAccountLoader extends LinkManagerWorker<Void>{
+    private class AccountLoader extends LinkManagerWorker<Void>{
         /**
-         * This gets any Dropbox exceptions that get thrown while loading the 
-         * Dropbox account.
+         * The account data that was loaded for the user.
          */
-        private DbxException dbxEx = null;
+        private AccountData accountData;
         /**
-         * Whether this successfully loaded the account information.
-         */
-        private boolean success = false;
-        /**
-         * Whether the account is a valid Dropbox account.
+         * Whether the account is a valid account.
          */
         private boolean validAccount = true;
         /**
-         * The Dropbox account's user name.
+         * 
          */
-        private String accountName = null;
+        private DatabaseSyncMode syncMode;
         /**
-         * The Dropbox account's profile picture.
+         * This gets any exceptions that get thrown while loading the user's 
+         * account.
          */
-        private Icon pfpIcon = null;
+        private Exception exc = null;
         /**
-         * The amount of space that the user has used in their Dropbox account.
+         * 
+         * @param mode 
          */
-        private long used = 0;
-        /**
-         * The amount of space allocated to the user's Dropbox account.
-         */
-        private long allocated = 0;
-        @Override
-        public String getProgressString() {
-            return "Loading Dropbox Account";
+        AccountLoader(DatabaseSyncMode mode){
+            this.syncMode = Objects.requireNonNull(mode);
         }
         /**
-         * This is used to display a failure prompt to the user when the dropbox 
-         * account fails to load. If the failure prompt is a retry prompt, then 
-         * this method should return whether to try load the account again. 
+         * 
+         * @return 
+         */
+        public DatabaseSyncMode getSyncMode(){
+            return syncMode;
+        }
+        @Override
+        public String getProgressString() {
+            return String.format("Loading %s Account", syncMode.toString());
+        }
+        /**
+         * This is used to display a failure prompt to the user when the account 
+         * fails to load. If the failure prompt is a retry prompt, then this 
+         * method should return whether to try load the account again. 
          * Otherwise, this method should return {@code false}.
          * @return {@code true} if this should attempt to load the account 
          * again, {@code false} otherwise.
          */
         protected boolean showFailurePrompt(){
+            String syncName = syncMode.toString();
             if (!validAccount){
                 JOptionPane.showMessageDialog(setLocationDialog, 
-                        "Dropbox failed to load due to the account being invalid.",
-                        "ERROR - Dropbox Account Load Failed",
+                        String.format("%s failed to load due to the account being invalid.",syncName),
+                        String.format("ERROR - %s Account Load Failed",syncName),
                         JOptionPane.ERROR_MESSAGE);
                 return false;
             }
                 // The message to return
-            String msg = "An error occurred loading the information for your "
-                    + "Dropbox account.";
+            String msg = String.format("An error occurred loading the information for your "
+                    + "%s account.",syncName);
                 // If the program is either in debug mode or if details are to 
                 // be shown
             if (isInDebug() || showDBErrorDetailsToggle.isSelected()){
-                if (dbxEx != null)
-                    msg += "\nError: " + dbxEx;
+                if (exc != null)
+                    msg += "\nError: " + exc;
             }
                // Ask the user if they would like to try loading the account
             return JOptionPane.showConfirmDialog(LinkManager.this, // again
                     msg+"\nWould you like to try again?",
-                    "ERROR - Dropbox Account Load Failed",
+                    String.format("ERROR - %s Account Load Failed",syncName),
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
         }
@@ -11471,67 +11676,73 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @throws DbxException 
          * @return 
          */
-        protected boolean loadDropboxAccount(){
+        protected AccountData loadDropboxAccount(){
             getLogger().entering(this.getClass().getName(), "loadDropboxAccount");
-                // Reset the exceptions
-            dbxEx = null;
             try{    // Get a client to communicate with Dropbox, refreshing the 
                     // Dropbox credentials if necessary
                 DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
-                    // Get the request for the user
-                DbxUserUsersRequests users = client.users();
-                    // Get the account details for the user
-                FullAccount account = users.getCurrentAccount();
-                    // Get the user's account name
-                accountName = account.getName().getDisplayName();
-                    // Load the profile picture for the user
-                pfpIcon = DropboxUtilities.getProfilePicture(account, accountName);
-                    // Get the space usage for the user
-                SpaceUsage spaceUsage = users.getSpaceUsage();
-                    // Get the amount of space used by the user
-                used = spaceUsage.getUsed();
-                    // Get the amount of space allocated to the user
-                allocated = DropboxUtilities.getAllocatedSpace(spaceUsage);
-                getLogger().exiting(this.getClass().getName(), "loadDropboxAccount",true);
-                return true;
+                    // Try to load the account data for the user
+                AccountData data = new DropboxAccountData(client);
+                getLogger().exiting(this.getClass().getName(), "loadDropboxAccount",data);
+                return data;
             } catch (InvalidAccessTokenException ex){
                 getLogger().log(Level.INFO, "Dropbox account token has expired", 
                         ex);
                 validAccount = false;
             } catch(DbxException ex){
                 getLogger().log(Level.INFO,"Failed to load Dropbox account",ex);
-                dbxEx = ex;
+                exc = ex;
             }
-            getLogger().exiting(this.getClass().getName(), "loadDropboxAccount",false);
-            return false;
+            getLogger().exiting(this.getClass().getName(), "loadDropboxAccount",null);
+            return null;
+        }
+        /**
+         * 
+         * @param mode
+         * @return 
+         */
+        protected AccountData loadAccount(DatabaseSyncMode mode){
+            getLogger().entering(this.getClass().getName(), "loadAccount", mode);
+                // Reset the exceptions
+            exc = null;
+            AccountData data = null;
+            switch(mode){
+                case DROPBOX:
+                    data = loadDropboxAccount();
+            }
+            getLogger().exiting(this.getClass().getName(), "loadAccount",data);
+            return data;
         }
         @Override
         protected Void backgroundAction() throws Exception {
                 // Whether the user wants this to try loading the account again 
             boolean retry = false;  // if unsuccessful
             do{
-                success = loadDropboxAccount();    // Try to load the account
-                if (!success)    // If the acount failed to load
+                accountData = loadAccount(syncMode);    // Try to load the account
+                    // If the acount failed to load
+                if (accountData == null)
                         // Show the failure prompt and get if the user wants to 
                     retry = showFailurePrompt();    // try again
+                else    // Clone the account data to prevent accidental 
+                        // modifications
+                    accountData = new DefaultAccountData(accountData);
             }   // While the account failed to load and the user wants to try 
-            while(!success && retry);   // again
+            while(accountData == null && retry);   // again
             return null;
         }
         @Override
         protected void done(){
-            if (success){
-                dbxAccountLabel.setText(accountName);
-                dbxPfpLabel.setIcon(pfpIcon);
-                dbxSpaceUsedLabel.setText(String.format("%s (%,d Bytes)", 
-                        byteFormatter.format(used),used));
-                    // Get the space the user has free
-                long free = allocated - used;
-                dbxSpaceFreeLabel.setText(String.format("%s (%,d Bytes)", 
-                        byteFormatter.format(free),free));
-                LinkManagerUtilities.setCard(setLocationPanel,setDropboxCard);
+            if (accountData != null){
+                switch (syncMode){
+                    case DROPBOX:
+                        dbxLocationPanel.setAccountData(accountData);
+                        LinkManagerUtilities.setCard(setLocationPanel,setDropboxCard);
+                }
             } else if (!validAccount){
-                dbxUtils.clearCredentials();
+                switch (syncMode){
+                    case DROPBOX:
+                        dbxUtils.clearCredentials();
+                }
             } else {
                 LinkManagerUtilities.setCard(setLocationPanel,setExternalCard);
             }
@@ -11551,10 +11762,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             super(file,filePath,mode);
             this.loadFlags = loadFlags;
             exitIfCancelled = !fullyLoaded;
-        }
-        
-        TempDatabaseDownloader(File file, String filePath, DatabaseSyncMode mode){
-            this(file,filePath,mode,null);
         }
         /**
          * 
@@ -11719,8 +11926,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 retry = LinkManager.this.showFailurePrompt(getFailureTitle(file), 
                         getFailureMessage(file,sqlExc), true, false) == JOptionPane.YES_OPTION;
             } while (!loadSuccess && retry);
-            getLogger().exiting("AbstractDatabaseLoader", "loadFile", true);
-            return true;
+            getLogger().exiting("AbstractDatabaseLoader", "loadFile", loadSuccess);
+            return loadSuccess;
         }
         /**
          * This attempts to load from the database using the given database 
@@ -11873,7 +12080,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     // If there's an update available, then set the text for the 
                     // latest version label to be the latest version for the 
                     // program. Otherwise, just state the current version
-                latestVersLabel.setText((updateAvailable) ? 
+                updateCheckPanel.setLatestVersion((updateAvailable) ? 
                         updateChecker.getLatestVersion() : 
                         updateChecker.getCurrentVersion());
             }
@@ -11884,17 +12091,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 if (updateAvailable){
                         // Log the update
                     updateChecker.logUpdateMessage(getLogger());
-                        // Set the update check dialog's location relative to 
-                        // this if at startup and relative to the about dialog 
-                        // if the check was initialized from there.
-                    updateCheckDialog.setLocationRelativeTo(getParentComponent());
-                    updateCheckDialog.setVisible(true);
+                    updateCheckPanel.showDialog(getParentComponent());
                 } else if (!isAtStart){
-                    JOptionPane.showMessageDialog(aboutDialog, 
-                            "This program is already up to date,",
-                            updateCheckDialog.getTitle(), 
-                            JOptionPane.INFORMATION_MESSAGE, 
-                            updateIconLabel.getIcon());
+                    updateCheckPanel.showUpToDateDialog(aboutDialog);
                 }
             }
             if (isAtStart && ENABLE_INITIAL_LOAD_AND_SAVE){
