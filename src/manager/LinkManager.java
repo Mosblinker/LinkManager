@@ -3361,7 +3361,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void dbResetIDsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbResetIDsButtonActionPerformed
-        saver = new ResetDatabaseIDs();
+        saver = new ResetDatabaseIDs(getDatabaseFile());
         saver.execute();
     }//GEN-LAST:event_dbResetIDsButtonActionPerformed
     /**
@@ -4254,7 +4254,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_autoHideMenuPropertyChange
 
     private void dbUpdateUsedPrefixesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbUpdateUsedPrefixesButtonActionPerformed
-        saver = new LinkPrefixUpdater();
+        saver = new LinkPrefixUpdater(getDatabaseFile());
         saver.execute();
     }//GEN-LAST:event_dbUpdateUsedPrefixesButtonActionPerformed
     
@@ -10389,22 +10389,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this(file,false);
         }
         /**
-         * This constructs a AbstractDatabaseSaver that will save the data to 
-         * the program's {@link #getDatabaseFile() database file} and, if {@code 
-         * exit} is {@code true}, will exit the program afterwards.
-         * @param exit Whether the program will exit after saving the file.
-         */
-        AbstractDatabaseSaver(boolean exit){
-            this(SavingStage.SAVE_DATABASE,exit);
-        }
-        /**
-         * This constructs a AbstractDatabaseSaver that will save the data to 
-         * the program's {@link #getDatabaseFile() database file}.
-         */
-        AbstractDatabaseSaver(){
-            this(false);
-        }
-        /**
          * 
          * @return 
          */
@@ -11007,14 +10991,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         DatabaseSaver(File file){
             super(file);
         }
-        
-        DatabaseSaver(boolean exit){
-            super(exit);
-        }
-        
-        DatabaseSaver(){
-            super();
-        }
         @Override
         public String getNormalProgressString() {
             return "Saving Lists";
@@ -11057,6 +11033,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This resets the IDs in the database.
      */
     private class ResetDatabaseIDs extends AbstractDatabaseSaver{
+        /**
+         * 
+         * @param file 
+         */
+        ResetDatabaseIDs(File file){
+            super(file);
+        }
         @Override
         public String getNormalProgressString(){
             return "Resetting IDs";
@@ -11183,8 +11166,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             loader.execute();
         }
     }
-    
+    /**
+     * 
+     */
     private class LinkPrefixUpdater extends AbstractDatabaseSaver{
+        /**
+         * 
+         * @param file 
+         */
+        LinkPrefixUpdater(File file){
+            super(file);
+        }
         @Override
         public String getNormalProgressString(){
             return "Updating Prefixes";
