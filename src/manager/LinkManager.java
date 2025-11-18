@@ -4763,7 +4763,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void downloadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadDBItemActionPerformed
         if (getSyncMode() != null){
-            loader = new DatabaseDownloader(true);
+            loader = new DatabaseDownloader(getDatabaseFile(),true);
             loader.execute();
         }
     }//GEN-LAST:event_downloadDBItemActionPerformed
@@ -9342,39 +9342,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
-         * @param file
-         * @param filePath
-         * @param mode 
-         */
-        DatabaseDownloader(File file, String filePath, DatabaseSyncMode mode){
-            this(file,filePath,mode,false);
-        }
-        /**
-         * 
          * @param file 
          */
         DatabaseDownloader(File file,boolean showSuccess){
             super(file,LoadingStage.DOWNLOADING_FILE);
             this.showSuccess = showSuccess;
-        }
-        /**
-         * 
-         * @param file 
-         */
-        DatabaseDownloader(File file){
-            this(file,false);
-        }
-        /**
-         * 
-         */
-        DatabaseDownloader(boolean showSuccess){
-            this(getDatabaseFile(),showSuccess);
-        }
-        /**
-         * 
-         */
-        DatabaseDownloader(){
-            this(false);
         }
         @Override
         public String getLoadingProgressString() {
@@ -11687,7 +11659,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         TempDatabaseDownloader(File file, String filePath, DatabaseSyncMode mode, 
                 Integer loadFlags){
-            super(file,filePath,mode);
+            super(file,filePath,mode,false);
             this.loadFlags = loadFlags;
             exitIfCancelled = !fullyLoaded;
         }
