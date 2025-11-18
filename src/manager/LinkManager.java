@@ -11723,10 +11723,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this.loadFlags = loadFlags;
             exitIfCancelled = !fullyLoaded;
         }
-        
-        TempDatabaseDownloader(File file, String filePath, DatabaseSyncMode mode){
-            this(file,filePath,mode,null);
-        }
         /**
          * 
          * @return 
