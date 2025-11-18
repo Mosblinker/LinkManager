@@ -12057,9 +12057,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void done(){
                 // If this was successful at checking for an update
             if (success){
-                    // If there's an update available, then set the text for the 
-                    // latest version label to be the latest version for the 
-                    // program. Otherwise, just state the current version
                 updateCheckPanel.setLatestVersion(updateChecker, updateAvailable);
             }
             super.done();
