@@ -3984,6 +3984,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setUpListSetOpCombo(listBOpCombo);
         setUpListSetOpCombo(listCOpCombo);
         updateListOperationButtons();
+        listSetOpDialog.setLocationRelativeTo(this);
         listSetOpDialog.setVisible(true);
     }//GEN-LAST:event_listSetOpItemActionPerformed
 
