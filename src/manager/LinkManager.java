@@ -12000,6 +12000,32 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This loads the lists of links from the database.
      */
     private class DatabaseFileLoader extends AbstractDatabaseFileLoader{
+        /**
+         * This is a map that maps the tabs panels to the list of models that 
+         * will be displayed by those tabs panels when we finish loading.
+         */
+        private Map<LinksListTabsPanel, List<LinksListModel>> tabsModels = 
+                new HashMap<>();
+        /**
+         * This stores the flags for this DatabaseLoader, which indicate things 
+         * such as whether this will be loading all the lists from the database 
+         * or only the lists that are outdated.
+         */
+        private int loadFlags;
+        /**
+         * This stores whether this failed to load the database due to the 
+         * database being an incompatible version that cannot be updated 
+         * automatically by the program.
+         */
+        private boolean isDBOutdated = false;
+        /**
+         * This stores the version of the database being loaded.
+         */
+        private String dbVersion = "N/A";
+        /**
+         * This stores the UUID of the database being loaded.
+         */
+        private String dbUUID = null;
 
         @Override
         protected boolean loadDatabase(LinkDatabaseConnection conn, Statement stmt) throws SQLException {
