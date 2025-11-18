@@ -2459,7 +2459,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         copyOrMoveListSelector.setBottomAccessory(copyOrMoveSelCountPanel);
 
         listSetOpDialog.setTitle("List Set Operation Dialog");
-        listSetOpDialog.setMinimumSize(new java.awt.Dimension(400, 200));
+        listSetOpDialog.setMinimumSize(new java.awt.Dimension(400, 215));
 
         listAOpLabel.setText("List A:");
 
