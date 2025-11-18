@@ -18,7 +18,6 @@ import java.util.prefs.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import javax.swing.JFileChooser;
-import static manager.sync.DatabaseSyncMode.DROPBOX;
 import manager.config.*;
 import manager.database.CacheSetIterator;
 import manager.dropbox.DropboxLinkUtils;
@@ -323,6 +322,10 @@ public class LinkManagerConfig implements LinksListSettings{
      * 
      */
     public static final String CHECK_FOR_UPDATES_AT_START_KEY = "CheckForUpdatesAtStartup";
+    /**
+     * 
+     */
+    public static final String LAST_ACCESSED_DATABASE_ID_KEY = "LastAccessedDatabaseID";
     /**
      * This is the preference node containing all the preferences for 
      * LinkManager. This is the parent preference node for all other nodes, and 
@@ -2518,6 +2521,20 @@ public class LinkManagerConfig implements LinksListSettings{
             // Set the user ID to the generated UUID
         setUserID(id);
         return id;
+    }
+    /**
+     * 
+     * @return 
+     */
+    public UUID getLastAccessedDatabaseID(){
+        return getPreferences().getUUID(LAST_ACCESSED_DATABASE_ID_KEY, null);
+    }
+    /**
+     * 
+     * @param id 
+     */
+    public void setLastAccessedDatabaseID(UUID id){
+        getPreferences().putObject(LAST_ACCESSED_DATABASE_ID_KEY, id);
     }
     /**
      * 
