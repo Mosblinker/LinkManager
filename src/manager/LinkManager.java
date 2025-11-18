@@ -508,6 +508,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return null;
     }
     /**
+     * 
+     * @param exit
+     * @return 
+     */
+    private DatabaseSaver createDatabaseSaver(boolean exit){
+        return new DatabaseSaver(getDatabaseFile(),exit);
+    }
+    /**
+     * 
+     * @return 
+     */
+    private DatabaseSaver createDatabaseSaver(){
+        return createDatabaseSaver(false);
+    }
+    /**
      * This constructs a new LinkManager with the given value determining if it 
      * is in debug mode and the given program ID.
      * @param debugMode Whether the program is in debug mode.
@@ -1035,9 +1050,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             switch(command){
                     // If this is the remove from list action
                 case(REMOVE_FROM_LIST_ACTION_KEY):
-                    return new RemoveFromListsAction(tabsPanel,panel);
+                    return new RemoveFromListsAction(tabsPanel,panel,true,false);
                 case(REMOVE_OTHER_LISTS_ACTION_KEY):
-                    return new RemoveFromListsAction(tabsPanel,panel,false);
+                    return new RemoveFromListsAction(tabsPanel,panel,false,false);
                 case(REMOVE_FROM_HIDDEN_LISTS_ACTION_KEY):
                     return new RemoveFromListsAction(tabsPanel,panel,true,true);
                 case(REMOVE_OTHER_HIDDEN_LISTS_ACTION_KEY):
@@ -3346,7 +3361,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void dbResetIDsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbResetIDsButtonActionPerformed
-        saver = new ResetDatabaseIDs();
+        saver = new ResetDatabaseIDs(getDatabaseFile());
         saver.execute();
     }//GEN-LAST:event_dbResetIDsButtonActionPerformed
     /**
@@ -3831,7 +3846,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().finer("Exiting and saving program");
             exitButton.setEnabled(false);
                 // Save the database and close the program
-            saver = new DatabaseSaver(true);
+            saver = createDatabaseSaver(true);
             saver.execute();
         }
         else if (!(loader instanceof AbstractFileDownloader) || 
@@ -3857,7 +3872,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (AutosaveMenu.AUTOSAVE_COMMAND.equals(evt.getActionCommand()) && 
                 isEdited() && !isSavingFiles()){
             getLogger().finer("Automatically saving database");
-            saver = new DatabaseSaver();
+            saver = createDatabaseSaver();
             saver.execute();
         }
     }//GEN-LAST:event_autosaveMenuActionPerformed
@@ -4037,7 +4052,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void updateDatabaseItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateDatabaseItemActionPerformed
-        saver = new DatabaseSaver();
+        saver = createDatabaseSaver();
         saver.execute();
     }//GEN-LAST:event_updateDatabaseItemActionPerformed
     /**
@@ -4064,8 +4079,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     loadFlags);
             loader.execute();
         } else {
-            loader = new DatabaseLoader(LinkManagerUtilities.setFlag(loadFlags,
-                    DATABASE_LOADER_CHECK_LOCAL_FLAG,false));
+            loader = new DatabaseLoader(getDatabaseFile(),
+                    LinkManagerUtilities.setFlag(loadFlags,
+                            DATABASE_LOADER_CHECK_LOCAL_FLAG,false));
             loader.execute();
         }
     }
@@ -4238,7 +4254,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_autoHideMenuPropertyChange
 
     private void dbUpdateUsedPrefixesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbUpdateUsedPrefixesButtonActionPerformed
-        saver = new LinkPrefixUpdater();
+        saver = new LinkPrefixUpdater(getDatabaseFile());
         saver.execute();
     }//GEN-LAST:event_dbUpdateUsedPrefixesButtonActionPerformed
     
@@ -4763,7 +4779,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
     private void downloadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadDBItemActionPerformed
         if (getSyncMode() != null){
-            loader = new DatabaseDownloader(true);
+            loader = new DatabaseDownloader(getDatabaseFile(),true);
             loader.execute();
         }
     }//GEN-LAST:event_downloadDBItemActionPerformed
@@ -7072,28 +7088,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             updateActionName();
         }
         /**
-         * 
-         * @param tabsPanel
-         * @param panel
-         * @param removeFromOtherLists Whether this action will remove the 
-         * currently selected list from the other lists ({@code true} if this 
-         * will remove the currently selected list from the other lists, {@code 
-         * false} if this removes the other lists from the currently selected 
-         * list).
-         */
-        RemoveFromListsAction(LinksListTabsPanel tabsPanel, LinksListPanel panel, 
-                boolean removeFromOtherLists) {
-            this(tabsPanel,panel,removeFromOtherLists,false);
-        }
-        /**
-         * 
-         * @param tabsPanel
-         * @param panel 
-         */
-        RemoveFromListsAction(LinksListTabsPanel tabsPanel, LinksListPanel panel){
-            this(tabsPanel,panel,true);
-        }
-        /**
          * This returns whether this action will will remove the currently 
          * selected list from the other lists.
          * @return {@code true} if this will remove the currently selected list 
@@ -7654,16 +7648,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this.isSource = isSource;
             this.tabsPanel = Objects.requireNonNull(tabsPanel);
             this.hiddenOnly = hiddenOnly;
-        }
-        /**
-         * 
-         * @param panel
-         * @param tabsPanel
-         * @param isSource 
-         */
-        RemoveLinksWorker2(LinksListPanel panel, LinksListTabsPanel tabsPanel, 
-                boolean isSource){
-            this(panel,tabsPanel,isSource,false);
         }
         /**
          * 
@@ -9374,39 +9358,11 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
-         * @param file
-         * @param filePath
-         * @param mode 
-         */
-        DatabaseDownloader(File file, String filePath, DatabaseSyncMode mode){
-            this(file,filePath,mode,false);
-        }
-        /**
-         * 
          * @param file 
          */
         DatabaseDownloader(File file,boolean showSuccess){
             super(file,LoadingStage.DOWNLOADING_FILE);
             this.showSuccess = showSuccess;
-        }
-        /**
-         * 
-         * @param file 
-         */
-        DatabaseDownloader(File file){
-            this(file,false);
-        }
-        /**
-         * 
-         */
-        DatabaseDownloader(boolean showSuccess){
-            this(getDatabaseFile(),showSuccess);
-        }
-        /**
-         * 
-         */
-        DatabaseDownloader(){
-            this(false);
         }
         @Override
         public String getLoadingProgressString() {
@@ -9675,26 +9631,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             if (!fullyLoaded)
                 this.loadFlags |= DATABASE_LOADER_LOAD_ALL_FLAG;
         }
-        
-        DatabaseLoader(File file, boolean loadAll){
-            this(file,(loadAll) ? DATABASE_LOADER_LOAD_ALL_FLAG : 0);
-        }
-        
-        DatabaseLoader(File file){
-            this(DATABASE_LOADER_LOAD_ALL_FLAG);
-        }
-        
-        DatabaseLoader(int loadFlags){
-            this(getDatabaseFile(),loadFlags);
-        }
-        
-        DatabaseLoader(boolean loadAll){
-            this(getDatabaseFile(),loadAll);
-        }
-        
-        DatabaseLoader(){
-            this(DATABASE_LOADER_LOAD_ALL_FLAG);
-        }
         /**
          * This returns if all the lists will be loaded from the database of 
          * if only or only the lists that are outdated.
@@ -9830,8 +9766,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // lists and the file that was loaded is not the local file
             if (LinkManagerUtilities.getFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG) && 
                     !file.equals(getDatabaseFile())){
-                loader = new DatabaseLoader(LinkManagerUtilities.setFlag(loadFlags,
-                        DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG, false));
+                loader = new DatabaseLoader(getDatabaseFile(),
+                        LinkManagerUtilities.setFlag(loadFlags,
+                                DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG, false));
                 loader.execute();
             }
         }
@@ -10452,22 +10389,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this(file,false);
         }
         /**
-         * This constructs a AbstractDatabaseSaver that will save the data to 
-         * the program's {@link #getDatabaseFile() database file} and, if {@code 
-         * exit} is {@code true}, will exit the program afterwards.
-         * @param exit Whether the program will exit after saving the file.
-         */
-        AbstractDatabaseSaver(boolean exit){
-            this(SavingStage.SAVE_DATABASE,exit);
-        }
-        /**
-         * This constructs a AbstractDatabaseSaver that will save the data to 
-         * the program's {@link #getDatabaseFile() database file}.
-         */
-        AbstractDatabaseSaver(){
-            this(false);
-        }
-        /**
          * 
          * @return 
          */
@@ -11070,14 +10991,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         DatabaseSaver(File file){
             super(file);
         }
-        
-        DatabaseSaver(boolean exit){
-            super(exit);
-        }
-        
-        DatabaseSaver(){
-            super();
-        }
         @Override
         public String getNormalProgressString() {
             return "Saving Lists";
@@ -11120,6 +11033,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This resets the IDs in the database.
      */
     private class ResetDatabaseIDs extends AbstractDatabaseSaver{
+        /**
+         * 
+         * @param file 
+         */
+        ResetDatabaseIDs(File file){
+            super(file);
+        }
         @Override
         public String getNormalProgressString(){
             return "Resetting IDs";
@@ -11246,8 +11166,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             loader.execute();
         }
     }
-    
+    /**
+     * 
+     */
     private class LinkPrefixUpdater extends AbstractDatabaseSaver{
+        /**
+         * 
+         * @param file 
+         */
+        LinkPrefixUpdater(File file){
+            super(file);
+        }
         @Override
         public String getNormalProgressString(){
             return "Updating Prefixes";
@@ -11316,7 +11245,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         private int mode;
         
         UpdateDatabase(File file, int updateType){
-            super(file,null,null,SavingStage.SAVE_DATABASE);
+            super(file,null,null,getConfigFile(),SavingStage.SAVE_DATABASE);
             this.mode = updateType;
         }
         @Override
@@ -11719,7 +11648,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         TempDatabaseDownloader(File file, String filePath, DatabaseSyncMode mode, 
                 Integer loadFlags){
-            super(file,filePath,mode);
+            super(file,filePath,mode,false);
             this.loadFlags = loadFlags;
             exitIfCancelled = !fullyLoaded;
         }
@@ -11858,8 +11787,54 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this(true);
         }
         @Override
+        public String getDownloadingProgressString(){
+            return "Downloading Database";
+        }
+        @Override
+        public String getExtractingProgressString(){
+            return "Extracting Database";
+        }
+        @Override
+        protected boolean isDownloadedFileCompressed(File downloadedFile){
+            return true;
+        }
+        @Override
+        protected String getExtractionArchiveFileForFailureMessage(File file){
+            return "downloaded file";
+        }
+        @Override
+        protected String getArchiveFilePath(){
+            return LINK_DATABASE_FILE;
+        }
+        @Override
+        protected File getExtractedFile(File file, File downloadedFile, String path){
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, 
+                        "."+DATABASE_FILE_EXTENSION);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temporary extracted file",
+                        ex);
+            }
+            return file;
+        }
+        @Override
+        protected File getDownloadFile(File file,String path){
+            String suffix = "."+DATABASE_FILE_EXTENSION;
+            int index = path.lastIndexOf(".");
+            if (index >= 0 && index > path.lastIndexOf("/") && index > path.lastIndexOf("\\"))
+                suffix = path.substring(index);
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, suffix);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temporary download file",
+                        ex);
+            }
+            return file;
+        }
+        @Override
         protected boolean loadFile(File file, File downloadedFile) {
-            getLogger().entering("AbstractDatabaseLoader", "loadFile", new Object[]{file,downloadedFile});
+            getLogger().entering("AbstractDatabaseLoader", "loadFile", 
+                    new Object[]{file,downloadedFile});
             if (!file.exists()){    // If the file doesn't exist
                 getLogger().exiting("AbstractDatabaseLoader", "loadFile", false);
                 return false;
@@ -11973,12 +11948,80 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected String getFileNotFoundMessage(File file){
             return "The database file does not exist.";
         }
+        @Override
+        protected void done(){
+            deleteDownloadedFile(false);
+            deleteExtractedFile(false);
+            super.done();
+                // Update the program configuration
+            updateProgramConfig();
+        }
     }
     /**
      * This loads the lists of links from the database.
      */
     private class DatabaseFileLoader extends AbstractDatabaseFileLoader{
-
+        /**
+         * This is a map that maps the tabs panels to the list of models that 
+         * will be displayed by those tabs panels when we finish loading.
+         */
+        private Map<LinksListTabsPanel, List<LinksListModel>> tabsModels = 
+                new HashMap<>();
+        /**
+         * This stores the flags for this DatabaseLoader, which indicate things 
+         * such as whether this will be loading all the lists from the database 
+         * or only the lists that are outdated.
+         */
+        private int loadFlags;
+        /**
+         * This stores whether this failed to load the database due to the 
+         * database being an incompatible version that cannot be updated 
+         * automatically by the program.
+         */
+        private boolean isDBOutdated = false;
+        /**
+         * This stores the version of the database being loaded.
+         */
+        private String dbVersion = "N/A";
+        /**
+         * This stores the UUID of the database being loaded.
+         */
+        private String dbUUID = null;
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
+         */
+        DatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
+                LoadingStage stage, int loadFlags, boolean showFileNotFound) {
+            super(file,filePath,mode,stage,showFileNotFound);
+            this.loadFlags = loadFlags;
+            if (!fullyLoaded)
+                this.loadFlags |= DATABASE_LOADER_LOAD_ALL_FLAG;
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage
+         * @param loadFlags 
+         */
+        DatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
+                LoadingStage stage, int loadFlags) {
+            this(file,filePath,mode,stage,loadFlags,fullyLoaded);
+        }
+        /**
+         * 
+         * @return 
+         */
+        public int getDatabaseLoaderFlags(){
+            return loadFlags;
+        }
+        
         @Override
         protected boolean loadDatabase(LinkDatabaseConnection conn, Statement stmt) throws SQLException {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
@@ -12057,12 +12100,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected void done(){
                 // If this was successful at checking for an update
             if (success){
-                    // If there's an update available, then set the text for the 
-                    // latest version label to be the latest version for the 
-                    // program. Otherwise, just state the current version
-                updateCheckPanel.setLatestVersion((updateAvailable) ? 
-                        updateChecker.getLatestVersion() : 
-                        updateChecker.getCurrentVersion());
+                updateCheckPanel.setLatestVersion(updateChecker, updateAvailable);
             }
             super.done();
                 // If this was successful at checking for an update

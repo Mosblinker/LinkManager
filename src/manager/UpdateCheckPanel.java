@@ -4,6 +4,7 @@
  */
 package manager;
 
+import com.technicjelle.UpdateChecker;
 import components.AbstractDialogPanel;
 import static components.AbstractDialogPanel.ERROR_OPTION;
 import java.awt.Component;
@@ -330,6 +331,18 @@ public class UpdateCheckPanel extends AbstractDialogPanel {
      */
     public void setLatestVersion(String version){
         latestVersLabel.setText(version);
+    }
+    /**
+     * 
+     * @param updateChecker
+     * @param updateAvailable 
+     */
+    public void setLatestVersion(UpdateChecker updateChecker, boolean updateAvailable){
+            // If there's an update available, then set the text for the latest 
+            // version label to be the latest version for the program. 
+            // Otherwise, just state the current version
+        setLatestVersion((updateAvailable) ? updateChecker.getLatestVersion() : 
+                updateChecker.getCurrentVersion());
     }
     /**
      * 
