@@ -8375,6 +8375,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected File extractFile(File archiveFile, String targetPath, File targetFile){
             getLogger().entering("AbstractFileDownloader", "extractFile", 
                     new Object[]{archiveFile, targetPath, targetFile});
+            try{
+                initializeSevenZip();
+            } catch (SevenZipNativeInitializationException ex){
+                exc = ex;
+                getLogger().log(Level.WARNING, "Failed to initialize 7-Zip bindings", ex);
+                getLogger().exiting("AbstractFileDownloader","extractFile",null);
+                return null;
+            }
             try(RandomAccessFile raf = new RandomAccessFile(archiveFile,"r");
                         IInArchive archive = SevenZip.openInArchive(null, 
                                 new RandomAccessFileInStream(raf))){
@@ -10836,9 +10844,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 progressBar.setIndeterminate(true);
                 Exception exc;
                 try{
+                    initializeSevenZip();
                     LinkManager.this.compressFile(file, archiveFile, path, level);
                     getLogger().exiting("AbstractDatabaseSaver", "compressFile", true);
                     return true;
+                } catch (SevenZipNativeInitializationException ex){
+                    getLogger().log(Level.WARNING, "Failed to initialize 7-Zip bindings", ex);
+                    exc = ex;
                 } catch (IOException ex){
                     getLogger().log(Level.WARNING,
                                 "Failed to compress database file", ex);
