@@ -11554,7 +11554,85 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public String getLoadingProgressString() {
             return "Loading Lists";
         }
-        
+        @Override
+        protected void done(){
+                // If this should create the default lists during the initial 
+                // load since the lists were not loaded either due to this 
+                // failing to load the database or the database file does not 
+                // exist
+            boolean createLists = !success && !file.exists() && !fullyLoaded;
+                // If this should create the default lists
+            if (createLists){
+                    // Create a list to contain the created models
+                List<LinksListModel> modelList = new ArrayList<>();
+                    // Go through the names for the default lists
+                for (String name : DEFAULT_LIST_NAMES){
+                        // Create the list
+                    LinksListModel model = new LinksListModel(name);
+                        // Set it to edited
+                    model.setEdited(true);
+                    modelList.add(model);
+                }
+                tabsModels.put(allListsTabsPanel, modelList);
+                tabsModels.put(shownListsTabsPanel, modelList);
+            }   // If this successfully loaded the database or this created the 
+            if (success || createLists){    // default lists
+                    // Go through the model lists for each tabs panel
+                for (Map.Entry<LinksListTabsPanel,List<LinksListModel>> entry : 
+                        tabsModels.entrySet()){
+                        // Get the tabs panel
+                    LinksListTabsPanel tabsPanel = entry.getKey();
+                    try{    // Set the models for the tabs panel
+                        tabsPanel.setModels(entry.getValue(), true);
+                    } catch (NullPointerException ex){
+                        getLogger().log(Level.WARNING,"Null encountered while setting models",ex);
+                    }
+                        // Go through the lists for the tabs panel
+                    for (LinksListPanel panel : tabsPanel){
+                            // Set the read only toggle for the current list to 
+                            // show whether the list is read only
+                        tabsPanel.getListMenuItem(panel, MAKE_LIST_READ_ONLY_ACTION_KEY)
+                                .setSelected(panel.isReadOnly());
+                            // Get the item used to hide the list if there is one
+                        JMenuItem hideItem = tabsPanel.getListMenuItem(panel, 
+                                HIDE_LIST_ACTION_KEY);
+                            // If there is an item to hide the list
+                        if (hideItem != null)
+                            hideItem.setSelected(panel.isHidden());
+                    }   // If the lists were completely reloaded
+                    if (getLoadsAll())
+                        tabsPanel.setStructureEdited(false);
+                        // If this successfully loaded the lists, none of the 
+                        // lists are edited, and there are no structural changes 
+                        // to the tabs panel
+                    if (success && !tabsPanel.getListsEdited() && 
+                            !tabsPanel.isStructureEdited())
+                        tabsPanel.clearEdited();
+                        // If the program has not fully loaded (this is the 
+                    if (!fullyLoaded){  // initial load)
+                            // Go through the lists in the tabs panel
+                        for (LinksListPanel panel : tabsPanel){
+                                // Ensure the last item is visible
+                            panel.ensureIndexIsVisible(panel.getModel().size()-1);
+                        }
+                    }
+                }
+            }   //If the program has not fully loaded (this is the initial load)
+            if (!fullyLoaded){
+                    // Set the selected items from the configuration
+                setSelectedFromConfig();
+                    // Update the program title
+                updateProgramTitle();
+            }   // Update whether the program has fully loaded
+            fullyLoaded = fullyLoaded || getLoadsAll();
+                // Re-enable all the lists
+            setTabsPanelListsEnabled(true);
+                // If all the lists were loaded and this successfully loaded the 
+                // lists
+            if (getLoadsAll() && success)
+                autosaveMenu.stopAutosave();
+            super.done();
+        }
     }
     /**
      * 
