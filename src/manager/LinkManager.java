@@ -4049,17 +4049,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void loadDatabase(int loadFlags){
         File file = getDatabaseFile();
         DatabaseSyncMode mode = (syncDBToggle.isSelected())?getSyncMode():null;
-            // If the local file should be checked for more up-to-date lists
-        if (LinkManagerUtilities.getFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG)){
-            try {   // Create a temporary file for the downloaded database
-                file = File.createTempFile(INTERNAL_PROGRAM_NAME, null);
-                    // Make sure the file is deleted on exit
-                file.deleteOnExit();
-            } catch (IOException ex) {
-                getLogger().log(Level.WARNING, 
-                        "Failed to create temporary database file", ex);
-            }
-        }
         loader = new DatabaseLoader(file,getDatabaseSyncName(mode),mode,
                 loadFlags);
         loader.execute();
