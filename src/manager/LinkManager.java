@@ -11545,7 +11545,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     file = result;
                 this.file = file;
             }
-            
             boolean value = super.loadFile(file, downloadedFile);
             getLogger().exiting(this.getClass().getName(), "loadFile", value);
             return value;
