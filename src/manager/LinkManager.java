@@ -11442,6 +11442,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         private String dbUUID = null;
         /**
          * 
+         */
+        private File backupFile = null;
+        /**
+         * 
          * @param file
          * @param filePath
          * @param mode
@@ -11555,7 +11559,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected File renameFile(File file1, File file2, boolean replace) 
                 throws IOException{
-            getLogger().entering("AbstractDatabaseLoader", "renameFile", 
+            getLogger().entering(this.getClass().getName(), "renameFile", 
                     new Object[]{file1,file2,replace});
             Path path;
             if (replace)
@@ -11565,8 +11569,47 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 path = Files.copy(file2.toPath(), file1.toPath(), 
                         StandardCopyOption.REPLACE_EXISTING);
             file1 = path.toFile();
-            getLogger().exiting("AbstractDatabaseLoader", "renameFile", file1);
+            getLogger().exiting(this.getClass().getName(), "renameFile", file1);
             return file1;
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected boolean createBackupFile(File file){
+            getLogger().entering(this.getClass().getName(), "createBackupFile", 
+                    file);
+            int retryOption = JOptionPane.NO_OPTION;
+            boolean failed;
+            File backup = null;
+            do {
+                try {
+                    if (backup == null)
+                        backup = File.createTempFile(INTERNAL_PROGRAM_NAME,
+                                "."+DATABASE_FILE_EXTENSION+"."+BACKUP_FILE_EXTENSION);
+                        // Try to create a backup of the file
+                    backupFile = Files.copy(file.toPath(), backup.toPath(), 
+                            StandardCopyOption.REPLACE_EXISTING).toFile();
+                    failed = false;
+                } catch (IOException ex) {
+                    getLogger().log(Level.WARNING,"Failed to create backup file",
+                            ex);
+                    failed = true;    // The backup failed
+                    retryOption = showRetryPrompt("ERROR - Failed To Create Backup",
+                            "The database backup file failed to be created.",
+                            true);
+                }
+            } while (failed && retryOption == JOptionPane.YES_OPTION);
+                // If the option selected was the cancel option or the user 
+                // closed the dialog without selecting anything
+            if (failed && (retryOption == JOptionPane.CLOSED_OPTION || 
+                    retryOption == JOptionPane.CANCEL_OPTION)){
+                getLogger().exiting(this.getClass().getName(), "createBackupFile", false);
+                return false;
+            }
+            getLogger().exiting(this.getClass().getName(), "createBackupFile", true);
+            return true;
         }
         @Override
         protected String getFailureMessage(File file){
