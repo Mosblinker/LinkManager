@@ -11488,9 +11488,56 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             setTabsPanelListsEnabled(false);
             return super.loadFile(file, downloadedFile);
         }
+        /**
+         * 
+         * @param conn
+         * @param stmt
+         * @return
+         * @throws SQLException 
+         */
+        protected boolean updateDatabase(LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException{
+            getLogger().entering(this.getClass().getName(), "updateDatabase", 
+                    new Object[]{conn,stmt});
+                // Create any tables in the database that need to be created
+            conn.createTables(stmt);
+                // Get the version of the database
+            dbVersion = conn.getDatabaseVersionStr();
+                // Get whether the database is outdated
+            isDBOutdated = conn.isDatabaseOutdated();
+                // If the database is incompatible with this version of the 
+            if (!conn.isDatabaseCompatible()){      // program
+                getLogger().log(Level.INFO, 
+                        "Database is incompatible with this program (version: {0}, latest: {1})", 
+                        new Object[]{dbVersion,LinkDatabaseConnection.DATABASE_VERSION});
+                getLogger().exiting(this.getClass().getName(), "updateDatabase", false);
+                return false;
+            }
+            // TODO: This should be made to backup the database, just in case
+                // If the database was not successfully updated to the latest 
+                // version this program supports
+            if (!conn.updateDatabaseDefinitions(stmt,progressObserver)){
+                getLogger().log(Level.WARNING, 
+                        "Database could not be updated (version: {0}, latest: {1})", 
+                        new Object[]{dbVersion,LinkDatabaseConnection.DATABASE_VERSION});
+                getLogger().exiting(this.getClass().getName(), "updateDatabase", false);
+                return false;
+            }
+            getLogger().exiting(this.getClass().getName(), "updateDatabase", true);
+            return true;
+        }
         @Override
         protected boolean loadDatabase(LinkDatabaseConnection conn, Statement stmt) throws SQLException {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            getLogger().entering(this.getClass().getName(), "loadDatabase", 
+                    new Object[]{conn,stmt});
+                // If the database cannot be updated
+            if (!updateDatabase(conn,stmt)){
+                getLogger().exiting(this.getClass().getName(), "loadDatabase", false);
+                return false;
+            }
+            tabsModels = LinkManager.this.loadDatabase(conn, getLoadsAll());
+            getLogger().exiting(this.getClass().getName(), "loadDatabase", true);
+            return true;
         }
 
         @Override
