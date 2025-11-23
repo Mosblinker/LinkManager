@@ -11651,6 +11651,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
     }
+    
     /**
      * This is an abstract class that provides the framework for loading from a 
      * database file.
