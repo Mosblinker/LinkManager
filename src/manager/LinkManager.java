@@ -12522,6 +12522,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbCreatePrefixTree.setModel(new DefaultTreeModel(createPrefixTestNode,true));
             
             super.done();
+        }
+    }
     /**
      * 
      */
