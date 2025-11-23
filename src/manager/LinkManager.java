@@ -4048,6 +4048,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void loadDatabase(int loadFlags){
         File file = getDatabaseFile();
+        DatabaseSyncMode mode = (syncDBToggle.isSelected())?getSyncMode():null;
             // If the local file should be checked for more up-to-date lists
         if (LinkManagerUtilities.getFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG)){
             try {   // Create a temporary file for the downloaded database
@@ -4058,20 +4059,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 getLogger().log(Level.WARNING, 
                         "Failed to create temporary database file", ex);
             }
-        }   // If this will sync the database to the cloud and the user is 
-            // logged into dropbox
-        if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            loader = new TempDatabaseDownloader(file,
-                    getDatabaseSyncName(getSyncMode()),
-                    getSyncMode(),
-                    loadFlags);
-            loader.execute();
-        } else {
-            loader = new DatabaseLoader(getDatabaseFile(),
-                    LinkManagerUtilities.setFlag(loadFlags,
-                            DATABASE_LOADER_CHECK_LOCAL_FLAG,false));
-            loader.execute();
         }
+        loader = new DatabaseFileLoader(file,getDatabaseSyncName(mode),mode,
+                loadFlags);
+        loader.execute();
     }
     /**
      * 
