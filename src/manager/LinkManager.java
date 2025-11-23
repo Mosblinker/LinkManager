@@ -11797,14 +11797,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             return file;
         }
-        /**
-         * 
-         * @return Whether this will load the local file while loading the 
-         * downloaded file
-         */
-        protected boolean willLoadBothFiles(){
-            return false;
-        }
         @Override
         protected boolean loadFile(File file, File downloadedFile) {
             getLogger().entering("AbstractDatabaseLoader", "loadFile", 
