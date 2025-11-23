@@ -484,6 +484,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
+     * @param mode
+     * @return 
+     */
+    private String getDatabaseSyncName(DatabaseSyncMode mode){
+        SyncLocationSettings settings = config.getSyncLocationSettings(mode);
+        return (settings != null)?settings.getDatabaseFileName():null;
+    }
+    /**
+     * 
      * @param exit
      * @return 
      */
@@ -496,6 +505,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private DatabaseSaver createDatabaseSaver(){
         return createDatabaseSaver(false);
+    }
+    /**
+     * 
+     * @param showFileNotFound 
+     */
+    private void loadDatabaseViewer(boolean showFileNotFound){
+        loader = new LoadDatabaseViewer(getDatabaseFile(),showFileNotFound);
+        loader.execute();
     }
     /**
      * This constructs a new LinkManager with the given value determining if it 
@@ -3306,8 +3323,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void dbViewItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbViewItemActionPerformed
-        loader = new LoadDatabaseViewer(false);
-        loader.execute();
+        loadDatabaseViewer(false);
             // This will be true if the database dialog has not been opened before
         if (databaseDialog.isLocationByPlatform())
             databaseDialog.setLocationRelativeTo(this);
@@ -3327,8 +3343,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void dbRefreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbRefreshButtonActionPerformed
-        loader = new LoadDatabaseViewer(true);
-        loader.execute();
+        loadDatabaseViewer(true);
     }//GEN-LAST:event_dbRefreshButtonActionPerformed
     /**
      * This resets the list IDs and link IDs of the lists and links in the 
@@ -3402,8 +3417,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             processDatabaseError("Could not add prefix \""+prefixField.getText()+"\"",
                     ex);
         }
-        loader = new LoadDatabaseViewer(true);
-        loader.execute();
+        loadDatabaseViewer(true);
     }//GEN-LAST:event_addPrefixButtonActionPerformed
 
     private void removePrefixButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removePrefixButtonActionPerformed
@@ -3427,8 +3441,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     dbPrefixTable.getValueAt(selRow, 0),
                     dbPrefixTable.getValueAt(selRow, 1)),ex);
         }
-        loader = new LoadDatabaseViewer(true);
-        loader.execute();
+        loadDatabaseViewer(true);
     }//GEN-LAST:event_removePrefixButtonActionPerformed
     
     private void setDBFileNameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBFileNameButtonActionPerformed
@@ -3546,8 +3559,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.WARNING,"Error creating database tables", ex);
             getLogger().log(Level.WARNING,"Error creating database tables cause", ex.getCause());
         }
-        loader = new LoadDatabaseViewer(true);
-        loader.execute();
+        loadDatabaseViewer(true);
     }//GEN-LAST:event_dbCreateTablesButtonActionPerformed
 
     private void foreignKeysToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_foreignKeysToggleActionPerformed
@@ -4036,29 +4048,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void loadDatabase(int loadFlags){
         File file = getDatabaseFile();
-            // If the local file should be checked for more up-to-date lists
-        if (LinkManagerUtilities.getFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG)){
-            try {   // Create a temporary file for the downloaded database
-                file = File.createTempFile(INTERNAL_PROGRAM_NAME, null);
-                    // Make sure the file is deleted on exit
-                file.deleteOnExit();
-            } catch (IOException ex) {
-                getLogger().log(Level.WARNING, 
-                        "Failed to create temporary database file", ex);
-            }
-        }   // If this will sync the database to the cloud and the user is 
-            // logged into dropbox
-        if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
-            loader = new TempDatabaseDownloader(file,
-                    config.getSyncLocationSettings(getSyncMode()).getDatabaseFileName(),getSyncMode(),
-                    loadFlags);
-            loader.execute();
-        } else {
-            loader = new DatabaseLoader(getDatabaseFile(),
-                    LinkManagerUtilities.setFlag(loadFlags,
-                            DATABASE_LOADER_CHECK_LOCAL_FLAG,false));
-            loader.execute();
-        }
+        DatabaseSyncMode mode = (syncDBToggle.isSelected())?getSyncMode():null;
+        loader = new DatabaseLoader(file,getDatabaseSyncName(mode),mode,
+                loadFlags);
+        loader.execute();
     }
     /**
      * 
@@ -4136,8 +4129,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         } catch (SQLException | UncheckedSQLException ex) {
             processDatabaseError("Error removing unused data",ex);
         }
-        loader = new LoadDatabaseViewer(true);
-        loader.execute();
+        loadDatabaseViewer(true);
     }//GEN-LAST:event_dbRemoveUnusedDataButtonActionPerformed
     /**
      * This toggles whether the copy and open buttons are enabled for hidden 
@@ -4329,8 +4321,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         } catch (SQLException | UncheckedSQLException ex) {
             processDatabaseError("Error removing duplicate data",ex);
         }
-        loader = new LoadDatabaseViewer(true);
-        loader.execute();
+        loadDatabaseViewer(true);
     }//GEN-LAST:event_dbRemoveDuplDataButtonActionPerformed
     
     private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
@@ -4819,14 +4810,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         System.gc();
         if (updated){   // Update the database view if there were changes
-            loader = new LoadDatabaseViewer(true);
-            loader.execute();
+            loadDatabaseViewer(true);
         }
     }//GEN-LAST:event_dbQueryPanelActionPerformed
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        loader = new TempDatabaseDownloader(getDatabaseFile(),
-                config.getSyncLocationSettings(getSyncMode()).getDatabaseFileName(),getSyncMode(),0);
+        DatabaseSyncMode mode = getSyncMode();
+        loader = new DatabaseLoader(getDatabaseFile(),getDatabaseSyncName(mode),
+                mode,0);
         loader.execute();
     }//GEN-LAST:event_jMenuItem1ActionPerformed
     
@@ -8086,8 +8077,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
                 LoadingStage stage, boolean showFileNotFound) {
-            this(file,config.getSyncLocationSettings(mode).getDatabaseFileName(),
-                    mode,stage,showFileNotFound);
+            this(file,getDatabaseSyncName(mode),mode,stage,showFileNotFound);
         }
         /**
          * 
@@ -8137,8 +8127,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
                 boolean showFileNotFound) {
-            this(file,config.getSyncLocationSettings(mode).getDatabaseFileName(),
-                    mode,showFileNotFound);
+            this(file,getDatabaseSyncName(mode),mode,showFileNotFound);
         }
         /**
          * 
@@ -9440,12 +9429,68 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is an abstract class that provides the framework for loading from a 
      * database file.
      */
-    private abstract class AbstractDatabaseLoader extends FileLoader{
+    private abstract class AbstractDatabaseLoader extends AbstractFileDownloader{
         /**
-         * The SQLException thrown while loading from the database if an error 
-         * occurred.
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
          */
-        protected SQLException sqlExc = null;
+        AbstractDatabaseLoader(File file, String filePath, 
+                DatabaseSyncMode mode, LoadingStage stage, 
+                boolean showFileNotFound) {
+            super(file, filePath, mode, stage, showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage 
+         */
+        AbstractDatabaseLoader(File file, String filePath, 
+                DatabaseSyncMode mode, LoadingStage stage) {
+            super(file,filePath,mode,stage);
+        }
+        /**
+         * 
+         * @param file
+         * @param stage
+         * @param showFileNotFound 
+         */
+        AbstractDatabaseLoader(File file, LoadingStage stage, boolean showFileNotFound){
+            super(file,stage,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param stage 
+         */
+        AbstractDatabaseLoader(File file, LoadingStage stage){
+            super(file,stage);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param showFileNotFound 
+         */
+        AbstractDatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
+                boolean showFileNotFound) {
+            super(file,filePath,mode,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode 
+         */
+        AbstractDatabaseLoader(File file, String filePath, DatabaseSyncMode mode){
+            super(file,filePath,mode);
+        }
         /**
          * This constructs a AbstractDatabaseLoader that will load the data from 
          * the database stored in the given file.
@@ -9480,6 +9525,84 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         AbstractDatabaseLoader(){
             this(true);
         }
+        @Override
+        public String getDownloadingProgressString(){
+            return "Downloading Database";
+        }
+        @Override
+        public String getExtractingProgressString(){
+            return "Extracting Database";
+        }
+        @Override
+        protected boolean isDownloadedFileCompressed(File downloadedFile){
+            return true;
+        }
+        @Override
+        protected String getExtractionArchiveFileForFailureMessage(File file){
+            return "downloaded file";
+        }
+        @Override
+        protected String getArchiveFilePath(){
+            return LINK_DATABASE_FILE;
+        }
+        @Override
+        protected File getExtractedFile(File file, File downloadedFile, String path){
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, 
+                        "."+DATABASE_FILE_EXTENSION);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temporary extracted file",
+                        ex);
+            }
+            return file;
+        }
+        @Override
+        protected File getDownloadFile(File file,String path){
+            String suffix = "."+DATABASE_FILE_EXTENSION;
+            int index = path.lastIndexOf(".");
+            if (index >= 0 && index > path.lastIndexOf("/") && index > path.lastIndexOf("\\"))
+                suffix = path.substring(index);
+            try {
+                return File.createTempFile(INTERNAL_PROGRAM_NAME, suffix);
+            } catch (IOException ex) {
+                getLogger().log(Level.WARNING, "Failed to create temporary download file",
+                        ex);
+            }
+            return file;
+        }
+        @Override
+        protected boolean loadFile(File file, File downloadedFile) {
+            getLogger().entering("AbstractDatabaseLoader", "loadFile", 
+                    new Object[]{file,downloadedFile});
+            if (!file.exists()){    // If the file doesn't exist
+                getLogger().exiting("AbstractDatabaseLoader", "loadFile", false);
+                return false;
+            }
+            boolean retry;
+            do{
+                SQLException sqlExc = null;
+                try{
+                    loadSuccess = loadDatabase(file);
+                } catch(SQLException ex){
+                    getLogger().log(Level.WARNING, "Failed to load database", ex);
+                    sqlExc = ex;
+                } catch (UncheckedSQLException ex){
+                    getLogger().log(Level.WARNING,"Failed to load database", ex);
+                    sqlExc = ex.getCause();
+                    getLogger().log(Level.WARNING,"Failure to load database cause", ex);
+                } catch(Exception ex){
+                    getLogger().log(Level.WARNING, "Failed to load database", ex);
+                }
+                if (loadSuccess){
+                    getLogger().exiting("AbstractDatabaseLoader", "loadFile", true);
+                    return true;
+                }
+                retry = LinkManager.this.showFailurePrompt(getFailureTitle(file), 
+                        getFailureMessage(file,sqlExc), true, false) == JOptionPane.YES_OPTION;
+            } while (!loadSuccess && retry);
+            getLogger().exiting("AbstractDatabaseLoader", "loadFile", loadSuccess);
+            return loadSuccess;
+        }
         /**
          * This attempts to load from the database using the given database 
          * connection and provided reusable statement.
@@ -9492,46 +9615,44 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         protected abstract boolean loadDatabase(LinkDatabaseConnection conn, 
                 Statement stmt) throws SQLException;
-        @Override
-        protected boolean loadFile(File file){
-            getLogger().entering("AbstractDatabaseLoader", "loadFile", file);
-            sqlExc = null;
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected boolean loadDatabase(File file) throws Exception, SQLException{
+            getLogger().entering("AbstractDatabaseLoader", "loadDatabase", file);
             if (!file.exists()){    // If the file doesn't exist
-                getLogger().exiting("AbstractDatabaseLoader", "loadFile", true);
+                getLogger().exiting("AbstractDatabaseLoader", "loadDatabase", false);
                 return false;
             }
-            boolean value = false;
+            boolean value;
                 // Connect to the database and create an SQL statement
             try(LinkDatabaseConnection conn = connect(file);
                     Statement stmt = conn.createStatement()){
                 value = loadDatabase(conn,stmt); // Load from the database
-            } catch(SQLException ex){
-                getLogger().log(Level.WARNING, "Failed to load database", ex);
-                sqlExc = ex;
-            } catch (UncheckedSQLException ex){
-                getLogger().log(Level.WARNING,"Failed to load database", ex);
-                sqlExc = ex.getCause();
-                getLogger().log(Level.WARNING,"Failure to load database cause", ex);
             }
-            getLogger().exiting("AbstractDatabaseLoader", "loadFile", value);
+            getLogger().exiting("AbstractDatabaseLoader", "loadDatabase", value);
             return value;
         }
-        /**
-         * This returns any SQLExceptions that were thrown while this was 
-         * loading data from the database.
-         * @return The SQLException thrown while loading, or null if no 
-         * SQLException was thrown.
-         */
-        protected SQLException getSQLExceptionThrown(){
-            return sqlExc;
+        @Override
+        protected String getFailureTitle(File file){
+            return "ERROR - Database Failed To Load";
         }
         @Override
         protected String getFailureMessage(File file){
-            return getFailureMessage(file,sqlExc);
+            return "The database failed to load.";
         }
-        protected String getFailureMessage(File file, SQLException ex){
+        /**
+         * 
+         * @param file
+         * @param ex
+         * @param defaultMsg
+         * @return 
+         */
+        protected String getFailureMessage(File file, SQLException ex, String defaultMsg){
                 // The message to return
-            String msg = "The database failed to load.";
+            String msg = defaultMsg;
             if (ex != null){    // If an SQLException was thrown
                     // Custom error messages for certain error codes
                 switch(ex.getErrorCode()){
@@ -9553,12 +9674,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             return msg;
         }
+        /**
+         * 
+         * @param file
+         * @param ex
+         * @return 
+         */
+        protected String getFailureMessage(File file, SQLException ex){
+            return getFailureMessage(file,ex,getFailureMessage(file));
+        }
         @Override
         protected String getFileNotFoundMessage(File file){
             return "The database file does not exist.";
         }
         @Override
         protected void done(){
+            deleteDownloadedFile(false);
+            deleteExtractedFile(false);
             super.done();
                 // Update the program configuration
             updateProgramConfig();
@@ -9590,30 +9722,153 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * This stores the version of the database being loaded.
          */
         private String dbVersion = "N/A";
-        
-        DatabaseLoader(File file, int loadFlags){
-            super(file,fullyLoaded);
+        /**
+         * This stores the UUID of the database being loaded.
+         */
+        private String dbUUID = null;
+        /**
+         * 
+         */
+        private File backupFile = null;
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage
+         * @param showFileNotFound 
+         */
+        DatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
+                LoadingStage stage, int loadFlags, boolean showFileNotFound) {
+            super(file,filePath,mode,stage,showFileNotFound);
             this.loadFlags = loadFlags;
             if (!fullyLoaded)
                 this.loadFlags |= DATABASE_LOADER_LOAD_ALL_FLAG;
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param stage
+         * @param loadFlags 
+         */
+        DatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
+                LoadingStage stage, int loadFlags) {
+            this(file,filePath,mode,stage,loadFlags,fullyLoaded);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param loadFlags
+         * @param showFileNotFound 
+         */
+        DatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
+                int loadFlags, boolean showFileNotFound) {
+            this(file,filePath,mode,
+                    (filePath!=null&&mode!=null)?LoadingStage.DOWNLOADING_FILE:
+                            LoadingStage.LOADING_FILE,loadFlags,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param loadFlags 
+         */
+        DatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
+                int loadFlags) {
+            this(file,filePath,mode,loadFlags,fullyLoaded);
+        }
+        /**
+         * 
+         * @return 
+         */
+        public int getDatabaseLoaderFlags(){
+            return loadFlags;
         }
         /**
          * This returns if all the lists will be loaded from the database of 
          * if only or only the lists that are outdated.
          * @return Whether all the lists will be loaded.
          */
-        private boolean getLoadsAll(){
+        public boolean getLoadsAll(){
             return LinkManagerUtilities.getFlag(loadFlags,DATABASE_LOADER_LOAD_ALL_FLAG);
         }
         @Override
-        public String getProgressString(){
-            return "Loading Lists";
-        }
-        @Override
-        protected boolean loadDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException {
+        protected boolean loadFile(File file, File downloadedFile) {
+            getLogger().entering(this.getClass().getName(), "loadFile",
+                    new Object[]{file,downloadedFile});
                 // Disable all the lists
             setTabsPanelListsEnabled(false);
+                // Get if the downloaded file can be used
+            boolean useDownload = downloadedFile != null && downloadedFile.exists();
+                // If the local file exists
+            if (file.exists()){
+                    // Create a backup of the file, just in case
+                if (!createBackupFile(file)){
+                    loadSuccess = false;
+                    getLogger().exiting(this.getClass().getName(), "loadFile", false);
+                    return false;
+                }
+            } else if (!useDownload){
+                getLogger().warning("Both files do not exist");
+                loadSuccess = false;
+                getLogger().exiting(this.getClass().getName(), "loadFile", false);
+                return false;
+            }   // If we're loading from the downloaded file and replacing the 
+                // local file with it
+            if (useDownload){
+                getLogger().log(Level.FINER, "Renaming {0} -> {1}", new Object[]{downloadedFile, file});
+                File result = null;
+                int retryOption = JOptionPane.NO_OPTION;
+                do{
+                    exc = null;
+                    try {
+                        result = renameFile(file,downloadedFile,true);
+                    } catch (IOException ex) {
+                        getLogger().log(Level.WARNING, 
+                                "Failed to overwrite database file with downloaded file",
+                                ex);
+                        result = null;
+                        exc = ex;
+                    }
+                    if (result == null)
+                        retryOption = showRetryPrompt("ERROR - Failed to Overwrite Local File",
+                                "The local database file failed to be overwritten with the downloaded file",
+                                true);
+                } while (result == null && retryOption == JOptionPane.YES_OPTION);
+                    // If the option selected was the cancel option or the user 
+                    // closed the dialog without selecting anything
+                if (result == null && (retryOption == JOptionPane.CLOSED_OPTION || 
+                        retryOption == JOptionPane.CANCEL_OPTION)){
+                    loadSuccess = false;
+                    getLogger().exiting(this.getClass().getName(), "loadFile", false);
+                    return false;
+                }
+                if (result == null)
+                    file = downloadedFile;
+                else
+                    file = result;
+                this.file = file;
+            }
+            boolean value = super.loadFile(file, downloadedFile);
+            getLogger().exiting(this.getClass().getName(), "loadFile", value);
+            return value;
+        }
+        /**
+         * 
+         * @param conn
+         * @param stmt
+         * @return
+         * @throws SQLException 
+         */
+        protected boolean updateDatabase(LinkDatabaseConnection conn, 
+                Statement stmt) throws SQLException{
+            getLogger().entering(this.getClass().getName(), "updateDatabase", 
+                    new Object[]{conn,stmt});
                 // Create any tables in the database that need to be created
             conn.createTables(stmt);
                 // Get the version of the database
@@ -9623,8 +9878,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // If the database is incompatible with this version of the 
             if (!conn.isDatabaseCompatible()){      // program
                 getLogger().log(Level.INFO, 
-                        "Database is incompatible with this program (version: {0})", 
-                        dbVersion);
+                        "Database is incompatible with this program (version: {0}, latest: {1})", 
+                        new Object[]{dbVersion,LinkDatabaseConnection.DATABASE_VERSION});
+                getLogger().exiting(this.getClass().getName(), "updateDatabase", false);
                 return false;
             }
             // TODO: This should be made to backup the database, just in case
@@ -9632,11 +9888,87 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // version this program supports
             if (!conn.updateDatabaseDefinitions(stmt,progressObserver)){
                 getLogger().log(Level.WARNING, 
-                        "Database could not be updated (version: {0})", 
-                        dbVersion);
+                        "Database could not be updated (version: {0}, latest: {1})", 
+                        new Object[]{dbVersion,LinkDatabaseConnection.DATABASE_VERSION});
+                getLogger().exiting(this.getClass().getName(), "updateDatabase", false);
+                return false;
+            }
+            getLogger().exiting(this.getClass().getName(), "updateDatabase", true);
+            return true;
+        }
+        @Override
+        protected boolean loadDatabase(LinkDatabaseConnection conn, Statement stmt) throws SQLException {
+            getLogger().entering(this.getClass().getName(), "loadDatabase", 
+                    new Object[]{conn,stmt});
+                // If the database cannot be updated
+            if (!updateDatabase(conn,stmt)){
+                getLogger().exiting(this.getClass().getName(), "loadDatabase", false);
                 return false;
             }
             tabsModels = LinkManager.this.loadDatabase(conn, getLoadsAll());
+            getLogger().exiting(this.getClass().getName(), "loadDatabase", true);
+            return true;
+        }
+        /**
+         * 
+         * @param file1
+         * @param file2
+         * @param replace
+         * @return
+         * @throws IOException 
+         */
+        protected File renameFile(File file1, File file2, boolean replace) 
+                throws IOException{
+            getLogger().entering(this.getClass().getName(), "renameFile", 
+                    new Object[]{file1,file2,replace});
+            Path path;
+            if (replace)
+                path = Files.move(file2.toPath(), file1.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING);
+            else
+                path = Files.copy(file2.toPath(), file1.toPath(), 
+                        StandardCopyOption.REPLACE_EXISTING);
+            file1 = path.toFile();
+            getLogger().exiting(this.getClass().getName(), "renameFile", file1);
+            return file1;
+        }
+        /**
+         * 
+         * @param file
+         * @return 
+         */
+        protected boolean createBackupFile(File file){
+            getLogger().entering(this.getClass().getName(), "createBackupFile", 
+                    file);
+            int retryOption = JOptionPane.NO_OPTION;
+            boolean failed;
+            File backup = null;
+            do {
+                try {
+                    if (backup == null)
+                        backup = File.createTempFile(INTERNAL_PROGRAM_NAME,
+                                "."+DATABASE_FILE_EXTENSION+"."+BACKUP_FILE_EXTENSION);
+                        // Try to create a backup of the file
+                    backupFile = Files.copy(file.toPath(), backup.toPath(), 
+                            StandardCopyOption.REPLACE_EXISTING).toFile();
+                    failed = false;
+                } catch (IOException ex) {
+                    getLogger().log(Level.WARNING,"Failed to create backup file",
+                            ex);
+                    failed = true;    // The backup failed
+                    retryOption = showRetryPrompt("ERROR - Failed To Create Backup",
+                            "The database backup file failed to be created.",
+                            true);
+                }
+            } while (failed && retryOption == JOptionPane.YES_OPTION);
+                // If the option selected was the cancel option or the user 
+                // closed the dialog without selecting anything
+            if (failed && (retryOption == JOptionPane.CLOSED_OPTION || 
+                    retryOption == JOptionPane.CANCEL_OPTION)){
+                getLogger().exiting(this.getClass().getName(), "createBackupFile", false);
+                return false;
+            }
+            getLogger().exiting(this.getClass().getName(), "createBackupFile", true);
             return true;
         }
         @Override
@@ -9649,6 +9981,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         dbVersion, DATABASE_MAJOR_VERSION);
             }
             return super.getFailureMessage(file);
+        }
+        @Override
+        public String getLoadingProgressString() {
+            return "Loading Lists";
         }
         @Override
         protected void done(){
@@ -9727,21 +10063,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // lists
             if (getLoadsAll() && success)
                 autosaveMenu.stopAutosave();
+            deleteFile(true,backupFile);
             super.done();
-                // If this should check the local file for any more up-to-date 
-                // lists and the file that was loaded is not the local file
-            if (LinkManagerUtilities.getFlag(loadFlags,DATABASE_LOADER_CHECK_LOCAL_FLAG) && 
-                    !file.equals(getDatabaseFile())){
-                loader = new DatabaseLoader(getDatabaseFile(),
-                        LinkManagerUtilities.setFlag(loadFlags,
-                                DATABASE_LOADER_LOAD_ALL_FLAG | DATABASE_LOADER_CHECK_LOCAL_FLAG, false));
-                loader.execute();
-            }
         }
     }
     /**
-     * This loads the tables in the database and displays them in the database 
-     * viewer.
+     * 
      */
     private class LoadDatabaseViewer extends AbstractDatabaseLoader{
         /**
@@ -9817,20 +10144,154 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private DefaultMutableTreeNode createPrefixTestNode = null;
         /**
-         * This constructs a LoadDatabaseViewer.
-         * @param showFileNotFound Whether a file not found error should result 
-         * in a popup being shown to the user.
+         * 
+         * @param file
+         * @param showFileNotFound 
          */
-        LoadDatabaseViewer(boolean showFileNotFound){
-            super(showFileNotFound);
+        LoadDatabaseViewer(File file, boolean showFileNotFound){
+            super(file,null,null,LoadingStage.LOADING_FILE,showFileNotFound);
+        }
+        /**
+         * 
+         * @param names
+         * @param structMap
+         * @param type 
+         */
+        private void loadStructure(Set<String>names,Map<String,String>structMap,
+                String type){
+                // Go through the names of the items
+            for (String name : names){
+                    // If the structure map does not contain the item
+                if (!structMap.containsKey(name))
+                        // Skip it
+                    continue;
+                tableTableModel.addRow(new Object[]{
+                    name,type,structMap.get(name)
+                });
+                progressObserver.incrementValue();
+            }
+        }
+        /**
+         * 
+         */
+        private void createConfigModel(){
+                // If the config table model has not been constructed yet
+            if (configTableModel == null){
+                configTableModel = new CustomTableModel(
+                        "Source","Property Name","Property",
+                        "Is Set","Default Value");
+                configTableModel.setColumnClass(0, String.class);
+                configTableModel.setColumnClass(1, String.class);
+                configTableModel.setColumnClass(2, Object.class);
+                configTableModel.setColumnClass(3, String.class);
+                configTableModel.setColumnClass(4, Object.class);
+            }
+        }
+        /**
+         * 
+         * @param source
+         * @param property
+         * @param value
+         * @param isSet
+         * @param defaultValue 
+         */
+        private void addConfigRow(String source, String property, Object value, 
+                Boolean isSet, Object defaultValue){
+            configTableModel.addRow(new Object[]{
+                source,
+                property,
+                value,
+                Objects.toString(isSet, ""),
+                defaultValue
+            });
+        }
+        /**
+         * 
+         * @param source
+         * @param config
+         * @param defaultConfig 
+         * @param setIfNotEqual
+         */
+        private void addConfigRows(String source, Properties config, 
+                Properties defaultConfig, boolean setIfNotEqual){
+            progressBar.setIndeterminate(true);
+                // Create the config table model if not already created
+            createConfigModel();
+                // Get the property names for the config
+            Set<String> propNames = new TreeSet<>(config.stringPropertyNames());
+                // If a default config was provided
+            if (defaultConfig != null)
+                    // Add all the default property names too
+                propNames.addAll(defaultConfig.stringPropertyNames());
+            progressBar.setValue(0);
+            progressBar.setMaximum(propNames.size());
+            progressBar.setIndeterminate(false);
+                // Go through the program's property names
+            for (String property : propNames){
+                    // Get the set property value
+                String propValue = config.getProperty(property);
+                    // Get the default property value
+                String propDefault = (defaultConfig != null) ? 
+                        defaultConfig.getProperty(property) : null;
+                addConfigRow(
+                        source,
+                        property,
+                        propValue,
+                        config.containsKey(property) && 
+                                (!setIfNotEqual || !Objects.equals(propValue, propDefault)),
+                        propDefault
+                );
+                progressObserver.incrementValue();
+            }
+        }
+        /**
+         * 
+         * @param source
+         * @param config
+         * @param defaultConfig 
+         */
+        private void addConfigRows(String source, Properties config, 
+                Properties defaultConfig){
+            addConfigRows(source,config,defaultConfig,false);
+        }
+        /**
+         * 
+         * @param source
+         * @param prop 
+         */
+        private void addConfigRows(String source, ConfigProperties prop){
+            addConfigRows(source,prop,prop.getDefaults());
+        }
+        /**
+         * 
+         * @param source
+         * @param node
+         */
+        private void addConfigRows(String source, ConfigPreferences node){
+            getLogger().entering(this.getClass().getName(), "addConfigRows", 
+                    new Object[]{source,node});
+                // If the preference node is null
+            if (node == null)
+                return;
+            try {   // If the node exists
+                if (node.nodeExists(""))
+                    addConfigRows(source,node.toProperties());
+            } catch (BackingStoreException | IllegalStateException ex) {
+                getLogger().log(Level.WARNING, "Failed to load settings from node",
+                        ex);
+            }
+            getLogger().exiting(this.getClass().getName(), "addConfigRows");
         }
         @Override
-        public String getProgressString(){
-            return "Loading Tables";
+        protected boolean loadFile(File file, File downloadedFile) {
+            if (file.exists())  // If the database file exists
+                dbFileSize = file.length();
+            return super.loadFile(file, downloadedFile);
         }
         @Override
-        protected boolean loadDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException {
+        protected boolean loadDatabase(LinkDatabaseConnection conn, Statement stmt) throws SQLException {
+            getLogger().entering(this.getClass().getName(), "loadDatabase", 
+                    new Object[]{conn,stmt});
                 // Load the table view from the database
             dbViewer.loadTables(showSchemaToggle.isSelected(), conn, stmt, progressBar);
             
@@ -9999,147 +10460,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         node.setUserObject("\""+node.getUserObject()+"\"");
                 }
             }
+            getLogger().exiting(this.getClass().getName(), "loadDatabase", true);
             return true;
-        }
-        /**
-         * 
-         * @param names
-         * @param structMap
-         * @param type 
-         */
-        private void loadStructure(Set<String>names,Map<String,String>structMap,
-                String type){
-                // Go through the names of the items
-            for (String name : names){
-                    // If the structure map does not contain the item
-                if (!structMap.containsKey(name))
-                        // Skip it
-                    continue;
-                tableTableModel.addRow(new Object[]{
-                    name,type,structMap.get(name)
-                });
-                progressObserver.incrementValue();
-            }
-        }
-        /**
-         * 
-         */
-        private void createConfigModel(){
-                // If the config table model has not been constructed yet
-            if (configTableModel == null){
-                configTableModel = new CustomTableModel(
-                        "Source","Property Name","Property",
-                        "Is Set","Default Value");
-                configTableModel.setColumnClass(0, String.class);
-                configTableModel.setColumnClass(1, String.class);
-                configTableModel.setColumnClass(2, Object.class);
-                configTableModel.setColumnClass(3, String.class);
-                configTableModel.setColumnClass(4, Object.class);
-            }
-        }
-        /**
-         * 
-         * @param source
-         * @param property
-         * @param value
-         * @param isSet
-         * @param defaultValue 
-         */
-        private void addConfigRow(String source, String property, Object value, 
-                Boolean isSet, Object defaultValue){
-            configTableModel.addRow(new Object[]{
-                source,
-                property,
-                value,
-                Objects.toString(isSet, ""),
-                defaultValue
-            });
-        }
-        /**
-         * 
-         * @param source
-         * @param config
-         * @param defaultConfig 
-         * @param setIfNotEqual
-         */
-        private void addConfigRows(String source, Properties config, 
-                Properties defaultConfig, boolean setIfNotEqual){
-            progressBar.setIndeterminate(true);
-                // Create the config table model if not already created
-            createConfigModel();
-                // Get the property names for the config
-            Set<String> propNames = new TreeSet<>(config.stringPropertyNames());
-                // If a default config was provided
-            if (defaultConfig != null)
-                    // Add all the default property names too
-                propNames.addAll(defaultConfig.stringPropertyNames());
-            progressBar.setValue(0);
-            progressBar.setMaximum(propNames.size());
-            progressBar.setIndeterminate(false);
-                // Go through the program's property names
-            for (String property : propNames){
-                    // Get the set property value
-                String propValue = config.getProperty(property);
-                    // Get the default property value
-                String propDefault = (defaultConfig != null) ? 
-                        defaultConfig.getProperty(property) : null;
-                addConfigRow(
-                        source,
-                        property,
-                        propValue,
-                        config.containsKey(property) && 
-                                (!setIfNotEqual || !Objects.equals(propValue, propDefault)),
-                        propDefault
-                );
-                progressObserver.incrementValue();
-            }
-        }
-        /**
-         * 
-         * @param source
-         * @param config
-         * @param defaultConfig 
-         */
-        private void addConfigRows(String source, Properties config, 
-                Properties defaultConfig){
-            addConfigRows(source,config,defaultConfig,false);
-        }
-        /**
-         * 
-         * @param source
-         * @param prop 
-         */
-        private void addConfigRows(String source, ConfigProperties prop){
-            addConfigRows(source,prop,prop.getDefaults());
-        }
-        /**
-         * 
-         * @param source
-         * @param node
-         */
-        private void addConfigRows(String source, ConfigPreferences node){
-            getLogger().entering(this.getClass().getName(), "addConfigRows", 
-                    new Object[]{source,node});
-                // If the preference node is null
-            if (node == null)
-                return;
-            try {   // If the node exists
-                if (node.nodeExists(""))
-                    addConfigRows(source,node.toProperties());
-            } catch (BackingStoreException | IllegalStateException ex) {
-                getLogger().log(Level.WARNING, "Failed to load settings from node",
-                        ex);
-            }
-            getLogger().exiting(this.getClass().getName(), "addConfigRows");
-        }
-        @Override
-        protected boolean loadFile(File file){
-            if (file.exists())  // If the database file exists
-                dbFileSize = file.length();
-            return super.loadFile(file);
         }
         @Override
         protected Void backgroundAction() throws Exception {
+            getLogger().entering(this.getClass().getName(), "backgroundAction");
                 // Load the database stuff
             super.backgroundAction();
             
@@ -10176,7 +10502,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }   // Add all the Dropbox preferences for this program
             addConfigRows("Dropbox Preferences",config.getDropboxPreferences());
             
+            getLogger().exiting(this.getClass().getName(), "backgroundAction", true);
             return null;
+        }
+        @Override
+        public String getLoadingProgressString() {
+            return "Loading Tables";
         }
         /**
          * 
@@ -10317,8 +10648,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         private AbstractDatabaseSaver(File file, DatabaseSyncMode mode, 
                 SavingStage stage, boolean exit){
-            this(file,config.getSyncLocationSettings(mode).getDatabaseFileName(),
-                    mode,stage,exit);
+            this(file,getDatabaseSyncName(mode),mode,stage,exit);
         }
         
         AbstractDatabaseSaver(File file, SavingStage stage, boolean exit){
@@ -11128,8 +11458,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             deleteBackupIfSuccessful();
             super.done();
                 // Reload the database view data
-            loader = new LoadDatabaseViewer(true);
-            loader.execute();
+            loadDatabaseViewer(true);
         }
     }
     /**
@@ -11201,8 +11530,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             deleteBackupIfSuccessful();
             super.done();
                 // Reload the database view data
-            loader = new LoadDatabaseViewer(true);
-            loader.execute();
+            loadDatabaseViewer(true);
         }
     }
     
@@ -11603,401 +11931,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
             super.done();
         }
-    }
-  
-    private class TempDatabaseDownloader extends DatabaseDownloader{
-        /**
-         * The flags to use for loading the lists. If this is null, then the 
-         * database will not be loaded after this.
-         */
-        protected Integer loadFlags = null;
-        
-        TempDatabaseDownloader(File file, String filePath, DatabaseSyncMode mode, 
-                Integer loadFlags){
-            super(file,filePath,mode,false);
-            this.loadFlags = loadFlags;
-            exitIfCancelled = !fullyLoaded;
-        }
-        /**
-         * 
-         * @return 
-         */
-        public boolean willLoadDatabase(){
-            return loadFlags != null;
-        }
-        /**
-         * 
-         * @return 
-         */
-        public int getDatabaseLoaderFlags(){
-                // If the database loader flags are not null
-            if (loadFlags != null)
-                return loadFlags;
-            return 0;
-        }
-        /**
-         * 
-         * @param loadAll 
-         */
-        protected void loadDatabase(int loadFlags){
-            loader = new DatabaseLoader(file,loadFlags);
-            loader.execute();
-        }
-        @Override
-        protected void done(){
-            super.done();
-            if (willLoadDatabase()){
-                loadDatabase(getDatabaseLoaderFlags());
-            }
-        }
-    }
-    
-    /**
-     * This is an abstract class that provides the framework for loading from a 
-     * database file.
-     */
-    private abstract class AbstractDatabaseFileLoader extends AbstractFileDownloader{
-        /**
-         * 
-         * @param file
-         * @param filePath
-         * @param mode
-         * @param stage
-         * @param showFileNotFound 
-         */
-        AbstractDatabaseFileLoader(File file, String filePath, 
-                DatabaseSyncMode mode, LoadingStage stage, 
-                boolean showFileNotFound) {
-            super(file, filePath, mode, stage, showFileNotFound);
-        }
-        /**
-         * 
-         * @param file
-         * @param filePath
-         * @param mode
-         * @param stage 
-         */
-        AbstractDatabaseFileLoader(File file, String filePath, 
-                DatabaseSyncMode mode, LoadingStage stage) {
-            super(file,filePath,mode,stage);
-        }
-        /**
-         * 
-         * @param file
-         * @param stage
-         * @param showFileNotFound 
-         */
-        AbstractDatabaseFileLoader(File file, LoadingStage stage, boolean showFileNotFound){
-            super(file,stage,showFileNotFound);
-        }
-        /**
-         * 
-         * @param file
-         * @param stage 
-         */
-        AbstractDatabaseFileLoader(File file, LoadingStage stage){
-            super(file,stage);
-        }
-        /**
-         * 
-         * @param file
-         * @param filePath
-         * @param mode
-         * @param showFileNotFound 
-         */
-        AbstractDatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
-                boolean showFileNotFound) {
-            super(file,filePath,mode,showFileNotFound);
-        }
-        /**
-         * 
-         * @param file
-         * @param filePath
-         * @param mode 
-         */
-        AbstractDatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode){
-            super(file,filePath,mode);
-        }
-        /**
-         * This constructs a AbstractDatabaseLoader that will load the data from 
-         * the database stored in the given file.
-         * @param file The database file to load the data from.
-         * @param showFileNotFound Whether a file not found error should result 
-         * in a popup being shown to the user.
-         */
-        AbstractDatabaseFileLoader(File file, boolean showFileNotFound) {
-            super(file, showFileNotFound);
-        }
-        /**
-         * This constructs a AbstractDatabaseLoader that will load the data from 
-         * the database stored in the given file.
-         * @param file The database file to load the data from.
-         */
-        AbstractDatabaseFileLoader(File file) {
-            super(file);
-        }
-        /**
-         * This constructs a AbstractDatabaseLoader that will load the data from 
-         * the program's {@link #getDatabaseFile() database file}.
-         * @param showFileNotFound Whether a file not found error should result 
-         * in a popup being shown to the user.
-         */
-        AbstractDatabaseFileLoader(boolean showFileNotFound){
-            this(getDatabaseFile(), showFileNotFound);
-        }
-        /**
-         * This constructs a AbstractDatabaseLoader that will load the data from 
-         * the program's {@link #getDatabaseFile() database file}.
-         */
-        AbstractDatabaseFileLoader(){
-            this(true);
-        }
-        @Override
-        public String getDownloadingProgressString(){
-            return "Downloading Database";
-        }
-        @Override
-        public String getExtractingProgressString(){
-            return "Extracting Database";
-        }
-        @Override
-        protected boolean isDownloadedFileCompressed(File downloadedFile){
-            return true;
-        }
-        @Override
-        protected String getExtractionArchiveFileForFailureMessage(File file){
-            return "downloaded file";
-        }
-        @Override
-        protected String getArchiveFilePath(){
-            return LINK_DATABASE_FILE;
-        }
-        @Override
-        protected File getExtractedFile(File file, File downloadedFile, String path){
-            try {
-                return File.createTempFile(INTERNAL_PROGRAM_NAME, 
-                        "."+DATABASE_FILE_EXTENSION);
-            } catch (IOException ex) {
-                getLogger().log(Level.WARNING, "Failed to create temporary extracted file",
-                        ex);
-            }
-            return file;
-        }
-        @Override
-        protected File getDownloadFile(File file,String path){
-            String suffix = "."+DATABASE_FILE_EXTENSION;
-            int index = path.lastIndexOf(".");
-            if (index >= 0 && index > path.lastIndexOf("/") && index > path.lastIndexOf("\\"))
-                suffix = path.substring(index);
-            try {
-                return File.createTempFile(INTERNAL_PROGRAM_NAME, suffix);
-            } catch (IOException ex) {
-                getLogger().log(Level.WARNING, "Failed to create temporary download file",
-                        ex);
-            }
-            return file;
-        }
-        @Override
-        protected boolean loadFile(File file, File downloadedFile) {
-            getLogger().entering("AbstractDatabaseLoader", "loadFile", 
-                    new Object[]{file,downloadedFile});
-            if (!file.exists()){    // If the file doesn't exist
-                getLogger().exiting("AbstractDatabaseLoader", "loadFile", false);
-                return false;
-            }
-            boolean retry;
-            do{
-                SQLException sqlExc = null;
-                try{
-                    loadSuccess = loadDatabase(file);
-                } catch(SQLException ex){
-                    getLogger().log(Level.WARNING, "Failed to load database", ex);
-                    sqlExc = ex;
-                } catch (UncheckedSQLException ex){
-                    getLogger().log(Level.WARNING,"Failed to load database", ex);
-                    sqlExc = ex.getCause();
-                    getLogger().log(Level.WARNING,"Failure to load database cause", ex);
-                } catch(Exception ex){
-                    getLogger().log(Level.WARNING, "Failed to load database", ex);
-                }
-                if (loadSuccess){
-                    getLogger().exiting("AbstractDatabaseLoader", "loadFile", true);
-                    return true;
-                }
-                retry = LinkManager.this.showFailurePrompt(getFailureTitle(file), 
-                        getFailureMessage(file,sqlExc), true, false) == JOptionPane.YES_OPTION;
-            } while (!loadSuccess && retry);
-            getLogger().exiting("AbstractDatabaseLoader", "loadFile", loadSuccess);
-            return loadSuccess;
-        }
-        /**
-         * This attempts to load from the database using the given database 
-         * connection and provided reusable statement.
-         * @param conn The connection to the database.
-         * @param stmt An SQL statement that can be used to interact with the 
-         * database.
-         * @return Whether this successfully loaded from the database.
-         * @throws SQLException If a database error occurs.
-         * @see #loadFile(File) 
-         */
-        protected abstract boolean loadDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException;
-        /**
-         * 
-         * @param file
-         * @return 
-         */
-        protected boolean loadDatabase(File file) throws Exception, SQLException{
-            getLogger().entering("AbstractDatabaseLoader", "loadDatabase", file);
-            if (!file.exists()){    // If the file doesn't exist
-                getLogger().exiting("AbstractDatabaseLoader", "loadDatabase", false);
-                return false;
-            }
-            boolean value;
-                // Connect to the database and create an SQL statement
-            try(LinkDatabaseConnection conn = connect(file);
-                    Statement stmt = conn.createStatement()){
-                value = loadDatabase(conn,stmt); // Load from the database
-            }
-            getLogger().exiting("AbstractDatabaseLoader", "loadDatabase", value);
-            return value;
-        }
-        @Override
-        protected String getFailureTitle(File file){
-            return "ERROR - Database Failed To Load";
-        }
-        @Override
-        protected String getFailureMessage(File file){
-            return "The database failed to load.";
-        }
-        /**
-         * 
-         * @param file
-         * @param ex
-         * @param defaultMsg
-         * @return 
-         */
-        protected String getFailureMessage(File file, SQLException ex, String defaultMsg){
-                // The message to return
-            String msg = defaultMsg;
-            if (ex != null){    // If an SQLException was thrown
-                    // Custom error messages for certain error codes
-                switch(ex.getErrorCode()){
-                        // If the database failed to save because it was busy
-                    case (Codes.SQLITE_BUSY):
-                        msg = "Please wait, the database is currently busy.";
-                        break;
-                        // If the database could not be opened
-                    case(Codes.SQLITE_CANTOPEN):
-                        msg = "The database could not be opened.";
-                        break;
-                        // If the database is corrupted
-                    case(Codes.SQLITE_CORRUPT):
-                        msg = "The database failed to load due to being corrupted.";
-                }   // If the program is either in debug mode or if details are to be shown
-                if (isInDebug() || showDBErrorDetailsToggle.isSelected())    
-                    msg += "\nError: " + ex + 
-                            "\nError Code: " + ex.getErrorCode();
-            }
-            return msg;
-        }
-        /**
-         * 
-         * @param file
-         * @param ex
-         * @return 
-         */
-        protected String getFailureMessage(File file, SQLException ex){
-            return getFailureMessage(file,ex,getFailureMessage(file));
-        }
-        @Override
-        protected String getFileNotFoundMessage(File file){
-            return "The database file does not exist.";
-        }
-        @Override
-        protected void done(){
-            deleteDownloadedFile(false);
-            deleteExtractedFile(false);
-            super.done();
-                // Update the program configuration
-            updateProgramConfig();
-        }
-    }
-    /**
-     * This loads the lists of links from the database.
-     */
-    private class DatabaseFileLoader extends AbstractDatabaseFileLoader{
-        /**
-         * This is a map that maps the tabs panels to the list of models that 
-         * will be displayed by those tabs panels when we finish loading.
-         */
-        private Map<LinksListTabsPanel, List<LinksListModel>> tabsModels = 
-                new HashMap<>();
-        /**
-         * This stores the flags for this DatabaseLoader, which indicate things 
-         * such as whether this will be loading all the lists from the database 
-         * or only the lists that are outdated.
-         */
-        private int loadFlags;
-        /**
-         * This stores whether this failed to load the database due to the 
-         * database being an incompatible version that cannot be updated 
-         * automatically by the program.
-         */
-        private boolean isDBOutdated = false;
-        /**
-         * This stores the version of the database being loaded.
-         */
-        private String dbVersion = "N/A";
-        /**
-         * This stores the UUID of the database being loaded.
-         */
-        private String dbUUID = null;
-        /**
-         * 
-         * @param file
-         * @param filePath
-         * @param mode
-         * @param stage
-         * @param showFileNotFound 
-         */
-        DatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
-                LoadingStage stage, int loadFlags, boolean showFileNotFound) {
-            super(file,filePath,mode,stage,showFileNotFound);
-            this.loadFlags = loadFlags;
-            if (!fullyLoaded)
-                this.loadFlags |= DATABASE_LOADER_LOAD_ALL_FLAG;
-        }
-        /**
-         * 
-         * @param file
-         * @param filePath
-         * @param mode
-         * @param stage
-         * @param loadFlags 
-         */
-        DatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
-                LoadingStage stage, int loadFlags) {
-            this(file,filePath,mode,stage,loadFlags,fullyLoaded);
-        }
-        /**
-         * 
-         * @return 
-         */
-        public int getDatabaseLoaderFlags(){
-            return loadFlags;
-        }
-        
-        @Override
-        protected boolean loadDatabase(LinkDatabaseConnection conn, Statement stmt) throws SQLException {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public String getLoadingProgressString() {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-        
     }
     /**
      * 
