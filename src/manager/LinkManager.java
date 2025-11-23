@@ -11545,6 +11545,29 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().exiting(this.getClass().getName(), "loadDatabase", true);
             return true;
         }
+        /**
+         * 
+         * @param file1
+         * @param file2
+         * @param replace
+         * @return
+         * @throws IOException 
+         */
+        protected File renameFile(File file1, File file2, boolean replace) 
+                throws IOException{
+            getLogger().entering("AbstractDatabaseLoader", "renameFile", 
+                    new Object[]{file1,file2,replace});
+            Path path;
+            if (replace)
+                path = Files.move(file2.toPath(), file1.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING);
+            else
+                path = Files.copy(file2.toPath(), file1.toPath(), 
+                        StandardCopyOption.REPLACE_EXISTING);
+            file1 = path.toFile();
+            getLogger().exiting("AbstractDatabaseLoader", "renameFile", file1);
+            return file1;
+        }
         @Override
         protected String getFailureMessage(File file){
                 // If the database is outdated and cannot be updated 
