@@ -11539,7 +11539,17 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().exiting(this.getClass().getName(), "loadDatabase", true);
             return true;
         }
-
+        @Override
+        protected String getFailureMessage(File file){
+                // If the database is outdated and cannot be updated 
+            if (isDBOutdated){  // automatically by this program
+                return String.format(
+                        "The database is incompatable with this version of the program.%n"
+                        + "Database Version is %s, latest supported major version is %d.x.x", 
+                        dbVersion, DATABASE_MAJOR_VERSION);
+            }
+            return super.getFailureMessage(file);
+        }
         @Override
         public String getLoadingProgressString() {
             return "Loading Lists";
