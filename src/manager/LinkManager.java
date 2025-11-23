@@ -11755,6 +11755,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // lists
             if (getLoadsAll() && success)
                 autosaveMenu.stopAutosave();
+            deleteFile(true,backupFile);
             super.done();
         }
     }
