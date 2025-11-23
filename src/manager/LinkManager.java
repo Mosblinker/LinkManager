@@ -11093,52 +11093,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
   
-    private class TempDatabaseDownloader extends DatabaseDownloader{
-        /**
-         * The flags to use for loading the lists. If this is null, then the 
-         * database will not be loaded after this.
-         */
-        protected Integer loadFlags = null;
-        
-        TempDatabaseDownloader(File file, String filePath, DatabaseSyncMode mode, 
-                Integer loadFlags){
-            super(file,filePath,mode,false);
-            this.loadFlags = loadFlags;
-            exitIfCancelled = !fullyLoaded;
-        }
-        /**
-         * 
-         * @return 
-         */
-        public boolean willLoadDatabase(){
-            return loadFlags != null;
-        }
-        /**
-         * 
-         * @return 
-         */
-        public int getDatabaseLoaderFlags(){
-                // If the database loader flags are not null
-            if (loadFlags != null)
-                return loadFlags;
-            return 0;
-        }
-        /**
-         * 
-         * @param loadAll 
-         */
-        protected void loadDatabase(int loadFlags){
-            loader = new DatabaseLoader(file,loadFlags);
-            loader.execute();
-        }
-        @Override
-        protected void done(){
-            super.done();
-            if (willLoadDatabase()){
-                loadDatabase(getDatabaseLoaderFlags());
-            }
-        }
-    }
     /**
      * This is an abstract class that provides the framework for loading from a 
      * database file.
