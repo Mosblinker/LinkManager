@@ -11475,6 +11475,31 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param loadFlags
+         * @param showFileNotFound 
+         */
+        DatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
+                int loadFlags, boolean showFileNotFound) {
+            this(file,filePath,mode,
+                    (filePath!=null&&mode!=null)?LoadingStage.DOWNLOADING_FILE:
+                            LoadingStage.LOADING_FILE,loadFlags,showFileNotFound);
+        }
+        /**
+         * 
+         * @param file
+         * @param filePath
+         * @param mode
+         * @param loadFlags 
+         */
+        DatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
+                int loadFlags) {
+            this(file,filePath,mode,loadFlags,fullyLoaded);
+        }
+        /**
+         * 
          * @return 
          */
         public int getDatabaseLoaderFlags(){
