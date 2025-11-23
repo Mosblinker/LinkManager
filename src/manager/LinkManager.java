@@ -11494,6 +11494,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     new Object[]{file,downloadedFile});
                 // Disable all the lists
             setTabsPanelListsEnabled(false);
+                // Get if the downloaded file can be used
+            boolean useDownload = downloadedFile != null && downloadedFile.exists();
                 // If the local file exists
             if (file.exists()){
                     // Create a backup of the file, just in case
@@ -11502,6 +11504,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     getLogger().exiting(this.getClass().getName(), "loadFile", false);
                     return false;
                 }
+            } else if (!useDownload){
+                getLogger().warning("Both files do not exist");
+                loadSuccess = false;
+                getLogger().exiting(this.getClass().getName(), "loadFile", false);
+                return false;
+            }   
+                this.file = file;
             }
             
             boolean value = super.loadFile(file, downloadedFile);
