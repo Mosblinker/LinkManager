@@ -4825,8 +4825,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbQueryPanelActionPerformed
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        loader = new TempDatabaseDownloader(getDatabaseFile(),
-                config.getSyncLocationSettings(getSyncMode()).getDatabaseFileName(),getSyncMode(),0);
+        loader = new DatabaseFileLoader(getDatabaseFile(),
+                config.getSyncLocationSettings(getSyncMode()).getDatabaseFileName(),
+                getSyncMode(),(getSyncMode()!=null)?LoadingStage.DOWNLOADING_FILE:LoadingStage.LOADING_FILE,
+                0);
         loader.execute();
     }//GEN-LAST:event_jMenuItem1ActionPerformed
     
