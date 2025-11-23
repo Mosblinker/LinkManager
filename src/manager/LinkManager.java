@@ -11484,9 +11484,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         @Override
         protected boolean loadFile(File file, File downloadedFile) {
+            getLogger().entering(this.getClass().getName(), "loadFile",
+                    new Object[]{file,downloadedFile});
                 // Disable all the lists
             setTabsPanelListsEnabled(false);
-            return super.loadFile(file, downloadedFile);
+            
+            
+            boolean value = super.loadFile(file, downloadedFile);
+            getLogger().exiting(this.getClass().getName(), "loadFile", value);
+            return value;
         }
         /**
          * 
