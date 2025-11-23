@@ -11495,7 +11495,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
 
         @Override
         public String getLoadingProgressString() {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            return "Loading Lists";
         }
         
     }
