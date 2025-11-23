@@ -502,7 +502,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param showFileNotFound 
      */
     private void loadDatabaseViewer(boolean showFileNotFound){
-        loader = new NewLoadDatabaseViewer(getDatabaseFile(),showFileNotFound);
+        loader = new LoadDatabaseViewer(getDatabaseFile(),showFileNotFound);
         loader.execute();
     }
     /**
@@ -11502,7 +11502,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private class NewLoadDatabaseViewer extends AbstractDatabaseFileLoader{
+    private class LoadDatabaseViewer extends AbstractDatabaseFileLoader{
         /**
          * This is the table model displaying the configuration for the program 
          * and the database. If this is null after loading, then the 
@@ -11580,7 +11580,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file
          * @param showFileNotFound 
          */
-        NewLoadDatabaseViewer(File file, boolean showFileNotFound){
+        LoadDatabaseViewer(File file, boolean showFileNotFound){
             super(file,null,null,LoadingStage.LOADING_FILE,showFileNotFound);
         }
         /**
