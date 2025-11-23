@@ -11802,7 +11802,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * downloaded file
          */
         protected boolean willLoadLocalFile(){
-            return true;
+            return false;
         }
         @Override
         protected boolean loadFile(File file, File downloadedFile) {
