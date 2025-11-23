@@ -5386,7 +5386,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return Whether the program is currently loading a database file.
      */
     public boolean isLoadingDatabase(){
-        return isLoadingFiles() && loader instanceof AbstractDatabaseLoader;
+        return isLoadingFiles() && loader instanceof AbstractDatabaseFileLoader;
     }
     /**
      * This returns whether there is any 
@@ -9434,134 +9434,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             deleteDownloadedFile(false);
             deleteExtractedFile(false);
             super.done();
-        }
-    }
-    /**
-     * This is an abstract class that provides the framework for loading from a 
-     * database file.
-     */
-    private abstract class AbstractDatabaseLoader extends FileLoader{
-        /**
-         * The SQLException thrown while loading from the database if an error 
-         * occurred.
-         */
-        protected SQLException sqlExc = null;
-        /**
-         * This constructs a AbstractDatabaseLoader that will load the data from 
-         * the database stored in the given file.
-         * @param file The database file to load the data from.
-         * @param showFileNotFound Whether a file not found error should result 
-         * in a popup being shown to the user.
-         */
-        AbstractDatabaseLoader(File file, boolean showFileNotFound) {
-            super(file, showFileNotFound);
-        }
-        /**
-         * This constructs a AbstractDatabaseLoader that will load the data from 
-         * the database stored in the given file.
-         * @param file The database file to load the data from.
-         */
-        AbstractDatabaseLoader(File file) {
-            super(file);
-        }
-        /**
-         * This constructs a AbstractDatabaseLoader that will load the data from 
-         * the program's {@link #getDatabaseFile() database file}.
-         * @param showFileNotFound Whether a file not found error should result 
-         * in a popup being shown to the user.
-         */
-        AbstractDatabaseLoader(boolean showFileNotFound){
-            this(getDatabaseFile(), showFileNotFound);
-        }
-        /**
-         * This constructs a AbstractDatabaseLoader that will load the data from 
-         * the program's {@link #getDatabaseFile() database file}.
-         */
-        AbstractDatabaseLoader(){
-            this(true);
-        }
-        /**
-         * This attempts to load from the database using the given database 
-         * connection and provided reusable statement.
-         * @param conn The connection to the database.
-         * @param stmt An SQL statement that can be used to interact with the 
-         * database.
-         * @return Whether this successfully loaded from the database.
-         * @throws SQLException If a database error occurs.
-         * @see #loadFile(File) 
-         */
-        protected abstract boolean loadDatabase(LinkDatabaseConnection conn, 
-                Statement stmt) throws SQLException;
-        @Override
-        protected boolean loadFile(File file){
-            getLogger().entering("AbstractDatabaseLoader", "loadFile", file);
-            sqlExc = null;
-            if (!file.exists()){    // If the file doesn't exist
-                getLogger().exiting("AbstractDatabaseLoader", "loadFile", true);
-                return false;
-            }
-            boolean value = false;
-                // Connect to the database and create an SQL statement
-            try(LinkDatabaseConnection conn = connect(file);
-                    Statement stmt = conn.createStatement()){
-                value = loadDatabase(conn,stmt); // Load from the database
-            } catch(SQLException ex){
-                getLogger().log(Level.WARNING, "Failed to load database", ex);
-                sqlExc = ex;
-            } catch (UncheckedSQLException ex){
-                getLogger().log(Level.WARNING,"Failed to load database", ex);
-                sqlExc = ex.getCause();
-                getLogger().log(Level.WARNING,"Failure to load database cause", ex);
-            }
-            getLogger().exiting("AbstractDatabaseLoader", "loadFile", value);
-            return value;
-        }
-        /**
-         * This returns any SQLExceptions that were thrown while this was 
-         * loading data from the database.
-         * @return The SQLException thrown while loading, or null if no 
-         * SQLException was thrown.
-         */
-        protected SQLException getSQLExceptionThrown(){
-            return sqlExc;
-        }
-        @Override
-        protected String getFailureMessage(File file){
-            return getFailureMessage(file,sqlExc);
-        }
-        protected String getFailureMessage(File file, SQLException ex){
-                // The message to return
-            String msg = "The database failed to load.";
-            if (ex != null){    // If an SQLException was thrown
-                    // Custom error messages for certain error codes
-                switch(ex.getErrorCode()){
-                        // If the database failed to save because it was busy
-                    case (Codes.SQLITE_BUSY):
-                        msg = "Please wait, the database is currently busy.";
-                        break;
-                        // If the database could not be opened
-                    case(Codes.SQLITE_CANTOPEN):
-                        msg = "The database could not be opened.";
-                        break;
-                        // If the database is corrupted
-                    case(Codes.SQLITE_CORRUPT):
-                        msg = "The database failed to load due to being corrupted.";
-                }   // If the program is either in debug mode or if details are to be shown
-                if (isInDebug() || showDBErrorDetailsToggle.isSelected())    
-                    msg += "\nError: " + ex + 
-                            "\nError Code: " + ex.getErrorCode();
-            }
-            return msg;
-        }
-        @Override
-        protected String getFileNotFoundMessage(File file){
-            return "The database file does not exist.";
-        }
-        @Override
-        protected void done(){
-            super.done();
-                // Update the program configuration
-            updateProgramConfig();
         }
     }
     
