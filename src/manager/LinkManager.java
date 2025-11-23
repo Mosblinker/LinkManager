@@ -11651,7 +11651,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
     }
-    
     /**
      * This is an abstract class that provides the framework for loading from a 
      * database file.
@@ -11987,7 +11986,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         public int getDatabaseLoaderFlags(){
             return loadFlags;
         }
-        
+        /**
+         * This returns if all the lists will be loaded from the database of 
+         * if only or only the lists that are outdated.
+         * @return Whether all the lists will be loaded.
+         */
+        public boolean getLoadsAll(){
+            return LinkManagerUtilities.getFlag(loadFlags,DATABASE_LOADER_LOAD_ALL_FLAG);
+        }
         @Override
         protected boolean loadDatabase(LinkDatabaseConnection conn, Statement stmt) throws SQLException {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
