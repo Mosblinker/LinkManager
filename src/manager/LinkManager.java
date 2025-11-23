@@ -5386,7 +5386,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return Whether the program is currently loading a database file.
      */
     public boolean isLoadingDatabase(){
-        return isLoadingFiles() && loader instanceof AbstractDatabaseFileLoader;
+        return isLoadingFiles() && loader instanceof AbstractDatabaseLoader;
     }
     /**
      * This returns whether there is any 
@@ -10793,7 +10793,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * This is an abstract class that provides the framework for loading from a 
      * database file.
      */
-    private abstract class AbstractDatabaseFileLoader extends AbstractFileDownloader{
+    private abstract class AbstractDatabaseLoader extends AbstractFileDownloader{
         /**
          * 
          * @param file
@@ -10802,7 +10802,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param stage
          * @param showFileNotFound 
          */
-        AbstractDatabaseFileLoader(File file, String filePath, 
+        AbstractDatabaseLoader(File file, String filePath, 
                 DatabaseSyncMode mode, LoadingStage stage, 
                 boolean showFileNotFound) {
             super(file, filePath, mode, stage, showFileNotFound);
@@ -10814,7 +10814,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @param stage 
          */
-        AbstractDatabaseFileLoader(File file, String filePath, 
+        AbstractDatabaseLoader(File file, String filePath, 
                 DatabaseSyncMode mode, LoadingStage stage) {
             super(file,filePath,mode,stage);
         }
@@ -10824,7 +10824,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param stage
          * @param showFileNotFound 
          */
-        AbstractDatabaseFileLoader(File file, LoadingStage stage, boolean showFileNotFound){
+        AbstractDatabaseLoader(File file, LoadingStage stage, boolean showFileNotFound){
             super(file,stage,showFileNotFound);
         }
         /**
@@ -10832,7 +10832,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param file
          * @param stage 
          */
-        AbstractDatabaseFileLoader(File file, LoadingStage stage){
+        AbstractDatabaseLoader(File file, LoadingStage stage){
             super(file,stage);
         }
         /**
@@ -10842,7 +10842,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @param showFileNotFound 
          */
-        AbstractDatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
+        AbstractDatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
                 boolean showFileNotFound) {
             super(file,filePath,mode,showFileNotFound);
         }
@@ -10852,7 +10852,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param filePath
          * @param mode 
          */
-        AbstractDatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode){
+        AbstractDatabaseLoader(File file, String filePath, DatabaseSyncMode mode){
             super(file,filePath,mode);
         }
         /**
@@ -10862,7 +10862,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param showFileNotFound Whether a file not found error should result 
          * in a popup being shown to the user.
          */
-        AbstractDatabaseFileLoader(File file, boolean showFileNotFound) {
+        AbstractDatabaseLoader(File file, boolean showFileNotFound) {
             super(file, showFileNotFound);
         }
         /**
@@ -10870,7 +10870,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * the database stored in the given file.
          * @param file The database file to load the data from.
          */
-        AbstractDatabaseFileLoader(File file) {
+        AbstractDatabaseLoader(File file) {
             super(file);
         }
         /**
@@ -10879,14 +10879,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param showFileNotFound Whether a file not found error should result 
          * in a popup being shown to the user.
          */
-        AbstractDatabaseFileLoader(boolean showFileNotFound){
+        AbstractDatabaseLoader(boolean showFileNotFound){
             this(getDatabaseFile(), showFileNotFound);
         }
         /**
          * This constructs a AbstractDatabaseLoader that will load the data from 
          * the program's {@link #getDatabaseFile() database file}.
          */
-        AbstractDatabaseFileLoader(){
+        AbstractDatabaseLoader(){
             this(true);
         }
         @Override
@@ -11063,7 +11063,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This loads the lists of links from the database.
      */
-    private class DatabaseLoader extends AbstractDatabaseFileLoader{
+    private class DatabaseLoader extends AbstractDatabaseLoader{
         /**
          * This is a map that maps the tabs panels to the list of models that 
          * will be displayed by those tabs panels when we finish loading.
@@ -11434,7 +11434,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private class LoadDatabaseViewer extends AbstractDatabaseFileLoader{
+    private class LoadDatabaseViewer extends AbstractDatabaseLoader{
         /**
          * This is the table model displaying the configuration for the program 
          * and the database. If this is null after loading, then the 
