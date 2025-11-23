@@ -12014,6 +12014,517 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
+    private class NewLoadDatabaseViewer extends AbstractDatabaseFileLoader{
+        /**
+         * This is the table model displaying the configuration for the program 
+         * and the database. If this is null after loading, then the 
+         * configuration data failed to load. 
+         */
+        private CustomTableModel configTableModel = null;
+        /**
+         * This is the table model displaying the prefixes for the links in the 
+         * database. If this is null after loading, then the prefixes failed to 
+         * load.
+         */
+        private CustomTableModel prefixTableModel = null;
+        /**
+         * This is the table model displaying the list metadata for the lists of 
+         * links in the database. If this is null after loading, then the lists 
+         * failed to load.
+         */
+        private CustomTableModel listTableModel = null;
+        /**
+         * This is the table model displaying the structure of the tables, 
+         * views, and indexes in the database. If this is null after loading, 
+         * then the structure data failed to load.
+         */
+        private CustomTableModel tableTableModel = null;
+        /**
+         * This is the combo box model of the combo box 
+         */
+        private ArrayComboBoxModel<Integer> listIDComboModel = null;
+        /**
+         * 
+         */
+        private ArrayComboBoxModel<String> usedPrefixComboModel = null;
+        /**
+         * This is the file size of the file storing the database.
+         */
+        private Long dbFileSize = null;
+        /**
+         * This is the last time the database was updated.
+         */
+        private Long dbLastMod = null;
+        /**
+         * 
+         */
+        private UUID dbUUID = null;
+        /**
+         * 
+         */
+        private String dbVersion = null;
+        /**
+         * 
+         */
+        private Integer prefixThreshold = null;
+        /**
+         * 
+         */
+        private Integer linkCount = null;
+        /**
+         * 
+         */
+        private Integer shownTotalSize = null;
+        /**
+         * 
+         */
+        private Integer allTotalSize = null;
+        /**
+         * 
+         */
+        private String prefixSeparators = null;
+        /**
+         * 
+         */
+        private DefaultMutableTreeNode createPrefixTestNode = null;
+        /**
+         * 
+         * @param file
+         * @param showFileNotFound 
+         */
+        NewLoadDatabaseViewer(File file, boolean showFileNotFound){
+            super(file,null,null,LoadingStage.LOADING_FILE,showFileNotFound);
+        }
+        /**
+         * 
+         * @param names
+         * @param structMap
+         * @param type 
+         */
+        private void loadStructure(Set<String>names,Map<String,String>structMap,
+                String type){
+                // Go through the names of the items
+            for (String name : names){
+                    // If the structure map does not contain the item
+                if (!structMap.containsKey(name))
+                        // Skip it
+                    continue;
+                tableTableModel.addRow(new Object[]{
+                    name,type,structMap.get(name)
+                });
+                progressObserver.incrementValue();
+            }
+        }
+        /**
+         * 
+         */
+        private void createConfigModel(){
+                // If the config table model has not been constructed yet
+            if (configTableModel == null){
+                configTableModel = new CustomTableModel(
+                        "Source","Property Name","Property",
+                        "Is Set","Default Value");
+                configTableModel.setColumnClass(0, String.class);
+                configTableModel.setColumnClass(1, String.class);
+                configTableModel.setColumnClass(2, Object.class);
+                configTableModel.setColumnClass(3, String.class);
+                configTableModel.setColumnClass(4, Object.class);
+            }
+        }
+        /**
+         * 
+         * @param source
+         * @param property
+         * @param value
+         * @param isSet
+         * @param defaultValue 
+         */
+        private void addConfigRow(String source, String property, Object value, 
+                Boolean isSet, Object defaultValue){
+            configTableModel.addRow(new Object[]{
+                source,
+                property,
+                value,
+                Objects.toString(isSet, ""),
+                defaultValue
+            });
+        }
+        /**
+         * 
+         * @param source
+         * @param config
+         * @param defaultConfig 
+         * @param setIfNotEqual
+         */
+        private void addConfigRows(String source, Properties config, 
+                Properties defaultConfig, boolean setIfNotEqual){
+            progressBar.setIndeterminate(true);
+                // Create the config table model if not already created
+            createConfigModel();
+                // Get the property names for the config
+            Set<String> propNames = new TreeSet<>(config.stringPropertyNames());
+                // If a default config was provided
+            if (defaultConfig != null)
+                    // Add all the default property names too
+                propNames.addAll(defaultConfig.stringPropertyNames());
+            progressBar.setValue(0);
+            progressBar.setMaximum(propNames.size());
+            progressBar.setIndeterminate(false);
+                // Go through the program's property names
+            for (String property : propNames){
+                    // Get the set property value
+                String propValue = config.getProperty(property);
+                    // Get the default property value
+                String propDefault = (defaultConfig != null) ? 
+                        defaultConfig.getProperty(property) : null;
+                addConfigRow(
+                        source,
+                        property,
+                        propValue,
+                        config.containsKey(property) && 
+                                (!setIfNotEqual || !Objects.equals(propValue, propDefault)),
+                        propDefault
+                );
+                progressObserver.incrementValue();
+            }
+        }
+        /**
+         * 
+         * @param source
+         * @param config
+         * @param defaultConfig 
+         */
+        private void addConfigRows(String source, Properties config, 
+                Properties defaultConfig){
+            addConfigRows(source,config,defaultConfig,false);
+        }
+        /**
+         * 
+         * @param source
+         * @param prop 
+         */
+        private void addConfigRows(String source, ConfigProperties prop){
+            addConfigRows(source,prop,prop.getDefaults());
+        }
+        /**
+         * 
+         * @param source
+         * @param node
+         */
+        private void addConfigRows(String source, ConfigPreferences node){
+            getLogger().entering(this.getClass().getName(), "addConfigRows", 
+                    new Object[]{source,node});
+                // If the preference node is null
+            if (node == null)
+                return;
+            try {   // If the node exists
+                if (node.nodeExists(""))
+                    addConfigRows(source,node.toProperties());
+            } catch (BackingStoreException | IllegalStateException ex) {
+                getLogger().log(Level.WARNING, "Failed to load settings from node",
+                        ex);
+            }
+            getLogger().exiting(this.getClass().getName(), "addConfigRows");
+        }
+        @Override
+        protected boolean loadFile(File file, File downloadedFile) {
+            if (file.exists())  // If the database file exists
+                dbFileSize = file.length();
+            return super.loadFile(file, downloadedFile);
+        }
+        @Override
+        protected boolean loadDatabase(LinkDatabaseConnection conn, Statement stmt) throws SQLException {
+            getLogger().entering(this.getClass().getName(), "loadDatabase", 
+                    new Object[]{conn,stmt});
+                // Load the table view from the database
+            dbViewer.loadTables(showSchemaToggle.isSelected(), conn, stmt, progressBar);
+            
+            // TODO: Foreign Key Toggle Stuff
+            
+            prefixTableModel = new CustomTableModel("PrefixID","Prefix");
+            prefixTableModel.setColumnClass(0, Integer.class);
+            prefixTableModel.setColumnClass(1, String.class);
+                // This gets the prefix map from the database
+            PrefixMap prefixMap = conn.getPrefixMap();
+                // Make sure the prefix map contains the empty prefix
+            prefixMap.getEmptyPrefixID();
+            usedPrefixComboModel = new ArrayComboBoxModel<>();
+            progressBar.setValue(0);
+            progressBar.setMaximum(prefixMap.size());
+            progressBar.setIndeterminate(false);
+                // Go through the prefix map's entries
+            for (Map.Entry<Integer,String> entry : prefixMap.entrySet()){
+                    // Add a row to the prefix table model
+                prefixTableModel.addRow(new Object[]{entry.getKey(), entry.getValue()});
+                    // If the current entry is the entry for the empty prefix
+                if (entry.getValue().isEmpty()){
+                    usedPrefixComboModel.add(entry.getKey() + " - \"\"");
+                    usedPrefixComboModel.setSelectedItem(
+                            usedPrefixComboModel.get(usedPrefixComboModel.size()-1));
+                }
+                else
+                    usedPrefixComboModel.add(entry.getKey() + " - " + entry.getValue());
+                progressObserver.incrementValue();
+            }
+            
+            progressBar.setIndeterminate(true);
+                // Search for the empty prefix
+            searchUsedPrefixes(conn,prefixMap.getEmptyPrefixID());
+            dbLinkSearchTable.setModel(getListSearchTableModel());
+            
+                // Get the database properties
+            DatabasePropertyMap dbProperty = conn.getDatabaseProperties();
+                // Add the database properies to the config table
+            addConfigRows("Database",dbProperty.toProperties(),
+                    dbProperty.getDefaults().toProperties());
+            
+            progressBar.setIndeterminate(true);
+                // Get the list data map from the database
+            ListDataMap listDataMap = conn.getListDataMap();
+            listTableModel = new CustomTableModel("ListID","List Name",
+                    "List Created","Last Modified","Flags","Size Limit","Size");
+            listTableModel.setColumnClass(0, Integer.class);
+            listTableModel.setColumnClass(1, String.class);
+            listTableModel.setColumnClass(2, java.util.Date.class);
+            listTableModel.setColumnClass(3, java.util.Date.class);
+            listTableModel.setColumnClass(4, Integer.class);
+            listTableModel.setColumnClass(5, Integer.class);
+            listTableModel.setColumnClass(6, Integer.class);
+            listIDComboModel = new ArrayComboBoxModel<>(listDataMap.navigableKeySet());
+            try{    // Get the listID of the currently selected list in the 
+                    // listID combo model
+                Integer listID = (Integer)listIDComboModel.getSelectedItem();
+                    // If there is a listID selected
+                if (listID != null)
+                        // Configure the values shown by the list edit settings
+                    setListEditSettings(conn,listID);
+            } catch (IllegalArgumentException ex){
+                getLogger().log(Level.WARNING, 
+                        "Failed to load list settings for list "+
+                                listIDComboModel.getSelectedItem(),ex);
+            }
+            progressBar.setValue(0);
+            progressBar.setMaximum(listDataMap.size());
+            progressBar.setIndeterminate(false);
+                // Go through the list contents objects
+            for (ListContents list : listDataMap.values()){
+                listTableModel.addRow(new Object[]{
+                    list.getListID(),
+                    list.getName(),
+                        // Get the date and time the list was created
+                    new java.util.Date(list.getCreationTime()),
+                        // Get the date and time the list was last modified
+                    new java.util.Date(list.getLastModified()),
+                    list.getFlags(),
+                    list.getSizeLimit(),
+                    list.size()
+                });
+                progressObserver.incrementValue();
+            }
+            
+            progressBar.setIndeterminate(true);
+                // Get the set of table names in the database
+            Set<String> tableSet = conn.showTables();
+                // Get the set of views names in the database
+            Set<String> viewSet = conn.showViews();
+                // Get the set of indexes names in the database
+            Set<String> indexSet = conn.showIndexes();
+                // Get a copy of the map of the structures in the database
+            Map<String,String> structMap = new HashMap<>(conn.showStructures());
+                // Remove any structures that are null
+            structMap.values().removeIf((String t) -> t == null);
+            progressBar.setValue(0);
+            progressBar.setMaximum(structMap.size());
+            tableTableModel = new CustomTableModel("Name", "Type", "Structure");
+            tableTableModel.setColumnClass(0, String.class);
+            tableTableModel.setColumnClass(1, String.class);
+            tableTableModel.setColumnClass(2, String.class);
+            progressBar.setIndeterminate(false);
+                // Load the structures for the tables
+            loadStructure(tableSet,structMap,"Table");
+                // Load the structures for the views
+            loadStructure(viewSet,structMap,"View");
+                // Load the structures for the indexes
+            loadStructure(indexSet,structMap,"Index");
+            
+            progressBar.setIndeterminate(true);
+            
+            try{
+                prefixThreshold = Integer.valueOf(dbProperty.getProperty(
+                        LinkDatabaseConnection.PREFIX_THRESHOLD_CONFIG_KEY));
+            } catch(NumberFormatException ex){
+                prefixThreshold = null;
+            }
+            prefixSeparators = dbProperty.getProperty(
+                    LinkDatabaseConnection.PREFIX_SEPARATORS_CONFIG_KEY);
+            dbVersion = dbProperty.getProperty(
+                    LinkDatabaseConnection.DATABASE_VERSION_CONFIG_KEY,"N/A");
+            dbUUID = conn.getDatabaseUUID();
+            dbLastMod = conn.getDatabaseLastModified();
+            linkCount = conn.getLinkMap().size();
+            shownTotalSize = conn.getShownListIDs().totalSize();
+            allTotalSize = conn.getAllListIDs().totalSize();
+                // This gets a set of all the links in the program
+            Set<String> linksSet = new LinkedHashSet<>();
+                // This gets a set of the list models
+            Set<LinksListModel> modelSet = new LinkedHashSet<>(allListsTabsPanel.getModels());
+                // Add any shown list models that were somehow not available in 
+                // the all tabs panel
+            modelSet.addAll(shownListsTabsPanel.getModels());
+                // Go through the list modesl
+            for (LinksListModel model : modelSet){
+                linksSet.addAll(model);
+            }   // Remove null if present in the set of links
+            linksSet.remove(null);
+                // Create the prefix tree
+            createPrefixTestNode = prefixMap.createPrefixTree(linksSet);
+                // An iterator to go through the nodes in preorder
+            Iterator<TreeNode> itr = createPrefixTestNode.preorderEnumeration().asIterator();
+                // While there are nodes to go through
+            while (itr.hasNext()){
+                    // Get the next node
+                TreeNode temp = itr.next();
+                    // If the node is a DefaultMutableTreeNode
+                if (temp instanceof DefaultMutableTreeNode){
+                        // Get the node as a DefaultMutableTreeNode
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)temp;
+                        // If the current node is either the root, has a user 
+                        // object of null, or does not allow children
+                    if (node.isRoot() || node.getUserObject() == null || 
+                            !node.getAllowsChildren())
+                            // Skip this node
+                        continue;
+                        // Get the first key for the node's user object if there 
+                        // is one
+                    Integer prefixID = prefixMap.firstKeyFor(node.getUserObject().toString());
+                        // If a prefixID for the user object was found
+                    if (prefixID != null)
+                        node.setUserObject(prefixID + ": \""+node.getUserObject()+"\"");
+                    else
+                        node.setUserObject("\""+node.getUserObject()+"\"");
+                }
+            }
+            getLogger().exiting(this.getClass().getName(), "loadDatabase", true);
+            return true;
+        }
+        @Override
+        protected Void backgroundAction() throws Exception {
+            getLogger().entering(this.getClass().getName(), "backgroundAction");
+                // Load the database stuff
+            super.backgroundAction();
+            
+                // Add the configuration for SQLite
+            addConfigRows("SQLiteConfig",config.getSQLiteConfig().toProperties(),
+                    new SQLiteConfig().toProperties(),true);
+                // Add all the properties for this program
+            addConfigRows("Properties",config.getProperties(),null);
+                // Go through the rows that have been added so far
+            for (int i = 0; i < configTableModel.getRowCount(); i++){
+                    // If it's a row from the properties and it's the user 
+                    // encryption key encryption key
+                if ("Properties".equals(configTableModel.getValueAt(i, 0)) && 
+                        USER_ENCRYPTION_KEY_KEY.equals(configTableModel.getValueAt(i, 1))){
+                        // Remove that row
+                    configTableModel.removeRow(i);
+                    break;
+                }
+            }
+                // Add all the shared preferences for this program
+            addConfigRows("Shared Preferences",config.getSharedPreferences());
+                // Add all the preferences for this program
+            addConfigRows("Preferences",config.getPreferences());
+                // Go through the list type nodes
+            for (Integer type : config.getListTypes()){
+                    // Add all the preferences for this list type
+                addConfigRows("List Type "+type+" Preferences",
+                        config.getListTypePreferences(type));
+            }   // Go through the listID nodes
+            for (Integer id : config.getListIDs()){
+                    // Add all the preferences for this listID
+                addConfigRows("List ID "+id+" Preferences",
+                        config.getListPreferences(id));
+            }   // Add all the Dropbox preferences for this program
+            addConfigRows("Dropbox Preferences",config.getDropboxPreferences());
+            
+            getLogger().exiting(this.getClass().getName(), "backgroundAction", true);
+            return null;
+        }
+        @Override
+        public String getLoadingProgressString() {
+            return "Loading Tables";
+        }
+        /**
+         * 
+         * @param tab The tab component
+         * @param enabled 
+         */
+        protected void setTabEnabled(JComponent tab, boolean enabled){
+            dbTabbedPane.setEnabledAt(dbTabbedPane.indexOfComponent(tab), enabled);
+        }
+        /**
+         * 
+         * @param table
+         * @param model
+         * @param tab The tab component
+         */
+        protected void setTableModel(JTable table, TableModel model, JComponent tab){
+                // If the tab component is not null
+            if (tab != null)
+                    // Set the tab enabled if the table model is not null
+                setTabEnabled(tab, model != null);
+                // If the table model is not null
+            if (model != null)
+                table.setModel(model);
+        }
+        @Override
+        protected void done(){
+            if (success)    // If this successfully loaded the database
+                    // Populate the tables in the database view
+                dbViewer.populateTables();
+            setTableModel(configTable,configTableModel,configScrollPane);
+            setTableModel(dbPrefixTable,prefixTableModel,null);
+            setTableModel(dbListTable,listTableModel,dbListPanel);
+            setTableModel(dbTableTable,tableTableModel,dbTablePanel);
+            if (dbFileSize == null)
+                dbFileSizeLabel.setText("N/A");
+            else
+                dbFileSizeLabel.setText(String.format("%s (%,d Bytes)", 
+                        byteFormatter.format(dbFileSize), dbFileSize));
+            if (dbUUID == null)
+                dbUUIDLabel.setText("N/A");
+            else
+                dbUUIDLabel.setText(dbUUID.toString());
+            dbVersionLabel.setText(Objects.toString(dbVersion,"N/A"));
+            setDBLastModLabelText(dbLastMod);
+            if (prefixThreshold != null)
+                prefixThresholdSpinner.setValue(prefixThreshold);
+            if (prefixSeparators != null)
+                prefixSeparatorField.setText(prefixSeparators);
+            if (listIDComboModel != null)
+                dbListIDCombo.setModel(listIDComboModel);
+            dbListIDCombo.setEnabled(listIDComboModel != null);
+            updateListEditButtons();
+            if (usedPrefixComboModel != null){
+                dbUsedPrefixCombo.setModel(usedPrefixComboModel);
+                ArrayComboBoxModel<String> temp = new ArrayComboBoxModel<>(usedPrefixComboModel);
+                temp.setSelectedItem(usedPrefixComboModel.getSelectedItem());
+                dbSearchPrefixCombo.setModel(temp);
+            }
+            setTabEnabled(dbUsedPrefixesPanel,usedPrefixComboModel != null);
+            linkCountLabel.setText(Objects.toString(linkCount,"N/A"));
+            shownTotalSizeLabel.setText(Objects.toString(shownTotalSize,"N/A"));
+            allTotalSizeLabel.setText(Objects.toString(allTotalSize,"N/A"));
+            programIDLabel.setText(Objects.toString(config.getProgramID(), "N/A"));
+            userIDLabel.setText(Objects.toString(config.getUserID(), "N/A"));
+            
+            setTabEnabled(dbCreatePrefixScrollPane,createPrefixTestNode != null);
+            if (createPrefixTestNode != null)
+                dbCreatePrefixTree.setModel(new DefaultTreeModel(createPrefixTestNode,true));
+            
+            super.done();
+    /**
+     * 
+     */
     private class UpdateCheckWorker extends LinkManagerWorker<Boolean>{
         /**
          * This gets whether there is an update available for the program.
