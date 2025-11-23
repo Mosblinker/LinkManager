@@ -11801,7 +11801,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return Whether this will load the local file while loading the 
          * downloaded file
          */
-        protected boolean willLoadLocalFile(){
+        protected boolean willLoadBothFiles(){
             return false;
         }
         @Override
