@@ -11509,7 +11509,40 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 loadSuccess = false;
                 getLogger().exiting(this.getClass().getName(), "loadFile", false);
                 return false;
-            }   
+            }   // If we're loading from the downloaded file and replacing the 
+                // local file with it
+            if (useDownload){
+                getLogger().log(Level.FINER, "Renaming {0} -> {1}", new Object[]{downloadedFile, file});
+                File result = null;
+                int retryOption = JOptionPane.NO_OPTION;
+                do{
+                    exc = null;
+                    try {
+                        result = renameFile(file,downloadedFile,true);
+                    } catch (IOException ex) {
+                        getLogger().log(Level.WARNING, 
+                                "Failed to overwrite database file with downloaded file",
+                                ex);
+                        result = null;
+                        exc = ex;
+                    }
+                    if (result == null)
+                        retryOption = showRetryPrompt("ERROR - Failed to Overwrite Local File",
+                                "The local database file failed to be overwritten with the downloaded file",
+                                true);
+                } while (result == null && retryOption == JOptionPane.YES_OPTION);
+                    // If the option selected was the cancel option or the user 
+                    // closed the dialog without selecting anything
+                if (result == null && (retryOption == JOptionPane.CLOSED_OPTION || 
+                        retryOption == JOptionPane.CANCEL_OPTION)){
+                    loadSuccess = false;
+                    getLogger().exiting(this.getClass().getName(), "loadFile", false);
+                    return false;
+                }
+                if (result == null)
+                    file = downloadedFile;
+                else
+                    file = result;
                 this.file = file;
             }
             
