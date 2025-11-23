@@ -498,6 +498,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return createDatabaseSaver(false);
     }
     /**
+     * 
+     * @param showFileNotFound 
+     */
+    private void loadDatabaseViewer(boolean showFileNotFound){
+        loader = new NewLoadDatabaseViewer(getDatabaseFile(),showFileNotFound);
+        loader.execute();
+    }
+    /**
      * This constructs a new LinkManager with the given value determining if it 
      * is in debug mode and the given program ID.
      * @param debugMode Whether the program is in debug mode.
@@ -3306,8 +3314,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void dbViewItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbViewItemActionPerformed
-        loader = new LoadDatabaseViewer(false);
-        loader.execute();
+        loadDatabaseViewer(false);
             // This will be true if the database dialog has not been opened before
         if (databaseDialog.isLocationByPlatform())
             databaseDialog.setLocationRelativeTo(this);
@@ -3327,8 +3334,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param evt The ActionEvent.
      */
     private void dbRefreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dbRefreshButtonActionPerformed
-        loader = new LoadDatabaseViewer(true);
-        loader.execute();
+        loadDatabaseViewer(true);
     }//GEN-LAST:event_dbRefreshButtonActionPerformed
     /**
      * This resets the list IDs and link IDs of the lists and links in the 
@@ -3402,8 +3408,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             processDatabaseError("Could not add prefix \""+prefixField.getText()+"\"",
                     ex);
         }
-        loader = new LoadDatabaseViewer(true);
-        loader.execute();
+        loadDatabaseViewer(true);
     }//GEN-LAST:event_addPrefixButtonActionPerformed
 
     private void removePrefixButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removePrefixButtonActionPerformed
@@ -3427,8 +3432,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     dbPrefixTable.getValueAt(selRow, 0),
                     dbPrefixTable.getValueAt(selRow, 1)),ex);
         }
-        loader = new LoadDatabaseViewer(true);
-        loader.execute();
+        loadDatabaseViewer(true);
     }//GEN-LAST:event_removePrefixButtonActionPerformed
     
     private void setDBFileNameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setDBFileNameButtonActionPerformed
@@ -3546,8 +3550,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().log(Level.WARNING,"Error creating database tables", ex);
             getLogger().log(Level.WARNING,"Error creating database tables cause", ex.getCause());
         }
-        loader = new LoadDatabaseViewer(true);
-        loader.execute();
+        loadDatabaseViewer(true);
     }//GEN-LAST:event_dbCreateTablesButtonActionPerformed
 
     private void foreignKeysToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_foreignKeysToggleActionPerformed
@@ -4136,8 +4139,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         } catch (SQLException | UncheckedSQLException ex) {
             processDatabaseError("Error removing unused data",ex);
         }
-        loader = new LoadDatabaseViewer(true);
-        loader.execute();
+        loadDatabaseViewer(true);
     }//GEN-LAST:event_dbRemoveUnusedDataButtonActionPerformed
     /**
      * This toggles whether the copy and open buttons are enabled for hidden 
@@ -4329,8 +4331,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         } catch (SQLException | UncheckedSQLException ex) {
             processDatabaseError("Error removing duplicate data",ex);
         }
-        loader = new LoadDatabaseViewer(true);
-        loader.execute();
+        loadDatabaseViewer(true);
     }//GEN-LAST:event_dbRemoveDuplDataButtonActionPerformed
     
     private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
@@ -4819,8 +4820,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         System.gc();
         if (updated){   // Update the database view if there were changes
-            loader = new LoadDatabaseViewer(true);
-            loader.execute();
+            loadDatabaseViewer(true);
         }
     }//GEN-LAST:event_dbQueryPanelActionPerformed
 
@@ -11128,8 +11128,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             deleteBackupIfSuccessful();
             super.done();
                 // Reload the database view data
-            loader = new LoadDatabaseViewer(true);
-            loader.execute();
+            loadDatabaseViewer(true);
         }
     }
     /**
@@ -11201,8 +11200,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             deleteBackupIfSuccessful();
             super.done();
                 // Reload the database view data
-            loader = new LoadDatabaseViewer(true);
-            loader.execute();
+            loadDatabaseViewer(true);
         }
     }
     
