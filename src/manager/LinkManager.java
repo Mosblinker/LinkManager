@@ -11651,7 +11651,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         }
     }
-    
     /**
      * This is an abstract class that provides the framework for loading from a 
      * database file.
@@ -11796,6 +11795,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         ex);
             }
             return file;
+        }
+        /**
+         * 
+         * @return Whether this will load the local file while loading the 
+         * downloaded file
+         */
+        protected boolean willLoadLocalFile(){
+            return true;
         }
         @Override
         protected boolean loadFile(File file, File downloadedFile) {
