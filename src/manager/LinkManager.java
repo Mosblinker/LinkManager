@@ -484,6 +484,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
+     * @param mode
+     * @return 
+     */
+    private String getDatabaseSyncName(DatabaseSyncMode mode){
+        SyncLocationSettings settings = config.getSyncLocationSettings(mode);
+        return (settings != null)?settings.getDatabaseFileName():null;
+    }
+    /**
+     * 
      * @param exit
      * @return 
      */
@@ -4053,7 +4062,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             // logged into dropbox
         if (syncDBToggle.isSelected() && isLoggedInToDropbox()){
             loader = new TempDatabaseDownloader(file,
-                    config.getSyncLocationSettings(getSyncMode()).getDatabaseFileName(),getSyncMode(),
+                    getDatabaseSyncName(getSyncMode()),
+                    getSyncMode(),
                     loadFlags);
             loader.execute();
         } else {
@@ -8088,8 +8098,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
                 LoadingStage stage, boolean showFileNotFound) {
-            this(file,config.getSyncLocationSettings(mode).getDatabaseFileName(),
-                    mode,stage,showFileNotFound);
+            this(file,getDatabaseSyncName(mode),mode,stage,showFileNotFound);
         }
         /**
          * 
@@ -8139,8 +8148,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          */
         private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
                 boolean showFileNotFound) {
-            this(file,config.getSyncLocationSettings(mode).getDatabaseFileName(),
-                    mode,showFileNotFound);
+            this(file,getDatabaseSyncName(mode),mode,showFileNotFound);
         }
         /**
          * 
@@ -9809,8 +9817,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         private AbstractDatabaseSaver(File file, DatabaseSyncMode mode, 
                 SavingStage stage, boolean exit){
-            this(file,config.getSyncLocationSettings(mode).getDatabaseFileName(),
-                    mode,stage,exit);
+            this(file,getDatabaseSyncName(mode),mode,stage,exit);
         }
         
         AbstractDatabaseSaver(File file, SavingStage stage, boolean exit){
