@@ -4060,7 +4060,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         "Failed to create temporary database file", ex);
             }
         }
-        loader = new DatabaseFileLoader(file,getDatabaseSyncName(mode),mode,
+        loader = new DatabaseLoader(file,getDatabaseSyncName(mode),mode,
                 loadFlags);
         loader.execute();
     }
@@ -4826,10 +4826,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbQueryPanelActionPerformed
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        loader = new DatabaseFileLoader(getDatabaseFile(),
-                config.getSyncLocationSettings(getSyncMode()).getDatabaseFileName(),
-                getSyncMode(),(getSyncMode()!=null)?LoadingStage.DOWNLOADING_FILE:LoadingStage.LOADING_FILE,
-                0);
+        DatabaseSyncMode mode = getSyncMode();
+        loader = new DatabaseLoader(getDatabaseFile(),getDatabaseSyncName(mode),
+                mode,0);
         loader.execute();
     }//GEN-LAST:event_jMenuItem1ActionPerformed
     
@@ -11192,7 +11191,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * This loads the lists of links from the database.
      */
-    private class DatabaseFileLoader extends AbstractDatabaseFileLoader{
+    private class DatabaseLoader extends AbstractDatabaseFileLoader{
         /**
          * This is a map that maps the tabs panels to the list of models that 
          * will be displayed by those tabs panels when we finish loading.
@@ -11231,7 +11230,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param stage
          * @param showFileNotFound 
          */
-        DatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
+        DatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
                 LoadingStage stage, int loadFlags, boolean showFileNotFound) {
             super(file,filePath,mode,stage,showFileNotFound);
             this.loadFlags = loadFlags;
@@ -11246,7 +11245,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param stage
          * @param loadFlags 
          */
-        DatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
+        DatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
                 LoadingStage stage, int loadFlags) {
             this(file,filePath,mode,stage,loadFlags,fullyLoaded);
         }
@@ -11258,7 +11257,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param loadFlags
          * @param showFileNotFound 
          */
-        DatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
+        DatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
                 int loadFlags, boolean showFileNotFound) {
             this(file,filePath,mode,
                     (filePath!=null&&mode!=null)?LoadingStage.DOWNLOADING_FILE:
@@ -11271,7 +11270,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @param loadFlags 
          */
-        DatabaseFileLoader(File file, String filePath, DatabaseSyncMode mode, 
+        DatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
                 int loadFlags) {
             this(file,filePath,mode,loadFlags,fullyLoaded);
         }
