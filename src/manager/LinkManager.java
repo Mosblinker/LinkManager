@@ -11494,7 +11494,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     new Object[]{file,downloadedFile});
                 // Disable all the lists
             setTabsPanelListsEnabled(false);
-            
+                // If the local file exists
+            if (file.exists()){
+                    // Create a backup of the file, just in case
+                if (!createBackupFile(file)){
+                    loadSuccess = false;
+                    getLogger().exiting(this.getClass().getName(), "loadFile", false);
+                    return false;
+                }
+            }
             
             boolean value = super.loadFile(file, downloadedFile);
             getLogger().exiting(this.getClass().getName(), "loadFile", value);
