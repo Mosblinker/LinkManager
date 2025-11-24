@@ -613,13 +613,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         
         loadDbxUtils();
+        dbxChunkSizeModel = new DbxChunkSizeSpinnerModel();
+        syncMethods.put(SyncMode.DROPBOX, new DropboxSyncMethod(){
+            @Override
+            public DropboxLinkUtils getDropboxLinkUtils() {
+                return loadDbxUtils();
+            }
+            @Override
+            public long getChunkSize() {
+                return dbxChunkSizeModel.getChunkSize();
+            }
+        });
+        
         try{
             SevenZipUtilities.initializeSevenZip();
         } catch (SevenZipNativeInitializationException ex){
             getLogger().log(Level.WARNING, "Failed to initialize 7-Zip bindings", ex);
         }
         
-        dbxChunkSizeModel = new DbxChunkSizeSpinnerModel();
         initComponents();
         
         listsTabPanels = new LinksListTabsPanel[]{
@@ -5498,6 +5509,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      */
     private DropboxLinkUtils dbxUtils = null;
+    /**
+     * 
+     */
+    private Map<SyncMode,SyncMethod> syncMethods = new HashMap<>();
     /**
      * This is used to format file sizes when displaying the size of a file.
      */
