@@ -49,9 +49,9 @@ public abstract class DropboxSyncMethod implements SyncMethod<FileMetadata, File
     }
     @Override
     public DropboxAccountData getAccountData() throws DbxException {
-        LinkManager.getLogger().entering(this.getClass().getName(), "getAccountData");
+        LinkManager.getLogger().entering("DropboxSyncMethod", "getAccountData");
         DropboxAccountData data = new DropboxAccountData(getClient());
-        LinkManager.getLogger().exiting(this.getClass().getName(), "getAccountData", data);
+        LinkManager.getLogger().exiting("DropboxSyncMethod", "getAccountData", data);
         return data;
     }
     @Override
@@ -64,7 +64,7 @@ public abstract class DropboxSyncMethod implements SyncMethod<FileMetadata, File
     }
     @Override
     public FileMetadata download(File file, String path, ProgressObserver l) throws DbxException, IOException {
-        LinkManager.getLogger().entering(this.getClass().getName(), "download", 
+        LinkManager.getLogger().entering("DropboxSyncMethod", "download", 
                 new Object[]{file, path, l});
             // Get a client to communicate with Dropbox, refreshing the Dropbox 
             // credentials if necessary
@@ -84,7 +84,7 @@ public abstract class DropboxSyncMethod implements SyncMethod<FileMetadata, File
             LinkManager.getLogger().log(Level.WARNING,"Failed to download from Dropbox",ex);
                 // If the error because the file doesn't exist
             if (DropboxUtilities.fileNotFound(ex)){
-                LinkManager.getLogger().exiting(this.getClass().getName(), 
+                LinkManager.getLogger().exiting("DropboxSyncMethod", 
                         "download", null);
                 return null;
             } else 
@@ -100,12 +100,12 @@ public abstract class DropboxSyncMethod implements SyncMethod<FileMetadata, File
             l.setIndeterminate(false);
         }   // Download the file from Dropbox
         FileMetadata data = DropboxUtilities.download(file, path, dbxFiles, listener);
-        LinkManager.getLogger().exiting(this.getClass().getName(), "download", data);
+        LinkManager.getLogger().exiting("DropboxSyncMethod", "download", data);
         return data;
     }
     @Override
     public FileMetadata upload(File file, String path, ProgressObserver l) throws DbxException, IOException {
-        LinkManager.getLogger().entering(this.getClass().getName(), "upload", 
+        LinkManager.getLogger().entering("DropboxSyncMethod", "upload", 
                 new Object[]{file, path, l});
             // Get a client to communicate with Dropbox, refreshing the Dropbox 
             // credentials if necessary
@@ -121,7 +121,7 @@ public abstract class DropboxSyncMethod implements SyncMethod<FileMetadata, File
             // overwriting the file if it already exists
         FileMetadata data = DropboxUtilities.upload(file, path, client.files(), 
                 getChunkSize(), true, listener);
-        LinkManager.getLogger().exiting(this.getClass().getName(), "upload", data);
+        LinkManager.getLogger().exiting("DropboxSyncMethod", "upload", data);
         return data;
     }
 }
