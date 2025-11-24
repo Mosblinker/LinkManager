@@ -11869,7 +11869,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 getLogger().exiting(this.getClass().getName(), "loadDropboxAccount",data);
                 return data;
             } catch (InvalidAccessTokenException ex){
-                getLogger().log(Level.INFO, "Dropbox account token has expired", 
+                getLogger().log(Level.INFO, "Dropbox access token is invalid", 
                         ex);
                 validAccount = false;
             } catch(DbxException ex){
