@@ -477,10 +477,20 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      * @return 
      */
-    private SyncMode getSyncMode(){
-        if (isLoggedInToDropbox())
-            return SyncMode.DROPBOX;
+    private SyncMethod getSyncMethod(){
+        for (SyncMethod method : syncMethods.values()){
+            if (method.isUsable() && method.isLoggedIn())
+                return method;
+        }
         return null;
+    }
+    /**
+     * 
+     * @return 
+     */
+    private SyncMode getSyncMode(){
+        SyncMethod method = getSyncMethod();
+        return (method!=null) ? method.getSyncMode() : null;
     }
     /**
      * 
