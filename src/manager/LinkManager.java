@@ -6611,55 +6611,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @throws DbxException
      * @throws IOException 
      */
-    private FileMetadata downloadFromDropbox(File file, String path) throws 
-            DbxException, IOException{
-        getLogger().entering(this.getClass().getName(), "downloadFromDropbox", 
-                new Object[]{file, path});
-            // Get a client to communicate with Dropbox, refreshing the Dropbox 
-            // credentials if necessary
-        DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
-            // Get the file namespace for Dropbox
-        DbxUserFilesRequests dbxFiles = client.files();
-            // This gets the size of the file to be downloaded
-        Long size = null;
-        try{    // Get the metadata for the file
-            Metadata metadata = dbxFiles.getMetadataBuilder(path).start();
-                // If the metadata is actually file metadata
-            if (metadata instanceof FileMetadata){
-                    // Get the size of the file
-                size = ((FileMetadata) metadata).getSize();
-            }
-        } catch (GetMetadataErrorException ex){
-            getLogger().log(Level.WARNING,"Failed to download from Dropbox",ex);
-                // If the error because the file doesn't exist
-            if (DropboxUtilities.fileNotFound(ex)){
-                getLogger().exiting(this.getClass().getName(), 
-                        "downloadFromDropbox", null);
-                return null;
-            }else 
-                throw ex;
-        }   // This is the progress listener to use to listen to how many bytes 
-            // have been downloaded so far.
-        ProgressListener listener = null;
-            // If the file size was loaded
-        if (size != null){
-                // Setup the progress bar and get the progress listener
-            listener = DropboxUtilities.setUpProgressListener(size, progressObserver);
-                // Set the progress bar to not be indeterminate
-            progressBar.setIndeterminate(false);
-        }   // Download the file from Dropbox
-        FileMetadata data = DropboxUtilities.download(file, path, dbxFiles, listener);
-        getLogger().exiting(this.getClass().getName(), "downloadFromDropbox", data);
-        return data;
-    }
-    /**
-     * 
-     * @param file
-     * @param path
-     * @return
-     * @throws DbxException
-     * @throws IOException 
-     */
     private FileMetadata uploadToDropbox(File file, String path) throws 
             DbxException, IOException{
         getLogger().entering(this.getClass().getName(), "uploadToDropbox", 
@@ -8282,9 +8233,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             fileFound = true;
             ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(true);
             try{    // Determine how to download the file
+                SyncMethod method = syncMethods.get(mode);
                 switch(mode){
                     case DROPBOX:   // Try to download the file to Dropbox
-                        FileMetadata data = downloadFromDropbox(file,path);
+                        FileMetadata data = ((DropboxSyncMethod)method).download(file, path, progressObserver);
                         fileFound = data != null;
                         File temp = (fileFound) ? file : null;
                         getLogger().exiting("AbstractFileDownloader","downloadFile",temp);
