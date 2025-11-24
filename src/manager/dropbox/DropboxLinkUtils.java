@@ -185,9 +185,10 @@ public abstract class DropboxLinkUtils {
      * @param client
      * @param cred
      * @throws DbxException 
+     * @throws DbxOAuthException 
      */
     public void refreshCredentials(DbxClientV2 client, DbxCredential cred) 
-            throws DbxException{
+            throws DbxException, DbxOAuthException{
         if (cred.aboutToExpire()){
             refreshCredentials(client.refreshAccessToken());
         }

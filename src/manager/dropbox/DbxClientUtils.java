@@ -98,8 +98,9 @@ public class DbxClientUtils {
      * 
      * @return
      * @throws DbxException 
+     * @throws DbxOAuthException 
      */
-    public DbxClientUtils refreshCredentials() throws DbxException{
+    public DbxClientUtils refreshCredentials() throws DbxException, DbxOAuthException{
         dbxUtils.refreshCredentials(getClient(), getCredentials());
         return this;
     }
@@ -107,8 +108,9 @@ public class DbxClientUtils {
      * 
      * @return
      * @throws DbxException 
+     * @throws DbxOAuthException 
      */
-    public DbxClientV2 getClientWithRefresh() throws DbxException{
+    public DbxClientV2 getClientWithRefresh() throws DbxException, DbxOAuthException{
         return refreshCredentials().getClient();
     }
 }
