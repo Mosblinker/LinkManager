@@ -11800,31 +11800,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         /**
          * 
-         * @throws DbxException 
-         * @return 
-         */
-        protected AccountData loadDropboxAccount(){
-            getLogger().entering(this.getClass().getName(), "loadDropboxAccount");
-            try{    // Get a client to communicate with Dropbox, refreshing the 
-                    // Dropbox credentials if necessary
-                DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
-                    // Try to load the account data for the user
-                AccountData data = new DropboxAccountData(client);
-                getLogger().exiting(this.getClass().getName(), "loadDropboxAccount",data);
-                return data;
-            } catch (InvalidAccessTokenException ex){
-                getLogger().log(Level.INFO, "Dropbox access token is invalid", 
-                        ex);
-                validAccount = false;
-            } catch(DbxException ex){
-                getLogger().log(Level.INFO,"Failed to load Dropbox account",ex);
-                exc = ex;
-            }
-            getLogger().exiting(this.getClass().getName(), "loadDropboxAccount",null);
-            return null;
-        }
-        /**
-         * 
          * @param mode
          * @return 
          */
@@ -11832,13 +11807,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             getLogger().entering(this.getClass().getName(), "loadAccount", mode);
                 // Reset the exceptions
             exc = null;
-            AccountData data = null;
+            SyncMethod method = syncMethods.get(mode);
             switch(mode){
                 case DROPBOX:
-                    data = loadDropboxAccount();
+                    try{    // Try to load the account data for the user
+                        AccountData data = ((DropboxSyncMethod)method).getAccountData();
+                        getLogger().exiting(this.getClass().getName(), "loadAccount",data);
+                        return data;
+                    } catch (InvalidAccessTokenException ex){
+                        getLogger().log(Level.INFO, "Dropbox access token is invalid", 
+                                ex);
+                        validAccount = false;
+                    } catch(DbxException ex){
+                        getLogger().log(Level.INFO,"Failed to load Dropbox account",ex);
+                        exc = ex;
+                    }
             }
-            getLogger().exiting(this.getClass().getName(), "loadAccount",data);
-            return data;
+            getLogger().exiting(this.getClass().getName(), "loadAccount",null);
+            return null;
         }
         @Override
         protected Void backgroundAction() throws Exception {
