@@ -8236,7 +8236,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 SyncMethod method = syncMethods.get(mode);
                 switch(mode){
                     case DROPBOX:   // Try to download the file to Dropbox
-                        FileMetadata data = ((DropboxSyncMethod)method).download(file, path, progressObserver);
+                        FileMetadata data = ((DropboxSyncMethod)method)
+                                .download(file, path, progressObserver);
                         fileFound = data != null;
                         File temp = (fileFound) ? file : null;
                         getLogger().exiting("AbstractFileDownloader","downloadFile",temp);
