@@ -36,7 +36,7 @@ public class DefaultAccountData extends AbstractAccountData implements MutableAc
     /**
      * 
      */
-    private SyncLocation syncMode;
+    private SyncMode syncMode;
     /**
      * 
      * @param syncMode
@@ -45,7 +45,7 @@ public class DefaultAccountData extends AbstractAccountData implements MutableAc
      * @param spaceUsed
      * @param allocatedSpace 
      */
-    public DefaultAccountData(SyncLocation syncMode, String accountName, 
+    public DefaultAccountData(SyncMode syncMode, String accountName, 
             Icon pfpIcon, Long spaceUsed, Long allocatedSpace){
         this.syncMode = syncMode;
         this.accountName = accountName;
@@ -57,14 +57,14 @@ public class DefaultAccountData extends AbstractAccountData implements MutableAc
      * 
      * @param syncMode 
      */
-    public DefaultAccountData(SyncLocation syncMode){
+    public DefaultAccountData(SyncMode syncMode){
         this(syncMode,null,null,null,null);
     }
     /**
      * 
      */
     public DefaultAccountData(){
-        this((SyncLocation)null);
+        this((SyncMode)null);
     }
     /**
      * 
@@ -91,7 +91,7 @@ public class DefaultAccountData extends AbstractAccountData implements MutableAc
         return allocatedSpace;
     }
     @Override
-    public SyncLocation getSyncMode() {
+    public SyncMode getSyncMode() {
         return syncMode;
     }
     @Override
@@ -130,9 +130,9 @@ public class DefaultAccountData extends AbstractAccountData implements MutableAc
      * 
      * @param mode 
      */
-    public void setSyncMode(SyncLocation mode){
+    public void setSyncMode(SyncMode mode){
         if (!Objects.equals(syncMode, mode)){
-            SyncLocation old = syncMode;
+            SyncMode old = syncMode;
             syncMode = mode;
             firePropertyChange(SYNC_MODE_PROPERTY_CHANGED,old,mode);
         }
