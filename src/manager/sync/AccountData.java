@@ -67,7 +67,7 @@ public interface AccountData {
      * 
      * @return 
      */
-    public DatabaseSyncMode getSyncMode();
+    public SyncLocation getSyncMode();
     /**
      * 
      * @param l 

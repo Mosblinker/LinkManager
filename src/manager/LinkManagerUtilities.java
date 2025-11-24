@@ -645,7 +645,7 @@ public class LinkManagerUtilities {
      * @param filePath
      * @return 
      */
-    public static String formatExternalFilePath(DatabaseSyncMode mode, String filePath){
+    public static String formatExternalFilePath(SyncLocation mode, String filePath){
         if (mode != null && filePath != null){
             switch(mode){
                 case DROPBOX:

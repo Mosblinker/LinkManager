@@ -6,7 +6,7 @@ package manager.config;
 
 import java.util.Properties;
 import manager.LinkManager;
-import manager.sync.DatabaseSyncMode;
+import manager.sync.SyncLocation;
 
 /**
  *
@@ -17,7 +17,7 @@ public interface SyncLocationSettings {
      * 
      * @return 
      */
-    public DatabaseSyncMode getSyncMode();
+    public SyncLocation getSyncMode();
     /**
      * 
      * @param defaultValue

@@ -4,7 +4,7 @@
  */
 package manager;
 
-import manager.sync.DatabaseSyncMode;
+import manager.sync.SyncLocation;
 import config.ConfigUtilities;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -18,7 +18,7 @@ import java.util.prefs.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import javax.swing.JFileChooser;
-import static manager.sync.DatabaseSyncMode.DROPBOX;
+import static manager.sync.SyncLocation.DROPBOX;
 import manager.config.*;
 import manager.database.CacheSetIterator;
 import manager.dropbox.DropboxLinkUtils;
@@ -403,7 +403,7 @@ public class LinkManagerConfig implements LinksListSettings{
     /**
      * This stores the nodes and settings used for external file settings.
      */
-    private final Map<DatabaseSyncMode,SyncLocationNode> syncNodes;
+    private final Map<SyncLocation,SyncLocationNode> syncNodes;
     /**
      * This is used to handle the list type preference nodes.
      */
@@ -450,10 +450,10 @@ public class LinkManagerConfig implements LinksListSettings{
             }
         };
         syncNodes = new HashMap<>();
-        syncNodes.put(DatabaseSyncMode.DROPBOX, new SyncLocationNode(){
+        syncNodes.put(SyncLocation.DROPBOX, new SyncLocationNode(){
             @Override
-            public DatabaseSyncMode getSyncMode() {
-                return DatabaseSyncMode.DROPBOX;
+            public SyncLocation getSyncMode() {
+                return SyncLocation.DROPBOX;
             }
             @Override
             public String getNodePath() {
@@ -528,14 +528,14 @@ public class LinkManagerConfig implements LinksListSettings{
      * @param mode
      * @return 
      */
-    public SyncLocationSettings getSyncLocationSettings(DatabaseSyncMode mode){
-        return syncNodes.get(DatabaseSyncMode.DROPBOX);
+    public SyncLocationSettings getSyncLocationSettings(SyncLocation mode){
+        return syncNodes.get(SyncLocation.DROPBOX);
     }
     /**
      * 
      * @return 
      */
-    public Map<DatabaseSyncMode,SyncLocationSettings> getSyncLocationSettingsMap(){
+    public Map<SyncLocation,SyncLocationSettings> getSyncLocationSettingsMap(){
         return Collections.unmodifiableMap(syncNodes);
     }
     /**
@@ -543,7 +543,7 @@ public class LinkManagerConfig implements LinksListSettings{
      * @return 
      */
     public ConfigPreferences getDropboxPreferences(){
-        return syncNodes.get(DatabaseSyncMode.DROPBOX).getNode();
+        return syncNodes.get(SyncLocation.DROPBOX).getNode();
     }
     /**
      * 
@@ -1521,7 +1521,7 @@ public class LinkManagerConfig implements LinksListSettings{
                     // Export the settings for the current node
                 node.exportProperties(prop);
             }   // If the Dropbox node exists
-            if (syncNodes.get(DatabaseSyncMode.DROPBOX).nodeExists()){
+            if (syncNodes.get(SyncLocation.DROPBOX).nodeExists()){
                     // If the Dropbox file chooser preference node exists
                 if (nodeExists(getDropboxPreferences(),DROPBOX_FILE_CHOOSER_PREFERENCE_NODE)){
                     prop.setProperty(
@@ -3244,7 +3244,7 @@ public class LinkManagerConfig implements LinksListSettings{
          */
         protected ConfigPreferences node = null;
         @Override
-        public abstract DatabaseSyncMode getSyncMode();
+        public abstract SyncLocation getSyncMode();
         /**
          * 
          * @return 

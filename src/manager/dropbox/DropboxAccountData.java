@@ -80,7 +80,7 @@ public class DropboxAccountData extends AbstractAccountData{
         return DropboxUtilities.getAllocatedSpace(getSpaceUsage());
     }
     @Override
-    public DatabaseSyncMode getSyncMode() {
-        return DatabaseSyncMode.DROPBOX;
+    public SyncLocation getSyncMode() {
+        return SyncLocation.DROPBOX;
     }
 }

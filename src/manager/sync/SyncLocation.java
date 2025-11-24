@@ -8,18 +8,18 @@ package manager.sync;
  *
  * @author Mosblinker
  */
-public enum DatabaseSyncMode {
+public enum SyncLocation {
     
     DROPBOX;
     
     
     private String name;
     
-    private DatabaseSyncMode(String name){
+    private SyncLocation(String name){
         this.name = name;
     }
     
-    private DatabaseSyncMode(){
+    private SyncLocation(){
         this(null);
     }
     

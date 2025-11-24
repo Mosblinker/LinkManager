@@ -477,9 +477,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      * @return 
      */
-    private DatabaseSyncMode getSyncMode(){
+    private SyncLocation getSyncMode(){
         if (isLoggedInToDropbox())
-            return DatabaseSyncMode.DROPBOX;
+            return SyncLocation.DROPBOX;
         return null;
     }
     /**
@@ -487,7 +487,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @param mode
      * @return 
      */
-    private String getDatabaseSyncName(DatabaseSyncMode mode){
+    private String getDatabaseSyncName(SyncLocation mode){
         SyncLocationSettings settings = config.getSyncLocationSettings(mode);
         return (settings != null)?settings.getDatabaseFileName():null;
     }
@@ -4048,7 +4048,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private void loadDatabase(int loadFlags){
         File file = getDatabaseFile();
-        DatabaseSyncMode mode = (syncDBToggle.isSelected())?getSyncMode():null;
+        SyncLocation mode = (syncDBToggle.isSelected())?getSyncMode():null;
         loader = new DatabaseLoader(file,getDatabaseSyncName(mode),mode,
                 loadFlags);
         loader.execute();
@@ -4389,7 +4389,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             setLocationDialog.setLocationRelativeTo(this);
         setDatabaseFileFields(config.getDatabaseFileName());
         setDropboxDatabaseFileFields(config
-                .getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
+                .getSyncLocationSettings(SyncLocation.DROPBOX)
                 .getDatabaseFileName());
         loadExternalAccountData();
         updateDBLocationEnabled();
@@ -4437,10 +4437,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             dbxFileName = DropboxUtilities.formatDropboxPath(dbxFileName);
                 // If the Dropbox database file name has changed
             if (!Objects.equals(dbxFileName, config
-                    .getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
+                    .getSyncLocationSettings(SyncLocation.DROPBOX)
                     .getDatabaseFileName())){
                     // Set the Dropbox database file name
-                config.getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
+                config.getSyncLocationSettings(SyncLocation.DROPBOX)
                         .setDatabaseFileName(dbxFileName);
                 setDropboxDatabaseFileFields(dbxFileName);
             }
@@ -4720,7 +4720,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbxLogInButtonActionPerformed
 
     private void uploadDBItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadDBItemActionPerformed
-        DatabaseSyncMode mode = getSyncMode();
+        SyncLocation mode = getSyncMode();
         if (mode != null){
             SavingStage stage = SavingStage.SAVE_DATABASE;
             if (getDatabaseFile().exists()){
@@ -4815,7 +4815,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }//GEN-LAST:event_dbQueryPanelActionPerformed
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        DatabaseSyncMode mode = getSyncMode();
+        SyncLocation mode = getSyncMode();
         loader = new DatabaseLoader(getDatabaseFile(),getDatabaseSyncName(mode),
                 mode,0);
         loader.execute();
@@ -4895,7 +4895,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void dbxLocationPanelPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dbxLocationPanelPropertyChange
         switch(evt.getPropertyName()){
             case(SyncLocationPanel.FILE_COMPRESSION_ENABLED_PROPERTY_CHANGED):
-                config.getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
+                config.getSyncLocationSettings(SyncLocation.DROPBOX)
                         .setFileCompressionEnabled(dbxLocationPanel.isFileCompressionEnabled());
                 String path = dbxLocationPanel.getFileText();
                 if (path.endsWith("."+SEVEN_ZIP_FILE_EXTENSION)){
@@ -4910,7 +4910,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxLocationPanel.setFileText(path);
                 break;
             case (SyncLocationPanel.FILE_COMPRESSION_LEVEL_PROPERTY_CHANGED):
-                config.getSyncLocationSettings(DatabaseSyncMode.DROPBOX)
+                config.getSyncLocationSettings(SyncLocation.DROPBOX)
                         .setFileCompressionLevel(dbxLocationPanel.getFileCompressionLevel());
         }
     }//GEN-LAST:event_dbxLocationPanelPropertyChange
@@ -4981,7 +4981,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     
-    private void loadExternalAccountData(DatabaseSyncMode mode){
+    private void loadExternalAccountData(SyncLocation mode){
         if (mode == null){
             LinkManagerUtilities.setCard(setLocationPanel,setExternalCard);
             updateExternalDBButtons();
@@ -5859,7 +5859,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private String getSyncFailureMessage(File file, String path, 
-            DatabaseSyncMode mode, String msgTemplate, boolean showError, 
+            SyncLocation mode, String msgTemplate, boolean showError, 
             Exception ex){
             // The message to return
         String msg = String.format(msgTemplate, mode);
@@ -6041,7 +6041,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 dbxChunkSizeModel.getMultiplier()));
         updateCheckPanel.setCheckForUpdatesAtStartup(config.getCheckForUpdateAtStartup(
                 updateCheckPanel.getCheckForUpdatesAtStartup()));
-        SyncLocationSettings dbxSettings = config.getSyncLocationSettings(DatabaseSyncMode.DROPBOX);
+        SyncLocationSettings dbxSettings = config.getSyncLocationSettings(SyncLocation.DROPBOX);
         dbxLocationPanel.setFileCompressionEnabled(dbxSettings.isFileCompressionEnabled());
         dbxLocationPanel.setFileCompressionLevel(dbxSettings.getFileCompressionLevel());
             // If the program has fully loaded
@@ -8018,7 +8018,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         protected String filePath;
         
-        protected DatabaseSyncMode syncMode;
+        protected SyncLocation syncMode;
         /**
          * Whether the file to download was found.
          */
@@ -8050,7 +8050,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param showFileNotFound 
          */
         AbstractFileDownloader(File file, String filePath, 
-                DatabaseSyncMode mode, LoadingStage stage, 
+                SyncLocation mode, LoadingStage stage, 
                 boolean showFileNotFound) {
             super(file, showFileNotFound);
             this.filePath = filePath;
@@ -8065,7 +8065,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param stage 
          */
         AbstractFileDownloader(File file, String filePath, 
-                DatabaseSyncMode mode, LoadingStage stage) {
+                SyncLocation mode, LoadingStage stage) {
             this(file,filePath,mode,stage,true);
         }
         /**
@@ -8075,7 +8075,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param stage
          * @param showFileNotFound 
          */
-        private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
+        private AbstractFileDownloader(File file, SyncLocation mode, 
                 LoadingStage stage, boolean showFileNotFound) {
             this(file,getDatabaseSyncName(mode),mode,stage,showFileNotFound);
         }
@@ -8103,7 +8103,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @param showFileNotFound 
          */
-        AbstractFileDownloader(File file, String filePath, DatabaseSyncMode mode, 
+        AbstractFileDownloader(File file, String filePath, SyncLocation mode, 
                 boolean showFileNotFound) {
             this(file,filePath,mode,
                     (filePath!=null&&mode!=null)?LoadingStage.DOWNLOADING_FILE:
@@ -8115,7 +8115,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param filePath
          * @param mode 
          */
-        AbstractFileDownloader(File file, String filePath, DatabaseSyncMode mode){
+        AbstractFileDownloader(File file, String filePath, SyncLocation mode){
             this(file,filePath,mode,true);
         }
         /**
@@ -8125,7 +8125,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param stage
          * @param showFileNotFound 
          */
-        private AbstractFileDownloader(File file, DatabaseSyncMode mode, 
+        private AbstractFileDownloader(File file, SyncLocation mode, 
                 boolean showFileNotFound) {
             this(file,getDatabaseSyncName(mode),mode,showFileNotFound);
         }
@@ -8253,7 +8253,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @return The downloaded file, or null if this failed to download.
          */
-        protected File downloadFile(File file, String path, DatabaseSyncMode mode){
+        protected File downloadFile(File file, String path, SyncLocation mode){
             getLogger().entering("AbstractFileDownloader", "downloadFile", 
                     new Object[]{file,path,mode});
                 // Format the file path
@@ -8524,7 +8524,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return 
          */
         protected String getDownloadFailureMessage(File file, String path, 
-                DatabaseSyncMode mode, Exception ex){
+                SyncLocation mode, Exception ex){
             return getSyncFailureMessage(file,path,mode,
                     "The file failed to download from %s.",
                     getDownloadFailureMessageStatesError(ex),ex);
@@ -8538,7 +8538,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return 
          */
         protected String getDownloadFileNotFoundMessage(File file, String path, 
-                DatabaseSyncMode mode, Exception ex){
+                SyncLocation mode, Exception ex){
             return "The file was not found on "+mode+" at the path\n\""+path+"\"";
         }
         /**
@@ -8557,7 +8557,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return 
          */
         protected int showDownloadFailurePrompt(File file, String path, 
-                DatabaseSyncMode mode,Exception ex){
+                SyncLocation mode,Exception ex){
             if (!fileFound && !showFilePathNotFound)
                 return JOptionPane.CANCEL_OPTION;
             return LinkManager.this.showFailurePrompt("ERROR - File Failed To Download", 
@@ -9306,7 +9306,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param filePath
          * @param mode 
          */
-        DatabaseDownloader(File file, String filePath, DatabaseSyncMode mode, 
+        DatabaseDownloader(File file, String filePath, SyncLocation mode, 
                 boolean showSuccess) {
             super(file, filePath, mode, LoadingStage.DOWNLOADING_FILE);
             this.showSuccess = showSuccess;
@@ -9439,7 +9439,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param showFileNotFound 
          */
         AbstractDatabaseLoader(File file, String filePath, 
-                DatabaseSyncMode mode, LoadingStage stage, 
+                SyncLocation mode, LoadingStage stage, 
                 boolean showFileNotFound) {
             super(file, filePath, mode, stage, showFileNotFound);
         }
@@ -9451,7 +9451,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param stage 
          */
         AbstractDatabaseLoader(File file, String filePath, 
-                DatabaseSyncMode mode, LoadingStage stage) {
+                SyncLocation mode, LoadingStage stage) {
             super(file,filePath,mode,stage);
         }
         /**
@@ -9478,7 +9478,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @param showFileNotFound 
          */
-        AbstractDatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
+        AbstractDatabaseLoader(File file, String filePath, SyncLocation mode, 
                 boolean showFileNotFound) {
             super(file,filePath,mode,showFileNotFound);
         }
@@ -9488,7 +9488,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param filePath
          * @param mode 
          */
-        AbstractDatabaseLoader(File file, String filePath, DatabaseSyncMode mode){
+        AbstractDatabaseLoader(File file, String filePath, SyncLocation mode){
             super(file,filePath,mode);
         }
         /**
@@ -9738,7 +9738,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param stage
          * @param showFileNotFound 
          */
-        DatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
+        DatabaseLoader(File file, String filePath, SyncLocation mode, 
                 LoadingStage stage, int loadFlags, boolean showFileNotFound) {
             super(file,filePath,mode,stage,showFileNotFound);
             this.loadFlags = loadFlags;
@@ -9753,7 +9753,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param stage
          * @param loadFlags 
          */
-        DatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
+        DatabaseLoader(File file, String filePath, SyncLocation mode, 
                 LoadingStage stage, int loadFlags) {
             this(file,filePath,mode,stage,loadFlags,fullyLoaded);
         }
@@ -9765,7 +9765,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param loadFlags
          * @param showFileNotFound 
          */
-        DatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
+        DatabaseLoader(File file, String filePath, SyncLocation mode, 
                 int loadFlags, boolean showFileNotFound) {
             this(file,filePath,mode,
                     (filePath!=null&&mode!=null)?LoadingStage.DOWNLOADING_FILE:
@@ -9778,7 +9778,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @param loadFlags 
          */
-        DatabaseLoader(File file, String filePath, DatabaseSyncMode mode, 
+        DatabaseLoader(File file, String filePath, SyncLocation mode, 
                 int loadFlags) {
             this(file,filePath,mode,loadFlags,fullyLoaded);
         }
@@ -10605,7 +10605,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         
         protected String filePath;
         
-        protected DatabaseSyncMode syncMode;
+        protected SyncLocation syncMode;
         
         protected File compressedFile = null;
         
@@ -10622,7 +10622,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         protected boolean showFileNotFound = true;
         
         AbstractDatabaseSaver(File file, String filePath, 
-                DatabaseSyncMode mode, File configFile, SavingStage stage, 
+                SyncLocation mode, File configFile, SavingStage stage, 
                 boolean exit){
             super(file,exit);
             this.stage = Objects.requireNonNull(stage);
@@ -10632,21 +10632,21 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         
         AbstractDatabaseSaver(File file, String filePath, 
-                DatabaseSyncMode mode, File configFile, SavingStage stage){
+                SyncLocation mode, File configFile, SavingStage stage){
             this(file,filePath,mode,configFile,stage,false);
         }
         
         AbstractDatabaseSaver(File file, String filePath, 
-                DatabaseSyncMode mode, SavingStage stage, boolean exit){
+                SyncLocation mode, SavingStage stage, boolean exit){
             this(file,filePath,mode,getConfigFile(),stage,exit);
         }
         
         AbstractDatabaseSaver(File file, String filePath, 
-                DatabaseSyncMode mode, SavingStage stage){
+                SyncLocation mode, SavingStage stage){
             this(file,filePath,mode,stage,false);
         }
         
-        private AbstractDatabaseSaver(File file, DatabaseSyncMode mode, 
+        private AbstractDatabaseSaver(File file, SyncLocation mode, 
                 SavingStage stage, boolean exit){
             this(file,getDatabaseSyncName(mode),mode,stage,exit);
         }
@@ -10842,7 +10842,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @return 
          */
-        protected boolean isUploadedFileCompressed(DatabaseSyncMode mode){
+        protected boolean isUploadedFileCompressed(SyncLocation mode){
             if (mode == null)
                 return false;
             switch(mode){
@@ -10856,7 +10856,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @return 
          */
-        protected int getCompressionLevel(DatabaseSyncMode mode){
+        protected int getCompressionLevel(SyncLocation mode){
             if (mode == null)
                 return 0;
             switch(mode){
@@ -10965,7 +10965,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @return 
          */
         protected boolean uploadFile(File file, String path, 
-                DatabaseSyncMode mode){
+                SyncLocation mode){
             getLogger().entering("AbstractDatabaseSaver", "uploadFile", 
                     new Object[]{file,path,mode});
                 // Whether the user wants this to try processing the file again 
@@ -11244,23 +11244,23 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private class DatabaseSaver extends AbstractDatabaseSaver{
         
-        DatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
+        DatabaseSaver(File file, String filePath, SyncLocation mode, 
                 File configFile, SavingStage stage, boolean exit){
             super(file,filePath,mode,configFile,stage,exit);
         }
         
-        DatabaseSaver(File file, String filePath, DatabaseSyncMode mode, 
+        DatabaseSaver(File file, String filePath, SyncLocation mode, 
                 File configFile, SavingStage stage){
             super(file,filePath,mode,configFile,stage);
         }
         
         DatabaseSaver(File file, String filePath, 
-                DatabaseSyncMode mode, SavingStage stage, boolean exit){
+                SyncLocation mode, SavingStage stage, boolean exit){
             super(file,filePath,mode,stage,exit);
         }
         
         DatabaseSaver(File file, String filePath, 
-                DatabaseSyncMode mode, SavingStage stage){
+                SyncLocation mode, SavingStage stage){
             super(file,filePath,mode,stage);
         }
         
@@ -11797,7 +11797,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         /**
          * 
          */
-        private DatabaseSyncMode syncMode;
+        private SyncLocation syncMode;
         /**
          * This gets any exceptions that get thrown while loading the user's 
          * account.
@@ -11807,14 +11807,14 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * 
          * @param mode 
          */
-        AccountLoader(DatabaseSyncMode mode){
+        AccountLoader(SyncLocation mode){
             this.syncMode = Objects.requireNonNull(mode);
         }
         /**
          * 
          * @return 
          */
-        public DatabaseSyncMode getSyncMode(){
+        public SyncLocation getSyncMode(){
             return syncMode;
         }
         @Override
@@ -11884,7 +11884,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
          * @param mode
          * @return 
          */
-        protected AccountData loadAccount(DatabaseSyncMode mode){
+        protected AccountData loadAccount(SyncLocation mode){
             getLogger().entering(this.getClass().getName(), "loadAccount", mode);
                 // Reset the exceptions
             exc = null;
