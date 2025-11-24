@@ -471,8 +471,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * 
      * @return 
      */
-    private SyncMethod getSyncMethod(){
-        for (SyncMethod method : syncMethods.values()){
+    private SyncMethod<?,?,?> getSyncMethod(){
+        for (SyncMethod<?,?,?> method : syncMethods.values()){
             if (method.isUsable() && method.isLoggedIn())
                 return method;
         }
@@ -483,7 +483,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      * @return 
      */
     private SyncMode getSyncMode(){
-        SyncMethod method = getSyncMethod();
+        SyncMethod<?,?,?> method = getSyncMethod();
         return (method!=null) ? method.getSyncMode() : null;
     }
     /**
@@ -5515,7 +5515,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     /**
      * 
      */
-    private Map<SyncMode,SyncMethod> syncMethods = new HashMap<>();
+    private Map<SyncMode,SyncMethod<?,?,?>> syncMethods = new HashMap<>();
     /**
      * This is used to format file sizes when displaying the size of a file.
      */
