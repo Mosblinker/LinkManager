@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.*;
 import javax.swing.table.TableModel;
+import manager.LinkManager;
 
 /**
  *
@@ -83,6 +84,8 @@ public class DatabaseTableViewer extends JPanel{
     
     public void loadTables(boolean showSchema, LinkDatabaseConnection conn, 
             Statement stmt, JProgressBar progressBar) throws SQLException{
+        LinkManager.getLogger().entering(this.getClass().getName(), "loadTables",
+                new Object[]{showSchema,conn,stmt,progressBar});
         tableModels.clear();
         tableNames.clear();
         tableIsView.clear();
@@ -122,6 +125,7 @@ public class DatabaseTableViewer extends JPanel{
         }
         if (progressBar != null)
             progressBar.setIndeterminate(true);
+        LinkManager.getLogger().exiting(this.getClass().getName(), "loadTables");
     }
     
     public void loadTables(boolean showSchema, LinkDatabaseConnection conn, 
