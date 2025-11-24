@@ -7,7 +7,6 @@ package manager;
 import com.dropbox.core.*;
 import com.dropbox.core.json.JsonReader;
 import com.dropbox.core.oauth.*;
-import com.dropbox.core.util.IOUtil.ProgressListener;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
 import com.technicjelle.UpdateChecker;
@@ -6605,35 +6604,6 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     /**
      * 
-     * @param file
-     * @param path
-     * @return
-     * @throws DbxException
-     * @throws IOException 
-     */
-    private FileMetadata uploadToDropbox(File file, String path) throws 
-            DbxException, IOException{
-        getLogger().entering(this.getClass().getName(), "uploadToDropbox", 
-                new Object[]{file, path});
-            // Get a client to communicate with Dropbox, refreshing the Dropbox 
-            // credentials if necessary
-        DbxClientV2 client = dbxUtils.createClientUtils().getClientWithRefresh();
-            // Setup the progress bar and get the progress listener used to 
-            // update the progress bar to reflect the bytes that have been 
-            // uploaded so far.
-        ProgressListener listener = DropboxUtilities.setUpProgressListener(
-                file.length(), progressObserver);
-            // Set the progress bar to not be indeterminate
-        progressBar.setIndeterminate(false);
-            // Upload the file to Dropbox, using the set chunk size and 
-            // overwriting the file if it already exists
-        FileMetadata data = DropboxUtilities.upload(file, path, client.files(), 
-                dbxChunkSizeModel.getChunkSize(), true, listener);
-        getLogger().exiting(this.getClass().getName(), "uploadToDropbox", data);
-        return data;
-    }
-    /**
-     * 
      * @param model
      * @param list
      * @return 
@@ -8232,12 +8202,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             exc = null;
             fileFound = true;
             ((JByteProgressDisplayMenu)progressDisplay).setUseByteFormat(true);
-            try{    // Determine how to download the file
+            try{    
                 SyncMethod method = syncMethods.get(mode);
+                    // Determine how to download the file
                 switch(mode){
                     case DROPBOX:   // Try to download the file to Dropbox
-                        FileMetadata data = ((DropboxSyncMethod)method)
-                                .download(file, path, progressObserver);
+                        FileMetadata data = ((DropboxSyncMethod)method).download(file, path, progressObserver);
                         fileFound = data != null;
                         File temp = (fileFound) ? file : null;
                         getLogger().exiting("AbstractFileDownloader","downloadFile",temp);
@@ -10952,10 +10922,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 progressBar.setValue(0);
                     // Set the program to be indeterminate
                 progressBar.setIndeterminate(true); 
-                try{    // Determine how to upload the file
+                try{    
+                    SyncMethod method = syncMethods.get(mode);
+                        // Determine how to upload the file
                     switch(mode){
                         case DROPBOX:   // Try to upload the file to Dropbox
-                            uploadToDropbox(file,path);
+                            ((DropboxSyncMethod)method).upload(file, path, progressObserver);
                     }
                     getLogger().exiting("AbstractDatabaseSaver", 
                             "uploadDatabase", true);
