@@ -422,14 +422,9 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         return connect(file.toString());
     }
     /**
-     * This returns whether the program is logged in to Dropbox.
-     * @return Whether the program is logged in to Dropbox.
+     * 
+     * @return 
      */
-    private boolean isLoggedInToDropbox(){
-            // TODO: Deal with invalid access tokens
-        return loadDbxUtils() != null && dbxUtils.getAccessToken() != null;
-    }
-    
     private DropboxLinkUtils loadDbxUtils(){
             // Get the file containing the API keys
         File dbxKey = getDropboxAPIFile();
@@ -4444,9 +4439,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
         
             // If the user is logged into Dropbox
-        if (isLoggedInToDropbox()){
-            // TODO: Implement setting the location for the dropbox file using 
-            // a browse dialog and make it more robust
+        if (syncMethods.get(SyncMode.DROPBOX).isLoggedIn()){
+            // TODO: make this more robust
             
                 // Get the database file name for Dropbox
             String dbxFileName = dbxLocationPanel.getFileText().trim();
@@ -5247,7 +5241,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     }
     
     private void updateExternalDBButtons(){
-        uploadDBItem.setEnabled(active && isLoggedInToDropbox());
+        uploadDBItem.setEnabled(active && syncMethods.get(SyncMode.DROPBOX).isLoggedIn());
         downloadDBItem.setEnabled(uploadDBItem.isEnabled());
         syncDBToggle.setEnabled(uploadDBItem.isEnabled());
     }
