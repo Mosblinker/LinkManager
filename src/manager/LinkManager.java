@@ -1364,6 +1364,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         aboutPanel = new components.JAboutPanel();
         updateCheckPanel = new manager.UpdateCheckPanel();
         dropboxFC = new manager.dropbox.JDropboxFileChooser();
+        listNamePane = new manager.links.ListNameOptionPane();
         progressBar = new javax.swing.JProgressBar();
         javax.swing.JLabel newLinkLabel = new javax.swing.JLabel();
         linkTextField = new javax.swing.JTextField();
@@ -1395,6 +1396,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         exitButton = new javax.swing.JMenuItem();
         listMenu = new javax.swing.JMenu();
         manageListsItem = new javax.swing.JMenuItem();
+        renameListItem = new javax.swing.JMenuItem();
         javax.swing.JPopupMenu.Separator jSeparator1 = new javax.swing.JPopupMenu.Separator();
         makeListReadOnlyMenuAll = new javax.swing.JMenu();
         makeListReadOnlyMenuShown = new javax.swing.JMenu();
@@ -2839,6 +2841,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         listMenu.add(manageListsItem);
+
+        renameListItem.setText("Rename Current List");
+        renameListItem.setEnabled(false);
+        renameListItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                renameListItemActionPerformed(evt);
+            }
+        });
+        listMenu.add(renameListItem);
         listMenu.add(jSeparator1);
 
         makeListReadOnlyMenuAll.setText("Set List To Read Only");
@@ -4928,7 +4939,26 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         .setFileCompressionLevel(dbxLocationPanel.getFileCompressionLevel());
         }
     }//GEN-LAST:event_dbxLocationPanelPropertyChange
+
+    private void renameListItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameListItemActionPerformed
+            // If we can't alter the currently selected list
+        if (!canActUponSelectedList()){ 
+            beep();
+            linkTextField.grabFocus();
+            return;
+        }
+        LinksListModel model = getSelectedList().getModel();
+        if (model == null)
+            return;
+        String newName = showListNameDialog(model);
+        if (newName != null)
+            model.setListName(newName);
+    }//GEN-LAST:event_renameListItemActionPerformed
     
+    private String showListNameDialog(LinksListModel model){
+        listNamePane.addUsedNames(getModelSet());
+        return listNamePane.showListNameDialog(this, model, getSelectedTabsPanel().getModels());
+    }
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
@@ -5299,6 +5329,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setListMenuEnabled(MOVE_TO_LIST_ACTION_KEY,listMenuEnabled && !getSelectedList().isReadOnly());
         setListMenuEnabled(HIDE_LIST_ACTION_KEY,listMenuEnabled);
         setListMenuEnabled(MAKE_LIST_READ_ONLY_ACTION_KEY,listMenuEnabled);
+        renameListItem.setEnabled(listMenuEnabled);
         updatePasteAndAddAction();
         updateSelectedLink();
         updateNewLinkButton();
@@ -5651,6 +5682,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private manager.SelectedItemCountPanel listManipSelCountPanel;
     private components.JListManipulator<String> listManipulator;
     private javax.swing.JMenu listMenu;
+    private manager.links.ListNameOptionPane listNamePane;
     private javax.swing.JComboBox<String> listOperationCombo;
     private javax.swing.JButton listSetOpApplyButton;
     private javax.swing.JButton listSetOpCancelButton;
@@ -5685,6 +5717,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem reloadListsItem;
     private javax.swing.JButton removeLinkButton;
     private javax.swing.JButton removePrefixButton;
+    private javax.swing.JMenuItem renameListItem;
     private javax.swing.JButton resetDBFilePathButton;
     private javax.swing.JMenuItem saveConfigItem;
     private javax.swing.JFileChooser saveFC;
