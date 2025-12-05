@@ -1396,6 +1396,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         exitButton = new javax.swing.JMenuItem();
         listMenu = new javax.swing.JMenu();
         manageListsItem = new javax.swing.JMenuItem();
+        createListItem = new javax.swing.JMenuItem();
         renameListItem = new javax.swing.JMenuItem();
         javax.swing.JPopupMenu.Separator jSeparator1 = new javax.swing.JPopupMenu.Separator();
         makeListReadOnlyMenuAll = new javax.swing.JMenu();
@@ -2841,6 +2842,15 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         listMenu.add(manageListsItem);
+
+        createListItem.setText("Create New List");
+        createListItem.setEnabled(false);
+        createListItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                createListItemActionPerformed(evt);
+            }
+        });
+        listMenu.add(createListItem);
 
         renameListItem.setText("Rename Current List");
         renameListItem.setEnabled(false);
@@ -4954,10 +4964,27 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         if (newName != null)
             model.setListName(newName);
     }//GEN-LAST:event_renameListItemActionPerformed
+
+    private void createListItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createListItemActionPerformed
+        LinksListModel model = createNewList();
+        getSelectedTabsPanel().setSelectedIndex(getSelectedTabsPanel().getModels().indexOf(model));
+    }//GEN-LAST:event_createListItemActionPerformed
     
     private String showListNameDialog(LinksListModel model){
         listNamePane.addUsedNames(getModelSet());
         return listNamePane.showListNameDialog(this, model, getSelectedTabsPanel().getModels());
+    }
+    
+    private LinksListModel createNewList(){
+        String name = showListNameDialog(null);
+        if (name == null)
+            return null;
+        LinksListModel model = new LinksListModel(name);
+        for (LinksListTabsPanel tabs : listsTabPanels){
+            tabs.getModels().add(model);
+        }
+        model.setContentsModified();
+        return model;
     }
     
     private void setFilesAreHidden(boolean value){
@@ -5329,6 +5356,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setListMenuEnabled(MOVE_TO_LIST_ACTION_KEY,listMenuEnabled && !getSelectedList().isReadOnly());
         setListMenuEnabled(HIDE_LIST_ACTION_KEY,listMenuEnabled);
         setListMenuEnabled(MAKE_LIST_READ_ONLY_ACTION_KEY,listMenuEnabled);
+        createListItem.setEnabled(fullyLoaded && isInputEnabled() && getSelectedTabsPanel().isEnabled());
         renameListItem.setEnabled(listMenuEnabled);
         updatePasteAndAddAction();
         updateSelectedLink();
@@ -5595,6 +5623,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton copyLinkButton;
     private components.JListSelector<String> copyOrMoveListSelector;
     private manager.SelectedItemCountPanel copyOrMoveSelCountPanel;
+    private javax.swing.JMenuItem createListItem;
     private javax.swing.JDialog databaseDialog;
     private javax.swing.JFileChooser databaseFC;
     private javax.swing.JFileChooser databaseUpdateFC;
