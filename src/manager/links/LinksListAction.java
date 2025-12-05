@@ -22,6 +22,10 @@ public abstract class LinksListAction extends AbstractAction implements
     /**
      * 
      */
+    public static final String NAME_PROVIDER_KEY = "NameProviderKey";
+    /**
+     * 
+     */
     public static final int CHECK_BOX_FLAG = 0x0001;
     /**
      * 
@@ -142,6 +146,34 @@ public abstract class LinksListAction extends AbstractAction implements
     public void setPanel(LinksListPanel panel){
         putValue(PANEL_KEY,panel);
         updateActionName();
+    }
+    
+    public LinksListNameProvider getNameProvider(){
+        Object value = getValue(NAME_PROVIDER_KEY);
+        return (value instanceof LinksListNameProvider) ? (LinksListNameProvider) value : null;
+    }
+    
+    public void setNameProvider(LinksListNameProvider nameProvider){
+        putValue(NAME_PROVIDER_KEY,nameProvider);
+        updateActionName();
+    }
+    @Override
+    public String getDefaultListName(){
+        LinksListNameProvider nameProvider = getNameProvider();
+        return (nameProvider != null) ? nameProvider.getDefaultListName() : 
+                LinksListNameProvider.super.getDefaultListName();
+    }
+    @Override
+    public String getListName(LinksListModel model){
+        LinksListNameProvider nameProvider = getNameProvider();
+        return (nameProvider != null) ? nameProvider.getListName(model) : 
+                LinksListNameProvider.super.getListName(model);
+    }
+    @Override
+    public String getListName(LinksListPanel panel){
+        LinksListNameProvider nameProvider = getNameProvider();
+        return (nameProvider != null) ? nameProvider.getListName(panel) : 
+                LinksListNameProvider.super.getListName(panel);
     }
     
     public String getListName(){

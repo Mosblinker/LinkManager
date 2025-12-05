@@ -101,18 +101,27 @@ public abstract class LinksListTabAction extends LinksListAction{
             LinksListTabsPanel tabsPanel);
     @Override
     public String getDefaultListName(){
+        LinksListNameProvider nameProvider = getNameProvider();
+        if (nameProvider != null)
+            return nameProvider.getDefaultListName();
         LinksListTabsPanel tabsPanel = getTabsPanel();
         return (tabsPanel != null) ? tabsPanel.getDefaultListName() : 
                 super.getDefaultListName();
     }
     @Override
     public String getListName(LinksListModel model){
+        LinksListNameProvider nameProvider = getNameProvider();
+        if (nameProvider != null)
+            return nameProvider.getListName(model);
         LinksListTabsPanel tabsPanel = getTabsPanel();
         return (tabsPanel != null) ? tabsPanel.getListName(model) : 
                 super.getListName(model);
     }
     @Override
     public String getListName(LinksListPanel panel){
+        LinksListNameProvider nameProvider = getNameProvider();
+        if (nameProvider != null)
+            return nameProvider.getListName(panel);
         LinksListTabsPanel tabsPanel = getTabsPanel();
         return (tabsPanel != null) ? tabsPanel.getListName(panel) : 
                 super.getListName(panel);
