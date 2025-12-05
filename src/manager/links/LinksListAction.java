@@ -165,12 +165,16 @@ public abstract class LinksListAction extends AbstractAction implements
     }
     @Override
     public String getListName(LinksListModel model){
+        if (model == null)
+            return getDefaultListName();
         LinksListNameProvider nameProvider = getNameProvider();
         return (nameProvider != null) ? nameProvider.getListName(model) : 
                 LinksListNameProvider.super.getListName(model);
     }
     @Override
     public String getListName(LinksListPanel panel){
+        if (panel == null)
+            return getDefaultListName();
         LinksListNameProvider nameProvider = getNameProvider();
         return (nameProvider != null) ? nameProvider.getListName(panel) : 
                 LinksListNameProvider.super.getListName(panel);

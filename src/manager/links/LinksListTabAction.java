@@ -110,6 +110,8 @@ public abstract class LinksListTabAction extends LinksListAction{
     }
     @Override
     public String getListName(LinksListModel model){
+        if (model == null)
+            return getDefaultListName();
         LinksListNameProvider nameProvider = getNameProvider();
         if (nameProvider != null)
             return nameProvider.getListName(model);
@@ -119,6 +121,8 @@ public abstract class LinksListTabAction extends LinksListAction{
     }
     @Override
     public String getListName(LinksListPanel panel){
+        if (panel == null)
+            return getDefaultListName();
         LinksListNameProvider nameProvider = getNameProvider();
         if (nameProvider != null)
             return nameProvider.getListName(panel);
