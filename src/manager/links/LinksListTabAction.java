@@ -99,9 +99,33 @@ public abstract class LinksListTabAction extends LinksListAction{
      */
     public abstract void actionPerformed(ActionEvent evt,LinksListPanel panel,
             LinksListTabsPanel tabsPanel);
-    
+    @Override
+    public String getDefaultListName(){
+        LinksListNameProvider nameProvider = getNameProvider();
+        if (nameProvider != null)
+            return nameProvider.getDefaultListName();
+        LinksListTabsPanel tabsPanel = getTabsPanel();
+        return (tabsPanel != null) ? tabsPanel.getDefaultListName() : 
+                super.getDefaultListName();
+    }
+    @Override
+    public String getListName(LinksListModel model){
+        if (model == null)
+            return getDefaultListName();
+        LinksListNameProvider nameProvider = getNameProvider();
+        if (nameProvider != null)
+            return nameProvider.getListName(model);
+        LinksListTabsPanel tabsPanel = getTabsPanel();
+        return (tabsPanel != null) ? tabsPanel.getListName(model) : 
+                super.getListName(model);
+    }
     @Override
     public String getListName(LinksListPanel panel){
+        if (panel == null)
+            return getDefaultListName();
+        LinksListNameProvider nameProvider = getNameProvider();
+        if (nameProvider != null)
+            return nameProvider.getListName(panel);
         LinksListTabsPanel tabsPanel = getTabsPanel();
         return (tabsPanel != null) ? tabsPanel.getListName(panel) : 
                 super.getListName(panel);
@@ -131,7 +155,7 @@ public abstract class LinksListTabAction extends LinksListAction{
     }
     @Override
     public boolean isForSelectedList(){
-        return getValue(PANEL_KEY) == null && getTabsPanel() != null;
+        return getValue(PANEL_KEY) == null && !willCreateNewListIfNull() && getTabsPanel() != null;
     }
     @Override
     protected Boolean isListSelected(LinksListPanel panel){

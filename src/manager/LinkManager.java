@@ -287,6 +287,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String ADD_FROM_TEXT_AREA_ACTION_KEY = "AddFromList";
     /**
+     * This is the action command key for adding links to a new list from a 
+     * file.
+     */
+    private static final String NEW_LIST_ADD_FROM_FILE_ACTION_KEY = "NewAddFromFile";
+    /**
+     * This is the action command key for adding links to a new list from a text 
+     * area.
+     */
+    private static final String NEW_LIST_ADD_FROM_TEXT_AREA_ACTION_KEY = "NewAddFromList";
+    /**
      * This is the action command key for copying links from the selected list 
      * and adding them to another list.
      */
@@ -674,6 +684,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         shownListsTabsPanel.getListActionMenu(REMOVE_FROM_LIST_ACTION_KEY)
                 .add(shownListsTabsPanel.getOrCreateListMenuItem(null, 
                         REMOVE_OTHER_LISTS_ACTION_KEY));
+        for (LinksListTabsPanel tabPanel : listsTabPanels){
+            tabPanel.getListActionMenu(ADD_FROM_FILE_ACTION_KEY).add(
+                    tabPanel.getOrCreateListMenuItem(null, NEW_LIST_ADD_FROM_FILE_ACTION_KEY));
+            tabPanel.getListActionMenu(ADD_FROM_TEXT_AREA_ACTION_KEY).add(
+                    tabPanel.getOrCreateListMenuItem(null, NEW_LIST_ADD_FROM_TEXT_AREA_ACTION_KEY));
+        }
         
         listAOpCombo.setRenderer(new LinksListCellRenderer());
         listBOpCombo.setRenderer(new LinksListCellRenderer());
@@ -1064,12 +1080,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     return new RemoveFromListsAction(tabsPanel,panel,true,true);
                 case(REMOVE_OTHER_HIDDEN_LISTS_ACTION_KEY):
                     return new RemoveFromListsAction(tabsPanel,panel,false,true);
+                case(NEW_LIST_ADD_FROM_FILE_ACTION_KEY):
+                    return new NewListAddFromFileAction(tabsPanel,panel);
+                case(NEW_LIST_ADD_FROM_TEXT_AREA_ACTION_KEY):
+                    return new NewListAddFromTextAreaAction(tabsPanel,panel);
                     // There is no copy to current list action (this action 
                     // copies from the current list)
-                case(COPY_TO_LIST_ACTION_KEY):
+//                case(COPY_TO_LIST_ACTION_KEY):
                     // There is no move to current list action (this action 
                     // moves from the current list)
-                case(MOVE_TO_LIST_ACTION_KEY):
+//                case(MOVE_TO_LIST_ACTION_KEY):
                     // There is no hide current list action
                 case(HIDE_LIST_ACTION_KEY):
                     // There is no make current list read only action
@@ -1364,6 +1384,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         aboutPanel = new components.JAboutPanel();
         updateCheckPanel = new manager.UpdateCheckPanel();
         dropboxFC = new manager.dropbox.JDropboxFileChooser();
+        listNamePane = new manager.links.ListNameOptionPane();
         progressBar = new javax.swing.JProgressBar();
         javax.swing.JLabel newLinkLabel = new javax.swing.JLabel();
         linkTextField = new javax.swing.JTextField();
@@ -1395,6 +1416,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         exitButton = new javax.swing.JMenuItem();
         listMenu = new javax.swing.JMenu();
         manageListsItem = new javax.swing.JMenuItem();
+        createListItem = new javax.swing.JMenuItem();
+        renameListItem = new javax.swing.JMenuItem();
         javax.swing.JPopupMenu.Separator jSeparator1 = new javax.swing.JPopupMenu.Separator();
         makeListReadOnlyMenuAll = new javax.swing.JMenu();
         makeListReadOnlyMenuShown = new javax.swing.JMenu();
@@ -2839,6 +2862,24 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             }
         });
         listMenu.add(manageListsItem);
+
+        createListItem.setText("Create New List");
+        createListItem.setEnabled(false);
+        createListItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                createListItemActionPerformed(evt);
+            }
+        });
+        listMenu.add(createListItem);
+
+        renameListItem.setText("Rename Current List");
+        renameListItem.setEnabled(false);
+        renameListItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                renameListItemActionPerformed(evt);
+            }
+        });
+        listMenu.add(renameListItem);
         listMenu.add(jSeparator1);
 
         makeListReadOnlyMenuAll.setText("Set List To Read Only");
@@ -4016,7 +4057,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void manageListsItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manageListsItemActionPerformed
         LinksListTabsPanel tabsPanel = getSelectedTabsPanel();
         listTabsManipulator.setListData(tabsPanel.getModels());
-        List<LinksListModel> models = new ArrayList<>(allListsTabsPanel.getModels());
+        List<LinksListModel> models = new ArrayList<>(getModelSet());
         models.removeAll(tabsPanel.getModels());
         listTabsManipulator.getUsedNames().clear();
         listTabsManipulator.addUsedNames(models);
@@ -4928,7 +4969,43 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                         .setFileCompressionLevel(dbxLocationPanel.getFileCompressionLevel());
         }
     }//GEN-LAST:event_dbxLocationPanelPropertyChange
+
+    private void renameListItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameListItemActionPerformed
+            // If we can't alter the currently selected list
+        if (!canActUponSelectedList()){ 
+            beep();
+            linkTextField.grabFocus();
+            return;
+        }
+        LinksListModel model = getSelectedList().getModel();
+        if (model == null)
+            return;
+        String newName = showListNameDialog(model);
+        if (newName != null)
+            model.setListName(newName);
+    }//GEN-LAST:event_renameListItemActionPerformed
+
+    private void createListItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createListItemActionPerformed
+        LinksListModel model = createNewList();
+        getSelectedTabsPanel().setSelectedIndex(getSelectedTabsPanel().getModels().indexOf(model));
+    }//GEN-LAST:event_createListItemActionPerformed
     
+    private String showListNameDialog(LinksListModel model){
+        listNamePane.addUsedNames(getModelSet());
+        return listNamePane.showListNameDialog(this, model, getSelectedTabsPanel().getModels());
+    }
+    
+    private LinksListModel createNewList(){
+        String name = showListNameDialog(null);
+        if (name == null)
+            return null;
+        LinksListModel model = new LinksListModel(name);
+        for (LinksListTabsPanel tabs : listsTabPanels){
+            tabs.getModels().add(model);
+        }
+        model.setContentsModified();
+        return model;
+    }
     
     private void setFilesAreHidden(boolean value){
         openFC.setFileHidingEnabled(!value);
@@ -5299,6 +5376,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         setListMenuEnabled(MOVE_TO_LIST_ACTION_KEY,listMenuEnabled && !getSelectedList().isReadOnly());
         setListMenuEnabled(HIDE_LIST_ACTION_KEY,listMenuEnabled);
         setListMenuEnabled(MAKE_LIST_READ_ONLY_ACTION_KEY,listMenuEnabled);
+        createListItem.setEnabled(fullyLoaded && isInputEnabled() && getSelectedTabsPanel().isEnabled());
+        renameListItem.setEnabled(listMenuEnabled);
         updatePasteAndAddAction();
         updateSelectedLink();
         updateNewLinkButton();
@@ -5564,6 +5643,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JButton copyLinkButton;
     private components.JListSelector<String> copyOrMoveListSelector;
     private manager.SelectedItemCountPanel copyOrMoveSelCountPanel;
+    private javax.swing.JMenuItem createListItem;
     private javax.swing.JDialog databaseDialog;
     private javax.swing.JFileChooser databaseFC;
     private javax.swing.JFileChooser databaseUpdateFC;
@@ -5651,6 +5731,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private manager.SelectedItemCountPanel listManipSelCountPanel;
     private components.JListManipulator<String> listManipulator;
     private javax.swing.JMenu listMenu;
+    private manager.links.ListNameOptionPane listNamePane;
     private javax.swing.JComboBox<String> listOperationCombo;
     private javax.swing.JButton listSetOpApplyButton;
     private javax.swing.JButton listSetOpCancelButton;
@@ -5685,6 +5766,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private javax.swing.JMenuItem reloadListsItem;
     private javax.swing.JButton removeLinkButton;
     private javax.swing.JButton removePrefixButton;
+    private javax.swing.JMenuItem renameListItem;
     private javax.swing.JButton resetDBFilePathButton;
     private javax.swing.JMenuItem saveConfigItem;
     private javax.swing.JFileChooser saveFC;
@@ -6800,6 +6882,41 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     /**
+     * 
+     */
+    private class NewListAddFromFileAction extends AddFromFileAction{
+        /**
+         * 
+         * @param tabsPanel
+         */
+        NewListAddFromFileAction(LinksListTabsPanel tabsPanel, LinksListPanel panel) {
+            super(tabsPanel, panel);
+            putValue(Action.ACTION_COMMAND_KEY, NEW_LIST_ADD_FROM_FILE_ACTION_KEY);
+        }
+        @Override
+        public String getDefaultListName(){
+            return "New List";
+        }
+        @Override
+        public int getActionControlFlags(){
+            return super.getActionControlFlags() | 
+                    LinksListAction.CREATES_NEW_LIST_IF_NULL_FLAG;
+        }
+        @Override
+        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
+                LinksListTabsPanel tabsPanel) {
+                // If the given panel is null
+            if (panel == null){
+                LinksListModel newModel = createNewList();
+                if (newModel == null)
+                    return;
+                panel = tabsPanel.getLists().get(tabsPanel.getModels().indexOf(newModel));
+                tabsPanel.setSelectedComponent(panel);
+            }
+            super.actionPerformed(evt, panel, tabsPanel);
+        }
+    }
+    /**
      * This is a LinksListTabAction that adds links from a text area to a 
      * list.
      */
@@ -6836,6 +6953,41 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     /**
+     * 
+     */
+    private class NewListAddFromTextAreaAction extends AddFromTextAreaAction{
+        /**
+         * 
+         * @param tabsPanel
+         */
+        NewListAddFromTextAreaAction(LinksListTabsPanel tabsPanel, LinksListPanel panel) {
+            super(tabsPanel, panel);
+            putValue(Action.ACTION_COMMAND_KEY, NEW_LIST_ADD_FROM_TEXT_AREA_ACTION_KEY);
+        }
+        @Override
+        public String getDefaultListName(){
+            return "New List";
+        }
+        @Override
+        public int getActionControlFlags(){
+            return super.getActionControlFlags() | 
+                    LinksListAction.CREATES_NEW_LIST_IF_NULL_FLAG;
+        }
+        @Override
+        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
+                LinksListTabsPanel tabsPanel) {
+                // If the given panel is null
+            if (panel == null){
+                LinksListModel newModel = createNewList();
+                if (newModel == null)
+                    return;
+                panel = tabsPanel.getLists().get(tabsPanel.getModels().indexOf(newModel));
+                tabsPanel.setSelectedComponent(panel);
+            }
+            super.actionPerformed(evt, panel, tabsPanel);
+        }
+    }
+    /**
      * This is a LinksListTabAction that copies or moves links from the 
      * selected list to another list.
      */
@@ -6859,6 +7011,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
             this.move = move;
                 // Update the action name
             updateActionName();
+        }
+        @Override
+        public String getDefaultListName(){
+            return "New List";
         }
         /**
          * 
@@ -6886,6 +7042,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
                 LinksListTabsPanel tabsPanel) {
+                // If the given panel is null
+            if (panel == null){
+                LinksListModel newModel = createNewList();
+                if (newModel == null)
+                    return;
+                panel = tabsPanel.getLists().get(tabsPanel.getModels().indexOf(newModel));
+            }
                 // If the given panel is selected or no panels are selected
             if (tabsPanel.isSelected(panel) || tabsPanel.isNonListSelected())
                 return;
@@ -6917,7 +7080,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         public int getActionControlFlags(){
             return super.getActionControlFlags() | 
-                    LinksListAction.LIST_MUST_NOT_BE_SELECTED_FLAG;
+                    LinksListAction.LIST_MUST_NOT_BE_SELECTED_FLAG |
+                    LinksListAction.CREATES_NEW_LIST_IF_NULL_FLAG;
         }
     }
     /**
