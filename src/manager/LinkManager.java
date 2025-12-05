@@ -1066,10 +1066,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     return new RemoveFromListsAction(tabsPanel,panel,false,true);
                     // There is no copy to current list action (this action 
                     // copies from the current list)
-                case(COPY_TO_LIST_ACTION_KEY):
+//                case(COPY_TO_LIST_ACTION_KEY):
                     // There is no move to current list action (this action 
                     // moves from the current list)
-                case(MOVE_TO_LIST_ACTION_KEY):
+//                case(MOVE_TO_LIST_ACTION_KEY):
                     // There is no hide current list action
                 case(HIDE_LIST_ACTION_KEY):
                     // There is no make current list read only action
@@ -6922,6 +6922,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                 // Update the action name
             updateActionName();
         }
+        @Override
+        public String getDefaultListName(){
+            return "New List";
+        }
         /**
          * 
          * @return 
@@ -6948,6 +6952,13 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
                 LinksListTabsPanel tabsPanel) {
+                // If the given panel is null
+            if (panel == null){
+                LinksListModel newModel = createNewList();
+                if (newModel == null)
+                    return;
+                panel = tabsPanel.getLists().get(tabsPanel.getModels().indexOf(newModel));
+            }
                 // If the given panel is selected or no panels are selected
             if (tabsPanel.isSelected(panel) || tabsPanel.isNonListSelected())
                 return;
@@ -6979,7 +6990,8 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         public int getActionControlFlags(){
             return super.getActionControlFlags() | 
-                    LinksListAction.LIST_MUST_NOT_BE_SELECTED_FLAG;
+                    LinksListAction.LIST_MUST_NOT_BE_SELECTED_FLAG |
+                    LinksListAction.CREATES_NEW_LIST_IF_NULL_FLAG;
         }
     }
     /**
