@@ -779,8 +779,8 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
     }
     
     @Override
-    public String getListName(LinksListPanel panel){
-        return (panel != null) ? panel.getListName() : "Current List";
+    public String getNullListName(){
+        return "Current List";
     }
     
     public void removeAllIDs(){

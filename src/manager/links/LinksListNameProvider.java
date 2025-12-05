@@ -11,7 +11,15 @@ package manager.links;
 public interface LinksListNameProvider {
     
     public default String getListName(LinksListPanel panel){
-        return (panel != null) ? panel.getListName() : "null";
+        return (panel != null) ? getListName(panel.getModel()) :getNullListName();
+    }
+    
+    public default String getListName(LinksListModel model){
+        return (model != null) ? model.getListName() : getNullListName();
+    }
+    
+    public default String getNullListName(){
+        return "null";
     }
     
 }
