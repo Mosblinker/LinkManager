@@ -100,10 +100,10 @@ public abstract class LinksListTabAction extends LinksListAction{
     public abstract void actionPerformed(ActionEvent evt,LinksListPanel panel,
             LinksListTabsPanel tabsPanel);
     @Override
-    public String getNullListName(){
+    public String getDefaultListName(){
         LinksListTabsPanel tabsPanel = getTabsPanel();
-        return (tabsPanel != null) ? tabsPanel.getNullListName() : 
-                super.getNullListName();
+        return (tabsPanel != null) ? tabsPanel.getDefaultListName() : 
+                super.getDefaultListName();
     }
     @Override
     public String getListName(LinksListModel model){

@@ -779,7 +779,7 @@ public class LinksListTabsPanel extends JPanel implements Iterable<LinksListPane
     }
     
     @Override
-    public String getNullListName(){
+    public String getDefaultListName(){
         return "Current List";
     }
     

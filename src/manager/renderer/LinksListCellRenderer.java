@@ -20,7 +20,7 @@ public class LinksListCellRenderer extends DefaultListCellRenderer implements Li
     private String nullName = "Current List";
     
     @Override
-    public String getNullListName(){
+    public String getDefaultListName(){
         return nullName;
     }
     
