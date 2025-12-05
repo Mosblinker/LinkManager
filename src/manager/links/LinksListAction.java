@@ -81,6 +81,10 @@ public abstract class LinksListAction extends AbstractAction implements
     public static final int LIST_MUST_NOT_BE_HIDDEN_FLAG = 0x2000;
     /**
      * 
+     */
+    public static final int CREATES_NEW_LIST_IF_NULL_FLAG = 0x4000;
+    /**
+     * 
      * @param name The name ({@code Action.NAME}) for the action, or null.
      * @param actionCmd The action command ({@code Action.ACTION_COMMAND_KEY}) 
      * for the action, or null.
@@ -274,6 +278,13 @@ public abstract class LinksListAction extends AbstractAction implements
     
     public boolean getListMustNotBeEdited(){
         return getActionControlFlag(LIST_MUST_NOT_BE_EDITED_FLAG);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public boolean willCreateNewListIfNull(){
+        return getActionControlFlag(CREATES_NEW_LIST_IF_NULL_FLAG);
     }
     /**
      * This returns an integer containing the flags that must match up with what 

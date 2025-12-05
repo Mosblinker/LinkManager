@@ -155,7 +155,7 @@ public abstract class LinksListTabAction extends LinksListAction{
     }
     @Override
     public boolean isForSelectedList(){
-        return getValue(PANEL_KEY) == null && getTabsPanel() != null;
+        return getValue(PANEL_KEY) == null && !willCreateNewListIfNull() && getTabsPanel() != null;
     }
     @Override
     protected Boolean isListSelected(LinksListPanel panel){
