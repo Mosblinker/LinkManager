@@ -4016,7 +4016,7 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
     private void manageListsItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manageListsItemActionPerformed
         LinksListTabsPanel tabsPanel = getSelectedTabsPanel();
         listTabsManipulator.setListData(tabsPanel.getModels());
-        List<LinksListModel> models = new ArrayList<>(allListsTabsPanel.getModels());
+        List<LinksListModel> models = new ArrayList<>(getModelSet());
         models.removeAll(tabsPanel.getModels());
         listTabsManipulator.getUsedNames().clear();
         listTabsManipulator.addUsedNames(models);
