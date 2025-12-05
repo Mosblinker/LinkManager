@@ -287,6 +287,16 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
      */
     private static final String ADD_FROM_TEXT_AREA_ACTION_KEY = "AddFromList";
     /**
+     * This is the action command key for adding links to a new list from a 
+     * file.
+     */
+    private static final String NEW_LIST_ADD_FROM_FILE_ACTION_KEY = "NewAddFromFile";
+    /**
+     * This is the action command key for adding links to a new list from a text 
+     * area.
+     */
+    private static final String NEW_LIST_ADD_FROM_TEXT_AREA_ACTION_KEY = "NewAddFromList";
+    /**
      * This is the action command key for copying links from the selected list 
      * and adding them to another list.
      */
@@ -674,6 +684,12 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         shownListsTabsPanel.getListActionMenu(REMOVE_FROM_LIST_ACTION_KEY)
                 .add(shownListsTabsPanel.getOrCreateListMenuItem(null, 
                         REMOVE_OTHER_LISTS_ACTION_KEY));
+        for (LinksListTabsPanel tabPanel : listsTabPanels){
+            tabPanel.getListActionMenu(ADD_FROM_FILE_ACTION_KEY).add(
+                    tabPanel.getOrCreateListMenuItem(null, NEW_LIST_ADD_FROM_FILE_ACTION_KEY));
+            tabPanel.getListActionMenu(ADD_FROM_TEXT_AREA_ACTION_KEY).add(
+                    tabPanel.getOrCreateListMenuItem(null, NEW_LIST_ADD_FROM_TEXT_AREA_ACTION_KEY));
+        }
         
         listAOpCombo.setRenderer(new LinksListCellRenderer());
         listBOpCombo.setRenderer(new LinksListCellRenderer());
@@ -1064,6 +1080,10 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
                     return new RemoveFromListsAction(tabsPanel,panel,true,true);
                 case(REMOVE_OTHER_HIDDEN_LISTS_ACTION_KEY):
                     return new RemoveFromListsAction(tabsPanel,panel,false,true);
+                case(NEW_LIST_ADD_FROM_FILE_ACTION_KEY):
+                    return new NewListAddFromFileAction(tabsPanel,panel);
+                case(NEW_LIST_ADD_FROM_TEXT_AREA_ACTION_KEY):
+                    return new NewListAddFromTextAreaAction(tabsPanel,panel);
                     // There is no copy to current list action (this action 
                     // copies from the current list)
 //                case(COPY_TO_LIST_ACTION_KEY):
@@ -6862,6 +6882,41 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         }
     }
     /**
+     * 
+     */
+    private class NewListAddFromFileAction extends AddFromFileAction{
+        /**
+         * 
+         * @param tabsPanel
+         */
+        NewListAddFromFileAction(LinksListTabsPanel tabsPanel, LinksListPanel panel) {
+            super(tabsPanel, panel);
+            putValue(Action.ACTION_COMMAND_KEY, NEW_LIST_ADD_FROM_FILE_ACTION_KEY);
+        }
+        @Override
+        public String getDefaultListName(){
+            return "New List";
+        }
+        @Override
+        public int getActionControlFlags(){
+            return super.getActionControlFlags() | 
+                    LinksListAction.CREATES_NEW_LIST_IF_NULL_FLAG;
+        }
+        @Override
+        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
+                LinksListTabsPanel tabsPanel) {
+                // If the given panel is null
+            if (panel == null){
+                LinksListModel newModel = createNewList();
+                if (newModel == null)
+                    return;
+                panel = tabsPanel.getLists().get(tabsPanel.getModels().indexOf(newModel));
+                tabsPanel.setSelectedComponent(panel);
+            }
+            super.actionPerformed(evt, panel, tabsPanel);
+        }
+    }
+    /**
      * This is a LinksListTabAction that adds links from a text area to a 
      * list.
      */
@@ -6895,6 +6950,41 @@ public class LinkManager extends JFrame implements DisableGUIInput,DebugCapable{
         @Override
         protected String getNewActionName(LinksListPanel panel){
             return "Add To "+getListName(panel);
+        }
+    }
+    /**
+     * 
+     */
+    private class NewListAddFromTextAreaAction extends AddFromTextAreaAction{
+        /**
+         * 
+         * @param tabsPanel
+         */
+        NewListAddFromTextAreaAction(LinksListTabsPanel tabsPanel, LinksListPanel panel) {
+            super(tabsPanel, panel);
+            putValue(Action.ACTION_COMMAND_KEY, NEW_LIST_ADD_FROM_TEXT_AREA_ACTION_KEY);
+        }
+        @Override
+        public String getDefaultListName(){
+            return "New List";
+        }
+        @Override
+        public int getActionControlFlags(){
+            return super.getActionControlFlags() | 
+                    LinksListAction.CREATES_NEW_LIST_IF_NULL_FLAG;
+        }
+        @Override
+        public void actionPerformed(ActionEvent evt, LinksListPanel panel, 
+                LinksListTabsPanel tabsPanel) {
+                // If the given panel is null
+            if (panel == null){
+                LinksListModel newModel = createNewList();
+                if (newModel == null)
+                    return;
+                panel = tabsPanel.getLists().get(tabsPanel.getModels().indexOf(newModel));
+                tabsPanel.setSelectedComponent(panel);
+            }
+            super.actionPerformed(evt, panel, tabsPanel);
         }
     }
     /**
