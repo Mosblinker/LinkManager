@@ -113,9 +113,11 @@ public class ListNameOptionPane extends JOptionPane{
      * 
      * @param parent
      * @param model
+     * @param models
      * @return 
      */
-    public String showListNameDialog(Component parent, LinksListModel model){
+    public String showListNameDialog(Component parent, LinksListModel model, 
+            Collection<LinksListModel> models){
         String title;   // This gets the title for the dialog
         String prompt;  // This gets the prompt for the dialog
             // This gets the current name of the model, or null if no model was 
@@ -170,7 +172,7 @@ public class ListNameOptionPane extends JOptionPane{
                         msg = "The list name \""+name+"\" is already in use.";
                     }
                     else{   // Go through the list models 
-                        for (LinksListModel temp : getModels()){
+                        for (LinksListModel temp : models){
                                 // If the name of this list model is the same as 
                                 // the entered name (we've already checked the 
                                 // given model and confirmed it's not the same 
@@ -196,6 +198,15 @@ public class ListNameOptionPane extends JOptionPane{
         while (!valid);     // While the name entered is not valid
         dialog.dispose();   // Dispose of the dialog
         return name;
+    }
+    /**
+     * 
+     * @param parent
+     * @param model
+     * @return 
+     */
+    public String showListNameDialog(Component parent, LinksListModel model){
+        return showListNameDialog(parent,model,getModels());
     }
     /**
      * 
