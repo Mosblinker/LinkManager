@@ -19,7 +19,7 @@ public interface LinksListNameProvider {
     }
     
     public default String getDefaultListName(){
-        return "null";
+        return null;
     }
     
 }
