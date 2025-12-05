@@ -19,7 +19,8 @@ public class LinksListCellRenderer extends DefaultListCellRenderer implements Li
     
     private String nullName = "Current List";
     
-    public String getNullListName(){
+    @Override
+    public String getDefaultListName(){
         return nullName;
     }
     
@@ -29,15 +30,6 @@ public class LinksListCellRenderer extends DefaultListCellRenderer implements Li
         String old = nullName;
         nullName = name;
         firePropertyChange(NULL_LIST_NAME_PROPERTY_CHANGED,old,nullName);
-    }
-    
-    @Override
-    public String getListName(LinksListPanel panel){
-        return (panel != null) ? panel.getListName() : getNullListName();
-    }
-    
-    public String getListName(LinksListModel model){
-        return (model != null) ? model.getListName() : getNullListName();
     }
     
     @Override

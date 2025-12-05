@@ -161,13 +161,12 @@ public class LinksListTabsManipulator extends JListManipulator<LinksListModel>{
         
         setCellRenderer(new ModelNameCellRenderer());
         
-        listNamePane = new JOptionPane("Enter the name for the list:",
-                JOptionPane.QUESTION_MESSAGE,
-                JOptionPane.OK_CANCEL_OPTION);
-        listNamePane.setWantsInput(true);
-        listNamePane.setPreferredSize(new Dimension(560, 120));
-        listNamePane.setMinimumSize(new Dimension(560, 120));
-        listNamePane.setMaximumSize(new Dimension(32769, 120));
+        listNamePane = new ListNameOptionPane(new LinksListNameProvider(){
+            @Override
+            public String getListName(LinksListModel model){
+                return getNameForModel(model);
+            }
+        });
         
         updateListButtonsEnabled();
     }
@@ -462,86 +461,7 @@ public class LinksListTabsManipulator extends JListManipulator<LinksListModel>{
      * a list model.
      */
     protected String showListNameDialog(LinksListModel model){
-        String title;   // This gets the title for the dialog
-        String prompt;  // This gets the prompt for the dialog
-            // This gets the current name of the model, or null if no model was 
-        String oldName = getNameForModel(model);    // given
-        if (model == null){ // If no model was provided (creating a new list)
-            title = "Create New List";
-            prompt = CREATE_NEW_ITEM_PROMPT;
-        }
-        else{               // If a model was provided (renaming a list)
-            title = "Rename List \""+oldName+"\"";
-            prompt = RENAME_ITEM_PROMPT;
-        }
-        listNamePane.setMessage(prompt);
-        listNamePane.setInitialSelectionValue(null);
-        listNamePane.setInitialSelectionValue(oldName);
-            // Create a dialog to display the option pane used to enter the name
-        JDialog dialog = listNamePane.createDialog(this, title);
-            // This gets the name that was entered by the user.
-        String name = null;
-            // This stores whether the name entered by the user is valid (i.e. a 
-        boolean valid;  // non-blank name not currently used by any other list)
-        do{
-            valid = true;
-            dialog.setVisible(true);    // Show the dialog
-                // Get the option selected by the user
-            Object option = listNamePane.getValue();
-                // This gets the message to display if there is an issue with 
-            String msg = null;  // the name
-                // If the option is a number, and OK was selected
-            if (option instanceof Number && 
-                    ((Number) option).equals(JOptionPane.OK_OPTION)){
-                    // This gets the name from the user's input
-                name = (String)listNamePane.getInputValue();
-                    // If the entered name is null or blank
-                if (name == null || name.isBlank()){
-                    valid = false;
-                    msg = "The list name cannot be blank.";
-                }   // If the name contains an asterisk
-                else if (name.contains("*")){
-                    valid = false;
-                    msg = "The list name cannot contain an asterisk(*).";
-                }
-                else{
-                    name = name.trim(); // Trim the name
-                        // If a model was provided and the entered name is the 
-                        // same as the current name for the model
-                    if (model != null && name.equals(oldName)){
-                        name = null;
-                    }
-                    else if (getUsedNames().contains(name)){
-                        valid = false;
-                        msg = "The list name \""+name+"\" is already in use.";
-                    }
-                    else{   // Go through the list models 
-                        for (LinksListModel temp : getModelList()){
-                                // If the name of this list model is the same as 
-                                // the entered name (we've already checked the 
-                                // given model and confirmed it's not the same 
-                                // as the old name for that model)
-                            if (name.equals(getNameForModel(temp))){
-                                valid = false;
-                                msg = "There is already a list with the name \""
-                                        +name+"\"";
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            else
-                name = null;    // No change will be made
-                // If the name is not valid and a message is to be displayed
-            if (!valid && msg != null){
-                JOptionPane.showMessageDialog(this,msg,"Invalid List Name",
-                        JOptionPane.WARNING_MESSAGE);
-            }
-        }
-        while (!valid);     // While the name entered is not valid
-        dialog.dispose();   // Dispose of the dialog
-        return name;
+        return listNamePane.showListNameDialog(this, model, getModelList());
     }
     /**
      * This pops up a dialog for the user to enter the name for a new list and, 
@@ -656,19 +576,15 @@ public class LinksListTabsManipulator extends JListManipulator<LinksListModel>{
     }
     
     public Set<String> getUsedNames(){
-        if (usedNames == null)
-            usedNames = new HashSet<>();
-        return usedNames;
+        return listNamePane.getUsedNames();
     }
     
     public void addUsedNames(Collection<LinksListModel> models){
-        for (LinksListModel model : models){
-            getUsedNames().add(model.getListName());
-        }
+        listNamePane.addUsedNames(models);
     }
     
     public void addUsedNames(LinksListTabsPanel tabsPanel){
-        addUsedNames(tabsPanel.getModels());
+        listNamePane.addUsedNames(tabsPanel);
     }
     /**
      * This returns a comparator that can be used to sort a list of 
@@ -749,8 +665,6 @@ public class LinksListTabsManipulator extends JListManipulator<LinksListModel>{
      * in some way.
      */
     private boolean skipUpdate = false;
-    
-    private Set<String> usedNames = null;
     /**
      * This is a map that maps list models that have been renamed to their new 
      * name. 
@@ -794,7 +708,7 @@ public class LinksListTabsManipulator extends JListManipulator<LinksListModel>{
      * This is the JOptionPane used to enter names for lists. This is used both 
      * when creating a new list and renaming an existing list.
      */
-    protected JOptionPane listNamePane;
+    protected ListNameOptionPane listNamePane;
     
     @Override
     protected void fireSelectionChanged(int firstIndex, int lastIndex, 

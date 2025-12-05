@@ -22,6 +22,10 @@ public abstract class LinksListAction extends AbstractAction implements
     /**
      * 
      */
+    public static final String NAME_PROVIDER_KEY = "NameProviderKey";
+    /**
+     * 
+     */
     public static final int CHECK_BOX_FLAG = 0x0001;
     /**
      * 
@@ -75,6 +79,10 @@ public abstract class LinksListAction extends AbstractAction implements
      * 
      */
     public static final int LIST_MUST_NOT_BE_HIDDEN_FLAG = 0x2000;
+    /**
+     * 
+     */
+    public static final int CREATES_NEW_LIST_IF_NULL_FLAG = 0x4000;
     /**
      * 
      * @param name The name ({@code Action.NAME}) for the action, or null.
@@ -142,6 +150,38 @@ public abstract class LinksListAction extends AbstractAction implements
     public void setPanel(LinksListPanel panel){
         putValue(PANEL_KEY,panel);
         updateActionName();
+    }
+    
+    public LinksListNameProvider getNameProvider(){
+        Object value = getValue(NAME_PROVIDER_KEY);
+        return (value instanceof LinksListNameProvider) ? (LinksListNameProvider) value : null;
+    }
+    
+    public void setNameProvider(LinksListNameProvider nameProvider){
+        putValue(NAME_PROVIDER_KEY,nameProvider);
+        updateActionName();
+    }
+    @Override
+    public String getDefaultListName(){
+        LinksListNameProvider nameProvider = getNameProvider();
+        return (nameProvider != null) ? nameProvider.getDefaultListName() : 
+                LinksListNameProvider.super.getDefaultListName();
+    }
+    @Override
+    public String getListName(LinksListModel model){
+        if (model == null)
+            return getDefaultListName();
+        LinksListNameProvider nameProvider = getNameProvider();
+        return (nameProvider != null) ? nameProvider.getListName(model) : 
+                LinksListNameProvider.super.getListName(model);
+    }
+    @Override
+    public String getListName(LinksListPanel panel){
+        if (panel == null)
+            return getDefaultListName();
+        LinksListNameProvider nameProvider = getNameProvider();
+        return (nameProvider != null) ? nameProvider.getListName(panel) : 
+                LinksListNameProvider.super.getListName(panel);
     }
     
     public String getListName(){
@@ -238,6 +278,13 @@ public abstract class LinksListAction extends AbstractAction implements
     
     public boolean getListMustNotBeEdited(){
         return getActionControlFlag(LIST_MUST_NOT_BE_EDITED_FLAG);
+    }
+    /**
+     * 
+     * @return 
+     */
+    public boolean willCreateNewListIfNull(){
+        return getActionControlFlag(CREATES_NEW_LIST_IF_NULL_FLAG);
     }
     /**
      * This returns an integer containing the flags that must match up with what 
