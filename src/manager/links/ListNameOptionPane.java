@@ -110,11 +110,16 @@ public class ListNameOptionPane extends JOptionPane{
         }
     }
     /**
-     * 
-     * @param parent
-     * @param model
-     * @param models
-     * @return 
+     * This opens a pop up that the user can use to enter in a name for a list. 
+     * This can be used for getting the name for a new list or getting the new 
+     * name for a list that is being renamed. If a LinksListModel is provided, 
+     * then this will get the new name for that list. Otherwise, this will get 
+     * the name for a new list. The name returned will not be blank, contain 
+     * asterisks, or be the same name as another list.
+     * @param model The list model to get the new name for, or null to get the 
+     * name for a new list model.
+     * @return The new name for the model, or null to cancel creating/renaming 
+     * a list model.
      */
     public String showListNameDialog(Component parent, LinksListModel model, 
             Collection<LinksListModel> models){
